@@ -1,0 +1,70 @@
+package com.ripple.client;
+
+import com.ripple.client.pubsub.IPublisher;
+import com.ripple.client.pubsub.Publisher;
+import com.ripple.client.subscriptions.AccountRoot;
+import com.ripple.client.transactions.TransactionManager;
+import com.ripple.client.wallet.Wallet;
+import com.ripple.core.types.AccountID;
+
+/*
+*
+* We want this guy to be able to track accounts we have the secret for or not
+*
+* */
+public class Account extends AccountID implements IPublisher<Account.events> {
+    private final Publisher<events> publisher = new Publisher<events>();
+
+    public <T extends events> void on(Class<T> key, T cb) {
+        publisher.on(key, cb);
+    }
+
+    public <T extends events> void once(final Class<T> key, final T cb) {
+        publisher.once(key, cb);
+    }
+
+    public <T extends events> int emit(Class<T> key, Object... args) {
+        return publisher.emit(key, args);
+    }
+
+    public void remove(Class<? extends events> key, IPublisher.ICallback2 cb) {
+        publisher.remove(key, cb);
+    }
+
+    public TransactionManager transactionManager() {
+        return tm;
+    }
+
+    // events enumeration
+    public static abstract class events<T> extends Publisher.Callback<T> {}
+    public static abstract class OnServerInfo extends events {}
+
+    public AccountRoot root;
+    public Wallet                 wallet;
+    private TransactionManager     tm;
+
+    public AccountID id() {return id;}
+    AccountID              id;
+
+    private Account() {
+        super();
+    }
+
+    public Account(AccountID id,
+                   AccountRoot root,
+                   Wallet wallet,
+                   TransactionManager tm) {
+        cloneFields(id);
+
+        this.root = root;
+        this.wallet = wallet;
+        this.tm = tm;
+    }
+
+    private void cloneFields(AccountID id) {
+        this.addressBytes = id.bytes();
+        this.address = id.address;
+        this.masterSeed = id.masterSeed;
+        this.keyPair = id.getKeyPair();
+    }
+}
