@@ -37,11 +37,15 @@ Example:
           System.out.printf(fmt + "\n", args);
       }
       public static void main(String[] args) throws Exception {
+          // Will be less ugly
           Client.quiet = true;
 
+          // Construct with chosen transport implementing interface
           Client client = new Client(new JavaWebSocketTransportImpl());
           client.connect("wss://s1.ripple.com");
 
+          // We can retrieve the keys to make transactions as stored by the 
+          // official client
           JSONObject blob = PayWard.getBlob("niq1", "xxxxxx");
           String masterSeed = blob.getString("master_seed");
           Account account = client.accountFromSeed(masterSeed);
@@ -49,7 +53,9 @@ Example:
           makePayment(account, "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH", "1");
       }
 
-      private static void makePayment(Account account, Object destination, String amt) {
+      // Note destination can be any (valid account repr) `Object`, here we
+      // are passing in a String, likewise for the amount, which is one `drop`. 
+      private static void makePayment(Account account, Object destination, Object amt) {
           TransactionManager tm = account.transactionManager();
           Transaction tx = tm.payment();
 
