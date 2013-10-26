@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Client.iml" filepath="$PROJECT_DIR$/Client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Example.iml" filepath="$PROJECT_DIR$/Example.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JavaWebSocket Transport.iml" filepath="$PROJECT_DIR$/JavaWebSocket Transport.iml" />
+      <module fileurl="file://$PROJECT_DIR$/RippleJ.iml" filepath="$PROJECT_DIR$/RippleJ.iml" />
+    </modules>
+  </component>
+</project>
+
