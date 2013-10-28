@@ -25,9 +25,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-import static com.ripple.android.Logger.LOG;
-
-
 class Logger {
     private static final String LOG_TAG = "PayOneDrop";
 
@@ -36,9 +33,26 @@ class Logger {
     }
 }
 
+class JSON {
+    public static JSONObject parseJSON(String s) {
+        try {
+            return new JSONObject(s);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String prettyJSON(JSONObject jsonObject) {
+        try {
+            return jsonObject.toString(4);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+
 class AndroidClient extends Client {
     Handler   handler;
-    final Object lock = new Object();
 
     public AndroidClient(Handler h) {
         super(new JavaWebSocketTransportImpl());
@@ -47,28 +61,21 @@ class AndroidClient extends Client {
 
     @Override
     public void sendMessage(JSONObject msg) {
-        try {
-            log("sending: ", msg.toString(4));
-            super.sendMessage(msg);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        log("sending: ", JSON.prettyJSON(msg));
+        super.sendMessage(msg);
     }
 
+    /**
+     * This is ensure we run everything on the ui thread (as per click handlers)
+     * @param
+     */
     @Override
     public void onMessage(final JSONObject msg) {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                try {
-                    log("received: ", msg.toString(4));
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
-
-                synchronized (lock) {
-                    AndroidClient.super.onMessage(msg);
-                }
+                log("received: ", JSON.prettyJSON(msg));
+                AndroidClient.super.onMessage(msg);
             }
         });
     }
@@ -85,13 +92,19 @@ public class PayOneDrop extends Activity {
     Button submit;
     DownloadBlob blobDownloadTask;
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         setupClient();
         setupViews();
+    }
+
+    private void setupClient() {
+        handler = new Handler();
+        client = new AndroidClient(handler);
+        client.connect("wss://ct.ripple.com");
+        account = null;
     }
 
     private void setupViews() {
@@ -123,11 +136,21 @@ public class PayOneDrop extends Activity {
         });
     }
 
-    private void setupClient() {
-        handler = new Handler();
-        client = new AndroidClient(handler);
-        client.connect("wss://ct.ripple.com");
-        account = null;
+    private void setSubmitToPay() {
+        submit.setVisibility(View.VISIBLE);
+        submit.setText("Pay niq one drop!");
+    }
+
+    private void showLogin() {
+        username.setVisibility(View.VISIBLE);
+        password.setVisibility(View.VISIBLE);
+        submit.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLogin() {
+        username.setVisibility(View.GONE);
+        password.setVisibility(View.GONE);
+        submit.setVisibility(View.GONE);
     }
 
     private void payNiqOneDrop(Account account) throws IOException, InvalidCipherTextException, JSONException {
@@ -144,29 +167,24 @@ public class PayOneDrop extends Activity {
         tx.once(Transaction.OnSubmitSuccess.class, new Transaction.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
-                LOG("Submit response: %s", response.engineResult());
-                setStatus("Transaction submitted " + awaiting(account));
+                setStatus("Transaction submitted " + awaitingTransactionsParenthetical(account));
             }
         });
         tx.once(Transaction.OnTransactionValidated.class, new Transaction.OnTransactionValidated() {
             @Override
             public void called(TransactionResult result) {
-                LOG("Transaction finalized on ledger: %s", result.ledgerIndex);
-                setStatus("Transaction finalized " + awaiting(account));
+                setStatus("Transaction finalized " + awaitingTransactionsParenthetical(account));
                 try {
                     String s = result.message.toString(4);
-                    LOG("Transaction message:\n%s", s);
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
 
             }
         });
-
         tm.queue(tx);
     }
-
-    private String awaiting(Account account) {
+    private String awaitingTransactionsParenthetical(Account account) {
         return "(awaiting " + account.transactionManager().awaiting() + ")";
     }
 
@@ -178,14 +196,11 @@ public class PayOneDrop extends Activity {
         @Override
         protected void onPostExecute(JSONObject blob) {
             blobDownloadTask = null;
-
             if (blob == null) {
                 setStatus("Failed to retrieve blob!");
                 showLogin();
                 return;
             }
-
-
             try {
                 setStatus("Retrieved blob!");
                 account = client.accountFromSeed(blob.getString("master_seed"));
@@ -211,22 +226,5 @@ public class PayOneDrop extends Activity {
                 return null;
             }
         }
-    }
-
-    private void setSubmitToPay() {
-        submit.setVisibility(View.VISIBLE);
-        submit.setText("Pay niq one drop!");
-    }
-
-    private void showLogin() {
-        username.setVisibility(View.VISIBLE);
-        password.setVisibility(View.VISIBLE);
-        submit.setVisibility(View.VISIBLE);
-    }
-
-    private void hideLogin() {
-        username.setVisibility(View.GONE);
-        password.setVisibility(View.GONE);
-        submit.setVisibility(View.GONE);
     }
 }
