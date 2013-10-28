@@ -12,19 +12,21 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+
+import static com.ripple.cli.log.Log.LOG;
 
 public class AnalyzeDump {
     public static void main(String[] args) throws IOException, JSONException {
         analyzeDump();
     }
     private static void analyzeDump() throws IOException, JSONException {
-        FileReader reader = new FileReader("dump.json");
-        BufferedReader bufferedReader = new BufferedReader(reader);
-        AccountID giveAwayAccount = AccountID.fromAddress("rMTzGg7nPPEMJthjgEBfiPZGoAM7MEVa1r");
+        BufferedReader bufferedReader = openDumpReader();
 
-        Amount giveAwayAmount = Amount.fromString("888.0");
+        AccountID giveAwayAccount = AccountID.fromAddress("rMTzGg7nPPEMJthjgEBfiPZGoAM7MEVa1r");
+        Amount    giveAwayAmount  = Amount.fromString("888.0");
 
         int successful = 0, created = 0;
         String line;
@@ -39,17 +41,21 @@ public class AnalyzeDump {
                     tr = new TransactionResult(tx, TransactionResult.Source.request_account_tx);
 
                     if (tr.engineResult      == TransactionEngineResult.tesSUCCESS &&
-                            tr.transactionType() == TransactionType.Payment            &&
-                            tr.initiatingAccount().equals(giveAwayAccount)             &&
-                            tr.transaction.get(Amount.Amount).equals(giveAwayAmount)) {
-
+                        tr.transactionType() == TransactionType.Payment            &&
+                        tr.initiatingAccount().equals(giveAwayAccount)             &&
+                        tr.transaction.get(Amount.Amount).equals(giveAwayAmount)) {
                         if (tr.createdAccount() != null) created++;
                         successful++;
                     }
                 }
             }
         }
-        Log.LOG("Successful outbound 888xrp payments: %d, creating: %d, paid out %s",
-                successful, created, giveAwayAmount.multiply(successful));
+        LOG("Successful outbound 888xrp payments: %d, creating: %d, paid out %s",
+             successful, created, giveAwayAmount.multiply(successful));
+    }
+
+    private static BufferedReader openDumpReader() throws FileNotFoundException {
+        FileReader reader = new FileReader("dump.json");
+        return new BufferedReader(reader);
     }
 }

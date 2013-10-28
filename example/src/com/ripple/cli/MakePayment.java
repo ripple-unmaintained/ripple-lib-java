@@ -1,10 +1,9 @@
 package com.ripple.cli;
 
-import com.ripple.cli.log.Log;
 import com.ripple.client.Account;
 import com.ripple.client.Client;
 import com.ripple.client.Response;
-import com.ripple.client.payward.PayWard;
+import com.ripple.client.blobvault.BlobVault;
 import com.ripple.client.transactions.Transaction;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transactions.TransactionMessage.TransactionResult;
@@ -17,6 +16,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+import static com.ripple.cli.log.Log.LOG;
+
 public class MakePayment {
     public static void main(String[] args) throws Exception {
         makeAPayment();
@@ -24,15 +25,15 @@ public class MakePayment {
 
     private static void makeAPayment() throws IOException, InvalidCipherTextException, JSONException {
         Client client = new Client(new JavaWebSocketTransportImpl());
-        JSONObject blob = PayWard.getBlob("niq1", "");
-        String masterSeed = blob.getString("master_seed");
-        Account account = client.accountFromSeed(masterSeed);
+        BlobVault blobVault = new BlobVault("https://blobvault.blobvault.com/");
+        JSONObject blob = blobVault.getBlob("niq1", "");
+        Account account = client.accountFromSeed(blob.getString("master_seed"));
         makePayment(account, "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH", "1");
     }
 
     private static void makePayment(Account account, Object destination, String amt) {
         TransactionManager tm = account.transactionManager();
-        Transaction tx = tm.payment();
+        Transaction        tx = tm.payment();
 
         tx.put(AccountID.Destination, destination);
         tx.put(Amount.Amount, amt);
@@ -40,23 +41,22 @@ public class MakePayment {
         tx.once(Transaction.OnSubmitSuccess.class, new Transaction.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
-                Log.LOG("Submit response: %s", response.engineResult());
+                LOG("Submit response: %s", response.engineResult());
             }
         });
-
         tx.once(Transaction.OnTransactionValidated.class, new Transaction.OnTransactionValidated() {
             @Override
             public void called(TransactionResult result) {
-                Log.LOG("Transaction finalized on ledger: %s", result.ledgerIndex);
+                LOG("Transaction finalized on ledger: %s", result.ledgerIndex);
                 try {
-                    Log.LOG("Transaction message:\n%s", result.message.toString(4));
+                    LOG("Transaction message:\n%s", result.message.toString(4));
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
 
             }
         });
+
         tm.queue(tx);
     }
-
 }
