@@ -25,7 +25,7 @@ public class MakePayment {
 
     private static void makeAPayment() throws IOException, InvalidCipherTextException, JSONException {
         Client client = new Client(new JavaWebSocketTransportImpl());
-        BlobVault blobVault = new BlobVault("https://blobvault.blobvault.com/");
+        BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
         JSONObject blob = blobVault.getBlob("niq1", "");
         Account account = client.accountFromSeed(blob.getString("master_seed"));
         makePayment(account, "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH", "1");

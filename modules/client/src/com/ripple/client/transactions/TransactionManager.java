@@ -16,17 +16,22 @@ import com.ripple.encodings.common.B16;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class TransactionManager {
     Client client;
     AccountRoot accountRoot;
     AccountID accountID;
     IKeyPair keyPair;
-    public long sequence;
+    public long sequence = -1;
     public long transactionID;
 
     ArrayList<Transaction> submitted = new ArrayList<Transaction>();
+    ArrayList<Transaction> queued = new ArrayList<Transaction>();
 
+    public int awaiting() {
+        return submitted.size();
+    }
 
     public TransactionManager(Client client, AccountRoot accountRoot, AccountID accountID, IKeyPair keyPair) {
         this.client = client;
@@ -57,7 +62,7 @@ public class TransactionManager {
     }
 
     private Request makeSubmitRequest(final Transaction transaction) {
-        transaction.prepare(keyPair, client.serverInfo, accountRoot.Sequence);
+        transaction.prepare(keyPair, client.serverInfo, getSubmissionSequence());
 
         final Request req = client.newRequest(Command.submit);
         req.json("tx_blob", B16.toString(transaction.tx_blob));
@@ -78,6 +83,16 @@ public class TransactionManager {
 
         req.request();
         return req;
+    }
+
+    /*
+    * The $10,000 question is when does sequence get decremented?
+    * */
+    private UInt32 getSubmissionSequence() {
+        if (sequence == -1) {
+            sequence = accountRoot.Sequence.longValue();
+        }
+        return new UInt32(sequence++);
     }
 
     public void handleSubmitError(Transaction transaction, Response response) {
@@ -129,12 +144,17 @@ public class TransactionManager {
     }
 
     private Transaction submittedTransaction(Hash256 hash) {
-        for (Transaction transaction : submitted) {
+        Iterator<Transaction> iterator = submitted.iterator();
+
+        while (iterator.hasNext()) {
+            Transaction transaction = iterator.next();
             if (transaction.hash.equals(hash)) {
+                iterator.remove();
                 return transaction;
-            } else {
-                Client.log("hash: %s != transaction.hash: %s", hash, transaction.hash);
             }
+//            else {
+                // Client.log("hash: %s != transaction.hash: %s", hash, transaction.hash);
+//            }
         }
         return null;
     }

@@ -22,8 +22,14 @@
       <sourceFolder url="file://$MODULE_DIR$/examples/android/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/examples/android/gen" isTestSource="false" />
     </content>
+    <orderEntry type="library" name="org.json:json:20090211" level="project" />
     <orderEntry type="jdk" jdkName="Android 4.2.2 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="RippleJ" />
+    <orderEntry type="module" module-name="Client" />
+    <orderEntry type="library" name="dependencies" level="project" />
+    <orderEntry type="library" name="org.java-websocket:Java-WebSocket:1.3.0" level="project" />
+    <orderEntry type="module" module-name="JavaWebSocket Transport" />
   </component>
 </module>
 

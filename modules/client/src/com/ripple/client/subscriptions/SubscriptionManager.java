@@ -2,6 +2,7 @@ package com.ripple.client.subscriptions;
 
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.core.types.AccountID;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -50,8 +51,8 @@ public class SubscriptionManager extends Publisher<SubscriptionManager.events> {
     private JSONObject basicSubscriptionObject(Set<Stream> streams, Set<AccountID> accounts) {
         JSONObject subs = new JSONObject();
         try {
-            if (streams  != null && streams.size() > 0) subs.put("streams", streams);
-            if (accounts != null && accounts.size() > 0) subs.put("accounts", accounts);
+            if (streams != null && streams.size() > 0) subs.put("streams", new JSONArray(streams));
+            if (accounts != null && accounts.size() > 0) subs.put("accounts", new JSONArray(accounts));
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
