@@ -37,7 +37,7 @@ public class Transaction extends STObject implements Sequenced, IPublisher<Trans
     public static abstract class events<T> extends Publisher.Callback<T> {}
     public static abstract class OnSubmitSuccess extends events<Response> {}
     public static abstract class OnSumbitRequestError extends events<Exception> {}
-    public static abstract class OnSumbitError extends events<Response> {}
+    public static abstract class OnSubmitError extends events<Response> {}
     public static abstract class OnTransactionValidated extends events<TransactionResult> {}
 
     public Hash256    hash;

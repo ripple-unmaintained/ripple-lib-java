@@ -19,11 +19,8 @@ import com.ripple.client.transactions.TransactionMessage.TransactionResult;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
 import com.ripple.core.types.AccountID;
 import com.ripple.core.types.Amount;
-import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.IOException;
 
 class Logger {
     private static final String LOG_TAG = "PayOneDrop";
@@ -111,26 +108,23 @@ public class PayOneDrop extends Activity {
         status   = (TextView) findViewById(R.id.status);
         username = (EditText) findViewById(R.id.username);
         password = (EditText) findViewById(R.id.password);
-        submit   = (Button) findViewById(R.id.submit);
+        submit   = (Button)   findViewById(R.id.submit);
 
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (account != null) {
-                    try {
-                        payNiqOneDrop(account);
-                        return;
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
+                   payNiqOneDrop(account);
                 }
-                if (blobDownloadTask == null) {
-                    blobDownloadTask = new DownloadBlobTask();
-                    blobDownloadTask.execute(username.getText().toString(),
-                            password.getText().toString());
-                    setStatus("Retrieving blob!");
-                } else {
-                    setStatus("Waiting for blob to be retrieved!");
+                else {
+                    if (blobDownloadTask == null) {
+                        blobDownloadTask = new DownloadBlobTask();
+                        blobDownloadTask.execute(username.getText().toString(),
+                                password.getText().toString());
+                        setStatus("Retrieving blob!");
+                    } else {
+                        setStatus("Waiting for blob to be retrieved!");
+                    }
                 }
             }
         });
@@ -153,7 +147,7 @@ public class PayOneDrop extends Activity {
         submit.setVisibility(View.GONE);
     }
 
-    private void payNiqOneDrop(Account account) throws IOException, InvalidCipherTextException, JSONException {
+    private void payNiqOneDrop(Account account){
         makePayment(account, "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH", "1");
     }
 
@@ -168,6 +162,12 @@ public class PayOneDrop extends Activity {
             @Override
             public void called(Response response) {
                 setStatus("Transaction submitted " + awaitingTransactionsParenthetical(account));
+            }
+        });
+        tx.once(Transaction.OnSubmitError.class, new Transaction.OnSubmitError() {
+            @Override
+            public void called(Response response) {
+                setStatus("Transaction submission failed" + awaitingTransactionsParenthetical(account));
             }
         });
         tx.once(Transaction.OnTransactionValidated.class, new Transaction.OnTransactionValidated() {

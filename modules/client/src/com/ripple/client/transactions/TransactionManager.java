@@ -102,16 +102,17 @@ public class TransactionManager {
     public void handleSubmitSuccess(Transaction transaction, Response res) {
         TransactionEngineResult tr = res.engineResult();
         switch (tr.resultClass()) {
-            case telLOCAL_ERROR:
-            case temMALFORMED:
-            case tefFAILURE:
-                break;
-
-            case terRETRY:
             case tesSUCCESS:
                 submitted.add(transaction);
                 transaction.emit(Transaction.OnSubmitSuccess.class, res);
+                return;
+
+            case telLOCAL_ERROR:
+            case temMALFORMED:
+            case tefFAILURE:
+            case terRETRY:
             case tecCLAIMED:
+                transaction.emit(Transaction.OnSubmitError.class, res);
                 break;
         }
     }
