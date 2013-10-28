@@ -52,7 +52,7 @@ class JSON {
 }
 
 class AndroidClient extends Client {
-    Handler   handler;
+    Handler handler;
 
     public AndroidClient(Handler h) {
         super(new JavaWebSocketTransportImpl());
@@ -84,13 +84,13 @@ class AndroidClient extends Client {
 public class PayOneDrop extends Activity {
     AndroidClient client;
     Account account;
-    Handler   handler;
+    Handler handler;
     TextView status;
     EditText username;
     EditText password;
 
     Button submit;
-    DownloadBlob blobDownloadTask;
+    DownloadBlobTask blobDownloadTask;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -125,9 +125,9 @@ public class PayOneDrop extends Activity {
                     }
                 }
                 if (blobDownloadTask == null) {
-                    blobDownloadTask = new DownloadBlob();
+                    blobDownloadTask = new DownloadBlobTask();
                     blobDownloadTask.execute(username.getText().toString(),
-                                             password.getText().toString());
+                            password.getText().toString());
                     setStatus("Retrieving blob!");
                 } else {
                     setStatus("Waiting for blob to be retrieved!");
@@ -192,7 +192,7 @@ public class PayOneDrop extends Activity {
         ((TextView) findViewById(R.id.status)).setText(str);
     }
 
-    private class DownloadBlob extends AsyncTask<String, String, JSONObject> {
+    private class DownloadBlobTask extends AsyncTask<String, String, JSONObject> {
         @Override
         protected void onPostExecute(JSONObject blob) {
             blobDownloadTask = null;
