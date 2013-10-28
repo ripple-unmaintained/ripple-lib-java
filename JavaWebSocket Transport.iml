@@ -7,10 +7,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="Client" scope="PROVIDED" />
-    <orderEntry type="module" module-name="RippleJ" scope="PROVIDED" />
-    <orderEntry type="library" scope="PROVIDED" name="org.java-websocket:Java-WebSocket:1.3.0" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="org.json:json:20090211" level="project" />
+    <orderEntry type="module" module-name="Client" />
+    <orderEntry type="module" module-name="RippleJ" />
+    <orderEntry type="library" name="org.java-websocket:Java-WebSocket:1.3.0" level="project" />
+    <orderEntry type="library" name="org.json:json:20090211" level="project" />
   </component>
 </module>
 

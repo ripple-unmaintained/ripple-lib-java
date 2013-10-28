@@ -16,20 +16,23 @@ import java.security.MessageDigest;
 
 public class BlobVault {
     String baseUrl;
+    public JSONEncrypt sjcl = new JSONEncrypt();
 
     public BlobVault(String baseUrl) {
         this.baseUrl = baseUrl;
     }
-    
-    public JSONEncrypt sjcl = new JSONEncrypt();
 
     public JSONObject getBlob(String user, String pass) throws IOException, InvalidCipherTextException {
         String userPassUrl = userPassHash(user, pass);
         URL blobUrl = new URL(baseUrl + userPassUrl);
         String data = readAllFromConnection(createGETRequestConnection(blobUrl));
         String utf8 = base64decodeUTF8(data);
-        String decryptionKey = user.length() + "|" + user + pass;
+        String decryptionKey = userPassDerivedDecryptionKey(user, pass);
         return sjcl.decrypt(decryptionKey, utf8);
+    }
+
+    private String userPassDerivedDecryptionKey(String user, String pass) {
+        return user.length() + "|" + user + pass;
     }
 
     private HttpURLConnection createGETRequestConnection(URL website) throws IOException {
@@ -53,7 +56,7 @@ public class BlobVault {
     }
 
     private String userPassHash(String user, String pass) {
-        String toHash = user + pass;
+        String toHash = user.toLowerCase() + pass;
         try {
             byte[] toHashBytes = toHash.getBytes("utf8");
             byte[] sha256 = MessageDigest.getInstance("SHA-256").digest(toHashBytes);

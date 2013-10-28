@@ -1,7 +1,6 @@
 package com.ripple.cli;
 
 
-import com.ripple.cli.log.Log;
 import com.ripple.client.transactions.TransactionMessage.TransactionResult;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.enums.TransactionType;

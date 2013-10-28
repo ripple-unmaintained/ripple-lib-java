@@ -1,8 +1,6 @@
 package com.ripple.core.types;
 
-import com.ripple.core.types.translators.Translators;
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.Type;
 import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
@@ -17,7 +15,7 @@ import java.math.RoundingMode;
 public class Amount extends Number implements SerializedType, Comparable<Amount>
 
 {
-    public static int SERIALIZED_BYTE_LENGTH = 8 + 20 + 20;
+    public static int IOU_SERIALIZED_BYTE_LENGTH = 8 + 20 + 20;
     protected BigDecimal value; // When native the value is in `drops`
 
     UInt64 mantissa = null;
@@ -317,7 +315,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             UInt64 man = obj.mantissa();
 
             if (obj.isNative) {
-                TypeTranslator typeTranslator = Translators.forType(Type.UINT64);
                 if (obj.isPositive()) {
                     man = man.or(cPosNative);
                 }
@@ -325,7 +322,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             } else {
                 int offset = obj.getOffset();
 
-                byte[] ret = new byte[SERIALIZED_BYTE_LENGTH];
+                byte[] ret = new byte[IOU_SERIALIZED_BYTE_LENGTH];
                 UInt64 value;
 
                 if (obj.isZero()) {
@@ -455,8 +452,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     private static IllegalArgumentException getIllegalArgumentException(BigDecimal abs, String sized, BigDecimal bound) {
-        System.out.println(abs.toPlainString() + " is " + sized + " than bound " + bound);
-        return new IllegalArgumentException("Value is log of bounds");
+        return new IllegalArgumentException(abs.toPlainString() + " is " + sized + " than bound " + bound);
     }
 
     private static void checkUpperBound(BigDecimal val) {

@@ -13,6 +13,21 @@ public class ClientTest {
         Client.quiet = true;
     }
 
+
+    final Object lock = new Object();
+
+    @Test
+    public void testName() throws Exception {
+        synchronized (lock) {
+            System.out.println("1");
+            synchronized (lock) {
+                // Getting this far means it's essentially using a reentrant lock
+                //
+                System.out.println("2");
+            }
+        }
+    }
+
     @Test
     public void testMockPairSubscription() throws JSONException {
         MockPair pair              = new MockPair().connect();
