@@ -51,9 +51,9 @@ class JSON {
 class AndroidClient extends Client {
     Handler handler;
 
-    public AndroidClient(Handler h) {
+    public AndroidClient(Handler handler) {
         super(new JavaWebSocketTransportImpl());
-        handler = h;
+        this.handler = handler;
     }
 
     @Override
@@ -63,8 +63,8 @@ class AndroidClient extends Client {
     }
 
     /**
-     * This is ensure we run everything on the ui thread (as per click handlers)
-     * @param
+     * This is to ensure we run everything on the ui thread (as per activity lifecycle
+     * handlers onCreate and OnClickListener handlers)
      */
     @Override
     public void onMessage(final JSONObject msg) {
@@ -174,12 +174,6 @@ public class PayOneDrop extends Activity {
             @Override
             public void called(TransactionResult result) {
                 setStatus("Transaction finalized " + awaitingTransactionsParenthetical(account));
-                try {
-                    String s = result.message.toString(4);
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
-
             }
         });
         tm.queue(tx);
