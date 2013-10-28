@@ -179,11 +179,11 @@ public class PayOneDrop extends Activity {
         tm.queue(tx);
     }
     private String awaitingTransactionsParenthetical(Account account) {
-        return "(awaiting " + account.transactionManager().awaiting() + ")";
+        return String.format("(awaiting %d)", account.transactionManager().awaiting());
     }
 
     private void setStatus(String str) {
-        ((TextView) findViewById(R.id.status)).setText(str);
+        status.setText(str);
     }
 
     private class DownloadBlobTask extends AsyncTask<String, String, JSONObject> {
