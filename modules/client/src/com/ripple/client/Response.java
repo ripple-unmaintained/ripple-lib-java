@@ -11,20 +11,26 @@ public class Response {
     public JSONObject result;
     public boolean succeeded;
     public String status;
-    public RPCErr error;
+    public RPCErr rpcerr;
+    public String error;
+    public String error_message;
 
     public Response(Request request, JSONObject message) {
         try {
-            // TODO: do error handling, then check usages
             this.message = message;
             this.request = request;
             status = message.getString("status");
             succeeded = status.equals("success");
             if (succeeded) {
                 this.result = message.getJSONObject("result");
-                error = null;
+                rpcerr = null;
             } else {
-                error = RPCErr.valueOf(message.getString("error"));
+                try {
+                    error         = message.getString("error");
+                    this.rpcerr = RPCErr.valueOf(error);
+                } catch (Exception e) {
+                    rpcerr = RPCErr.unknownError;
+                }
             }
 
         } catch (JSONException e) {

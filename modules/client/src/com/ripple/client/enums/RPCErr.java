@@ -1,12 +1,30 @@
 package com.ripple.client.enums;
 
-/**
- * Created with IntelliJ IDEA.
- * User: nick
- * Date: 10/22/13
- * Time: 5:40 PM
- */
 public enum RPCErr {
+    unknownError("Error unknown at time of writing"),
+    // The following are grepped from source
+    malformedTransaction("malformedTransaction"),
+    invalidTransaction("invalidTransaction"),
+    internalTransaction("internalTransaction"),
+    internalSubmit("internalSubmit"),
+    internalJson("internalJson"),
+    fieldNotFoundTransaction("fieldNotFoundTransaction"),
+    notYetImplemented("notYetImplemented"),
+    ledgerNotFound("ledgerNotFound"),
+    transactionNotFound("transactionNotFound"),
+    malformedAddress("malformedAddress"),
+    malformedRequest("malformedRequest"),
+    malformedCurrency("malformedCurrency"),
+    unknownOption("unknownOption"),
+    entryNotFound("entryNotFound"),
+    unknownStream("unknownStream"),
+    malformedStream("malformedStream"),
+    malformedAccount("malformedAccount"),
+    malformedSteam("malformedSteam"),
+    missingCommand("missingCommand"),
+    wsTextRequired("wsTextRequired"),
+    jsonInvalid("jsonInvalid"),
+    // The following are taken  from: rpc/RPCErr.cpp
     actBitcoin("Account is bitcoin address."),
     actExists("Account already exists."),
     actMalformed("Account malformed."),
@@ -17,7 +35,7 @@ public enum RPCErr {
     badMarket("No such market."),
     badSecret("Secret does not match account."),
     badSeed("Disallowed seed."),
-    badSyntax("Syntax error."),
+    badSyntax("Syntax rpcerr."),
     commandMissing("Missing command entry."),
     dstActMalformed("Destination account is malformed."),
     dstActMissing("Destination account does not exist."),
@@ -29,9 +47,9 @@ public enum RPCErr {
     getsAmtMalformed("Gets amount malformed."),
     hostIpMalformed("Host IP is malformed."),
     insufFunds("Insufficient funds."),
-    internal("Internal error."),
+    internal("Internal rpcerr."),
     invalidParams("Invalid parameters."),
-    json_rpc("JSON-RPC transport error."),
+    json_rpc("JSON-RPC transport rpcerr."),
     lgrIdxsInvalid("Ledger indexes invalid."),
     lgrIdxMalformed("Ledger index malformed."),
     lgrNotFound("Ledger not found."),
