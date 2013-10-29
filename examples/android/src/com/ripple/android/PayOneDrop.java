@@ -96,6 +96,7 @@ public class PayOneDrop extends Activity {
         setContentView(R.layout.main);
         setupClient();
         setupViews();
+        showLogin();
     }
 
     private void setupClient() {
@@ -154,14 +155,14 @@ public class PayOneDrop extends Activity {
 
     private void setSubmitToPay() {
         submit.setVisibility(View.VISIBLE);
-        submit.setText("Pay niq one drop!");
+        submit.setText(getString(R.string.pay_niq_one_drop));
     }
 
     private void showLogin() {
         username.setVisibility(View.VISIBLE);
         password.setVisibility(View.VISIBLE);
         submit.setVisibility(View.VISIBLE);
-        submit.setText("Retrieve blob");
+        submit.setText(getString(R.string.login_text));
     }
 
     private void hideLogin() {

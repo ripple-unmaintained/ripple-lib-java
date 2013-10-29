@@ -2,5 +2,6 @@
 <resources>
     <string name="app_name">Pay Niq One Drop</string>
     <string name="status_text">Login</string>
-    <string name="submit_text">Retrieve Blob</string>
+    <string name="login_text">Retrieve Blob</string>
+    <string name="pay_niq_one_drop">Pay niq one drop!</string>
 </resources>
