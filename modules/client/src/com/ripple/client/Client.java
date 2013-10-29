@@ -59,16 +59,21 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         return account(AccountID.fromSeedString(masterSeed));
     }
 
-    private AccountRoot accountRoot(AccountID id) {
+    private AccountRoot accountRoot(final AccountID id) {
         final AccountRoot accountRoot = new AccountRoot();
         Request req = newRequest(Command.ledger_entry);
         req.json("account_root", id);
 
-        req.on(Request.OnSuccess.class, new Request.OnSuccess() {
+        req.on(Request.OnResponse.class, new Request.OnResponse() {
             @Override
             public void called(Response response) {
+
                 try {
-                    accountRoot.setFromJSON(response.result.getJSONObject("node"));
+                    if (response.succeeded) {
+                        accountRoot.setFromJSON(response.result.getJSONObject("node"));
+                    } else {
+                        accountRoot.setUnfundedAccount(id);
+                    }
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }

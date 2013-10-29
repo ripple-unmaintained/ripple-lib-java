@@ -26,7 +26,7 @@ public class Response {
                 rpcerr = null;
             } else {
                 try {
-                    error         = message.getString("error");
+                    error = message.getString("error");
                     this.rpcerr = RPCErr.valueOf(error);
                 } catch (Exception e) {
                     rpcerr = RPCErr.unknownError;

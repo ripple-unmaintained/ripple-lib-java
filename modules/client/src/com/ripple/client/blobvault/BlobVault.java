@@ -55,7 +55,7 @@ public class BlobVault {
         return new String(Base64.decode(data), "utf8");
     }
 
-    private String userPassHash(String user, String pass) {
+    public String userPassHash(String user, String pass) {
         String toHash = user.toLowerCase() + pass;
         try {
             byte[] toHashBytes = toHash.getBytes("utf8");

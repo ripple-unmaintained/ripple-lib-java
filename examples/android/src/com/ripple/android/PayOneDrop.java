@@ -114,10 +114,20 @@ public class PayOneDrop extends Activity {
             @Override
             public void onClick(View v) {
                 if (account != null) {
-                   payNiqOneDrop(account);
+                    if (!account.root.primed()) {
+                        setStatus("Awaiting account_info");
+                    } else if (account.root.Balance.isZero()) {
+                        setStatus("Account unfunded");
+                        showLogin();
+                        account = null;
+                    } else {
+                        payNiqOneDrop(account);
+                    }
                 }
                 else {
-                    if (blobDownloadTask == null) {
+                    if (!loginFieldsValid()) {
+                      setStatus("Must enter username and password");
+                    }else if (blobDownloadTask == null) {
                         blobDownloadTask = new DownloadBlobTask();
                         blobDownloadTask.execute(username.getText().toString(),
                                 password.getText().toString());
@@ -130,6 +140,10 @@ public class PayOneDrop extends Activity {
         });
     }
 
+    private boolean loginFieldsValid() {
+        return username.length() > 0 && password.length() > 0;
+    }
+
     private void setSubmitToPay() {
         submit.setVisibility(View.VISIBLE);
         submit.setText("Pay niq one drop!");
@@ -139,6 +153,7 @@ public class PayOneDrop extends Activity {
         username.setVisibility(View.VISIBLE);
         password.setVisibility(View.VISIBLE);
         submit.setVisibility(View.VISIBLE);
+        submit.setText("Retrieve blob");
     }
 
     private void hideLogin() {

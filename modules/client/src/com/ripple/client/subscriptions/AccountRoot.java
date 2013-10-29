@@ -7,6 +7,8 @@ import com.ripple.core.types.hash.Hash256;
 import com.ripple.core.types.uint.UInt32;
 import org.json.JSONObject;
 
+import java.math.BigInteger;
+
 public class AccountRoot extends Publisher<AccountRoot.events> {
     public static abstract class events<T> extends Publisher.Callback<T> {}
     public static abstract class OnUpdate extends events<AccountRoot> {}
@@ -42,6 +44,18 @@ public class AccountRoot extends Publisher<AccountRoot.events> {
         setFromSTObject(STObject.translate.fromJSONObject(jsonObject));
     }
 
+    public void setUnfundedAccount(AccountID account) {
+        Account = account;
+        Balance = Amount.fromString("0");
+        Sequence = new UInt32(1);
+        OwnerCount = new UInt32(0);
+        Flags = new UInt32(0);
+        PreviousTxnID = new Hash256(new byte[32]);
+        PreviousTxnLgrSeq = new UInt32(0);
+
+        notifyUpdate();
+    }
+
     public void setFromSTObject(STObject so) {
 
         if (so.has(AccountID.Account))         Account            = so.get(AccountID.Account);
@@ -52,6 +66,10 @@ public class AccountRoot extends Publisher<AccountRoot.events> {
         if (so.has(Hash256.PreviousTxnID))     PreviousTxnID      = so.get(Hash256.PreviousTxnID);
         if (so.has(UInt32.PreviousTxnLgrSeq))  PreviousTxnLgrSeq  = so.get(UInt32.PreviousTxnLgrSeq);
 
+        notifyUpdate();
+    }
+
+    private void notifyUpdate() {
         updated = true;
         emit(OnUpdate.class, this);
     }
