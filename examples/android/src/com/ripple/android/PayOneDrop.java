@@ -13,6 +13,7 @@ import com.ripple.client.Account;
 import com.ripple.client.Client;
 import com.ripple.client.Response;
 import com.ripple.client.blobvault.BlobVault;
+import com.ripple.client.subscriptions.AccountRoot;
 import com.ripple.client.transactions.Transaction;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transactions.TransactionMessage.TransactionResult;
@@ -116,11 +117,8 @@ public class PayOneDrop extends Activity {
                 if (account != null) {
                     if (!account.root.primed()) {
                         setStatus("Awaiting account_info");
-                    } else if (account.root.Balance.isZero()) {
-                        setStatus("Account unfunded");
-                        showLogin();
-                        account = null;
-                    } else {
+                    }
+                    else {
                         payNiqOneDrop(account);
                     }
                 }
@@ -138,6 +136,16 @@ public class PayOneDrop extends Activity {
                 }
             }
         });
+    }
+
+    private boolean accountIsUnfunded() {
+        return account.root.Balance.isZero();
+    }
+
+    private void handleUnfundedAccount() {
+        setStatus("Account unfunded");
+        showLogin();
+        account = null;
     }
 
     private boolean loginFieldsValid() {
@@ -213,6 +221,14 @@ public class PayOneDrop extends Activity {
             try {
                 setStatus("Retrieved blob!");
                 account = client.accountFromSeed(blob.getString("master_seed"));
+                account.root.once(AccountRoot.OnUpdate.class, new AccountRoot.OnUpdate() {
+                    @Override
+                    public void called(AccountRoot accountRoot) {
+                        if (accountIsUnfunded()) {
+                            handleUnfundedAccount();
+                        }
+                    }
+                });
                 setSubmitToPay();
             } catch (JSONException e) {
                 throw new RuntimeException(e);
