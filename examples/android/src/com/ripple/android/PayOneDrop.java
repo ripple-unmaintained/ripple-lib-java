@@ -23,6 +23,8 @@ import com.ripple.core.types.Amount;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import static com.ripple.android.Logger.LOG;
+
 class Logger {
     private static final String LOG_TAG = "PayOneDrop";
 
@@ -59,7 +61,7 @@ class AndroidClient extends Client {
 
     @Override
     public void sendMessage(JSONObject msg) {
-        log("sending: ", JSON.prettyJSON(msg));
+        LOG("sending: ", JSON.prettyJSON(msg));
         super.sendMessage(msg);
     }
 
@@ -72,7 +74,7 @@ class AndroidClient extends Client {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                log("received: ", JSON.prettyJSON(msg));
+                LOG("received: ", JSON.prettyJSON(msg));
                 AndroidClient.super.onMessage(msg);
             }
         });
@@ -87,8 +89,12 @@ public class PayOneDrop extends Activity {
     EditText username;
     EditText password;
 
+    View[] loginViews;
+
     Button submit;
     DownloadBlobTask blobDownloadTask;
+
+    BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -101,8 +107,7 @@ public class PayOneDrop extends Activity {
 
     private void setupClient() {
         handler = new Handler();
-        client = new AndroidClient(handler);
-        client.connect("wss://ct.ripple.com");
+        client = Bootstrap.client;
         account = null;
     }
 
@@ -111,6 +116,8 @@ public class PayOneDrop extends Activity {
         username = (EditText) findViewById(R.id.username);
         password = (EditText) findViewById(R.id.password);
         submit   = (Button)   findViewById(R.id.submit);
+
+        loginViews = new View[]{username, password, submit};
 
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -158,24 +165,24 @@ public class PayOneDrop extends Activity {
         submit.setText(getString(R.string.pay_niq_one_drop));
     }
 
+    private void setViewsVisibility(int visibility, View... views) {
+        for (View view : views) view.setVisibility(visibility);
+    }
+
     private void showLogin() {
-        username.setVisibility(View.VISIBLE);
-        password.setVisibility(View.VISIBLE);
-        submit.setVisibility(View.VISIBLE);
+        setViewsVisibility(View.VISIBLE, loginViews);
         submit.setText(getString(R.string.login_text));
     }
 
     private void hideLogin() {
-        username.setVisibility(View.GONE);
-        password.setVisibility(View.GONE);
-        submit.setVisibility(View.GONE);
+        setViewsVisibility(View.GONE, loginViews);
     }
 
     private void payNiqOneDrop(Account account){
         makePayment(account, "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH", "1");
     }
 
-    private void makePayment(final Account account, Object destination, String amt) {
+    private void makePayment(final Account account, Object destination, Object amt) {
         TransactionManager tm = account.transactionManager();
         Transaction tx = tm.payment();
 
@@ -244,7 +251,6 @@ public class PayOneDrop extends Activity {
         @Override
         protected JSONObject doInBackground(String... credentials) {
             try {
-                BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
                 String username = credentials[0];
                 String password = credentials[1];
                 return blobVault.getBlob(username, password);

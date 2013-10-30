@@ -23,7 +23,7 @@ public class RippleApplication extends DexedrineApp {
     }
 
     @Override
-    protected File manuallyCopiedPredexedLibsPath() {
+    public File manuallyCopiedPredexedLibsPath() {
         return null;
     }
 }

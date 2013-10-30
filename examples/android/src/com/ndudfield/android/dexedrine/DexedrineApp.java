@@ -24,6 +24,7 @@ abstract public class DexedrineApp extends Application {
 
     public abstract String getAssetName();
     public abstract boolean forceAssetCopy();
+    public abstract File manuallyCopiedPredexedLibsPath();
 
     /**
      * Seeing as this {@link DexedrineApp} is the first class that is loaded by
@@ -62,8 +63,6 @@ abstract public class DexedrineApp extends Application {
         }
     }
 
-
-    private final static String ASSET_NAME = "all-libs-dexed.jar";
     ClassLoader mClassLoader = null;
 
     public static boolean trimCache(Context context) {
@@ -146,8 +145,6 @@ abstract public class DexedrineApp extends Application {
         logLoaders();
     }
 
-    protected abstract File manuallyCopiedPredexedLibsPath();
-
     private boolean copyAsset() {
 
         if (copyAssetToFileDir(getAssetName())) {
@@ -208,7 +205,7 @@ abstract public class DexedrineApp extends Application {
             log("InputStream from `getAssets().open(%s);` == %s", assetName, is);
 
             if (is == null) {
-                throw new IOException("Couldn't open assetts");
+                throw new IOException("Couldn't open assets");
             }
 
             fout = openFileOutput(assetName, Context.MODE_PRIVATE);
