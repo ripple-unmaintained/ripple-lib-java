@@ -4,82 +4,21 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import com.ripple.client.Account;
-import com.ripple.client.Client;
 import com.ripple.client.Response;
 import com.ripple.client.blobvault.BlobVault;
 import com.ripple.client.subscriptions.AccountRoot;
 import com.ripple.client.transactions.Transaction;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transactions.TransactionMessage.TransactionResult;
-import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
 import com.ripple.core.types.AccountID;
 import com.ripple.core.types.Amount;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import static com.ripple.android.Logger.LOG;
-
-class Logger {
-    private static final String LOG_TAG = "PayOneDrop";
-
-    public static void LOG(String s, Object... args) {
-        Log.d(LOG_TAG, String.format(s, args));
-    }
-}
-
-class JSON {
-    public static JSONObject parseJSON(String s) {
-        try {
-            return new JSONObject(s);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static String prettyJSON(JSONObject jsonObject) {
-        try {
-            return jsonObject.toString(4);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-    }
-}
-
-class AndroidClient extends Client {
-    Handler handler;
-
-    public AndroidClient(Handler handler) {
-        super(new JavaWebSocketTransportImpl());
-        this.handler = handler;
-    }
-
-    @Override
-    public void sendMessage(JSONObject msg) {
-        LOG("sending: ", JSON.prettyJSON(msg));
-        super.sendMessage(msg);
-    }
-
-    /**
-     * This is to ensure we run everything on the ui thread (as per activity lifecycle
-     * handlers onCreate and OnClickListener handlers)
-     */
-    @Override
-    public void onMessage(final JSONObject msg) {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                LOG("received: ", JSON.prettyJSON(msg));
-                AndroidClient.super.onMessage(msg);
-            }
-        });
-    }
-}
 
 public class PayOneDrop extends Activity {
     AndroidClient client;
