@@ -20,70 +20,16 @@ Current status:
   - Test suite
   - Some thought still needs to be given to how this will work in different
     environments, be it single threaded async, or on android.
+  - Android example
+    - Using class loader patch to use Bouncy Castle 1.4.9
+  - CLI example
+  - Api client choice of websocket transport
 
 TODO:
-  - Api client choice of websocket transport
-  - Api client choice of bouncycastle or spongycastle(android)
   - Binary parsing
   - Documentation
   - General cleanup of code / api surface
+
+Examples:
   
-
-Example:
-  
-  ```java
-  public class CommandLineClient {
-      public static void LOG(String fmt, Object... args) {
-          System.out.printf(fmt + "\n", args);
-      }
-      public static void main(String[] args) throws Exception {
-          // Will be less ugly
-          Client.quiet = true;
-
-          // Construct with chosen transport implementing interface
-          Client client = new Client(new JavaWebSocketTransportImpl());
-          client.connect("wss://s1.ripple.com");
-
-          // We can retrieve the keys to make transactions as stored by the 
-          // official client
-          JSONObject blob = PayWard.getBlob("niq1", "xxxxxx");
-          String masterSeed = blob.getString("master_seed");
-          Account account = client.accountFromSeed(masterSeed);
-
-          makePayment(account, "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH", "1");
-      }
-
-      // Note destination can be any (valid account repr) `Object`, here we
-      // are passing in a String, likewise for the amount, which is one `drop`. 
-      private static void makePayment(Account account, Object destination, Object amt) {
-          TransactionManager tm = account.transactionManager();
-          Transaction tx = tm.payment();
-
-          tx.put(AccountID.Destination, destination);
-          tx.put(Amount.Amount, amt);
-
-          tx.once(Transaction.OnSubmitSuccess.class, new Transaction.OnSubmitSuccess() {
-              @Override
-              public void called(Response response) {
-                  LOG("Submit response: %s", response.engineResult());
-              }
-          });
-
-          tx.once(Transaction.OnTransactionValidated.class, new Transaction.OnTransactionValidated() {
-              @Override
-              public void called(TransactionResult result) {
-                  LOG("Transaction finalized on ledger: %s", result.ledgerIndex);
-                  try {
-                      LOG("Transaction message:\n%s", result.message.toString(4));
-                  } catch (JSONException e) {
-                      throw new RuntimeException(e);
-                  }
-
-              }
-          });
-          tm.queue(tx);
-      }
-    // ...
-  }
-  
-  ```
+  see in examples/ folder
