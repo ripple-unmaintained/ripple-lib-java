@@ -18,8 +18,6 @@ Current status:
   - Working implementations of binary serialization
   - Crude implementation of a high level client
   - Test suite
-  - Some thought still needs to be given to how this will work in different
-    environments, be it single threaded async, or on android.
   - Android example
     - Using class loader patch to use predexe Bouncy Castle 1.4.9
       - MUCH faster builds, don't need to dex or merge each time
@@ -28,11 +26,15 @@ Current status:
   - Api client choice of websocket transport
 
 TODO:
+  - Publisher contexts
+    - thread execution context
+    - easily unbind handlers in onDestroy/onSemanticallyEtc
+
+  - Class path patcher for android needs testing on 2.x
   - Binary parsing
   - Documentation
   - General cleanup of code / api surface
-  - Class path patcher for android needs testing
 
 Examples:
-  
+
   See in examples/ folder
