@@ -27,12 +27,22 @@ public class BlobVault {
         URL blobUrl = new URL(baseUrl + userPassUrl);
         String data = readAllFromConnection(createGETRequestConnection(blobUrl));
         String utf8 = base64decodeUTF8(data);
-        String decryptionKey = userPassDerivedDecryptionKey(user, pass);
-        return sjcl.decrypt(decryptionKey, utf8);
+        String decryptionKey;
+        try {
+            decryptionKey = userPassDerivedDecryptionKey(user, pass);
+            return sjcl.decrypt(decryptionKey, utf8);
+        } catch (InvalidCipherTextException e) {
+            decryptionKey = userPassDerivedDecryptionKeyOLD(user, pass);
+            return sjcl.decrypt(decryptionKey, utf8);
+        }
     }
 
     private String userPassDerivedDecryptionKey(String user, String pass) {
         return user.length() + "|" + user + pass;
+    }
+
+    private String userPassDerivedDecryptionKeyOLD(String user, String pass) {
+        return user + pass;
     }
 
     private HttpURLConnection createGETRequestConnection(URL website) throws IOException {
