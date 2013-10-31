@@ -38,7 +38,7 @@ public class PayOneDrop extends Activity {
     String masterSeed;
 
     /**
-     * Thread: uiThread
+     * Thread: ui thread
      */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,12 +47,11 @@ public class PayOneDrop extends Activity {
         setupClient();
         setupViews();
         showOnlyLogin();
-        autoLogin("niq1", "niq123/");
     }
 
 
     /**
-     * Thread: uiThread
+     * Thread: ui thread
      */
     private void autoLogin(String user, String pass) {
         username.setText(user);
@@ -61,7 +60,7 @@ public class PayOneDrop extends Activity {
     }
 
     /**
-     * Thread: uiThread
+     * Thread: ui thread
      */
     private void setupClient() {
         client = Bootstrap.client;
@@ -69,7 +68,7 @@ public class PayOneDrop extends Activity {
     }
 
     /**
-     * Thread: uiThread
+     * Thread: ui thread
      */
     private void setupViews() {
         status = (TextView) findViewById(R.id.status);
@@ -156,14 +155,14 @@ public class PayOneDrop extends Activity {
     }
 
     /**
-     * Thread: uiThread
+     * Thread: ui thread
      */
     private boolean loginFieldsValid() {
         return username.length() > 0 && password.length() > 0;
     }
 
     /**
-     * Thread: uiThread
+     * Thread: ui thread
      */
     private void setSubmitToPay() {
         submit.setVisibility(View.VISIBLE);
@@ -173,7 +172,7 @@ public class PayOneDrop extends Activity {
     }
 
     /**
-     * Thread: uiThread
+     * Thread: ui thread
      */
     private void setViewsVisibility(int visibility, View... views) {
         for (View view : views) view.setVisibility(visibility);
@@ -181,7 +180,7 @@ public class PayOneDrop extends Activity {
 
 
     /**
-     * Thread: uiThread
+     * Thread: ui thread
      */
     private void showOnlyLogin() {
         setViewsVisibility(View.VISIBLE, loginViews);
@@ -190,7 +189,7 @@ public class PayOneDrop extends Activity {
     }
 
     /**
-     * Thread: uiThread
+     * Thread: ui thread
      */
     private void hideAllButStatus() {
         setViewsVisibility(View.GONE, loginViews);
@@ -198,7 +197,7 @@ public class PayOneDrop extends Activity {
     }
 
     /**
-     * Thread: uiThread
+     * Thread: ui thread
      */
     private void payOneDrop(final Account account) {
         client.run(new Runnable() {
@@ -287,7 +286,7 @@ public class PayOneDrop extends Activity {
      */
     private class DownloadBlobTask extends AsyncTask<String, String, JSONObject> {
         /**
-         * Thread: uiThread
+         * Thread: ui thread
          */
         @Override
         protected void onPostExecute(final JSONObject blob) {
@@ -310,7 +309,7 @@ public class PayOneDrop extends Activity {
         }
 
         /**
-         * Thread: uiThread
+         * Thread: ui thread
          */
         @Override
         protected void onPreExecute() {
@@ -333,7 +332,7 @@ public class PayOneDrop extends Activity {
     }
 
     /**
-     * Thread: uiThread
+     * Thread: ui thread
      */
     private void populateContactsSpinner(JSONArray rawContacts) {
         contactsAdapter.clear();
@@ -352,7 +351,7 @@ public class PayOneDrop extends Activity {
     }
 
     /**
-     * Thread: uiThread
+     * Thread: ui thread
      */
     private void addContact(String niq, String address) {
         contactsAdapter.add(niq);
