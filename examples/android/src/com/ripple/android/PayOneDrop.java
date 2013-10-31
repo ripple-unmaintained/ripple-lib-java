@@ -81,20 +81,6 @@ public class PayOneDrop extends Activity {
         contacts.setAdapter(contactsAdapter);
         loginViews = new View[]{username, password, submit};
 
-        contacts.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                contactsAdapter.getItem(position);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        }
-
-        );
-
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -104,7 +90,7 @@ public class PayOneDrop extends Activity {
                     if (!account.root.primed()) {
                         threadSafeSetStatus("Awaiting account_info");
                     } else {
-                        payNiqOneDrop(account);
+                        payOneDrop(account);
                     }
                 } else {
                     if (!loginFieldsValid()) {
@@ -214,7 +200,7 @@ public class PayOneDrop extends Activity {
     /**
      * Thread: uiThread
      */
-    private void payNiqOneDrop(final Account account) {
+    private void payOneDrop(final Account account) {
         client.run(new Runnable() {
             @Override
             public void run() {
