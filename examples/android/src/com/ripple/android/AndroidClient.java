@@ -7,8 +7,6 @@ import com.ripple.client.ClientLogger;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
 import org.json.JSONObject;
 
-import static com.ripple.android.Logger.LOG;
-
 class AndroidClient extends Client {
     Handler handler;
 
@@ -25,6 +23,14 @@ class AndroidClient extends Client {
         super(new JavaWebSocketTransportImpl());
     }
 
+    /**
+     * After calling this method, all subsequent interaction with the api
+     * should be called via posting Runnable() run blocks to the HandlerThread
+     * Essentially, all ripple-lib-java api interaction should happen on
+     * the one thread.
+     *
+     * @see #onMessage(org.json.JSONObject)
+     */
     @Override
     public void connect(final String uri) {
         HandlerThread handlerThread = new HandlerThread("android client thread") {

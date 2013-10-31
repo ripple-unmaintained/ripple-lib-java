@@ -4,9 +4,7 @@ import com.ripple.crypto.ecdsa.Seed;
 import org.junit.Test;
 
 import static com.ripple.config.Config.getB58IdentiferCodecs;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created with IntelliJ IDEA.

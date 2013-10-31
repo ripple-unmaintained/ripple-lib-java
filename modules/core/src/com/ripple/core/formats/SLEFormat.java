@@ -1,7 +1,7 @@
 package com.ripple.core.formats;
 
-import com.ripple.core.fields.Field;
 import com.ripple.core.enums.LedgerEntryType;
+import com.ripple.core.fields.Field;
 
 import java.util.EnumMap;
 

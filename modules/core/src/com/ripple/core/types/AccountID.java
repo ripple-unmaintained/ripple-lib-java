@@ -1,13 +1,13 @@
 package com.ripple.core.types;
 
-import com.ripple.core.types.hash.Hash160;
-import com.ripple.core.types.uint.UInt32;
-import com.ripple.crypto.ecdsa.IKeyPair;
-import com.ripple.crypto.ecdsa.Seed;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
+import com.ripple.core.types.hash.Hash160;
+import com.ripple.core.types.uint.UInt32;
+import com.ripple.crypto.ecdsa.IKeyPair;
+import com.ripple.crypto.ecdsa.Seed;
 import com.ripple.utils.Utils;
 import org.bouncycastle.util.encoders.Hex;
 

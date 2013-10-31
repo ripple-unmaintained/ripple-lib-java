@@ -3,19 +3,19 @@ package com.ripple.core.types;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.enums.TransactionType;
+import com.ripple.core.fields.Field;
+import com.ripple.core.fields.FieldSymbolics;
+import com.ripple.core.fields.HasField;
+import com.ripple.core.formats.Format;
+import com.ripple.core.formats.SLEFormat;
+import com.ripple.core.formats.TxFormat;
+import com.ripple.core.serialized.BinarySerializer;
+import com.ripple.core.serialized.SerializedType;
+import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.hash.Hash128;
 import com.ripple.core.types.hash.Hash160;
 import com.ripple.core.types.hash.Hash256;
 import com.ripple.core.types.translators.Translators;
-import com.ripple.core.fields.FieldSymbolics;
-import com.ripple.core.fields.Field;
-import com.ripple.core.formats.Format;
-import com.ripple.core.formats.SLEFormat;
-import com.ripple.core.formats.TxFormat;
-import com.ripple.core.fields.HasField;
-import com.ripple.core.serialized.BinarySerializer;
-import com.ripple.core.serialized.SerializedType;
-import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.uint.UInt16;
 import com.ripple.core.types.uint.UInt32;
 import com.ripple.core.types.uint.UInt64;
@@ -24,7 +24,8 @@ import com.ripple.encodings.common.B16;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.TreeMap;
 
 public class STObject implements SerializedType, Iterable<Field> {
     public TreeMap<Field, SerializedType> fields = new TreeMap<Field, SerializedType>();

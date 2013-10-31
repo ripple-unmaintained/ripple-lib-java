@@ -1,10 +1,9 @@
 package com.ripple.core;
+
 import com.ripple.core.types.hash.Hash128;
 import org.junit.Test;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 
 public class HashTest{

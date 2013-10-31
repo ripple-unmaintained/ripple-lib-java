@@ -1,7 +1,7 @@
 package com.ripple.core.serialized;
 
-import com.ripple.core.types.translators.Translators;
 import com.ripple.core.fields.Field;
+import com.ripple.core.types.translators.Translators;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;

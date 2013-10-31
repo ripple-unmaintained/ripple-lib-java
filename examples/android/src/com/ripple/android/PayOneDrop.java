@@ -18,6 +18,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class PayOneDrop extends Activity {
@@ -47,8 +51,36 @@ public class PayOneDrop extends Activity {
         setupClient();
         setupViews();
         showOnlyLogin();
+
+        tryLoadDevcredentialsFromAssets();
     }
 
+    private void tryLoadDevcredentialsFromAssets() {
+        try {
+            String fileName = "dev-credentials.json";
+            String s = assetFileText(fileName);
+            JSONObject credentials = new JSONObject(s);
+
+            String user = credentials.getString("username");
+            String pass = credentials.getString("password");
+            autoLogin(user, pass);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String assetFileText(String fileName) throws IOException {
+        InputStream open = getAssets().open(fileName);
+        InputStreamReader streamReader = new InputStreamReader(open);
+        BufferedReader reader = new BufferedReader(streamReader);
+        StringBuilder builder = new StringBuilder();
+
+        String text;
+        while ((text = reader.readLine()) != null) {
+            builder.append(text);
+        }
+        return builder.toString();
+    }
 
     /**
      * Thread: ui thread
@@ -168,7 +200,6 @@ public class PayOneDrop extends Activity {
         submit.setVisibility(View.VISIBLE);
         contacts.setVisibility(View.VISIBLE);
         submit.setText(getString(R.string.pay_one_drop));
-        Logger.LOG("Number of pixels in submit: %d", submit.getWidth());
     }
 
     /**

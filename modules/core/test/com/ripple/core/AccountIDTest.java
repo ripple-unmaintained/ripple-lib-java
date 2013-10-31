@@ -5,7 +5,6 @@ import com.ripple.encodings.base58.EncodingFormatException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class AccountIDTest {
 
