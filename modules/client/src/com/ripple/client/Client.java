@@ -83,7 +83,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         return accountRoot;
     }
 
-    public static boolean quiet;
     public ServerInfo serverInfo = new ServerInfo();
     public TreeMap<Integer, Request> requests = new TreeMap<Integer, Request>();
 
@@ -104,7 +103,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public void onMessage(JSONObject msg) {
         try {
             emit(OnMessage.class, msg);
-            log("Receive: %s", prettyJSON(msg));
+            ClientLogger.log("Receive: %s", prettyJSON(msg));
 
             switch (Message.valueOf(msg.optString("type", null))) {
                 case serverStatus:
@@ -134,7 +133,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                                                                        .transaction_subscription_notification);
 
         if (tm.validated) {
-            log("Transaction %s is validated", tm.hash);
+            ClientLogger.log("Transaction %s is validated", tm.hash);
             Map<AccountID, STObject> affected = tm.modifiedRoots();
 
             if (affected != null) {
@@ -152,10 +151,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
             Account initator = accounts.get(tm.initiatingAccount());
             if (initator != null) {
-                log("Found initiator %s, notifying transactionManager", initator);
+                ClientLogger.log("Found initiator %s, notifying transactionManager", initator);
                 initator.transactionManager().onTransactionResultMessage(tm);
             } else {
-                log("Can't find initiating account!");
+                ClientLogger.log("Can't find initiating account!");
             }
 
         }
@@ -244,7 +243,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     @Override
     public void onDisconnected(boolean willReconnect) {
         connected = false;
-        log("onDisconnected");
+        ClientLogger.log("onDisconnected");
         emit(OnDisconnected.class, this);
     }
 
@@ -252,7 +251,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public void
     onConnected() {
         connected = true;
-        log("onConnected");
+        ClientLogger.log("onConnected");
         emit(OnConnected.class, this);
         subscribe(prepareSubscription());
         subscriptions.on(SubscriptionManager.OnSubscribed.class, new SubscriptionManager.OnSubscribed() {
@@ -288,13 +287,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         return new Request(cmd, cmdIDs++, this);
     }
 
-    public static void log(String fmt, Object... args) {
-        if (quiet) {
-            return;
-        }
-        System.out.printf(fmt + "\n", args);
-    }
-
     public static JSONObject parseJSON(String s) {
         try {
             return new JSONObject(s);
@@ -304,7 +296,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     public void sendMessage(JSONObject object) {
-        log("Send: %s", prettyJSON(object));
+        ClientLogger.log("Send: %s", prettyJSON(object));
         ws.sendMessage(object);
     }
 

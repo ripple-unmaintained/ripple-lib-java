@@ -1,7 +1,9 @@
 package com.ripple.android;
 
 import android.os.Handler;
+import android.os.HandlerThread;
 import com.ripple.client.Client;
+import com.ripple.client.ClientLogger;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
 import org.json.JSONObject;
 
@@ -10,9 +12,35 @@ import static com.ripple.android.Logger.LOG;
 class AndroidClient extends Client {
     Handler handler;
 
-    public AndroidClient(Handler handler) {
+    static {
+        ClientLogger.logger = new com.ripple.client.Logger() {
+            @Override
+            public void log(String fmt, Object... args) {
+                Logger.LOG(fmt, args);
+            }
+        };
+    }
+
+    public AndroidClient() {
         super(new JavaWebSocketTransportImpl());
-        this.handler = handler;
+    }
+
+    @Override
+    public void connect(final String uri) {
+        HandlerThread handlerThread = new HandlerThread("android client thread") {
+            @Override
+            protected void onLooperPrepared() {
+                Logger.LOG("onLooperPrepared! %s", Thread.currentThread());
+                handler = new Handler(getLooper());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        AndroidClient.super.connect(uri);
+                    }
+                });
+            }
+        };
+        handlerThread.start();
     }
 
     @Override
@@ -27,6 +55,7 @@ class AndroidClient extends Client {
      */
     @Override
     public void onMessage(final JSONObject msg) {
+
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -34,5 +63,11 @@ class AndroidClient extends Client {
                 AndroidClient.super.onMessage(msg);
             }
         });
+    }
+
+    void runImmediately(Runnable getAccount) {
+        handler.postAtFrontOfQueue(
+                getAccount
+        );
     }
 }

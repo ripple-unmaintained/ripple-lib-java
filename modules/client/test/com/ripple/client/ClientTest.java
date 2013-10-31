@@ -10,7 +10,7 @@ import static junit.framework.TestCase.*;
 
 public class ClientTest {
     static {
-        Client.quiet = true;
+        ClientLogger.quiet = true;
     }
 
 

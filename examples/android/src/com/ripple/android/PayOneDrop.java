@@ -3,7 +3,6 @@ package com.ripple.android;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,20 +19,23 @@ import com.ripple.core.types.Amount;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class PayOneDrop extends Activity {
     AndroidClient client;
     Account account;
-    Handler handler;
+
     TextView status;
     EditText username;
     EditText password;
+    Button submit;
 
     View[] loginViews;
-
-    Button submit;
-    DownloadBlobTask blobDownloadTask;
+    Map<String, AccountID> contacts = new HashMap<String, AccountID>();
 
     BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
+    DownloadBlobTask blobDownloadTask;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -44,38 +46,43 @@ public class PayOneDrop extends Activity {
         showLogin();
     }
 
+    private void autoLogin(String user, String pass) {
+        username.setText(user);
+        password.setText(pass);
+        submit.performClick();
+    }
+
     private void setupClient() {
-        handler = new Handler();
         client = Bootstrap.client;
         account = null;
     }
 
     private void setupViews() {
-        status   = (TextView) findViewById(R.id.status);
+        status = (TextView) findViewById(R.id.status);
         username = (EditText) findViewById(R.id.username);
         password = (EditText) findViewById(R.id.password);
-        submit   = (Button)   findViewById(R.id.submit);
+        submit = (Button) findViewById(R.id.submit);
 
         loginViews = new View[]{username, password, submit};
 
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (account != null) {
+                boolean weHaveAnAccount = account != null;
+
+                if (weHaveAnAccount) {
                     if (!account.root.primed()) {
                         setStatus("Awaiting account_info");
-                    }
-                    else {
+                    } else {
                         payNiqOneDrop(account);
                     }
-                }
-                else {
+                } else {
                     if (!loginFieldsValid()) {
-                      setStatus("Must enter username and password");
-                    }else if (blobDownloadTask == null) {
+                        setStatus("Must enter username and password");
+                    } else if (blobDownloadTask == null) {
                         blobDownloadTask = new DownloadBlobTask();
                         blobDownloadTask.execute(username.getText().toString(),
-                                password.getText().toString());
+                                                 password.getText().toString());
                         setStatus("Retrieving blob!");
                     } else {
                         setStatus("Waiting for blob to be retrieved!");
@@ -89,10 +96,41 @@ public class PayOneDrop extends Activity {
         return account.root.Balance.isZero();
     }
 
+    public Object lock = new Object();
+
+    /**
+     * This must NOT be called from the UI thread
+     * @param runnable the Runnable to execute on the main thread, blocking calling while it runs
+     */
+    public void waitForUiThread(final Runnable runnable) {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    runnable.run();
+                } finally {
+                    lock.notify();
+                }
+            }
+        } );
+        try {
+            lock.wait();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void handleUnfundedAccount() {
-        setStatus("Account unfunded");
-        showLogin();
-        account = null;
+        waitForUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setStatus("Account unfunded");
+                showLogin();
+                // TODO, need to clean up this account, remove from Client store and unbind all handlers
+                account = null;
+            }
+        });
     }
 
     private boolean loginFieldsValid() {
@@ -117,8 +155,14 @@ public class PayOneDrop extends Activity {
         setViewsVisibility(View.GONE, loginViews);
     }
 
-    private void payNiqOneDrop(Account account){
-        makePayment(account, "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH", "1");
+    private void payNiqOneDrop(final Account account) {
+        setStatus("Transaction queued " + awaitingTransactionsParenthetical(account));
+        client.runImmediately(new Runnable() {
+            @Override
+            public void run() {
+                makePayment(account, "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH", "1");
+            }
+        });
     }
 
     private void makePayment(final Account account, Object destination, Object amt) {
@@ -148,38 +192,50 @@ public class PayOneDrop extends Activity {
         });
         tm.queue(tx);
     }
+
     private String awaitingTransactionsParenthetical(Account account) {
         return String.format("(awaiting %d)", account.transactionManager().awaiting());
     }
 
-    private void setStatus(String str) {
-        status.setText(str);
+    private void setStatus(final String str) {
+        runOnUiThread( new Runnable() {
+            public void run() {
+                status.setText(str);
+            }
+        });
     }
 
     private class DownloadBlobTask extends AsyncTask<String, String, JSONObject> {
         @Override
-        protected void onPostExecute(JSONObject blob) {
+        protected void onPostExecute(final JSONObject blob) {
             blobDownloadTask = null;
             if (blob == null) {
                 setStatus("Failed to retrieve blob!");
                 showLogin();
                 return;
             }
-            try {
-                setStatus("Retrieved blob!");
-                account = client.accountFromSeed(blob.getString("master_seed"));
-                account.root.once(AccountRoot.OnUpdate.class, new AccountRoot.OnUpdate() {
-                    @Override
-                    public void called(AccountRoot accountRoot) {
-                        if (accountIsUnfunded()) {
-                            handleUnfundedAccount();
-                        }
+            setStatus("Retrieved blob!");
+
+            Runnable getAccount = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        account = client.accountFromSeed(blob.getString("master_seed"));
+                        account.root.once(AccountRoot.OnUpdate.class, new AccountRoot.OnUpdate() {
+                            @Override
+                            public void called(AccountRoot accountRoot) {
+                                if (accountIsUnfunded()) {
+                                    handleUnfundedAccount();
+                                }
+                            }
+                        });
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
                     }
-                });
-                setSubmitToPay();
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
+                }
+            };
+            client.runImmediately(getAccount);
+            setSubmitToPay();
         }
 
         @Override
@@ -198,4 +254,5 @@ public class PayOneDrop extends Activity {
             }
         }
     }
+
 }

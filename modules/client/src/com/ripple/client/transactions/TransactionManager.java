@@ -1,6 +1,7 @@
 package com.ripple.client.transactions;
 
 import com.ripple.client.Client;
+import com.ripple.client.ClientLogger;
 import com.ripple.client.Request;
 import com.ripple.client.Response;
 import com.ripple.client.enums.Command;
@@ -30,7 +31,7 @@ public class TransactionManager {
     ArrayList<Transaction> queued = new ArrayList<Transaction>();
 
     public int awaiting() {
-        return submitted.size();
+        return queued.size() + submitted.size();
     }
 
     public TransactionManager(Client client, AccountRoot accountRoot, AccountID accountID, IKeyPair keyPair) {
@@ -41,6 +42,8 @@ public class TransactionManager {
     }
 
     public void queue(final Transaction transaction) {
+        queued.add(transaction);
+
         if (canSubmit()) {
             makeSubmitRequest(transaction);
         } else {
@@ -100,6 +103,8 @@ public class TransactionManager {
     }
 
     public void handleSubmitSuccess(Transaction transaction, Response res) {
+        queued.remove(transaction); // TODO: requeu
+
         TransactionEngineResult tr = res.engineResult();
         switch (tr.resultClass()) {
             case tesSUCCESS:
@@ -140,7 +145,7 @@ public class TransactionManager {
         if (tx != null) {
             tx.emit(Transaction.OnTransactionValidated.class, tm);
         } else {
-            Client.log("Can't find transaction");
+            ClientLogger.log("Can't find transaction");
         }
     }
 

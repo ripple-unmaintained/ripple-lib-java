@@ -27,7 +27,7 @@ public class Account extends AccountID implements IPublisher<Account.events> {
         return publisher.emit(key, args);
     }
 
-    public void remove(Class<? extends events> key, IPublisher.ICallback2 cb) {
+    public void remove(Class<? extends events> key, ICallback cb) {
         publisher.remove(key, cb);
     }
 

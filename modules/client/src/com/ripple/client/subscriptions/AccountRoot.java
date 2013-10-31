@@ -1,13 +1,11 @@
 package com.ripple.client.subscriptions;
 
-import com.ripple.client.Client;
+import com.ripple.client.ClientLogger;
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.core.types.*;
 import com.ripple.core.types.hash.Hash256;
 import com.ripple.core.types.uint.UInt32;
 import org.json.JSONObject;
-
-import java.math.BigInteger;
 
 public class AccountRoot extends Publisher<AccountRoot.events> {
     public static abstract class events<T> extends Publisher.Callback<T> {}
@@ -24,7 +22,7 @@ public class AccountRoot extends Publisher<AccountRoot.events> {
             PreviousTxnID = transactionHash;
             PreviousTxnLgrSeq = transactionLedgerIndex;
         } else {
-            Client.log("hrmmm .... "); // We should keep track of these and try and form a chain
+            ClientLogger.log("hrmmm .... "); // We should keep track of these and try and form a chain
         }
     }
 
