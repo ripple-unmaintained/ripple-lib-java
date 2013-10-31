@@ -31,11 +31,18 @@
             android:nextFocusDown="@+id/submit"
             android:layout_below="@+id/username"    />
     <Button
+            android:textSize="15sp"
+            android:minEms="10"
             android:layout_marginTop="10dip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/login_text"
             android:id="@id/submit" android:layout_centerHorizontal="true" android:layout_below="@+id/password"/>
+    <Spinner
+            android:padding="0dip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/contacts" android:layout_centerHorizontal="true" android:layout_below="@id/submit"/>
 
 
 </RelativeLayout>

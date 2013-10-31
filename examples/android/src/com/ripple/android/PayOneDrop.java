@@ -4,9 +4,7 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.*;
 import com.ripple.client.Account;
 import com.ripple.client.Response;
 import com.ripple.client.blobvault.BlobVault;
@@ -16,11 +14,11 @@ import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transactions.TransactionMessage.TransactionResult;
 import com.ripple.core.types.AccountID;
 import com.ripple.core.types.Amount;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
 
 public class PayOneDrop extends Activity {
     AndroidClient client;
@@ -30,9 +28,11 @@ public class PayOneDrop extends Activity {
     EditText username;
     EditText password;
     Button submit;
+    Spinner contacts;
+    ArrayAdapter<String> contactsAdapter;
+    ArrayList<AccountID> contactsAddresses = new ArrayList<AccountID>(); // parrallel array
 
     View[] loginViews;
-
     BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
     DownloadBlobTask blobDownloadTask;
     String masterSeed;
@@ -46,7 +46,8 @@ public class PayOneDrop extends Activity {
         setContentView(R.layout.main);
         setupClient();
         setupViews();
-        showLogin();
+        showOnlyLogin();
+        autoLogin("niq1", "niq123/");
     }
 
 
@@ -75,8 +76,24 @@ public class PayOneDrop extends Activity {
         username = (EditText) findViewById(R.id.username);
         password = (EditText) findViewById(R.id.password);
         submit = (Button) findViewById(R.id.submit);
-
+        contacts = (Spinner) findViewById(R.id.contacts);
+        contactsAdapter = new ArrayAdapter<String>(this, R.layout.contacts_text_view);
+        contacts.setAdapter(contactsAdapter);
         loginViews = new View[]{username, password, submit};
+
+        contacts.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                contactsAdapter.getItem(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        }
+
+        );
 
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -145,7 +162,7 @@ public class PayOneDrop extends Activity {
             @Override
             public void run() {
                 threadSafeSetStatus("Account unfunded");
-                showLogin();
+                showOnlyLogin();
                 // TODO, need to clean up this account, remove from Client store and unbind all handlers
                 account = null;
             }
@@ -164,7 +181,9 @@ public class PayOneDrop extends Activity {
      */
     private void setSubmitToPay() {
         submit.setVisibility(View.VISIBLE);
-        submit.setText(getString(R.string.pay_niq_one_drop));
+        contacts.setVisibility(View.VISIBLE);
+        submit.setText(getString(R.string.pay_one_drop));
+        Logger.LOG("Number of pixels in submit: %d", submit.getWidth());
     }
 
     /**
@@ -178,27 +197,28 @@ public class PayOneDrop extends Activity {
     /**
      * Thread: uiThread
      */
-    private void showLogin() {
+    private void showOnlyLogin() {
         setViewsVisibility(View.VISIBLE, loginViews);
+        setViewsVisibility(View.GONE, contacts);
         submit.setText(getString(R.string.login_text));
     }
 
     /**
      * Thread: uiThread
      */
-    private void hideLogin() {
+    private void hideAllButStatus() {
         setViewsVisibility(View.GONE, loginViews);
+        setViewsVisibility(View.GONE, contacts);
     }
 
     /**
      * Thread: uiThread
      */
     private void payNiqOneDrop(final Account account) {
-        threadSafeSetStatus("Transaction queued " + awaitingTransactionsParenthetical(account));
-        client.runImmediately(new Runnable() {
+        client.run(new Runnable() {
             @Override
             public void run() {
-                makePayment(account, "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH", "1");
+                makePayment(account, contactsAddresses.get(contacts.getSelectedItemPosition()), "1");
             }
         });
     }
@@ -232,13 +252,19 @@ public class PayOneDrop extends Activity {
             }
         });
         tm.queue(tx);
+        threadSafeSetStatus("Transaction queued " + awaitingTransactionsParenthetical(account));
     }
 
     /**
-     * Thread: any (doesn't REALLY matter ?)
+     * Thread: client thread
      */
     private String awaitingTransactionsParenthetical(Account account) {
-        return String.format("(awaiting %d)", account.transactionManager().awaiting());
+        int awaiting = account.transactionManager().awaiting();
+        if (awaiting == 0) {
+            return "";
+        } else {
+            return String.format("(awaiting %d)", awaiting);
+        }
     }
 
     /**
@@ -282,17 +308,18 @@ public class PayOneDrop extends Activity {
             blobDownloadTask = null;
             if (blob == null) {
                 threadSafeSetStatus("Failed to retrieve blob!");
-                showLogin();
+                showOnlyLogin();
                 return;
             }
             threadSafeSetStatus("Retrieved blob!");
 
             try {
                 masterSeed = blob.getString("master_seed");
+                populateContactsSpinner(blob.optJSONArray("contacts"));
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
-            client.runImmediately(getAccount);
+            client.runPrioritized(getAccount);
             setSubmitToPay();
         }
 
@@ -301,7 +328,7 @@ public class PayOneDrop extends Activity {
          */
         @Override
         protected void onPreExecute() {
-            hideLogin();
+            hideAllButStatus();
         }
 
         /**
@@ -317,6 +344,33 @@ public class PayOneDrop extends Activity {
                 return null;
             }
         }
+    }
+
+    /**
+     * Thread: uiThread
+     */
+    private void populateContactsSpinner(JSONArray rawContacts) {
+        contactsAdapter.clear();
+
+        try {
+            addContact("Niq", "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH");
+            for (int i = 0; i < rawContacts.length(); i++) {
+                JSONObject contact = rawContacts.getJSONObject(i);
+                addContact(contact.getString("name"),
+                        contact.getString("address"));
+            }
+        }
+        catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Thread: uiThread
+     */
+    private void addContact(String niq, String address) {
+        contactsAdapter.add(niq);
+        contactsAddresses.add(AccountID.fromString(address));
     }
 
 }

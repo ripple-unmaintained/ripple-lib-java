@@ -55,12 +55,13 @@ class AndroidClient extends Client {
         });
     }
 
-    /**
-     * @param runnable The action to execute immediately (before any other onMessage for example)
-     */
-    void runImmediately(Runnable runnable) {
+    void runPrioritized(Runnable runnable) {
         handler.postAtFrontOfQueue(
                 runnable
         );
+    }
+
+    public void run(Runnable runnable) {
+        handler.post(runnable);
     }
 }
