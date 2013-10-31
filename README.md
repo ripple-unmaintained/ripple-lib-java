@@ -21,7 +21,9 @@ Current status:
   - Some thought still needs to be given to how this will work in different
     environments, be it single threaded async, or on android.
   - Android example
-    - Using class loader patch to use Bouncy Castle 1.4.9
+    - Using class loader patch to use predexe Bouncy Castle 1.4.9
+      - MUCH faster builds, don't need to dex or merge each time
+      - No need to fork a squishy/boingy castle and maintain two crypto providers
   - CLI example
   - Api client choice of websocket transport
 
@@ -29,7 +31,8 @@ TODO:
   - Binary parsing
   - Documentation
   - General cleanup of code / api surface
+  - Class path patcher for android needs testing
 
 Examples:
   
-  see in examples/ folder
+  See in examples/ folder

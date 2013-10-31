@@ -30,7 +30,6 @@ class AndroidClient extends Client {
         HandlerThread handlerThread = new HandlerThread("android client thread") {
             @Override
             protected void onLooperPrepared() {
-                Logger.LOG("onLooperPrepared! %s", Thread.currentThread());
                 handler = new Handler(getLooper());
                 handler.post(new Runnable() {
                     @Override
@@ -43,31 +42,25 @@ class AndroidClient extends Client {
         handlerThread.start();
     }
 
-    @Override
-    public void sendMessage(JSONObject msg) {
-        LOG("sending: ", JSON.prettyJSON(msg));
-        super.sendMessage(msg);
-    }
-
     /**
-     * This is to ensure we run everything on the ui thread (as per activity lifecycle
-     * handlers onCreate and OnClickListener handlers)
+     * This is to ensure we run everything on the one HandlerThread
      */
     @Override
     public void onMessage(final JSONObject msg) {
-
         handler.post(new Runnable() {
             @Override
             public void run() {
-                LOG("received: ", JSON.prettyJSON(msg));
                 AndroidClient.super.onMessage(msg);
             }
         });
     }
 
-    void runImmediately(Runnable getAccount) {
+    /**
+     * @param runnable The action to execute immediately (before any other onMessage for example)
+     */
+    void runImmediately(Runnable runnable) {
         handler.postAtFrontOfQueue(
-                getAccount
+                runnable
         );
     }
 }
