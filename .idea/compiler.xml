@@ -30,6 +30,16 @@
         <module name="java-web-socket" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="cli" target="1.7" />
+      <module name="client" target="1.7" />
+      <module name="client-transports" target="1.7" />
+      <module name="core" target="1.7" />
+      <module name="examples" target="1.7" />
+      <module name="java-web-socket" target="1.7" />
+      <module name="modules" target="1.7" />
+      <module name="parent" target="1.7" />
+    </bytecodeTargetLevel>
   </component>
 </project>
 
