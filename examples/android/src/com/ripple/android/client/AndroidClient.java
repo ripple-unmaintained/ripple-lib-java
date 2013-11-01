@@ -1,13 +1,14 @@
-package com.ripple.android;
+package com.ripple.android.client;
 
 import android.os.Handler;
 import android.os.HandlerThread;
+import com.ripple.android.Logger;
 import com.ripple.client.Client;
 import com.ripple.client.ClientLogger;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
 import org.json.JSONObject;
 
-class AndroidClient extends Client {
+public class AndroidClient extends Client {
     Handler handler;
 
     static {
@@ -61,7 +62,7 @@ class AndroidClient extends Client {
         });
     }
 
-    void runPrioritized(Runnable runnable) {
+    public void runPrioritized(Runnable runnable) {
         handler.postAtFrontOfQueue(
                 runnable
         );

@@ -1,10 +1,13 @@
-package com.ripple.android;
+package com.ripple.android.activities;
 
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
+import com.ripple.android.client.AndroidClient;
+import com.ripple.android.Bootstrap;
+import com.ripple.android.R;
 import com.ripple.client.Account;
 import com.ripple.client.Response;
 import com.ripple.client.blobvault.BlobVault;
@@ -47,7 +50,7 @@ public class PayOneDrop extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.pay_one_drop);
         setupClient();
         setupViews();
         showOnlyLogin();
@@ -150,7 +153,7 @@ public class PayOneDrop extends Activity {
 
     /**
      * This must NOT be called from the UI thread
-     * @param runnable the Runnable to execute on the main thread, blocking calling while it runs
+     * @param runnable the Runnable to execute on the pay_one_drop thread, blocking calling while it runs
      */
     public void waitForUiThread(final Runnable runnable) {
 

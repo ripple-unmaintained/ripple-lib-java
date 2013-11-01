@@ -1,6 +1,7 @@
 package com.ripple.android;
 
 import android.app.Application;
+import com.ripple.android.client.AndroidClient;
 
 public class Bootstrap {
     static public AndroidClient client;

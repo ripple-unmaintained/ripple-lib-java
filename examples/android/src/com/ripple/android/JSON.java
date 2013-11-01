@@ -3,7 +3,7 @@ package com.ripple.android;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-class JSON {
+public class JSON {
     public static JSONObject parseJSON(String s) {
         try {
             return new JSONObject(s);

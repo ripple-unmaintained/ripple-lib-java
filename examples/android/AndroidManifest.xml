@@ -13,8 +13,14 @@
     <application android:name="com.ripple.android.RippleApplication"
                  android:label="@string/app_name"
                  android:icon="@drawable/ic_launcher">
-        <activity android:name=".PayOneDrop"
+        <activity android:name=".activities.PayOneDrop"
                   android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".activities.PayContact">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
