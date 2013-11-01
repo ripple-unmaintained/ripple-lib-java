@@ -42,7 +42,7 @@ public class JSONEncryptTest {
         decrypted  =  jsonEncrypt.decrypt(key, encrypted);
 
         assertEquals(decrypted.getString("one"), raw.getString("one"));
-        assertEquals(decrypted.getString("three"), raw.getString("three"));
+        assertEquals(decrypted.getInt("three"), raw.getInt("three"));
 
 
         reencrypted =  jsonEncrypt.encrypt(key, raw, "sucks to be you ...x!!!");
@@ -96,7 +96,7 @@ public class JSONEncryptTest {
         decrypted  =  jsonEncrypt.decrypt(key, encrypted);
 
         assertEquals(decrypted.getString("one"), raw.getString("one"));
-        assertEquals(decrypted.getString("three"), raw.getString("three"));
+        assertEquals(decrypted.getInt("three"), raw.getInt("three"));
 
         String adata = URLDecoder.decode(encrypted.getString("adata"), "utf8");
         assertEquals(adata, "wtf bbq?");

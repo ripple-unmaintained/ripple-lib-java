@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="EntryPointsManager">
+    <entry_points version="2.0" />
+  </component>
   <component name="IdProvider" IDEtalkID="2688BC3DAE79430703ECA999CA816EC3" />
   <component name="MavenProjectsManager">
     <option name="originalFiles">
