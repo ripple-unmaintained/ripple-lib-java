@@ -2,11 +2,14 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Android Example.iml" filepath="$PROJECT_DIR$/Android Example.iml" />
-      <module fileurl="file://$PROJECT_DIR$/CLI Example.iml" filepath="$PROJECT_DIR$/CLI Example.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Client.iml" filepath="$PROJECT_DIR$/Client.iml" />
-      <module fileurl="file://$PROJECT_DIR$/JavaWebSocket Transport.iml" filepath="$PROJECT_DIR$/JavaWebSocket Transport.iml" />
-      <module fileurl="file://$PROJECT_DIR$/RippleJ.iml" filepath="$PROJECT_DIR$/RippleJ.iml" />
+      <module fileurl="file://$PROJECT_DIR$/examples/cli/cli.iml" filepath="$PROJECT_DIR$/examples/cli/cli.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modules/client/client.iml" filepath="$PROJECT_DIR$/modules/client/client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modules/client-transports/client-transports.iml" filepath="$PROJECT_DIR$/modules/client-transports/client-transports.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modules/core/core.iml" filepath="$PROJECT_DIR$/modules/core/core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/examples/examples.iml" filepath="$PROJECT_DIR$/examples/examples.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modules/client-transports/java-web-socket/java-web-socket.iml" filepath="$PROJECT_DIR$/modules/client-transports/java-web-socket/java-web-socket.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modules/modules.iml" filepath="$PROJECT_DIR$/modules/modules.iml" />
+      <module fileurl="file://$PROJECT_DIR$/parent.iml" filepath="$PROJECT_DIR$/parent.iml" />
     </modules>
   </component>
 </project>
