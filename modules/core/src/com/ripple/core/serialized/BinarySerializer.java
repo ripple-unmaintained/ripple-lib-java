@@ -2,7 +2,7 @@ package com.ripple.core.serialized;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.types.translators.Translators;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import java.lang.UnsupportedOperationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -125,7 +125,7 @@ public class BinarySerializer {
             case TRANSACTION:
             case LEDGERENTRY:
             case VALIDATION:
-                throw new NotImplementedException();
+                throw new UnsupportedOperationException();
         }
 
     }

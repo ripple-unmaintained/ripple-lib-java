@@ -3,7 +3,7 @@ package com.ripple.core.serialized;
 import com.ripple.core.runtime.Value;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import java.lang.UnsupportedOperationException;
 
 public abstract class TypeTranslator<T extends SerializedType> {
 
@@ -38,59 +38,59 @@ public abstract class TypeTranslator<T extends SerializedType> {
     }
 
     public JSONObject toJSONObject(T obj) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public JSONArray toJSONArray(T obj) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public boolean toBoolean(T obj) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public long toLong(T obj) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public int toInteger(T obj) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public double toDouble(T obj) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public String toString(T obj) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public T fromJSONObject(JSONObject jsonObject) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public T fromJSONArray(JSONArray jsonArray) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public T fromBoolean(boolean aBoolean) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public T fromLong(long aLong) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public T fromInteger(int integer) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public T fromDouble(double aDouble) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public T fromString(String value) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public abstract T fromWireBytes(byte[] bytes);
