@@ -1,7 +1,15 @@
-.idea/workspace.xml
+.idea
+.idea/*
+*.iml
+*/target
+*/target/*
 out/*
 lib/*.gz
 scripts/*
 lib/bcprov-jdk15on-149/*
 dump.json
 examples/android/assets/dev-credentials.json
+examples/cli/target/
+modules/client-transports/java-web-socket/target/
+modules/client/target/
+modules/core/target/
