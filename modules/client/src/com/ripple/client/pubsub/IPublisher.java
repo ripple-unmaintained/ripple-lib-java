@@ -8,5 +8,5 @@ public interface IPublisher<EventClass extends IPublisher.ICallback> {
     <T extends EventClass> void on(Class<T> key, T cb);
     <T extends EventClass> void once(Class<T> key, T cb);
     <T extends EventClass> int emit(Class<T> key, Object... args);
-    void remove(Class<? extends EventClass> key, ICallback cb);
+    void removeListener(Class<? extends EventClass> key, ICallback cb);
 }

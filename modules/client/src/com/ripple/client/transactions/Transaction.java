@@ -31,8 +31,8 @@ public class Transaction extends STObject implements Sequenced, IPublisher<Trans
         return publisher.emit(key, args);
     }
 
-    public void remove(Class<? extends events> key, ICallback cb) {
-        publisher.remove(key, cb);
+    public void removeListener(Class<? extends events> key, ICallback cb) {
+        publisher.removeListener(key, cb);
     }
 
     // events enumeration

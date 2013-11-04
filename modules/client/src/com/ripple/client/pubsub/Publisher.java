@@ -27,7 +27,7 @@ public class Publisher<EventClass extends IPublisher.ICallback> implements IPubl
         add(key, new ICallback() {
             
             public void call(Object... args) {
-                remove(key, this);
+                removeListener(key, this);
                 cb.call(args);
             }
         });
@@ -60,5 +60,5 @@ public class Publisher<EventClass extends IPublisher.ICallback> implements IPubl
     private <T extends EventClass> void add(Class<T> key, ICallback cb) {listFor(key).add(cb); }
     
     @Override
-    public void remove(Class<? extends EventClass> key, ICallback cb) {listFor(key).remove(cb);}
+    public void removeListener(Class<? extends EventClass> key, ICallback cb) {listFor(key).remove(cb);}
 }

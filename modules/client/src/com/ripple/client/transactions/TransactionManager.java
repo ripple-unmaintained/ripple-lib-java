@@ -52,7 +52,7 @@ public class TransactionManager {
                 @Override
                 public void called(JSONObject jsonObject) {
                     if (canSubmit()) {
-                        client.remove(Client.OnMessage.class, this);
+                        client.removeListener(Client.OnMessage.class, this);
                         makeSubmitRequest(transaction);
                     }
                 }
@@ -103,7 +103,7 @@ public class TransactionManager {
     }
 
     public void handleSubmitSuccess(Transaction transaction, Response res) {
-        queued.remove(transaction); // TODO: requeu
+        queued.remove(transaction); // TODO: re-queue
 
         TransactionEngineResult tr = res.engineResult();
         switch (tr.resultClass()) {
@@ -120,10 +120,6 @@ public class TransactionManager {
                 transaction.emit(Transaction.OnSubmitError.class, res);
                 break;
         }
-    }
-
-    private Hash256 getTxnHash(Response res) {
-        return Hash256.translate.fromString(res.result.optJSONObject("tx_json").optString("hash"));
     }
 
     private void invalidateSequence(UInt32 sequence) {

@@ -5,10 +5,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
+import com.ripple.android.JSON;
+import com.ripple.android.Logger;
 import com.ripple.android.client.AndroidClient;
 import com.ripple.android.Bootstrap;
 import com.ripple.android.R;
 import com.ripple.client.Account;
+import com.ripple.client.Client;
 import com.ripple.client.Response;
 import com.ripple.client.blobvault.BlobVault;
 import com.ripple.client.subscriptions.AccountRoot;
@@ -32,14 +35,19 @@ public class PayOneDrop extends Activity {
     Account account;
 
     TextView status;
+    TextView messageLog;
+    RelativeLayout.LayoutParams  statusLayoutParams;
+
     EditText username;
     EditText password;
-    Button submit;
+    Button retrieveWallet;
+    Button payOneDrop;
     Spinner contacts;
+    LinearLayout loginForm;
+    RelativeLayout paymentForm;
     ArrayAdapter<String> contactsAdapter;
-    ArrayList<AccountID> contactsAddresses = new ArrayList<AccountID>(); // parrallel array
+    ArrayList<AccountID> contactsAddresses = new ArrayList<AccountID>(); // parallel array
 
-    View[] loginViews;
     BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
     DownloadBlobTask blobDownloadTask;
     String masterSeed;
@@ -55,10 +63,11 @@ public class PayOneDrop extends Activity {
         setupViews();
         showOnlyLogin();
 
-        tryLoadDevcredentialsFromAssets();
+//        tryLoadDevCredentialsFromAssets();
     }
 
-    private void tryLoadDevcredentialsFromAssets() {
+    @SuppressWarnings("unused")
+    private void tryLoadDevCredentialsFromAssets() {
         try {
             String fileName = "dev-credentials.json";
             String s = assetFileText(fileName);
@@ -91,7 +100,7 @@ public class PayOneDrop extends Activity {
     private void autoLogin(String user, String pass) {
         username.setText(user);
         password.setText(pass);
-        submit.performClick();
+        retrieveWallet.performClick();
     }
 
     /**
@@ -107,36 +116,60 @@ public class PayOneDrop extends Activity {
      */
     private void setupViews() {
         status = (TextView) findViewById(R.id.status);
+        messageLog = (TextView) findViewById(R.id.messageLog);
+        statusLayoutParams = (RelativeLayout.LayoutParams) status.getLayoutParams();
+
         username = (EditText) findViewById(R.id.username);
         password = (EditText) findViewById(R.id.password);
-        submit = (Button) findViewById(R.id.submit);
+
+        retrieveWallet = (Button) findViewById(R.id.retrieve_wallet);
+        payOneDrop = (Button) findViewById(R.id.pay_one_drop);
+
         contacts = (Spinner) findViewById(R.id.contacts);
         contactsAdapter = new ArrayAdapter<String>(this, R.layout.contacts_text_view);
         contacts.setAdapter(contactsAdapter);
-        loginViews = new View[]{username, password, submit};
 
-        submit.setOnClickListener(new View.OnClickListener() {
+        loginForm = (LinearLayout) findViewById(R.id.loginForm);
+        paymentForm = (RelativeLayout) findViewById(R.id.payment_form);
+
+        // TODO, perhaps we should use a broadcast receiver?
+        client.on(Client.OnMessage.class, new Client.OnMessage() {
+            @Override
+            public void called(JSONObject jsonObject) {
+                final String pretty = JSON.prettyJSON(jsonObject);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        messageLog.setText(pretty);
+                    }
+                });
+            }
+        });
+
+        payOneDrop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean weHaveAnAccount = account != null;
-
-                if (weHaveAnAccount) {
-                    if (!account.root.primed()) {
-                        threadSafeSetStatus("Awaiting account_info");
-                    } else {
-                        payOneDrop(account);
-                    }
+                if (!account.root.primed()) {
+                    threadSafeSetStatus("Awaiting account_info");
                 } else {
-                    if (!loginFieldsValid()) {
-                        threadSafeSetStatus("Must enter username and password");
-                    } else if (blobDownloadTask == null) {
-                        blobDownloadTask = new DownloadBlobTask();
-                        blobDownloadTask.execute(username.getText().toString(),
-                                                 password.getText().toString());
-                        threadSafeSetStatus("Retrieving blob!");
-                    } else {
-                        threadSafeSetStatus("Waiting for blob to be retrieved!");
-                    }
+                    payOneDrop(account);
+                }
+            }
+        });
+
+
+        retrieveWallet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!loginFieldsValid()) {
+                    threadSafeSetStatus("Must enter username and password");
+                } else if (blobDownloadTask == null) {
+                    blobDownloadTask = new DownloadBlobTask();
+                    blobDownloadTask.execute(username.getText().toString(),
+                            password.getText().toString());
+                    threadSafeSetStatus("Retrieving blob!");
+                } else {
+                    threadSafeSetStatus("Waiting for blob to be retrieved!");
                 }
             }
         });
@@ -149,13 +182,16 @@ public class PayOneDrop extends Activity {
         return account.root.Balance.isZero();
     }
 
-    public Object lock = new Object();
+    public final Object lock = new Object();
 
     /**
      * This must NOT be called from the UI thread
      * @param runnable the Runnable to execute on the pay_one_drop thread, blocking calling while it runs
      */
     public void waitForUiThread(final Runnable runnable) {
+        if (runningFromUiThread()) {
+            throw new RuntimeException("Don't call `waitForUiThread` from ui thread!");
+        }
 
         runOnUiThread(new Runnable() {
             @Override
@@ -163,15 +199,23 @@ public class PayOneDrop extends Activity {
                 try {
                     runnable.run();
                 } finally {
-                    lock.notify();
+                    synchronized (lock) {
+                        lock.notify();
+                    }
                 }
             }
         } );
         try {
-            lock.wait();
+            synchronized (lock) {
+                lock.wait();
+            }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean runningFromUiThread() {
+        return Thread.currentThread() == getMainLooper().getThread();
     }
 
     /**
@@ -181,9 +225,10 @@ public class PayOneDrop extends Activity {
         waitForUiThread(new Runnable() {
             @Override
             public void run() {
+                Logger.LOG("Account is unfunded");
                 threadSafeSetStatus("Account unfunded");
                 showOnlyLogin();
-                // TODO, need to clean up this account, remove from Client store and unbind all handlers
+                // TODO, need to clean up this account, removeListener from Client store and unbind all handlers
                 account = null;
             }
         });
@@ -199,10 +244,12 @@ public class PayOneDrop extends Activity {
     /**
      * Thread: ui thread
      */
-    private void setSubmitToPay() {
-        submit.setVisibility(View.VISIBLE);
-        contacts.setVisibility(View.VISIBLE);
-        submit.setText(getString(R.string.pay_one_drop));
+    private void showPaymentForm() {
+        statusLayoutParams.addRule(RelativeLayout.ABOVE, 0);
+        paymentForm.setVisibility(View.VISIBLE);
+//        retrieveWallet.setVisibility(View.VISIBLE);
+//        contacts.setVisibility(View.VISIBLE);
+//        retrieveWallet.setText(getString(R.string.pay_one_drop));
     }
 
     /**
@@ -217,29 +264,40 @@ public class PayOneDrop extends Activity {
      * Thread: ui thread
      */
     private void showOnlyLogin() {
-        setViewsVisibility(View.VISIBLE, loginViews);
-        setViewsVisibility(View.GONE, contacts);
-        submit.setText(getString(R.string.login_text));
+        statusLayoutParams.addRule(RelativeLayout.ABOVE, R.id.loginForm);
+//        status.setLayoutParams();
+
+        setViewsVisibility(View.VISIBLE, loginForm);
+        setViewsVisibility(View.GONE, paymentForm);
     }
 
     /**
      * Thread: ui thread
      */
     private void hideAllButStatus() {
-        setViewsVisibility(View.GONE, loginViews);
-        setViewsVisibility(View.GONE, contacts);
+        setViewsVisibility(View.GONE, loginForm);
+        setViewsVisibility(View.GONE, paymentForm);
     }
 
     /**
      * Thread: ui thread
      */
     private void payOneDrop(final Account account) {
+        final AccountID destination = selectedContact();
+
         client.run(new Runnable() {
             @Override
             public void run() {
-                makePayment(account, contactsAddresses.get(contacts.getSelectedItemPosition()), "1");
+                makePayment(account, destination, "1");
             }
         });
+    }
+
+    /**
+     * Thread: ui thread
+     */
+    private AccountID selectedContact() {
+        return contactsAddresses.get(contacts.getSelectedItemPosition());
     }
 
     /**
@@ -339,7 +397,7 @@ public class PayOneDrop extends Activity {
                 throw new RuntimeException(e);
             }
             client.runPrioritized(getAccount);
-            setSubmitToPay();
+            showPaymentForm();
         }
 
         /**
@@ -376,7 +434,7 @@ public class PayOneDrop extends Activity {
             for (int i = 0; i < rawContacts.length(); i++) {
                 JSONObject contact = rawContacts.getJSONObject(i);
                 addContact(contact.getString("name"),
-                        contact.getString("address"));
+                           contact.getString("address"));
             }
         }
         catch (JSONException e) {

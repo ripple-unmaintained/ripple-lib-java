@@ -2,6 +2,7 @@ package com.ripple.client;
 
 import com.ripple.client.enums.Command;
 import com.ripple.client.enums.Message;
+import com.ripple.client.enums.RPCErr;
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.subscriptions.AccountRoot;
 import com.ripple.client.subscriptions.ServerInfo;
@@ -61,6 +62,11 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     private AccountRoot accountRoot(final AccountID id) {
         final AccountRoot accountRoot = new AccountRoot();
+        requestAccountRoot(id, accountRoot, 0);
+        return accountRoot;
+    }
+
+    private void requestAccountRoot(final AccountID id, final AccountRoot accountRoot, final int attempt) {
         Request req = newRequest(Command.ledger_entry);
         req.json("account_root", id);
 
@@ -71,8 +77,13 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 try {
                     if (response.succeeded) {
                         accountRoot.setFromJSON(response.result.getJSONObject("node"));
-                    } else {
+                    } else if (response.rpcerr == RPCErr.entryNotFound) {
+                        ClientLogger.log("Unfunded account: %s", response.message);
                         accountRoot.setUnfundedAccount(id);
+                    } else {
+                        if (attempt < 5) {
+                            requestAccountRoot(id, accountRoot, attempt + 1);
+                        }
                     }
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
@@ -80,7 +91,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             }
         });
         req.request();
-        return accountRoot;
     }
 
     public ServerInfo serverInfo = new ServerInfo();
