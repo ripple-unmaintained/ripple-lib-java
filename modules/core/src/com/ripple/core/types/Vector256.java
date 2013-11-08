@@ -5,6 +5,8 @@ import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.hash.Hash256;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.util.ArrayList;
 
@@ -21,6 +23,23 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
         @Override
         public Object toJSON(Vector256 obj) {
             return null;
+        }
+
+        @Override
+        public Vector256 fromJSONArray(JSONArray jsonArray) {
+            Vector256 vector = new Vector256();
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                try {
+                    String hex = jsonArray.getString(i);
+                    vector.add(Hash256.translate.fromString(hex));
+
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            return vector;
         }
 
         @Override
