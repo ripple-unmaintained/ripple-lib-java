@@ -36,8 +36,8 @@ public enum TransactionType {
         }
     }
 
-    static public TransactionType fromNumber(int i) {
-        return byCode.get(i);
+    static public TransactionType fromNumber(Number i) {
+        return byCode.get(i.intValue());
     }
 
 

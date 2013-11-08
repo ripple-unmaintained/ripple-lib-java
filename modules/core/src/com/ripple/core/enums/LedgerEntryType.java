@@ -28,8 +28,8 @@ public enum LedgerEntryType {
         }
     }
 
-    public static LedgerEntryType fromNumber(int i) {
-        return byCode.get(i);
+    public static LedgerEntryType fromNumber(Number i) {
+        return byCode.get(i.intValue());
     }
 
     public Integer asInteger() {
