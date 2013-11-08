@@ -139,16 +139,17 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     void onTransaction(JSONObject msg) {
-        TransactionResult tm = new TransactionResult(msg, TransactionResult.Source
-                                                                       .transaction_subscription_notification);
+        TransactionResult tr = new TransactionResult(msg, TransactionResult
+                                                            .Source
+                                                            .transaction_subscription_notification);
 
-        if (tm.validated) {
-            ClientLogger.log("Transaction %s is validated", tm.hash);
-            Map<AccountID, STObject> affected = tm.modifiedRoots();
+        if (tr.validated) {
+            ClientLogger.log("Transaction %s is validated", tr.hash);
+            Map<AccountID, STObject> affected = tr.modifiedRoots();
 
             if (affected != null) {
-                Hash256 transactionHash = tm.hash;
-                UInt32 transactionLedgerIndex = tm.ledgerIndex;
+                Hash256 transactionHash = tr.hash;
+                UInt32 transactionLedgerIndex = tr.ledgerIndex;
 
                 for (Map.Entry<AccountID, STObject> entry : affected.entrySet()) {
                     Account account = accounts.get(entry.getKey());
@@ -159,10 +160,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 }
             }
 
-            Account initator = accounts.get(tm.initiatingAccount());
+            Account initator = accounts.get(tr.initiatingAccount());
             if (initator != null) {
                 ClientLogger.log("Found initiator %s, notifying transactionManager", initator);
-                initator.transactionManager().onTransactionResultMessage(tm);
+                initator.transactionManager().onTransactionResultMessage(tr);
             } else {
                 ClientLogger.log("Can't find initiating account!");
             }
