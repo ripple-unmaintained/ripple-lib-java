@@ -107,20 +107,16 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     private void canonicalize() {
-        if (!isNative) {
-            issuerAccount = AccountID.ONE;
-            offset = calculateOffset();
-            if (value.precision() > 16) {
-                throw new PrecisionError("Overflow Error!");
-            }
+        if (isNative) {
+            issuerAccount = AccountID.ZERO;
+            checkXRPBounds(value);
+            offset = 0;
         } else {
             if (value.precision() > 16) {
                 throw new PrecisionError("Overflow Error!");
             }
-
-            issuerAccount = AccountID.ZERO;
-            checkXRPBounds(value);
-            offset = 0;
+            issuerAccount = AccountID.ONE;
+            offset = calculateOffset();
         }
     }
 
@@ -386,9 +382,9 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     private Amount(BigDecimal value, String currency) {
+        isNative = false;
         this.currency(currency);
         this.setValue(value);
-        isNative = false;
     }
 
     public boolean isNative;
@@ -396,9 +392,9 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     private String issuer;
 
     private Amount(BigDecimal value) {
-        this.setValue(value);
         isNative = true;
         currency("XRP");
+        this.setValue(value);
     }
 
     public static Amount fromString(String val) {
