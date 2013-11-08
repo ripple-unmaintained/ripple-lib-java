@@ -2,6 +2,7 @@ package com.ripple.cli;
 
 import com.ripple.client.Account;
 import com.ripple.client.Client;
+import com.ripple.client.ClientLogger;
 import com.ripple.client.Response;
 import com.ripple.client.blobvault.BlobVault;
 import com.ripple.client.transactions.Transaction;
@@ -20,11 +21,13 @@ import static com.ripple.cli.log.Log.LOG;
 
 public class MakePayment {
     public static void main(String[] args) throws Exception {
+        ClientLogger.quiet = false;
         makeAPayment();
     }
 
-    private static void makeAPayment() throws IOException, InvalidCipherTextException, JSONException {
+    private static void makeAPayment() throws IOException, InvalidCipherTextException, JSONException, InterruptedException {
         Client client = new Client(new JavaWebSocketTransportImpl());
+        client.connect("wss://s1.ripple.com");
         BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
         JSONObject blob = blobVault.getBlob("niq1", "");
         Account account = client.accountFromSeed(blob.getString("master_seed"));
