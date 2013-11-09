@@ -53,22 +53,50 @@ public class Hash256 extends HASH{
         return prefixedHalfSha512(HASH_PREFIX_TX_SIGN, blob);
     }
 
-    private static Hash256 prefixedHalfSha512(byte[] prefix, byte[] blob) {
+    public static class HalfSha512 {
         MessageDigest messageDigest;
 
-        try {
-            messageDigest = MessageDigest.getInstance("SHA-512", "BC");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        public HalfSha512() {
+            try {
+                messageDigest = MessageDigest.getInstance("SHA-512", "BC");
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
 
+        public void update(byte[] bytes) {
+            messageDigest.update(bytes);
+        }
+
+        public void update(Hash256 hash) {
+            messageDigest.update(hash.getBytes());
+        }
+
+        public Hash256 finish() {
+            byte[] digest = messageDigest.digest();
+            byte[] half = new byte[32];
+            System.arraycopy(digest, 0, half, 0, 32);
+
+            return new Hash256(half);
+        }
+    }
+
+    public static Hash256 prefixedHalfSha512(byte[] prefix, byte[] blob) {
+        HalfSha512 messageDigest = new HalfSha512();
         messageDigest.update(prefix);
         messageDigest.update(blob);
-        byte[] digest = messageDigest.digest();
-        byte[] half = new byte[32];
-        System.arraycopy(digest, 0, half, 0, 32);
+        return messageDigest.finish();
+    }
 
-        return new Hash256(half);
+    public int nibblet(int depth) {
+        int byte_ix = depth > 0 ? depth / 2 : 0;
+        int b = super.hash[byte_ix];
+        if (depth % 2 == 0) {
+            b = (b & 0xF0) >> 4;
+        } else {
+            b = b & 0x0F;
+        }
+        return b;
     }
 
     @Override

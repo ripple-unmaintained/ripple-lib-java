@@ -152,6 +152,11 @@ public enum Field {
       return type;
     }
 
+    public boolean isSerialized() {
+        return ((type.id > 0) && (type.id < 256) && (id > 0) && (id < 256));
+    }
+
+
     static public Comparator<Field> comparator = new Comparator<Field>() {
         @Override
         public int compare(Field o1, Field o2) {

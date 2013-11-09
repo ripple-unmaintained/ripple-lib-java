@@ -1,6 +1,8 @@
 package com.ripple.core.serialized;
 
 import com.ripple.core.runtime.Value;
+import com.ripple.core.types.Amount;
+import org.bouncycastle.util.encoders.Hex;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.lang.UnsupportedOperationException;
@@ -96,4 +98,8 @@ public abstract class TypeTranslator<T extends SerializedType> {
     public abstract T fromWireBytes(byte[] bytes);
     public abstract Object toJSON(T obj);
     public abstract byte[] toWireBytes(T obj);
+
+    public String toHex(T obj) {
+        return Hex.toHexString(toWireBytes(obj)).toUpperCase();
+    }
 }

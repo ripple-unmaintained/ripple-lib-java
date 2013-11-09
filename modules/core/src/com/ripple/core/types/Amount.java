@@ -235,9 +235,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return translate;
     }
 
-    protected abstract static class AmountField extends Amount implements HasField {
-    }
-
+    public abstract static class AmountField extends Amount implements HasField {}
     public static AmountField amountField(final Field f) {
         return new AmountField() {
             @Override
@@ -259,7 +257,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     static public AmountField MinimumOffer = amountField(Field.MinimumOffer);
     static public AmountField RippleEscrow = amountField(Field.RippleEscrow);
 
-    static class Translator extends TypeTranslator<Amount> {
+    public static class Translator extends TypeTranslator<Amount> {
         @Override
         public Amount fromString(String s) {
             return com.ripple.core.types.Amount.fromString(s);
@@ -271,7 +269,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
 
         @Override
-        public String toString(Amount obj) {
+        public String toString(com.ripple.core.types.Amount obj) {
             return obj.stringRepr();
         }
 

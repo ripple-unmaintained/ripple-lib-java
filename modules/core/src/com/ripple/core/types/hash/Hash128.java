@@ -4,12 +4,6 @@ import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.TypeTranslator;
 
-/**
- * Created with IntelliJ IDEA.
- * User: nick
- * Date: 10/3/13
- * Time: 1:51 PM
- */
 public class Hash128 extends HASH {
     public Hash128(byte[] bytes) {
         super(bytes, 16);

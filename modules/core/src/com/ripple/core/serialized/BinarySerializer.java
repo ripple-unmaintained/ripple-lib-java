@@ -1,6 +1,9 @@
 package com.ripple.core.serialized;
 
 import com.ripple.core.fields.Field;
+import com.ripple.core.fields.Type;
+import com.ripple.core.types.STArray;
+import com.ripple.core.types.STObject;
 import com.ripple.core.types.translators.Translators;
 import java.lang.UnsupportedOperationException;
 
@@ -14,9 +17,12 @@ public class BinarySerializer {
         this.buffer = new ArrayList<Byte>();
     }
 
-    public byte[] fieldHeader(Field field) {
+    public static byte[] fieldHeader(Field field) {
         int name = field.getId(), type = field.getType().getId();
-        assert ((type > 0) && (type < 256) && (name > 0) && (name < 256));
+        if (!((type > 0) && (type < 256) && (name > 0) && (name < 256))) {
+            throw new RuntimeException("Field is invalid: " + field.toString());
+        }
+
         ArrayList<Byte> header = new ArrayList<Byte>(3);
         
         if (type < 16)
@@ -44,6 +50,9 @@ public class BinarySerializer {
             header.add((byte)(name));
         }
 
+
+//        for ()
+
         byte[] headerBytes = new byte[header.size()];
         for (int i = 0; i < header.size(); i++) {
             headerBytes[i] = header.get(i);
@@ -59,17 +68,16 @@ public class BinarySerializer {
     }
 
     public void addLengthEncoded(byte[] n) {
-        add(encodeVL(n));
+        add(encodeVL(n.length));
 
         for (byte b : n) {
             buffer.add(b);
         }
     }
 
-    public static byte[] encodeVL(byte[] n) {
+    public static byte[] encodeVL(int  length) {
         byte[] lenBytes = new byte[4];
-        int length = n.length;
-        
+
         if (length <= 192)
         {
             lenBytes[0] = (byte) (length);
@@ -94,11 +102,19 @@ public class BinarySerializer {
     }
 
     public void add(Field f, SerializedType t) {
-        TypeTranslator<SerializedType> ts = Translators.forField(f);
-        byte[] wireBytes = ts.toWireBytes(t);
         addFieldHeader(f);
+        Type type = f.getType();
+        add(type, t, Translators.forField(f));
+    }
 
-        switch (f.getType()) {
+    public void addObject(STObject o) {
+        addLengthEncoded(STObject.translate.toWireBytes(o));
+    }
+
+    public void add(Type type, SerializedType t, TypeTranslator<SerializedType> ts) {
+        byte[] wireBytes = ts.toWireBytes(t);
+
+        switch (type) {
             case UNKNOWN:
             case DONE:
             case NOTPRESENT:
@@ -107,27 +123,34 @@ public class BinarySerializer {
             case UINT32:
             case UINT64:
             case AMOUNT:
+            case HASH256:
             case PATHSET:
+            case HASH128:
+            case HASH160:
                 add(wireBytes);
                 break;
 
+            // TODO
             case ACCOUNT:
-            case HASH128:
-            case HASH160:
-            case HASH256:
             case VL:
                 addLengthEncoded(wireBytes);
                 break;
 
             case OBJECT:
+                add(wireBytes);
+                add(STObject.Translator.OBJECT_END_MARKER);
+                break;
             case ARRAY:
-            case VECTOR256:
+                add(wireBytes);
+                add(STArray.Translator.ARRAY_END_MARKER);
+                break;
+
+            case VECTOR256:  // This just use VL encoding
             case TRANSACTION:
             case LEDGERENTRY:
             case VALIDATION:
-                throw new UnsupportedOperationException();
+                throw new UnsupportedOperationException("Can't isSerialized " + type.toString());
         }
-
     }
 
     private int addFieldHeader(Field f) {

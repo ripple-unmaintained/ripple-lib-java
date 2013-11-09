@@ -2,6 +2,7 @@ package com.ripple.core.types;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
+import com.ripple.core.serialized.ByteArray;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import org.json.JSONArray;
@@ -16,7 +17,9 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
         return translate;
     }
 
-    static class Translator extends TypeTranslator<STArray> {
+    public static class Translator extends TypeTranslator<STArray> {
+        public static final byte[] ARRAY_END_MARKER = new byte[]{(byte) 0xF1};
+
         @Override
         public STArray fromWireBytes(byte[] bytes) {
             return null;
@@ -52,7 +55,13 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
 
         @Override
         public byte[] toWireBytes(STArray obj) {
-            return new byte[0];
+            ByteArray bytes = new ByteArray();
+
+            for (STObject stObject : obj) {
+                bytes.add(STObject.translate.toWireBytes(stObject));
+            }
+
+            return bytes.toByteArray();
         }
     }
     static public Translator translate = new Translator();

@@ -71,7 +71,7 @@ public class Transaction extends STObject implements Sequenced, IPublisher<Trans
         Hash256 signingHash = Hash256.signingHash(signingBlob);
         byte[] signature = keyPair.sign(signingHash.getBytes());
 
-        // We need to re-serialize for submission
+        // We need to re-isSerialized for submission
         put(VariableLength.TxnSignature, signature);
         put(VariableLength.SigningPubKey, keyPair.pubBytes());
 

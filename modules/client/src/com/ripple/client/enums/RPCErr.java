@@ -29,7 +29,7 @@ public enum RPCErr {
     actExists("Account already exists."),
     actMalformed("Account malformed."),
     actNotFound("Account not found."),
-    badBlob("Blob must be a non-empty hex string."),
+    badBlob("Item must be a non-empty hex string."),
     badFeature("Feature unknown or invalid."),
     badIssuer("Issuer account malformed."),
     badMarket("No such market."),

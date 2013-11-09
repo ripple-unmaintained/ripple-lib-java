@@ -92,16 +92,21 @@ public class TransactionResult {
     }
 
     public AccountID createdAccount() {
-        if (transactionType() == TransactionType.Payment &&  meta.has(Field.AffectedNodes)) {
+        AccountID destination    =  null;
+        Hash256   destinationIndex =  null;
+
+        if (transactionType() == TransactionType.Payment && meta.has(Field.AffectedNodes)) {
             STArray affected = meta.get(STArray.AffectedNodes);
             for (STObject node : affected) {
-                if (node.has(Field.CreatedNode)) {
+                if (node.has(STObject.CreatedNode)) {
                     STObject created = node.get(STObject.CreatedNode);
-
                     if (created.ledgerEntryType() == LedgerEntryType.AccountRoot) {
-                        AccountID accountID = transaction.get(AccountID.Destination);
-                        if (Hash256.accountIDLedgerIndex(accountID).equals(created.get(Hash256.LedgerIndex))) {
-                            return accountID;
+                        if (destination == null) {
+                            destination = transaction.get(AccountID.Destination);
+                            destinationIndex = Hash256.accountIDLedgerIndex(destination);
+                        }
+                        if (destinationIndex.equals(created.get(Hash256.LedgerIndex))) {
+                            return destination;
                         }
                     }
                 }

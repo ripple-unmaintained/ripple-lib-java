@@ -33,6 +33,9 @@ public class STObject implements SerializedType, Iterable<Field> {
     public String toHex() {
         return B16.toString(translate.toWireBytes(this)).toUpperCase();
     }
+    public byte[] toWireBytes() {
+        return translate.toWireBytes(this);
+    }
     public static STObject fromJSONObject(JSONObject json) {
         return translate.fromJSONObject(json);
     }
@@ -89,6 +92,8 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     public static class Translator extends TypeTranslator<STObject> {
+        public final static byte[] OBJECT_END_MARKER = new byte[]{(byte) 0xE1};
+
         @Override
         public STObject fromWireBytes(byte[] bytes) {
             return null;
@@ -178,8 +183,10 @@ public class STObject implements SerializedType, Iterable<Field> {
             BinarySerializer serializer = new BinarySerializer();
 
             for (Field field : obj.fields.keySet()) {
-                SerializedType value = obj.fields.get(field);
-                serializer.add(field, value);
+                if (field.isSerialized()) {
+                    SerializedType value = obj.fields.get(field);
+                    serializer.add(field, value);
+                }
             }
 
             return serializer.toByteArray();
