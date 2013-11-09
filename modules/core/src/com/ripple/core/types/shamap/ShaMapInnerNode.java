@@ -42,7 +42,10 @@ public class ShaMapInnerNode {
         for (int i = 0; i < 16; i++) {
             ShaMapInnerNode node = branches[i];
             if (node != null) {
-                hasher.update(node.hash());
+                Hash256 hash = node.hash();
+                hasher.update(hash);
+            }  else {
+                hasher.update(ZERO_256);
             }
         }
         return hasher.finish();
@@ -53,7 +56,7 @@ public class ShaMapInnerNode {
         branches[slot] = node;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unused")
     protected void removeNode(int slot) {
         branches[slot] = null;
         slotBits = slotBits & ~(1 << slot);
@@ -68,7 +71,7 @@ public class ShaMapInnerNode {
         ShaMapInnerNode existing = branches[ix];
 
         if (existing == null) {
-            setNode(ix, new ShaMapLeafNode(id, depth + 1, nodeType, blob));
+            setNode(ix, new ShaMapLeafNode(id, depth, nodeType, blob));
         } else if (existing instanceof ShaMapLeafNode) {
             if (existing.id.equals(id)) {
                 throw new UnsupportedOperationException("Tried to add node already in tree!");

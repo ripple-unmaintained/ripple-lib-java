@@ -27,7 +27,9 @@ public class Hash256 extends HASH{
     // inner transaction to sign
     public static final  byte[] HASH_PREFIX_TX_SIGN                  =  new byte[]{'S', 'T', 'X', 0};
     // transaction plus metadata
-    public static final  byte[] HASH_PREFIX_TX_NODE                  =  new byte[]{'T', 'N', 'D', 0};
+//    public static final  byte[] HASH_PREFIX_TX_NODE                  =  new byte[]{'T', 'N', 'D', 0};
+    public static final  byte[] HASH_PREFIX_TX_NODE                  =  new byte[]{0x53, 0x4E, 0x44, 0};
+
     // account state
     public static final  byte[] HASH_PREFIX_LEAF_NODE                =  new byte[]{'M', 'L', 'N', 0};
     // inner node in tree

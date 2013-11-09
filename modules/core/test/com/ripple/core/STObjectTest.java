@@ -119,34 +119,128 @@ public class STObjectTest {
                 "  }" +
                 "}";
 
-        JSONObject tx = new JSONObject(json);
-        STObject meta = STObject.fromJSONObject((JSONObject) tx.remove("metaData"));
-        STObject stObject = STObject.fromJSONObject(tx);
+        JSONObject txJson = new JSONObject(json);
+        STObject meta = STObject.fromJSONObject((JSONObject) txJson.remove("metaData"));
+        STObject tx = STObject.fromJSONObject(txJson);
 
         String rippledMetaHex = "201C00000000F8E311006F563596CE72C902BAFAAB56CC486ACAF9B4AFC67CF7CADBB81A4AA9CBDC8C5CB1AAE824000195F934000000000000000E501062A3338CAF2E1BEE510FC33DE1863C56948E962CCE173CA55C14BE8A20D7F00064400000170A53AC2065D5460561EC9DE000000000000000000000000000494C53000000000092D705968936C419CE614BF264B5EEB1CEA47FF4811439408A69F0895E62149CFCC006FB89FA7D1E6E5DE1E1E31100645662A3338CAF2E1BEE510FC33DE1863C56948E962CCE173CA55C14BE8A20D7F000E8365C14BE8A20D7F0005862A3338CAF2E1BEE510FC33DE1863C56948E962CCE173CA55C14BE8A20D7F0000311000000000000000000000000494C530000000000041192D705968936C419CE614BF264B5EEB1CEA47FF4E1E1E511006456AB03F8AA02FFA4635E7CE2850416AEC5542910A2B4DBE93C318FEB08375E0DB5E7220000000032000000000000000058801C5AFB5862D4666D0DF8E5BE1385DC9B421ED09A4269542A07BC0267584B64821439408A69F0895E62149CFCC006FB89FA7D1E6E5DE1E1E511006125003136FA55DE15F43F4A73C4F6CB1C334D9E47BDE84467C0902796BB81D4924885D1C11E6D56CF23A37E39A571A0F22EC3E97EB0169936B520C3088963F16C5EE4AC59130B1BE624000195F92D000000086240000018E16CCA08E1E7220000000024000195FA2D000000096240000018E16CC9FE811439408A69F0895E62149CFCC006FB89FA7D1E6E5DE1E1F1031000";
-
-
-//        Amount amount = stObject.get(Amount.TakerGets);
-//        String hex = Amount.translate.toHex(amount);
-
-
-        String actual = stObject.toHex();
+        String actual = tx.toHex();
 
         assertEquals(rippledHex, rippleLibHex);
         assertEquals(rippledHex, actual);
-
-        debugObject(rippledMetaHex, meta, 0);
-
-
-        System.out.println(rippledMetaHex);
         assertEquals(rippledMetaHex.length(), meta.toHex().length());
+        assertEquals(rippledMetaHex, meta.toHex());
+    }
+
+    @Test
+    public void testNestedObjectSerialization2() throws Exception {
+        String json = "{"+
+                "  \"Account\": \"rMWUykAmNQDaM9poSes8VLDZDDKEbmo7MX\","+
+                "  \"Fee\": \"10\","+
+                "  \"Flags\": 0,"+
+                "  \"OfferSequence\": 1130290,"+
+                "  \"Sequence\": 1130447,"+
+                "  \"SigningPubKey\": \"0256C64F0378DCCCB4E0224B36F7ED1E5586455FF105F760245ADB35A8B03A25FD\","+
+                "  \"TransactionType\": \"OfferCancel\","+
+                "  \"TxnSignature\": \"304502200A8BED7B8955F45633BA4E9212CE386C397E32ACFF6ECE08EB74B5C86200C606022100EF62131FF50B288244D9AB6B3D18BACD44924D2BAEEF55E1B3232B7E033A2791\","+
+                "  \"hash\": \"A197ECCF23E55193CBE292F7A373F0DE0F521D4DCAE32484E20EC634C1ACE528\","+
+                "  \"metaData\": {"+
+                "    \"AffectedNodes\": ["+
+                "      {"+
+                "        \"ModifiedNode\": {"+
+                "          \"FinalFields\": {"+
+                "            \"Account\": \"rMWUykAmNQDaM9poSes8VLDZDDKEbmo7MX\","+
+                "            \"Balance\": \"1988695002\","+
+                "            \"Flags\": 0,"+
+                "            \"OwnerCount\": 68,"+
+                "            \"Sequence\": 1130448"+
+                "          },"+
+                "          \"LedgerEntryType\": \"AccountRoot\","+
+                "          \"LedgerIndex\": \"56091AD066271ED03B106812AD376D48F126803665E3ECBFDBBB7A3FFEB474B2\","+
+                "          \"PreviousFields\": {"+
+                "            \"Balance\": \"1988695012\","+
+                "            \"OwnerCount\": 69,"+
+                "            \"Sequence\": 1130447"+
+                "          },"+
+                "          \"PreviousTxnID\": \"610A3178D0A69167DF32E28990FD60D50F5610A5CF5C832CBF0C7FCC0913516B\","+
+                "          \"PreviousTxnLgrSeq\": 3225338"+
+                "        }"+
+                "      },"+
+                "      {"+
+                "        \"ModifiedNode\": {"+
+                "          \"FinalFields\": {"+
+                "            \"ExchangeRate\": \"561993D688DA919A\","+
+                "            \"Flags\": 0,"+
+                "            \"RootIndex\": \"5943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919A\","+
+                "            \"TakerGetsCurrency\": \"0000000000000000000000004254430000000000\","+
+                "            \"TakerGetsIssuer\": \"92D705968936C419CE614BF264B5EEB1CEA47FF4\","+
+                "            \"TakerPaysCurrency\": \"0000000000000000000000004C54430000000000\","+
+                "            \"TakerPaysIssuer\": \"92D705968936C419CE614BF264B5EEB1CEA47FF4\""+
+                "          },"+
+                "          \"LedgerEntryType\": \"DirectoryNode\","+
+                "          \"LedgerIndex\": \"5943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919A\""+
+                "        }"+
+                "      },"+
+                "      {"+
+                "        \"DeletedNode\": {"+
+                "          \"FinalFields\": {"+
+                "            \"Account\": \"rMWUykAmNQDaM9poSes8VLDZDDKEbmo7MX\","+
+                "            \"BookDirectory\": \"5943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919A\","+
+                "            \"BookNode\": \"0000000000000000\","+
+                "            \"Flags\": 0,"+
+                "            \"OwnerNode\": \"0000000000003292\","+
+                "            \"PreviousTxnID\": \"C7D1671589B1B4AB1071E38299B8338632DAD19A7D0F8D28388F40845AF0BCC5\","+
+                "            \"PreviousTxnLgrSeq\": 3225110,"+
+                "            \"Sequence\": 1130290,"+
+                "            \"TakerGets\": {"+
+                "              \"currency\": \"BTC\","+
+                "              \"issuer\": \"rNPRNzBB92BVpAhhZr4iXDTveCgV5Pofm9\","+
+                "              \"value\": \"0.299233659\""+
+                "            },"+
+                "            \"TakerPays\": {"+
+                "              \"currency\": \"LTC\","+
+                "              \"issuer\": \"rNPRNzBB92BVpAhhZr4iXDTveCgV5Pofm9\","+
+                "              \"value\": \"21.5431\""+
+                "            }"+
+                "          },"+
+                "          \"LedgerEntryType\": \"Offer\","+
+                "          \"LedgerIndex\": \"78812E6E2AB80D5F291F8033D7BC23F0A6E4EA80C998BFF38E80E2A09D2C4D93\""+
+                "        }"+
+                "      },"+
+                "      {"+
+                "        \"ModifiedNode\": {"+
+                "          \"FinalFields\": {"+
+                "            \"Flags\": 0,"+
+                "            \"IndexNext\": \"0000000000003293\","+
+                "            \"IndexPrevious\": \"0000000000000000\","+
+                "            \"Owner\": \"rMWUykAmNQDaM9poSes8VLDZDDKEbmo7MX\","+
+                "            \"RootIndex\": \"2114A41BB356843CE99B2858892C8F1FEF634B09F09AF2EB3E8C9AA7FD0E3A1A\""+
+                "          },"+
+                "          \"LedgerEntryType\": \"DirectoryNode\","+
+                "          \"LedgerIndex\": \"F78A0FFA69890F27C2A79C495E1CEB187EE8E677E3FDFA5AD0B8FCFC6E644E38\""+
+                "        }"+
+                "      }"+
+                "    ],"+
+                "    \"TransactionIndex\": 1,"+
+                "    \"TransactionResult\": \"tesSUCCESS\""+
+                "  }"+
+                "}";
+
+        JSONObject txJson = new JSONObject(json);
+        STObject meta = STObject.fromJSONObject((JSONObject) txJson.remove("metaData"));
+        STObject tx = STObject.fromJSONObject(txJson);
+
+        String rippledMetaHex = "201C00000001F8E511006125003136FA55610A3178D0A69167DF32E28990FD60D50F5610A5CF5C832CBF0C7FCC0913516B5656091AD066271ED03B106812AD376D48F126803665E3ECBFDBBB7A3FFEB474B2E62400113FCF2D000000456240000000768913E4E1E722000000002400113FD02D000000446240000000768913DA8114E0E893E991B2142E74486F7D3331CF711EA84213E1E1E5110064565943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919AE7220000000036561993D688DA919A585943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919A01110000000000000000000000004C54430000000000021192D705968936C419CE614BF264B5EEB1CEA47FF403110000000000000000000000004254430000000000041192D705968936C419CE614BF264B5EEB1CEA47FF4E1E1E411006F5678812E6E2AB80D5F291F8033D7BC23F0A6E4EA80C998BFF38E80E2A09D2C4D93E722000000002400113F32250031361633000000000000000034000000000000329255C7D1671589B1B4AB1071E38299B8338632DAD19A7D0F8D28388F40845AF0BCC550105943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919A64D4C7A75562493C000000000000000000000000004C5443000000000092D705968936C419CE614BF264B5EEB1CEA47FF465D44AA183A77ECF80000000000000000000000000425443000000000092D705968936C419CE614BF264B5EEB1CEA47FF48114E0E893E991B2142E74486F7D3331CF711EA84213E1E1E511006456F78A0FFA69890F27C2A79C495E1CEB187EE8E677E3FDFA5AD0B8FCFC6E644E38E72200000000310000000000003293320000000000000000582114A41BB356843CE99B2858892C8F1FEF634B09F09AF2EB3E8C9AA7FD0E3A1A8214E0E893E991B2142E74486F7D3331CF711EA84213E1E1F1031000";
+        String rippledHex = "12000822000000002400113FCF201900113F3268400000000000000A73210256C64F0378DCCCB4E0224B36F7ED1E5586455FF105F760245ADB35A8B03A25FD7447304502200A8BED7B8955F45633BA4E9212CE386C397E32ACFF6ECE08EB74B5C86200C606022100EF62131FF50B288244D9AB6B3D18BACD44924D2BAEEF55E1B3232B7E033A27918114E0E893E991B2142E74486F7D3331CF711EA84213";
+
+        String actual = tx.toHex();
+
+        assertEquals(rippledHex, actual);
         assertEquals(rippledMetaHex, meta.toHex());
     }
 
     private void debugObject(String patterns, STObject meta, int starting) {
         for (Field field : meta) {
-            System.out.println("Field " + field +  " is of type " + field.getType());
-
             if (!field.isSerialized()) {
                 continue;
             }
@@ -159,30 +253,17 @@ public class STObjectTest {
             String hex = Hex.toHexString(bn.toByteArray());
 
             if (field.getType() == Type.ARRAY) {
-//                System.out.println("Entering array" + field);
-
                 STArray array = (STArray) serializedType;
                 for (STObject stObject : array) {
                     debugObject(patterns, stObject, starting);
                 }
             } else if (field.getType() == Type.OBJECT) {
-//                System.out.println("Entering object" + field);
                 debugObject(patterns, (STObject) serializedType, starting);
             } else {
                 int ix = patterns.indexOf(hex.toUpperCase(), starting);
-                System.out.println(field + " (" + ix + "," + (ix + hex.length()) + ")");
-
                 starting = (ix + hex.length());
-
                 boolean contains = ix != 1;
                 assertTrue(contains);
-//                if (!contains && field != Field.hash) {
-////                    System.out.println("Can't find " + field);
-//                }
-
-//                System.out.println(field.getType() + " " + contains + " " + field + " " +/*+ header +*/ hex);
-
-
             }
         }
     }
