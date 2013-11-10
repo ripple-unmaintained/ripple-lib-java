@@ -2,7 +2,7 @@ package com.ripple.core.serialized;
 
 import java.util.ArrayList;
 
-public class ByteArray {
+public class ByteArrayList {
     ArrayList<byte[]> buffers = new ArrayList<byte[]>();
 
     public void add(byte aByte) {

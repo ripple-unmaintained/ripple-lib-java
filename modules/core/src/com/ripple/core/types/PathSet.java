@@ -2,7 +2,7 @@ package com.ripple.core.types;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
-import com.ripple.core.serialized.ByteArray;
+import com.ripple.core.serialized.ByteArrayList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import org.json.JSONArray;
@@ -144,7 +144,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
         @Override
         public byte[] toWireBytes(PathSet obj) {
-            ByteArray buffer = new ByteArray();
+            ByteArrayList buffer = new ByteArrayList();
             byte typeBoundary = (byte) 0xff,
                       typeEnd = (byte) 0x00;
 

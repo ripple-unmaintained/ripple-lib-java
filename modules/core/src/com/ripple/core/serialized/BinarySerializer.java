@@ -2,7 +2,6 @@ package com.ripple.core.serialized;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.Type;
-import com.ripple.core.types.STObject;
 import com.ripple.core.types.translators.Translators;
 import java.lang.UnsupportedOperationException;
 
@@ -12,10 +11,10 @@ import java.util.Arrays;
 public class BinarySerializer {
     public final static byte[] OBJECT_END_MARKER = new byte[]{(byte) 0xE1};
     public static final byte[] ARRAY_END_MARKER = new byte[]{(byte) 0xF1};
-    private final ByteArray buffer;
+    private final ByteArrayList buffer;
 
     public BinarySerializer() {
-        this.buffer = new ByteArray();
+        this.buffer = new ByteArrayList();
     }
 
     public static byte[] fieldHeader(Field field) {

@@ -18,15 +18,22 @@ public class Config {
         b58IdentiferCodecs = new B58IdentiferCodecs(b58);
     }
 
-
     /**
      * @return the configured B58IdentiferCodecs object
      */
     public static B58IdentiferCodecs getB58IdentiferCodecs() {
         return b58IdentiferCodecs;
     }
+
+    /**
+     * TODO, this is gross
+     */
+    static public boolean bouncyInitiated = false;
     static public void initBouncy() {
-        Security.addProvider(new BouncyCastleProvider());
+        if (!bouncyInitiated) {
+            Security.addProvider(new BouncyCastleProvider());
+            bouncyInitiated = true;
+        }
     }
     /***
      * We set up all the defaults here
@@ -44,5 +51,4 @@ public class Config {
     public static void setFeeCushion(double fee_cushion) {
         feeCushion = fee_cushion;
     }
-
 }

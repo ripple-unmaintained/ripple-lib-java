@@ -2,7 +2,7 @@ package com.ripple.core.types;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
-import com.ripple.core.serialized.ByteArray;
+import com.ripple.core.serialized.ByteArrayList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.uint.UInt64;
@@ -326,13 +326,13 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 } else {
                     value = man.or(new UInt64(512 + 256 + 97 + offset).shiftLeft(64 - 10));
                 }
-                ByteArray byteArray = new ByteArray();
+                ByteArrayList byteArrayList = new ByteArrayList();
 
-                byteArray.add(value.toByteArray());
-                byteArray.add(Currency.encodeCurrency(obj.currencyString()));
-                byteArray.add(obj.issuerBytes());
+                byteArrayList.add(value.toByteArray());
+                byteArrayList.add(Currency.encodeCurrency(obj.currencyString()));
+                byteArrayList.add(obj.issuerBytes());
 
-                return byteArray.toByteArray();
+                return byteArrayList.toByteArray();
             }
         }
     }
