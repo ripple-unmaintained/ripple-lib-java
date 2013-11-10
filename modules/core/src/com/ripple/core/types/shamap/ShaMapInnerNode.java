@@ -2,7 +2,7 @@ package com.ripple.core.types.shamap;
 
 import com.ripple.core.types.hash.Hash256;
 
-public class ShaMapInnerNode {
+public class ShaMapInnerNode extends ShaMapNode {
     public static final Hash256 ZERO_256 = new Hash256(new byte[32]);
     public static enum NodeType
     {
@@ -15,6 +15,8 @@ public class ShaMapInnerNode {
 
     ShaMapInnerNode[] branches;
     Hash256 id;
+
+    // The nth nibblet of a given id
     int depth;
     private int slotBits = 0;
     NodeType type = NodeType.tnINNER;
@@ -93,13 +95,10 @@ public class ShaMapInnerNode {
             existing.addLeaf(id, nodeType, blob);
         }
     }
-
-    public void addLeaf(Hash256 id, ShaMapLeafNode existingLeaf) {
+    private void addLeaf(Hash256 id, ShaMapLeafNode existingLeaf) {
         addLeaf(id, null, null, existingLeaf);
     }
-
     public void addLeaf(Hash256 id, NodeType nodeType, ShaMapLeafNode.Item blob) {
         addLeaf(id, nodeType, blob, null);
     }
-
 }
