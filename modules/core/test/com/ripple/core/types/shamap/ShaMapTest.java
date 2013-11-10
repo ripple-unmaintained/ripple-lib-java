@@ -103,9 +103,9 @@ public class ShaMapTest {
         assertTrue(map.branches[1] instanceof ShaMapLeafNode);
 
 
-        assertTrue(map.branches[2] instanceof ShaMapNode);
+        assertTrue(map.branches[2] instanceof ShaMapInnerNode);
 
-        assertTrue(     map.branches[2].branches[1] instanceof ShaMapNode);
+        assertTrue(     map.branches[2].branches[1] instanceof ShaMapInnerNode);
         assertEquals(2, map.branches[2].branches[1].depth);
 
         assertTrue(     map.branches[2].branches[1].branches[0] instanceof ShaMapLeafNode);
