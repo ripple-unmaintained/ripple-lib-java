@@ -2,7 +2,6 @@ package com.ripple.core.serialized;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.Type;
-import com.ripple.core.types.STArray;
 import com.ripple.core.types.STObject;
 import com.ripple.core.types.translators.Translators;
 import java.lang.UnsupportedOperationException;
@@ -11,10 +10,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class BinarySerializer {
-    ArrayList<Byte> buffer;
+    public final static byte[] OBJECT_END_MARKER = new byte[]{(byte) 0xE1};
+    public static final byte[] ARRAY_END_MARKER = new byte[]{(byte) 0xF1};
+    private final ByteArray buffer;
 
     public BinarySerializer() {
-        this.buffer = new ArrayList<Byte>();
+        this.buffer = new ByteArray();
     }
 
     public static byte[] fieldHeader(Field field) {
@@ -50,9 +51,6 @@ public class BinarySerializer {
             header.add((byte)(name));
         }
 
-
-//        for ()
-
         byte[] headerBytes = new byte[header.size()];
         for (int i = 0; i < header.size(); i++) {
             headerBytes[i] = header.get(i);
@@ -62,17 +60,12 @@ public class BinarySerializer {
     }
 
     public void add(byte[] n) {
-        for (byte b : n) {
-            buffer.add(b);
-        }
+        buffer.add(n);
     }
 
     public void addLengthEncoded(byte[] n) {
         add(encodeVL(n.length));
-
-        for (byte b : n) {
-            buffer.add(b);
-        }
+        add(n);
     }
 
     public static byte[] encodeVL(int  length) {
@@ -107,10 +100,6 @@ public class BinarySerializer {
         add(type, t, Translators.forField(f));
     }
 
-    public void addObject(STObject o) {
-        addLengthEncoded(STObject.translate.toWireBytes(o));
-    }
-
     public void add(Type type, SerializedType t, TypeTranslator<SerializedType> ts) {
         byte[] wireBytes = ts.toWireBytes(t);
 
@@ -138,18 +127,18 @@ public class BinarySerializer {
 
             case OBJECT:
                 add(wireBytes);
-                add(STObject.Translator.OBJECT_END_MARKER);
+                add(OBJECT_END_MARKER);
                 break;
             case ARRAY:
                 add(wireBytes);
-                add(STArray.Translator.ARRAY_END_MARKER);
+                add(ARRAY_END_MARKER);
                 break;
 
             case VECTOR256:  // This just use VL encoding
             case TRANSACTION:
             case LEDGERENTRY:
             case VALIDATION:
-                throw new UnsupportedOperationException("Can't isSerialized " + type.toString());
+                throw new UnsupportedOperationException("Can't serialize " + type.toString());
         }
     }
 
@@ -160,10 +149,6 @@ public class BinarySerializer {
     }
 
     public byte[] toByteArray() {
-        byte[] primitive = new byte[buffer.size()];
-        for (int i = 0; i < primitive.length; i++) {
-            primitive[i] = buffer.get(i);
-        }
-        return primitive;
+        return buffer.toByteArray();
     }
 }

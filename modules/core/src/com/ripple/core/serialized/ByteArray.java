@@ -2,17 +2,27 @@ package com.ripple.core.serialized;
 
 import java.util.ArrayList;
 
-public class ByteArray extends ArrayList<Byte> {
-    public void add(byte[] bytes) {
-        for (byte aByte : bytes) {
-            add(aByte);
-        }
+public class ByteArray {
+    ArrayList<byte[]> buffers = new ArrayList<byte[]>();
+
+    public void add(byte aByte) {
+        add(new byte[]{aByte});
     }
+
+    public void add(byte[] bytes) {
+        buffers.add(bytes);
+    }
+
     public byte[] toByteArray() {
-        byte[] primitive = new byte[size()];
-        for (int i = 0; i < primitive.length; i++) {
-            primitive[i] = get(i);
+        int n = 0, destPos = 0;
+        for (byte[] bytes : buffers) n += bytes.length;
+        byte[] joined = new byte[n];
+
+        for (byte[] bytes : buffers) {
+            int length = bytes.length;
+            System.arraycopy(bytes, 0, joined, destPos, length);
+            destPos += length;
         }
-        return primitive;
+        return joined;
     }
 }

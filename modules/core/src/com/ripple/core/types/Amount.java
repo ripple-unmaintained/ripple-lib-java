@@ -2,6 +2,7 @@ package com.ripple.core.types;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
+import com.ripple.core.serialized.ByteArray;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.uint.UInt64;
@@ -136,6 +137,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return newValue(value.subtract(subtrahend.value));
     }
 
+    // TODO, should this round too ?
     public Amount multiply(Amount multiplicand) {
         return newValue(value.multiply(multiplicand.value));
     }
@@ -315,8 +317,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 return man.toByteArray();
             } else {
                 int offset = obj.getOffset();
-
-                byte[] ret = new byte[IOU_SERIALIZED_BYTE_LENGTH];
                 UInt64 value;
 
                 if (obj.isZero()) {
@@ -326,14 +326,13 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 } else {
                     value = man.or(new UInt64(512 + 256 + 97 + offset).shiftLeft(64 - 10));
                 }
-                System.arraycopy(value.toByteArray(), 0, ret, 0, 8);
-                String currencyCode = obj.currencyString();
-                byte[] currencyBytes = Currency.encodeCurrency(currencyCode);
+                ByteArray byteArray = new ByteArray();
 
-                System.arraycopy(currencyBytes, 0, ret, 8, 20);
-                System.arraycopy(obj.issuerBytes(), 0, ret, 28, 20);
+                byteArray.add(value.toByteArray());
+                byteArray.add(Currency.encodeCurrency(obj.currencyString()));
+                byteArray.add(obj.issuerBytes());
 
-                return ret;
+                return byteArray.toByteArray();
             }
         }
     }

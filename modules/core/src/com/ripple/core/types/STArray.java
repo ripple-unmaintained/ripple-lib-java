@@ -18,7 +18,6 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
     }
 
     public static class Translator extends TypeTranslator<STArray> {
-        public static final byte[] ARRAY_END_MARKER = new byte[]{(byte) 0xF1};
 
         @Override
         public STArray fromWireBytes(byte[] bytes) {

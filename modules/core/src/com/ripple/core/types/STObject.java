@@ -92,7 +92,6 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     public static class Translator extends TypeTranslator<STObject> {
-        public final static byte[] OBJECT_END_MARKER = new byte[]{(byte) 0xE1};
 
         @Override
         public STObject fromWireBytes(byte[] bytes) {
