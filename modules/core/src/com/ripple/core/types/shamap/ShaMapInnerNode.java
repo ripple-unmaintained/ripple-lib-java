@@ -66,23 +66,40 @@ public class ShaMapInnerNode {
         return slotBits == 0;
     }
 
-    public void addLeaf(Hash256 id, NodeType nodeType, ShaMapLeafNode.Item blob) {
+    private void addLeaf(Hash256 id, NodeType nodeType, ShaMapLeafNode.Item blob, ShaMapLeafNode moved) {
         int ix = id.nibblet(depth);
         ShaMapInnerNode existing = branches[ix];
 
         if (existing == null) {
-            setNode(ix, new ShaMapLeafNode(id, depth, nodeType, blob));
+            ShaMapLeafNode node;
+            if (moved == null) {
+                node = new ShaMapLeafNode(id, depth, nodeType, blob);
+            } else {
+                node = moved;
+                node.depth = depth;
+            }
+            setNode(ix, node);
         } else if (existing instanceof ShaMapLeafNode) {
             if (existing.id.equals(id)) {
                 throw new UnsupportedOperationException("Tried to add node already in tree!");
             } else {
+                ShaMapLeafNode existingLeaf = (ShaMapLeafNode) existing;
                 ShaMapInnerNode container = new ShaMapInnerNode(existing.id, depth + 1);
-                setNode(ix, container);
+                container.addLeaf(existing.id, existingLeaf);
                 container.addLeaf(id, nodeType, blob);
+                setNode(ix, container);
             }
         } else {
             existing.addLeaf(id, nodeType, blob);
         }
+    }
+
+    public void addLeaf(Hash256 id, ShaMapLeafNode existingLeaf) {
+        addLeaf(id, null, null, existingLeaf);
+    }
+
+    public void addLeaf(Hash256 id, NodeType nodeType, ShaMapLeafNode.Item blob) {
+        addLeaf(id, nodeType, blob, null);
     }
 
 }
