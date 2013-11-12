@@ -28,6 +28,8 @@ Current status:
   - CLI example
 
 TODO:
+  - TESTS TESTS TESTS
+    - walk ledger history verifying ShaMap hashes
   - Publisher contexts
     - thread execution context
       - runOnUiThread 
