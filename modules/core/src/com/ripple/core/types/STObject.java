@@ -237,6 +237,10 @@ public class STObject implements SerializedType, Iterable<Field> {
         put(hf.getField(), s);
     }
 
+//    public <T extends HasField> void put(T hf, SerializedType s) {
+//        put(hf.getField(), s);
+//    }
+
     public <T extends HasField> void put(T hf, byte [] bytes) {
         Field f = hf.getField();
         put(f, bytes);
@@ -255,7 +259,7 @@ public class STObject implements SerializedType, Iterable<Field> {
         fields.put(f, Translators.forField(f).fromString(s));
     }
 
-    public <T extends SerializedType> void put(Field f, T value) {
+    public void put(Field f, SerializedType value) {
         fields.put(f, value);
     }
 

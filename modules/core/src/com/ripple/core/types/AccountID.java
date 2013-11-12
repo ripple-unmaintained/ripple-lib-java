@@ -136,7 +136,7 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     }
 
     public static AccountID fromString(String value) {
-        if (value.startsWith("r") && value.length() >= 33) {
+        if (value.startsWith("r") && value.length() >= 26) {
             return AccountID.fromAddress(value);
         } else if (value.length() == 160 / 4) {
             return AccountID.fromAddressBytes(Hex.decode(value));

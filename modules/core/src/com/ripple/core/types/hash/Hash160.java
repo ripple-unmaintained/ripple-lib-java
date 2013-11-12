@@ -3,6 +3,7 @@ package com.ripple.core.types.hash;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.TypeTranslator;
+import com.ripple.core.types.AccountID;
 
 public class Hash160 extends HASH {
     public Hash160(byte[] bytes) {
@@ -18,6 +19,14 @@ public class Hash160 extends HASH {
         @Override
         public Hash160 newInstance(byte[] b) {
             return new Hash160(b);
+        }
+
+        @Override
+        public Hash160 fromString(String value) {
+            if (value.startsWith("r")) {
+                return newInstance(AccountID.fromAddress(value).bytes());
+            }
+            return super.fromString(value);
         }
     }
     public static Translator translate = new Translator();

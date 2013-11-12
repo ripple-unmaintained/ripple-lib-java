@@ -212,6 +212,9 @@ abstract public class UINT<ValueType, Subclass extends UINT> extends Number impl
 
         @Override
         public T fromString(String value) {
+            if (value.length() % 2 == 1) {
+                value =  "0" + value;
+            }
             return fromWireBytes(Hex.decode(value));
         }
 

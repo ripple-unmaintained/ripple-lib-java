@@ -1,6 +1,10 @@
 package com.ripple.core.types;
 
+import org.bouncycastle.util.encoders.Hex;
+
 public class Currency {
+    public static final byte[] ZERO = new byte[20];
+
     public static byte[] encodeCurrency(String currencyCode) {
         byte[] currencyBytes = new byte[20];
         currencyBytes[12] = (byte) currencyCode.codePointAt(0);
@@ -18,10 +22,7 @@ public class Currency {
         }
 
         if (zeroExceptCurrency) {
-            char a = charFrom(bytes, 12);
-            char b = charFrom(bytes, 13);
-            char c = charFrom(bytes, 14);
-            return "" + a + b + c;
+            return currencyStringFromBytesAndOffset(bytes, 12);
         }
         else {
             return "";
@@ -30,5 +31,21 @@ public class Currency {
 
     private static char charFrom(byte[] bytes, int i) {
         return (char) bytes[i];
+    }
+
+    public static String normalizeCurrency(String currency) {
+        if (currency.length() == 40) {
+            byte[] bytes = Hex.decode(currency.substring(24, 24 + 6));
+            assert bytes.length == 3;
+            return currencyStringFromBytesAndOffset(bytes, 0);
+        }
+        return currency;
+    }
+
+    private static String currencyStringFromBytesAndOffset(byte[] bytes, int offset) {
+        char a = charFrom(bytes, offset);
+        char b = charFrom(bytes, offset + 1);
+        char c = charFrom(bytes, offset + 2);
+        return "" + a + b + c;
     }
 }

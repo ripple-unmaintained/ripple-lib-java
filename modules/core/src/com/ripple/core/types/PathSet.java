@@ -44,7 +44,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
                     hop.issuer = AccountID.fromAddress(json.getString("issuer"));
                 }
                 if (json.has("currency")) {
-                    hop.currency = json.getString("currency");
+                    hop.currency(json.getString("currency"));
                 }
 
                 if (json.has("type")) {
@@ -78,6 +78,10 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
                 throw new RuntimeException(e);
             }
             return object;
+        }
+
+        public void currency(String currency) {
+            this.currency = Currency.normalizeCurrency(currency);
         }
     }
     public static class Path extends ArrayList<Hop> {

@@ -1,15 +1,76 @@
 package com.ripple.core;
+
 import com.ripple.core.types.Amount;
 import com.ripple.encodings.base58.EncodingFormatException;
+import org.json.JSONObject;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Arrays;
 
 import static org.junit.Assert.*;
 
 public class AmountTest {
     public String rootAddress = TestFixtures.master_seed_address;
+
+    Amount.Translator translator = Amount.translate;
+
+    @Test
+    public void testSerializingNegativeIOU() throws Exception {
+        String json = "{\"currency\": \"USD\", \"issuer\": \"rrrrrrrrrrrrrrrrrrrrBZbvji\", \"value\": \"-99.2643419677474\"}";
+
+        Amount amount = translator.fromJSONObject(new JSONObject(json));
+        String hex = translator.toHex(amount);
+
+        int offset = amount.getOffset();
+        assertEquals(-14, offset);
+        assertTrue(amount.isNegative());
+        assertFalse(amount.isNative);
+
+        String expectedHex = "94E3440A102F5F5400000000000000000000000055534400000000000000000000000000000000000000000000000001";
+
+        assertEquals(expectedHex, hex);
+
+    }
+
+    @Test
+    public void testXRPIOULegacySupport() throws Exception {
+        String json =  "{\n" +
+                        "  \"currency\": \"0000000000000000000000005852500000000000\",\n" +
+                        "  \"issuer\": \"rrrrrrrrrrrrrrrrrrrrBZbvji\",\n" +
+                        "  \"value\": \"0\"\n" +
+                        "}";
+
+        Amount amount = translator.fromJSONObject(new JSONObject(json));
+        assertEquals("XRP", amount.currencyString());
+        assertFalse(amount.isNative);
+
+        JSONObject jsonObject = translator.toJSONObject(amount);
+        Amount rebuilt = translator.fromJSONObject(jsonObject);
+        assertEquals(amount, rebuilt);
+
+        byte[] a1bytes = translator.toWireBytes(amount);
+        byte[] a2bytes = translator.toWireBytes(rebuilt);
+
+        boolean equals = Arrays.equals(a1bytes, a2bytes);
+        assertTrue(equals);
+
+
+        String legacy = "{\n" +
+                "    \"currency\": \"0000000000000000000000005852500000000000\",\n" +
+                "    \"issuer\": \"rrrrrrrrrrrrrrrrrrrrBZbvji\",\n" +
+                                 //rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh
+                "    \"value\": \"0\"\n" +
+                "  }\n" +
+                "  \n" +
+                "";
+        String expected_hex = "800000000000000000000000000000000000000058525000000000000000000000000000000000000000000000000001";
+
+        Amount legacyAmount = translator.fromJSONObject(new JSONObject(legacy));
+        assertEquals(expected_hex, translator.toHex(legacyAmount));
+
+    }
 
     @Test
     public void test_Decimal_Parsing() {

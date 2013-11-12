@@ -54,6 +54,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public void currency(String currency) {
+        currency = Currency.normalizeCurrency(currency);
         this.currency = currency;
     }
 
@@ -82,16 +83,20 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return mantissa;
     }
 
+    /**
+     *
+     * @return a postive value for the mantissa
+     */
     private UInt64 calculateMantissa() {
         if (isNative) {
-            return new UInt64(bigIntegerDrops());
+            return new UInt64(bigIntegerDrops().abs());
         } else {
             return new UInt64(bigIntegerIOUMantissa());
         }
     }
 
     private BigInteger bigIntegerIOUMantissa() {
-        return scaledExact(-offset);
+        return scaledExact(-offset).abs();
     }
 
     private BigInteger bigIntegerDrops() {
@@ -294,15 +299,21 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             if (obj.isNative) {
                 return obj.toDropsString();
             } else {
-                try {
-                    JSONObject out = new JSONObject();
-                    out.put("currency", obj.currencyString());
-                    out.put("value", obj.valueText());
-                    out.put("issuer", obj.issuerString());
-                    return out;
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
+                return toJSONObject(obj);
+            }
+        }
+
+
+        @Override
+        public JSONObject toJSONObject(Amount obj) {
+            try {
+                JSONObject out = new JSONObject();
+                out.put("currency", obj.currencyString());
+                out.put("value", obj.valueText());
+                out.put("issuer", obj.issuerString());
+                return out;
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
             }
         }
 
@@ -341,7 +352,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return value.signum() == 1;
     }
 
-    private boolean isNegative() {
+    public boolean isNegative() {
         return value.signum() == -1;
     }
 
