@@ -2,9 +2,11 @@ package com.ripple.core.types;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
+import com.ripple.core.serialized.BinarySerializer;
 import com.ripple.core.serialized.ByteArrayList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
+import com.ripple.core.types.uint.UInt8;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -108,7 +110,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         }
     }
 
-    static class Translator extends TypeTranslator<PathSet> {
+    public static class Translator extends TypeTranslator<PathSet> {
         @Override
         public PathSet fromWireBytes(byte[] bytes) {
             return null;
@@ -149,22 +151,29 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         @Override
         public byte[] toWireBytes(PathSet obj) {
             ByteArrayList buffer = new ByteArrayList();
+//            BinarySerializer buffer = new BinarySerializer();
+
             byte typeBoundary = (byte) 0xff,
                       typeEnd = (byte) 0x00;
 
             int n = 0;
-            for (Path hops: obj) {
+            for (Path path: obj) {
                 if (n++ != 0) {
                     buffer.add(typeBoundary);
                 }
-                for (Hop hop : hops) {
+                for (Hop hop : path) {
                     int type = hop.getType();
-                    buffer.add((byte) type);
+                    buffer.add(new UInt8(type).toByteArray());
                     if (hop.account != null) {
                         buffer.add(hop.account.bytes());
                     }
+                    // TODO, need to create a Currency class!!
                     if (hop.currency != null) {
-                        buffer.add(Currency.encodeCurrency(hop.currency));
+                        if (hop.currency.equals("XRP")) {
+                            buffer.add(new byte[20]);
+                        } else {
+                            buffer.add(Currency.encodeCurrency(hop.currency));
+                        }
                     }
                     if (hop.issuer != null) {
                         buffer.add(hop.issuer.bytes());

@@ -322,7 +322,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             UInt64 man = obj.mantissa();
 
             if (obj.isNative) {
-                if (obj.isPositive() || obj.isZero()) {
+                if (!obj.isNegative()) {
                     man = man.or(cPosNative);
                 }
                 return man.toByteArray();

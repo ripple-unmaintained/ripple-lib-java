@@ -17,6 +17,14 @@ public class AmountTest {
     Amount.Translator translator = Amount.translate;
 
     @Test
+    public void testSerializing0XRP() throws Exception {
+        Amount amt = Amount.fromDropString("0");
+        String s = translator.toHex(amt);
+        assertEquals("4000000000000000", s);
+        assertEquals(Amount.cPosNative.toString(16), s);
+    }
+
+    @Test
     public void testSerializingNegativeIOU() throws Exception {
         String json = "{\"currency\": \"USD\", \"issuer\": \"rrrrrrrrrrrrrrrrrrrrBZbvji\", \"value\": \"-99.2643419677474\"}";
 

@@ -150,4 +150,8 @@ public class BinarySerializer {
     public byte[] toByteArray() {
         return buffer.toByteArray();
     }
+
+    public void add(byte type) {
+        buffer.add(type);
+    }
 }
