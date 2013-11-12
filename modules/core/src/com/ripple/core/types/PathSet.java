@@ -28,6 +28,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         public static byte TYPE_ACCOUNT  = (byte) 0x01;
         public static byte TYPE_CURRENCY = (byte) 0x10;
         public static byte TYPE_ISSUER   = (byte) 0x20;
+        boolean iouXRP = false;
 
         public int getType() {
             if (type == 0) {
@@ -83,7 +84,11 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         }
 
         public void currency(String currency) {
-            this.currency = Currency.normalizeCurrency(currency);
+            String normalized = Currency.normalizeCurrency(currency);
+            if (currency.length() == 40 && normalized.equals("XRP")) {
+                this.iouXRP = true;
+            }
+            this.currency = normalized;
         }
     }
     public static class Path extends ArrayList<Hop> {
@@ -169,7 +174,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
                     }
                     // TODO, need to create a Currency class!!
                     if (hop.currency != null) {
-                        if (hop.currency.equals("XRP")) {
+                        if (hop.currency.equals("XRP") && !hop.iouXRP) {
                             buffer.add(new byte[20]);
                         } else {
                             buffer.add(Currency.encodeCurrency(hop.currency));
