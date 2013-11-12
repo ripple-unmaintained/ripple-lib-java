@@ -1,8 +1,11 @@
 package com.ripple.core.types.uint;
 
+import com.ripple.core.serialized.ByteArrayList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import org.bouncycastle.util.encoders.Hex;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.math.BigInteger;
 
@@ -183,7 +186,7 @@ abstract public class UINT<ValueType, Subclass extends UINT> extends Number impl
         this.value = value;
     }
 
-    public boolean lte(UInt32 sequence) {
+    public <T extends UINT> boolean  lte(T sequence) {
         return compareTo(sequence) < 1;
     }
 
