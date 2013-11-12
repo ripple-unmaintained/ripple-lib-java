@@ -3,6 +3,6 @@ package com.ripple.core.types.shamap;
 
 public class ShaMap extends ShaMapInnerNode {
     public ShaMap() {
-        super(ZERO_256, 0);
+        super(0);
     }
 }

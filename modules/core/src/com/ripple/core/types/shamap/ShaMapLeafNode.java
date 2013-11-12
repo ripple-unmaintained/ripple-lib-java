@@ -2,7 +2,8 @@ package com.ripple.core.types.shamap;
 
 import com.ripple.core.types.hash.Hash256;
 
-public class ShaMapLeafNode extends ShaMapInnerNode {
+public class ShaMapLeafNode extends ShaMapNode {
+    Hash256 index;
     Item blob;
 
     public interface Item {
@@ -13,20 +14,20 @@ public class ShaMapLeafNode extends ShaMapInnerNode {
     public Hash256 hash() {
         switch (type) {
             case tnTRANSACTION_NM:
-                return id;
+                return index;
             case tnTRANSACTION_MD:
                 Hash256.HalfSha512 half = new Hash256.HalfSha512();
                 half.update(Hash256.HASH_PREFIX_TX_NODE);
                 half.update(blob.bytes());
-                half.update(id);
+                half.update(index);
                 return half.finish();
             default:
                 throw new UnsupportedOperationException("Currently only support transaction leaf nodes");
         }
     }
 
-    public ShaMapLeafNode(Hash256 id, int depth, NodeType type, Item blob) {
-        super(id, depth, false);
+    public ShaMapLeafNode(Hash256 index, NodeType type, Item blob) {
+        this.index = index;
         this.type = type;
         this.blob = blob;
     }

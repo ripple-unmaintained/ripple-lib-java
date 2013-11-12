@@ -4,33 +4,14 @@ import com.ripple.core.types.hash.Hash256;
 
 public class ShaMapInnerNode extends ShaMapNode {
     public static final Hash256 ZERO_256 = new Hash256(new byte[32]);
-    public static enum NodeType
-    {
-        tnERROR,
-        tnINNER,
-        tnTRANSACTION_NM,//   = 2, // transaction, no metadata
-        tnTRANSACTION_MD, //    = 3, // transaction, with metadata
-        tnACCOUNT_STATE//     = 4
-    }
-
-    ShaMapInnerNode[] branches;
-    Hash256 id;
-
-    // The nth nibblet of a given id
-    int depth;
+    ShaMapNode[] branches;
     private int slotBits = 0;
-    NodeType type = NodeType.tnINNER;
+    int depth;
 
-    protected ShaMapInnerNode(Hash256 id, int depth, boolean has_leaves) {
-        this.id = id;
-        this.depth = depth;
-        if (has_leaves) {
-            branches = new ShaMapInnerNode[16];
-        }
-    }
-
-    public ShaMapInnerNode(Hash256 id, int depth) {
-        this(id, depth, true);
+    protected ShaMapInnerNode(int node_depth) {
+        branches = new ShaMapNode[16];
+        type = NodeType.tnINNER;
+        depth = node_depth;
     }
 
     public Hash256 hash() {
@@ -42,7 +23,7 @@ public class ShaMapInnerNode extends ShaMapNode {
         hasher.update(Hash256.HASH_PREFIX_INNER_NODE);
 
         for (int i = 0; i < 16; i++) {
-            ShaMapInnerNode node = branches[i];
+            ShaMapNode node = branches[i];
             if (node != null) {
                 Hash256 hash = node.hash();
                 hasher.update(hash);
@@ -53,7 +34,7 @@ public class ShaMapInnerNode extends ShaMapNode {
         return hasher.finish();
     }
 
-    protected void setNode(int slot, ShaMapInnerNode node) {
+    protected void setNode(int slot, ShaMapNode node) {
         slotBits = slotBits | (1 << slot);
         branches[slot] = node;
     }
@@ -70,29 +51,28 @@ public class ShaMapInnerNode extends ShaMapNode {
 
     private void addLeaf(Hash256 id, NodeType nodeType, ShaMapLeafNode.Item blob, ShaMapLeafNode moved) {
         int ix = id.nibblet(depth);
-        ShaMapInnerNode existing = branches[ix];
+        ShaMapNode existing = branches[ix];
 
         if (existing == null) {
             ShaMapLeafNode node;
             if (moved == null) {
-                node = new ShaMapLeafNode(id, depth, nodeType, blob);
+                node = new ShaMapLeafNode(id, nodeType, blob);
             } else {
                 node = moved;
-                node.depth = depth;
             }
             setNode(ix, node);
         } else if (existing instanceof ShaMapLeafNode) {
-            if (existing.id.equals(id)) {
+            ShaMapLeafNode existingLeaf = (ShaMapLeafNode) existing;
+            if (existingLeaf.index.equals(id)) {
                 throw new UnsupportedOperationException("Tried to add node already in tree!");
             } else {
-                ShaMapLeafNode existingLeaf = (ShaMapLeafNode) existing;
-                ShaMapInnerNode container = new ShaMapInnerNode(existing.id, depth + 1);
-                container.addLeaf(existing.id, existingLeaf);
+                ShaMapInnerNode container = new ShaMapInnerNode(depth + 1);
+                container.addLeaf(existingLeaf.index, existingLeaf);
                 container.addLeaf(id, nodeType, blob);
                 setNode(ix, container);
             }
         } else {
-            existing.addLeaf(id, nodeType, blob);
+            ((ShaMapInnerNode) existing).addLeaf(id, nodeType, blob);
         }
     }
     private void addLeaf(Hash256 id, ShaMapLeafNode existingLeaf) {
