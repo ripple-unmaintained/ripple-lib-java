@@ -2,7 +2,7 @@ package com.ripple.core.serialized;
 
 import java.util.ArrayList;
 
-public class ByteArrayList {
+public class BytesTree {
     /*private ArrayList<byte[]> buffers = new ArrayList<byte[]>();
 
     public void add(byte aByte) {
@@ -51,13 +51,13 @@ public class ByteArrayList {
                 System.arraycopy(buf, 0, bytes, destPos, buf.length);
                 destPos += buf.length;
             } else {
-                destPos = ((ByteArrayList) o).addBytes(bytes, destPos);
+                destPos = ((BytesTree) o).addBytes(bytes, destPos);
             }
         }
         return destPos;
     }
 
-    public void add(ByteArrayList ba1) {
+    public void add(BytesTree ba1) {
         buffers.add(ba1);
     }
 
@@ -67,7 +67,7 @@ public class ByteArrayList {
             if (buffer instanceof byte[]) {
                 n+= ((byte[]) buffer).length;
             } else {
-                n+= ((ByteArrayList) buffer).length();
+                n+= ((BytesTree) buffer).length();
             }
         }
         return n;

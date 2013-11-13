@@ -3,7 +3,7 @@ package com.ripple.core.types;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.ByteArrayList;
+import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.hash.Hash256;
@@ -55,13 +55,13 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
 
 //        @Override
 //        public byte[] toWireBytes(Vector256 obj) {
-//            ByteArrayList to = new ByteArrayList();
+//            BytesTree to = new BytesTree();
 //            toWireBytes(obj, to);
 //            return to.bytes();
 //        }
 
         @Override
-        public void toWireBytes(Vector256 obj, ByteArrayList to) {
+        public void toWireBytes(Vector256 obj, BytesTree to) {
             for (Hash256 hash256 : obj) {
                 to.add(hash256.getBytes());
             }

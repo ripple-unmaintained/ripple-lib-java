@@ -1,10 +1,9 @@
 package com.ripple.core.types.uint;
 
 import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.ByteArrayList;
+import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
-import org.bouncycastle.util.encoders.Hex;
 
 import java.math.BigInteger;
 
@@ -229,7 +228,7 @@ abstract public class UINT<ValueType, Subclass extends UINT> extends Number impl
         }
 
         @Override
-        public void toWireBytes(T obj, ByteArrayList to) {
+        public void toWireBytes(T obj, BytesTree to) {
             to.add(obj.toByteArray());
         }
     }

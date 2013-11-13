@@ -97,12 +97,12 @@ public abstract class TypeTranslator<T extends SerializedType> {
     public abstract T fromWireBytes(BinaryParser parser);
 
     public byte[] toWireBytes(T obj) {
-        ByteArrayList to = new ByteArrayList();
+        BytesTree to = new BytesTree();
         toWireBytes(obj, to);
         return to.bytes();
     }
 
-    public abstract void toWireBytes(T obj, ByteArrayList to);
+    public abstract void toWireBytes(T obj, BytesTree to);
 
     public String toHex(T obj) {
         return Hex.toHexString(toWireBytes(obj)).toUpperCase();

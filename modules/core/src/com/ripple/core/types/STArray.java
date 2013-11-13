@@ -1,7 +1,7 @@
 package com.ripple.core.types;
 
 import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.ByteArrayList;
+import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.SerializedType;
@@ -51,13 +51,13 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
 
 //        @Override
 //        public byte[] toWireBytes(STArray obj) {
-//            ByteArrayList bytes = new ByteArrayList();
+//            BytesTree bytes = new BytesTree();
 //            toWireBytes(obj, bytes);
 //            return bytes.bytes();
 //        }
 
         @Override
-        public void toWireBytes(STArray obj, ByteArrayList bytes) {
+        public void toWireBytes(STArray obj, BytesTree bytes) {
             for (STObject stObject : obj) {
                 bytes.add(STObject.translate.toWireBytes(stObject));
             }

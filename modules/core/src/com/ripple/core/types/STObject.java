@@ -171,7 +171,7 @@ public class STObject implements SerializedType, Iterable<Field> {
         }
 
         @Override
-        public void toWireBytes(STObject obj, ByteArrayList to) {
+        public void toWireBytes(STObject obj, BytesTree to) {
             BinarySerializer serializer = new BinarySerializer(to);
 
             for (Field field : obj) {

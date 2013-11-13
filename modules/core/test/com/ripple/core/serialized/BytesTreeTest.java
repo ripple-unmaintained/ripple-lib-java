@@ -4,12 +4,12 @@ import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;
 
-public class ByteArrayListTest {
+public class BytesTreeTest {
     @Test
     public void testNested() throws Exception {
 
-        ByteArrayList ba1 = new ByteArrayList();
-        ByteArrayList ba2 = new ByteArrayList();
+        BytesTree ba1 = new BytesTree();
+        BytesTree ba2 = new BytesTree();
 
         ba1.add(new byte[]{'a', 'b', 'c'});
         ba1.add(new byte[]{'d', 'e'});

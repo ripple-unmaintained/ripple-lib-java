@@ -1,7 +1,7 @@
 package com.ripple.core.types;
 
 import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.ByteArrayList;
+import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.SerializedType;
@@ -315,13 +315,13 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
 //        @Override
 //        public byte[] toWireBytes(Amount obj) {
-//            ByteArrayList to = new ByteArrayList();
+//            BytesTree to = new BytesTree();
 //            toWireBytes(obj, to);
 //            return to.bytes();
 //        }
 
         @Override
-        public void toWireBytes(Amount obj, ByteArrayList to) {
+        public void toWireBytes(Amount obj, BytesTree to) {
             UInt64 man = obj.mantissa();
 
             if (obj.isNative) {

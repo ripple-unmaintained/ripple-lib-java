@@ -1,7 +1,7 @@
 package com.ripple.core.types;
 
 import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.ByteArrayList;
+import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.SerializedType;
@@ -150,13 +150,13 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
 //        @Override
 //        public byte[] toWireBytes(PathSet obj) {
-//            ByteArrayList buffer = new ByteArrayList();
+//            BytesTree buffer = new BytesTree();
 //            toWireBytes(obj, buffer);
 //            return buffer.bytes();
 //        }
 
         @Override
-        public void toWireBytes(PathSet obj, ByteArrayList buffer) {
+        public void toWireBytes(PathSet obj, BytesTree buffer) {
             byte typeBoundary = (byte) 0xff,
                     typeEnd = (byte) 0x00;
 
