@@ -293,7 +293,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             } else {
                 mantissaBytes = new byte[8];
                 mantissaBytes[0] = (byte) (b1 & 0x3F);
-                mantissaBytes[2] = b2;
+                mantissaBytes[1] = b2;
                 parser.read(6, mantissaBytes, 2);
                 value = new BigDecimal(new BigInteger(sign, mantissaBytes));
                 return new Amount(value);
