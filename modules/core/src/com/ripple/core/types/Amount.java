@@ -268,15 +268,18 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
         @Override
         public Amount fromParser(BinaryParser parser, Integer sizeHint) {
+            BigDecimal value;
+            byte[] mantissaBytes;
 
             byte b1 = parser.readOne();
             byte b2 = parser.readOne();
 
             boolean isIOU = (b1 & 0x80) != 0;
             boolean isPositive = (b1 & 0x40) != 0;
+            int sign = isPositive ? 1 : -1;
 
             if (isIOU) {
-                byte[] mantissaBytes = new byte[7];
+                mantissaBytes = new byte[7];
                 mantissaBytes[0] = (byte) (b2 & 0x3F);
                 parser.read(6, mantissaBytes, 1);
                 String currency = Currency.decodeCurrency(parser.read(20));
@@ -284,21 +287,15 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
                 b1 &= 0x3f;
                 int offset = ((b1) << 2) + ((b2 & 0xff) >> 6) - 97;
-                BigDecimal value = new BigDecimal(new BigInteger(1, mantissaBytes), -offset);
-                if (!isPositive) value = value.negate();
 
+                value = new BigDecimal(new BigInteger(sign, mantissaBytes), -offset);
                 return new Amount(value, currency, issuer, false);
             } else {
-
-                byte[] mantissaBytes = new byte[8];
+                mantissaBytes = new byte[8];
                 mantissaBytes[0] = (byte) (b1 & 0x3F);
                 mantissaBytes[2] = b2;
                 parser.read(6, mantissaBytes, 2);
-                BigDecimal value = new BigDecimal(new BigInteger(1, mantissaBytes));
-
-                if (!isPositive) {
-                    value = value.negate();
-                }
+                value = new BigDecimal(new BigInteger(sign, mantissaBytes));
                 return new Amount(value);
             }
         }

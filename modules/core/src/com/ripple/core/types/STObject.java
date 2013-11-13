@@ -93,14 +93,19 @@ public class STObject implements SerializedType, Iterable<Field> {
             Field field;
 
             while (!parser.end()) {
-                field = parser.readField();
-                if (field == null) throw new IllegalStateException("Couldn't parse field");
+                int fieldCode = parser.readFieldCode();
+                field = Field.fromCode(fieldCode);
+                if (field == null) {
+                    throw new IllegalStateException("Couldn't parse field from " +
+                                                     Integer.toHexString(fieldCode));
+                }
                 tr = Translators.forField(field);
 
                 sizeHint = field.isVLEncoded() ? parser.readVLLength() : null;
                 st = tr.fromParser(parser, sizeHint);
                 if (st == null) throw new IllegalStateException("Parsed " + field + "as null");
                 so.put(field, st);
+                // TODO object end marker
             }
 
             return so;
@@ -115,11 +120,11 @@ public class STObject implements SerializedType, Iterable<Field> {
         public JSONObject toJSONObject(STObject obj) {
             JSONObject json = new JSONObject();
 
-            for (Field f : obj.fields.keySet()) {
+            for (Field f : obj) {
                 TypeTranslator<SerializedType> ts = Translators.forField(f);
 
                 try {
-                    SerializedType obj1 = obj.fields.get(f);
+                    SerializedType obj1 = obj.get(f);
 
                     Object object = ts.toJSON(obj1);
                     if (FieldSymbolics.isSymbolicField(f) && object instanceof Number) {
@@ -253,6 +258,7 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     private void put(Field f, byte[] bytes) {
+        // TODO, all!!!
         fields.put(f, Translators.forField(f).fromParser(new BinaryParser(bytes)));
     }
 

@@ -33,6 +33,10 @@ public class BinaryParser {
     }
 
     public Field readField() {
+        return Field.fromCode(readFieldCode());
+    }
+
+    public int readFieldCode() {
         byte tagByte = readOne();
 
         int typeBits = (tagByte & 0xFF) >>> 4;
@@ -41,7 +45,7 @@ public class BinaryParser {
         int fieldBits = tagByte & 0x0F;
         if (fieldBits == 0) fieldBits = readOne();
 
-        return Field.fromCode(typeBits << 16 | fieldBits);
+        return (typeBits << 16 | fieldBits);
     }
 
     public boolean end() {
