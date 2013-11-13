@@ -22,8 +22,7 @@ public class ShaMapInnerNode extends ShaMapNode {
         Hash256.HalfSha512 hasher = new Hash256.HalfSha512();
         hasher.update(Hash256.HASH_PREFIX_INNER_NODE);
 
-        for (int i = 0; i < 16; i++) {
-            ShaMapNode node = branches[i];
+        for (ShaMapNode node : branches) {
             if (node != null) {
                 Hash256 hash = node.hash();
                 hasher.update(hash);
@@ -31,6 +30,7 @@ public class ShaMapInnerNode extends ShaMapNode {
                 hasher.update(ZERO_256);
             }
         }
+
         return hasher.finish();
     }
 

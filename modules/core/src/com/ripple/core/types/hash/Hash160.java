@@ -2,17 +2,11 @@ package com.ripple.core.types.hash;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
-import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.AccountID;
 
 public class Hash160 extends HASH {
     public Hash160(byte[] bytes) {
         super(bytes, 20);
-    }
-
-    @Override
-    public TypeTranslator translator() {
-        return translate;
     }
 
     public static class Translator extends HashTranslator<Hash160> {

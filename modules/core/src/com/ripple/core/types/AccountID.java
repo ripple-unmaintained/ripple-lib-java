@@ -98,11 +98,6 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     }
 
     @Override
-    public TypeTranslator translator() {
-        return translate;
-    }
-
-    @Override
     public int compareTo(AccountID o) {
         return address.compareTo(o.address);
     }
@@ -136,11 +131,14 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     }
 
     public static AccountID fromString(String value) {
+        // TODO No valid addresses should ever fail below condition
         if (value.startsWith("r") && value.length() >= 26) {
             return AccountID.fromAddress(value);
         } else if (value.length() == 160 / 4) {
             return AccountID.fromAddressBytes(Hex.decode(value));
         } else {
+            // This is potentially dangerous but fromString in
+            // generic sense is used by Amount for parsing strings
             return accountForPassPhrase(value);
         }
     }

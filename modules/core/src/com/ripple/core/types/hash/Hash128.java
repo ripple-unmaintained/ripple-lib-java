@@ -2,16 +2,10 @@ package com.ripple.core.types.hash;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
-import com.ripple.core.serialized.TypeTranslator;
 
 public class Hash128 extends HASH {
     public Hash128(byte[] bytes) {
         super(bytes, 16);
-    }
-
-    @Override
-    public TypeTranslator translator() {
-        return translate;
     }
 
     public static class Translator extends HashTranslator<Hash128> {

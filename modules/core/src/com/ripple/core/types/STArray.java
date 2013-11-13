@@ -12,10 +12,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class STArray extends ArrayList<STObject> implements SerializedType {
-    @Override
-    public TypeTranslator translator() {
-        return translate;
-    }
 
     public static class Translator extends TypeTranslator<STArray> {
 

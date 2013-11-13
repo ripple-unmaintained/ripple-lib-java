@@ -2,7 +2,6 @@ package com.ripple.core.types;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
-import com.ripple.core.serialized.BinarySerializer;
 import com.ripple.core.serialized.ByteArrayList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
@@ -14,10 +13,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
-    @Override
-    public TypeTranslator translator() {
-        return translate;
-    }
 
     public static class Hop{
         AccountID account;
@@ -156,8 +151,6 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         @Override
         public byte[] toWireBytes(PathSet obj) {
             ByteArrayList buffer = new ByteArrayList();
-//            BinarySerializer buffer = new BinarySerializer();
-
             byte typeBoundary = (byte) 0xff,
                       typeEnd = (byte) 0x00;
 
@@ -168,7 +161,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
                 }
                 for (Hop hop : path) {
                     int type = hop.getType();
-                    buffer.add(new UInt8(type).toByteArray());
+                    buffer.add((byte) type);
                     if (hop.account != null) {
                         buffer.add(hop.account.bytes());
                     }
@@ -199,7 +192,4 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
     }
     
     static public PathSetField Paths = pathsetField(Field.Paths);
-
-    
-    
 }

@@ -52,11 +52,6 @@ public class UInt8 extends UINT<Short, UInt8> {
     private UInt8() {
     }
 
-    @Override
-    public TypeTranslator translator() {
-        return translate;
-    }
-
     public abstract static class UInt8Field extends UInt8 implements HasField {}
 
     private static UInt8Field int8Field(final Field f) {

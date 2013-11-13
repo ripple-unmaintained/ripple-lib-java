@@ -237,11 +237,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return toTextFull();
     }
 
-    @Override
-    public TypeTranslator translator() {
-        return translate;
-    }
-
     public abstract static class AmountField extends Amount implements HasField {}
     public static AmountField amountField(final Field f) {
         return new AmountField() {

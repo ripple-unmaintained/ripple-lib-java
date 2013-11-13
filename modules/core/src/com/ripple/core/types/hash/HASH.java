@@ -62,11 +62,6 @@ public class HASH implements SerializedType {
         return super.equals(obj);
     }
 
-    @Override
-    public TypeTranslator translator() {
-        return null;
-    }
-
     static public abstract class HashTranslator<T extends HASH> extends TypeTranslator<T> {
 
         public abstract T newInstance(byte[] b);

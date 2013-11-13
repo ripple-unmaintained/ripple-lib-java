@@ -14,11 +14,6 @@ public class VariableLength implements SerializedType {
 
     byte[] buffer;
 
-    @Override
-    public TypeTranslator translator() {
-        return translate;
-    }
-
     static class Translator extends TypeTranslator<VariableLength> {
         @Override
         public VariableLength fromWireBytes(byte[] bytes) {

@@ -65,11 +65,6 @@ public class STObject implements SerializedType, Iterable<Field> {
         return fields.remove(f);
     }
 
-    @Override
-    public TypeTranslator translator() {
-        return translate;
-    }
-
     public boolean has(Field f) {
         return fields.containsKey(f);
     }

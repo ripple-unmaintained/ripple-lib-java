@@ -2,7 +2,6 @@ package com.ripple.core.types.hash;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
-import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.AccountID;
 
 import java.security.MessageDigest;
@@ -99,11 +98,6 @@ public class Hash256 extends HASH{
             b = b & 0x0F;
         }
         return b;
-    }
-
-    @Override
-    public TypeTranslator translator() {
-        return translate;
     }
 
     public static Hash256 transactionID(byte[] blob) {

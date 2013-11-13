@@ -11,8 +11,6 @@ import org.json.JSONException;
 import java.util.ArrayList;
 
 public class Vector256 extends ArrayList<Hash256> implements SerializedType {
-    @Override
-    public TypeTranslator translator() {return translate;}
 
     static class Translator extends TypeTranslator<Vector256> {
         @Override

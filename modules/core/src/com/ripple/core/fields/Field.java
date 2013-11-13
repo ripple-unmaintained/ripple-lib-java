@@ -1,8 +1,10 @@
-/* DO NOT EDIT, AUTO GENERATED */
 package com.ripple.core.fields;
 import java.util.*;
 
 public enum Field {
+    // These are all presorted (verified in a static block below)
+    // They can then be used in a TreeMap, using the Enum (private) ordinal
+    // comparator
     Generic(0, Type.UNKNOWN),
     Invalid(-1, Type.UNKNOWN),
     LedgerEntryType(1, Type.UINT16),
@@ -153,9 +155,14 @@ public enum Field {
     }
 
     public boolean isSerialized() {
+        // This should screen out `hash` and `index`
         return ((type.id > 0) && (type.id < 256) && (id > 0) && (id < 256));
     }
 
+    //
+    public boolean isSigningField() {
+        return isSerialized() && this != TxnSignature;
+    }
 
     static public Comparator<Field> comparator = new Comparator<Field>() {
         @Override
@@ -169,14 +176,14 @@ public enum Field {
             byCode.put(f.code, f);
         }
 
-        ArrayList<Field> fieldList;
+        ArrayList<Field> sortedFields;
         Field[] values = Field.values();
-        fieldList = new ArrayList<Field>(Arrays.asList(values));
-        Collections.sort(fieldList, comparator);
+        sortedFields = new ArrayList<Field>(Arrays.asList(values));
+        Collections.sort(sortedFields, comparator);
 
         for (int i = 0; i < values.length; i++) {
             Field av = values[i];
-            Field lv = fieldList.get(i);
+            Field lv = sortedFields.get(i);
             if (av.code != lv.code) {
                 throw new RuntimeException("Field enum declaration isn't presorted");
             }

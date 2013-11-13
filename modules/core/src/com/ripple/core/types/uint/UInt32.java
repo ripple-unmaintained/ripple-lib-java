@@ -50,11 +50,6 @@ public class UInt32 extends UINT<Long, UInt32> {
 
     private UInt32(){}
 
-    @Override
-    public TypeTranslator translator() {
-        return translate;
-    }
-
     public abstract static class UInt32Field extends UInt32 implements HasField {}
     private static UInt32Field int32Field(final Field f) {
         return new UInt32Field(){ @Override public Field getField() {return f;}};
