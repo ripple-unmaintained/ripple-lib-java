@@ -427,12 +427,26 @@ public class STObjectTest {
     public void testAmountSerializations() throws Exception {
         rehydrationTest(amt("1/USD/bob"));
         rehydrationTest(amt("1"));
+        rehydrationTest(amt("10000"));
+        rehydrationTest(amt("9999999999999999"));
+        rehydrationTest(amt("-9999999999999999"));
         rehydrationTest(amt("-1/USD/bob"));
         rehydrationTest(amt("-1"));
+        rehydrationTest(amt("-10000"));
         rehydrationTest(amt("-0.0001"));
+        rehydrationTest(amt("-0.000001"));
         rehydrationTest(amt("0.0001"));
         rehydrationTest(amt("0.0001/USD/bob"));
+        rehydrationTest(amt( "0.0000000000000001/USD/bob"));
+        rehydrationTest(amt("-0.1234567890123456/USD/bob"));
+        rehydrationTest(amt("0.1234567890123456/USD/bob"));
         rehydrationTest(amt("-0.0001/USD/bob"));
+
+    }
+
+    @Test(expected = Amount.PrecisionError.class)
+    public void testBlowup() throws Exception {
+        rehydrationTest(amt("-0.12345678901234567/USD/bob"));
     }
 
     private void rehydrationTest(Amount positiveIOU) {
