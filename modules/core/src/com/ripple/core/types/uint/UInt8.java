@@ -12,6 +12,11 @@ public class UInt8 extends UINT<Short, UInt8> {
         public UInt8 newInstance(BigInteger i) {
             return new UInt8(i);
         }
+
+        @Override
+        public int byteWidth() {
+            return 1;
+        }
     };
 
     public UInt8(byte[] bytes) {

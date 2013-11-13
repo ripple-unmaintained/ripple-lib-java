@@ -15,17 +15,19 @@ public class Currency {
 
     public static String decodeCurrency(byte[] bytes) {
         int i;
-        boolean zeroExceptCurrency = true;
+        boolean zeroInNonCurrencyBytes = true;
 
         for (i=0; i<20; i++) {
-            zeroExceptCurrency = zeroExceptCurrency && (i == 12 || i == 13 || i == 14 || bytes[i] == 0);
+            zeroInNonCurrencyBytes = zeroInNonCurrencyBytes &&
+                                   ((i == 12 || i == 13 || i == 14) || // currency bytes (0 or any other)
+                                     bytes[i] == 0);                   // non currency bytes (0)
         }
 
-        if (zeroExceptCurrency) {
+        if (zeroInNonCurrencyBytes) {
             return currencyStringFromBytesAndOffset(bytes, 12);
         }
         else {
-            return "";
+            throw new IllegalStateException("Currency is invalid");
         }
     }
 

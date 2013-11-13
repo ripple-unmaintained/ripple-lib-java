@@ -12,6 +12,11 @@ public class UInt16 extends UINT<Integer, UInt16> {
         public UInt16 newInstance(BigInteger i) {
             return new UInt16(i);
         }
+
+        @Override
+        public int byteWidth() {
+            return 2;
+        }
     };
 
     public UInt16(byte[] bytes) {

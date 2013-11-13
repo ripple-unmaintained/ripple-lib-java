@@ -2,6 +2,7 @@ package com.ripple.core.types;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
+import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.encodings.common.B16;
@@ -16,8 +17,8 @@ public class VariableLength implements SerializedType {
 
     static class Translator extends TypeTranslator<VariableLength> {
         @Override
-        public VariableLength fromWireBytes(byte[] bytes) {
-            return new VariableLength(bytes);
+        public VariableLength fromWireBytes(BinaryParser parser) {
+            return null;
         }
 
         @Override

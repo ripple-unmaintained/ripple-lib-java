@@ -2,6 +2,7 @@ package com.ripple.core.types;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
+import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.hash.Hash256;
@@ -14,7 +15,7 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
 
     static class Translator extends TypeTranslator<Vector256> {
         @Override
-        public Vector256 fromWireBytes(byte[] bytes) {
+        public Vector256 fromWireBytes(BinaryParser parser) {
             return null;
         }
 

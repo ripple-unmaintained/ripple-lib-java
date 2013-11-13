@@ -13,7 +13,7 @@ public class ByteArrayList {
         buffers.add(bytes);
     }
 
-    public byte[] toByteArray() {
+    public byte[] bytes() {
         int n = 0, destPos = 0;
         for (byte[] bytes : buffers) n += bytes.length;
         byte[] joined = new byte[n];

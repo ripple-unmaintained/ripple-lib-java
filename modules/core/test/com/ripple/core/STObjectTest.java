@@ -9,8 +9,6 @@ import com.ripple.core.serialized.BinarySerializer;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.*;
-import com.ripple.core.types.hash.Hash256;
-import com.ripple.core.types.translators.Translators;
 import com.ripple.core.types.uint.UInt16;
 import com.ripple.core.types.uint.UInt32;
 import com.ripple.core.types.uint.UInt64;
@@ -246,11 +244,11 @@ public class STObjectTest {
             }
 
             SerializedType serializedType = meta.get(field);
-            TypeTranslator<SerializedType> tr = Translators.forField(field);
+            TypeTranslator<SerializedType> tr = STObject.Translators.forField(field);
 
             BinarySerializer bn = new BinarySerializer();
-            bn.add(field, serializedType);
-            String hex = Hex.toHexString(bn.toByteArray());
+            bn.add(field, serializedType, tr);
+            String hex = Hex.toHexString(bn.bytes());
 
             if (field.getType() == Type.ARRAY) {
                 STArray array = (STArray) serializedType;

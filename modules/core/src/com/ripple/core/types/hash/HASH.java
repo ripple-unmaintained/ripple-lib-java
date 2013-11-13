@@ -1,5 +1,6 @@
 package com.ripple.core.types.hash;
 
+import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.encodings.common.B16;
@@ -65,10 +66,11 @@ public class HASH implements SerializedType {
     static public abstract class HashTranslator<T extends HASH> extends TypeTranslator<T> {
 
         public abstract T newInstance(byte[] b);
+        public abstract int byteWidth();
 
         @Override
-        public T fromWireBytes(byte[] bytes) {
-            return newInstance(bytes);
+        public T fromWireBytes(BinaryParser parser) {
+            return newInstance(parser.read(byteWidth()));
         }
 
         @Override
@@ -78,7 +80,7 @@ public class HASH implements SerializedType {
 
         @Override
         public T fromString(String value) {
-            return fromWireBytes(Hex.decode(value));
+            return newInstance(Hex.decode(value));
         }
 
         @Override

@@ -16,6 +16,11 @@ public class Hash160 extends HASH {
         }
 
         @Override
+        public int byteWidth() {
+            return 20;
+        }
+
+        @Override
         public Hash160 fromString(String value) {
             if (value.startsWith("r")) {
                 return newInstance(AccountID.fromAddress(value).bytes());

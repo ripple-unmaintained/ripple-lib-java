@@ -2,15 +2,11 @@ package com.ripple.core.serialized;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.Type;
-import com.ripple.core.types.translators.Translators;
-import java.lang.UnsupportedOperationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class BinarySerializer {
-    public final static byte[] OBJECT_END_MARKER = new byte[]{(byte) 0xE1};
-    public static final byte[] ARRAY_END_MARKER = new byte[]{(byte) 0xF1};
     private final ByteArrayList buffer;
 
     public BinarySerializer() {
@@ -93,12 +89,14 @@ public class BinarySerializer {
         }
     }
 
-    public void add(Field f, SerializedType t) {
+
+    public void add(Field f, SerializedType t, TypeTranslator<SerializedType> ts) {
         addFieldHeader(f);
-        Type type = f.getType();
-        add(type, t, Translators.forField(f));
+        add(f.getType(), t, ts);
     }
 
+    // We shouldn't have any dependency on concrete classes, either directly
+    // or transitively, so don't import `com.ripple.core.translators` directly
     public void add(Type type, SerializedType t, TypeTranslator<SerializedType> ts) {
         byte[] wireBytes = ts.toWireBytes(t);
 
@@ -126,11 +124,11 @@ public class BinarySerializer {
 
             case OBJECT:
                 add(wireBytes);
-                add(OBJECT_END_MARKER);
+                add(Markers.OBJECT_END_MARKER);
                 break;
             case ARRAY:
                 add(wireBytes);
-                add(ARRAY_END_MARKER);
+                add(Markers.ARRAY_END_MARKER);
                 break;
 
             case VECTOR256:  // This just use VL encoding
@@ -147,8 +145,8 @@ public class BinarySerializer {
         return n.length;
     }
 
-    public byte[] toByteArray() {
-        return buffer.toByteArray();
+    public byte[] bytes() {
+        return buffer.bytes();
     }
 
     public void add(byte type) {

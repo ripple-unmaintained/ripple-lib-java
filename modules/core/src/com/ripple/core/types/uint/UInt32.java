@@ -12,6 +12,11 @@ public class UInt32 extends UINT<Long, UInt32> {
         public UInt32 newInstance(BigInteger i) {
             return new UInt32(i);
         }
+
+        @Override
+        public int byteWidth() {
+            return 4;
+        }
     };
 
     public UInt32(byte[] bytes) {

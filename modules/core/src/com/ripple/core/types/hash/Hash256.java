@@ -113,6 +113,11 @@ public class Hash256 extends HASH{
         public Hash256 newInstance(byte[] b) {
             return new Hash256(b);
         }
+
+        @Override
+        public int byteWidth() {
+            return 32;
+        }
     }
     public static Translator translate = new Translator();
     private Hash256(){}

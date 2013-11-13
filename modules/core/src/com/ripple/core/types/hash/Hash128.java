@@ -13,6 +13,11 @@ public class Hash128 extends HASH {
         public Hash128 newInstance(byte[] b) {
             return new Hash128(b);
         }
+
+        @Override
+        public int byteWidth() {
+            return 16;
+        }
     }
     public static Translator translate = new Translator();
 

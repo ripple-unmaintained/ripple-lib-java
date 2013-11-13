@@ -12,6 +12,11 @@ public class UInt64 extends UINT<BigInteger, UInt64> {
         public UInt64 newInstance(BigInteger i) {
             return new UInt64(i);
         }
+
+        @Override
+        public int byteWidth() {
+            return 8;
+        }
     };
 
     public UInt64(byte[] bytes) {

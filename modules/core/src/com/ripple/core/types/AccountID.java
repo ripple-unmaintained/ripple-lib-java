@@ -2,6 +2,7 @@ package com.ripple.core.types;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
+import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.hash.Hash160;
@@ -105,8 +106,8 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     static class Translator extends TypeTranslator<AccountID> {
 
         @Override
-        public AccountID fromWireBytes(byte[] bytes) {
-            return AccountID.fromAddressBytes(bytes);
+        public AccountID fromWireBytes(BinaryParser parser) {
+            return AccountID.fromAddressBytes(parser.read(20));
         }
 
         @Override

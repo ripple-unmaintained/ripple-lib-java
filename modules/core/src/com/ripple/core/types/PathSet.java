@@ -1,11 +1,11 @@
 package com.ripple.core.types;
 
+import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.ByteArrayList;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
-import com.ripple.core.serialized.ByteArrayList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
-import com.ripple.core.types.uint.UInt8;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -112,7 +112,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
     public static class Translator extends TypeTranslator<PathSet> {
         @Override
-        public PathSet fromWireBytes(byte[] bytes) {
+        public PathSet fromWireBytes(BinaryParser parser) {
             return null;
         }
 
@@ -179,7 +179,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
                 }
             }
             buffer.add(typeEnd);
-            return buffer.toByteArray();
+            return buffer.bytes();
         }
     }
     static public Translator translate = new Translator();

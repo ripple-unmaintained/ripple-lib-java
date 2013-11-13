@@ -162,7 +162,7 @@ public class ShaMapTest {
         BinarySerializer s = new BinarySerializer();
         s.addLengthEncoded(tx);
         s.addLengthEncoded(meta);
-        final byte[] bytes = s.toByteArray();
+        final byte[] bytes = s.bytes();
         return new ShaMapLeafNode.Item() {
             @Override
             public byte[] bytes() {

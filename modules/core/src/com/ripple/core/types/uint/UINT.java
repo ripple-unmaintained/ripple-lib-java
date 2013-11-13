@@ -1,11 +1,9 @@
 package com.ripple.core.types.uint;
 
-import com.ripple.core.serialized.ByteArrayList;
+import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import org.bouncycastle.util.encoders.Hex;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.math.BigInteger;
 
@@ -193,10 +191,11 @@ abstract public class UINT<ValueType, Subclass extends UINT> extends Number impl
     static public abstract class UINTTranslator<T extends UINT> extends TypeTranslator<T> {
 
         public abstract T newInstance(BigInteger i);
+        public abstract int byteWidth();
 
         @Override
-        public T fromWireBytes(byte[] bytes) {
-            return newInstance(new BigInteger(1, bytes));
+        public T fromWireBytes(BinaryParser parser) {
+            return newInstance(new BigInteger(1, parser.read(byteWidth())));
         }
 
         @Override
@@ -215,10 +214,7 @@ abstract public class UINT<ValueType, Subclass extends UINT> extends Number impl
 
         @Override
         public T fromString(String value) {
-            if (value.length() % 2 == 1) {
-                value =  "0" + value;
-            }
-            return fromWireBytes(Hex.decode(value));
+            return newInstance(new BigInteger(value, 16));
         }
 
         @Override

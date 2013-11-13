@@ -1,8 +1,9 @@
 package com.ripple.core.types;
 
+import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.ByteArrayList;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
-import com.ripple.core.serialized.ByteArrayList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.uint.UInt64;
@@ -266,7 +267,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
 
         @Override
-        public Amount fromWireBytes(byte[] bytes) {
+        public Amount fromWireBytes(BinaryParser parser) {
             return null;
         }
 
@@ -338,7 +339,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 byteArrayList.add(Currency.encodeCurrency(obj.currencyString()));
                 byteArrayList.add(obj.issuerBytes());
 
-                return byteArrayList.toByteArray();
+                return byteArrayList.bytes();
             }
         }
     }

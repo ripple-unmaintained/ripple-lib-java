@@ -1,21 +1,22 @@
 package com.ripple.core.types;
 
+import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.BinarySerializer;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.FieldSymbolics;
 import com.ripple.core.fields.HasField;
+import com.ripple.core.fields.Type;
 import com.ripple.core.formats.Format;
 import com.ripple.core.formats.SLEFormat;
 import com.ripple.core.formats.TxFormat;
-import com.ripple.core.serialized.BinarySerializer;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.hash.Hash128;
 import com.ripple.core.types.hash.Hash160;
 import com.ripple.core.types.hash.Hash256;
-import com.ripple.core.types.translators.Translators;
 import com.ripple.core.types.uint.UInt16;
 import com.ripple.core.types.uint.UInt32;
 import com.ripple.core.types.uint.UInt64;
@@ -89,7 +90,7 @@ public class STObject implements SerializedType, Iterable<Field> {
     public static class Translator extends TypeTranslator<STObject> {
 
         @Override
-        public STObject fromWireBytes(byte[] bytes) {
+        public STObject fromWireBytes(BinaryParser parser) {
             return null;
         }
 
@@ -176,14 +177,14 @@ public class STObject implements SerializedType, Iterable<Field> {
         public byte[] toWireBytes(STObject obj) {
             BinarySerializer serializer = new BinarySerializer();
 
-            for (Field field : obj.fields.keySet()) {
+            for (Field field : obj) {
                 if (field.isSerialized()) {
                     SerializedType value = obj.fields.get(field);
-                    serializer.add(field, value);
+                    serializer.add(field, value, Translators.forField(field));
                 }
             }
 
-            return serializer.toByteArray();
+            return serializer.bytes();
         }
     }
 
@@ -242,7 +243,7 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     private void put(Field f, byte[] bytes) {
-        fields.put(f, Translators.forField(f).fromWireBytes(bytes));
+        fields.put(f, Translators.forField(f).fromWireBytes(new BinaryParser(bytes)));
     }
 
     public void put(Field f, String s) {
@@ -324,5 +325,39 @@ public class STObject implements SerializedType, Iterable<Field> {
 
     public <T extends VariableLength.VariableLengthField> VariableLength get(T f) {
         return (VariableLength) fields.get(f.getField());
+    }
+
+    public static class Translators {
+        public static TypeTranslator forType(Type type) {
+            switch (type) {
+                case AMOUNT:     return Amount.translate;
+                case UINT16:     return UInt16.translate;
+                case UINT32:     return UInt32.translate;
+                case UINT64:     return UInt64.translate;
+                case HASH128:    return Hash128.translate;
+                case HASH256:    return Hash256.translate;
+                case VL:         return VariableLength.translate;
+                case ACCOUNT:    return AccountID.translate;
+                case OBJECT:     return translate;
+                case ARRAY:      return STArray.translate;
+                case UINT8:      return UInt8.translate;
+                case HASH160:    return Hash160.translate;
+                case PATHSET:    return PathSet.translate;
+                case VECTOR256:  return Vector256.translate;
+                default:         throw new RuntimeException("Unknown type");
+            }
+        }
+
+        public static TypeTranslator<SerializedType> forField(Field field) {
+            if (field.tag == null) {
+                field.tag = forType(field.getType());
+            }
+            return getCastedTag(field);
+        }
+
+        @SuppressWarnings("unchecked")
+        private static TypeTranslator<SerializedType> getCastedTag(Field field) {
+            return (TypeTranslator<SerializedType>) field.tag;
+        }
     }
 }
