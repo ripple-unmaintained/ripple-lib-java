@@ -269,34 +269,26 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         @Override
         public Amount fromParser(BinaryParser parser, Integer sizeHint) {
             BigDecimal value;
-            byte[] mantissaBytes;
+            byte[] mantissa = parser.read(8);
+            byte b1 = mantissa[0], b2 = mantissa[1];
 
-            byte b1 = parser.readOne();
-            byte b2 = parser.readOne();
-
-            boolean isIOU = (b1 & 0x80) != 0;
-            boolean isPositive = (b1 & 0x40) != 0;
-            int sign = isPositive ? 1 : -1;
+            boolean     isIOU         = (b1 & 0x80) != 0;
+            boolean     isPositive    = (b1 & 0x40) != 0;
+            int         sign          = isPositive ? 1 : -1;
 
             if (isIOU) {
-                mantissaBytes = new byte[7];
-                mantissaBytes[0] = (byte) (b2 & 0x3F);
-                parser.read(6, mantissaBytes, 1);
-                String currency = Currency.decodeCurrency(parser.read(20));
-                AccountID issuer = AccountID.translate.fromParser(parser);
+                mantissa[0]      =  0;
+                String currency  =  Currency.decodeCurrency(parser.read(20));
+                AccountID issuer =  AccountID.translate.fromParser(parser);
+                int offset       =  ((b1 & 0x3F) << 2) + ((b2 & 0xff) >> 6) - 97;
+                mantissa[1]     &=  0x3F;
 
-                b1 &= 0x3f;
-                int offset = ((b1) << 2) + ((b2 & 0xff) >> 6) - 97;
-
-                value = new BigDecimal(new BigInteger(sign, mantissaBytes), -offset);
-                return new Amount(value, currency, issuer, false);
+                value = new BigDecimal(new BigInteger(sign, mantissa), -offset);
+                return  new Amount(value, currency, issuer, false);
             } else {
-                mantissaBytes = new byte[8];
-                mantissaBytes[0] = (byte) (b1 & 0x3F);
-                mantissaBytes[1] = b2;
-                parser.read(6, mantissaBytes, 2);
-                value = new BigDecimal(new BigInteger(sign, mantissaBytes));
-                return new Amount(value);
+                mantissa[0] &= 0x3F;
+                value = new BigDecimal(new BigInteger(sign, mantissa));
+                return  new Amount(value);
             }
         }
 
