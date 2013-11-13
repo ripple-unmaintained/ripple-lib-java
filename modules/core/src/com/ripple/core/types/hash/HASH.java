@@ -1,6 +1,7 @@
 package com.ripple.core.types.hash;
 
 import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.ByteArrayList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.encodings.common.B16;
@@ -83,9 +84,14 @@ public class HASH implements SerializedType {
             return newInstance(Hex.decode(value));
         }
 
+//        @Override
+//        public byte[] toWireBytes(T obj) {
+//            return obj.hash;
+//        }
+
         @Override
-        public byte[] toWireBytes(T obj) {
-            return obj.hash;
+        public void toWireBytes(T obj, ByteArrayList to) {
+            to.add(obj.hash);
         }
     }
 }

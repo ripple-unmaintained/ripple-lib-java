@@ -1,7 +1,6 @@
 package com.ripple.core.types;
 
-import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.BinarySerializer;
+import com.ripple.core.serialized.*;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.enums.TransactionType;
@@ -12,8 +11,6 @@ import com.ripple.core.fields.Type;
 import com.ripple.core.formats.Format;
 import com.ripple.core.formats.SLEFormat;
 import com.ripple.core.formats.TxFormat;
-import com.ripple.core.serialized.SerializedType;
-import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.hash.Hash128;
 import com.ripple.core.types.hash.Hash160;
 import com.ripple.core.types.hash.Hash256;
@@ -174,8 +171,8 @@ public class STObject implements SerializedType, Iterable<Field> {
         }
 
         @Override
-        public byte[] toWireBytes(STObject obj) {
-            BinarySerializer serializer = new BinarySerializer();
+        public void toWireBytes(STObject obj, ByteArrayList to) {
+            BinarySerializer serializer = new BinarySerializer(to);
 
             for (Field field : obj) {
                 if (field.isSerialized()) {
@@ -183,8 +180,6 @@ public class STObject implements SerializedType, Iterable<Field> {
                     serializer.add(field, value, Translators.forField(field));
                 }
             }
-
-            return serializer.bytes();
         }
     }
 
@@ -330,6 +325,8 @@ public class STObject implements SerializedType, Iterable<Field> {
     public static class Translators {
         public static TypeTranslator forType(Type type) {
             switch (type) {
+                case OBJECT:     return translate;
+
                 case AMOUNT:     return Amount.translate;
                 case UINT16:     return UInt16.translate;
                 case UINT32:     return UInt32.translate;
@@ -338,7 +335,6 @@ public class STObject implements SerializedType, Iterable<Field> {
                 case HASH256:    return Hash256.translate;
                 case VL:         return VariableLength.translate;
                 case ACCOUNT:    return AccountID.translate;
-                case OBJECT:     return translate;
                 case ARRAY:      return STArray.translate;
                 case UINT8:      return UInt8.translate;
                 case HASH160:    return Hash160.translate;

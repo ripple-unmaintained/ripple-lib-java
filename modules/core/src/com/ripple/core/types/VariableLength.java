@@ -3,6 +3,7 @@ package com.ripple.core.types;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.ByteArrayList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.encodings.common.B16;
@@ -36,9 +37,14 @@ public class VariableLength implements SerializedType {
             return new VariableLength(Hex.decode(value));
         }
 
+//        @Override
+//        public byte[] toWireBytes(VariableLength obj) {
+//            return obj.buffer;
+//        }
+
         @Override
-        public byte[] toWireBytes(VariableLength obj) {
-            return obj.buffer;
+        public void toWireBytes(VariableLength obj, ByteArrayList to) {
+            to.add(obj.buffer);
         }
     }
     static public Translator translate = new Translator();

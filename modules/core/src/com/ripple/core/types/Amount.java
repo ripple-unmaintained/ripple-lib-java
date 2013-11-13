@@ -313,15 +313,22 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             }
         }
 
+//        @Override
+//        public byte[] toWireBytes(Amount obj) {
+//            ByteArrayList to = new ByteArrayList();
+//            toWireBytes(obj, to);
+//            return to.bytes();
+//        }
+
         @Override
-        public byte[] toWireBytes(Amount obj) {
+        public void toWireBytes(Amount obj, ByteArrayList to) {
             UInt64 man = obj.mantissa();
 
             if (obj.isNative) {
                 if (!obj.isNegative()) {
                     man = man.or(cPosNative);
                 }
-                return man.toByteArray();
+                to.add(man.toByteArray());
             } else {
                 int offset = obj.getOffset();
                 UInt64 value;
@@ -333,13 +340,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 } else {
                     value = man.or(new UInt64(512 + 256 + 97 + offset).shiftLeft(64 - 10));
                 }
-                ByteArrayList byteArrayList = new ByteArrayList();
 
-                byteArrayList.add(value.toByteArray());
-                byteArrayList.add(Currency.encodeCurrency(obj.currencyString()));
-                byteArrayList.add(obj.issuerBytes());
-
-                return byteArrayList.bytes();
+                to.add(value.toByteArray());
+                to.add(Currency.encodeCurrency(obj.currencyString()));
+                to.add(obj.issuerBytes());
             }
         }
     }

@@ -3,6 +3,7 @@ package com.ripple.core.types;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.ByteArrayList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.hash.Hash256;
@@ -21,7 +22,18 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
 
         @Override
         public Object toJSON(Vector256 obj) {
-            return null;
+            return toJSONArray(obj);
+        }
+
+        @Override
+        public JSONArray toJSONArray(Vector256 obj) {
+            JSONArray array = new JSONArray();
+
+            for (Hash256 hash256 : obj) {
+                array.put(hash256.toString());
+            }
+
+            return array;
         }
 
         @Override
@@ -41,9 +53,18 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
             return vector;
         }
 
+//        @Override
+//        public byte[] toWireBytes(Vector256 obj) {
+//            ByteArrayList to = new ByteArrayList();
+//            toWireBytes(obj, to);
+//            return to.bytes();
+//        }
+
         @Override
-        public byte[] toWireBytes(Vector256 obj) {
-            return new byte[0];
+        public void toWireBytes(Vector256 obj, ByteArrayList to) {
+            for (Hash256 hash256 : obj) {
+                to.add(hash256.getBytes());
+            }
         }
     }
     static public Translator translate = new Translator();

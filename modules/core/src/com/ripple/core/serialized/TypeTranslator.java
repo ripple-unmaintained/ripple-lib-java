@@ -95,7 +95,14 @@ public abstract class TypeTranslator<T extends SerializedType> {
 
     public abstract Object toJSON(T obj);
     public abstract T fromWireBytes(BinaryParser parser);
-    public abstract byte[] toWireBytes(T obj);
+
+    public byte[] toWireBytes(T obj) {
+        ByteArrayList to = new ByteArrayList();
+        toWireBytes(obj, to);
+        return to.bytes();
+    }
+
+    public abstract void toWireBytes(T obj, ByteArrayList to);
 
     public String toHex(T obj) {
         return Hex.toHexString(toWireBytes(obj)).toUpperCase();

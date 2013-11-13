@@ -13,6 +13,10 @@ public class BinarySerializer {
         this.buffer = new ByteArrayList();
     }
 
+    public BinarySerializer(ByteArrayList buffer) {
+        this.buffer = buffer;
+    }
+
     public static byte[] fieldHeader(Field field) {
         int name = field.getId(), type = field.getType().getId();
         if (!((type > 0) && (type < 256) && (name > 0) && (name < 256))) {
@@ -98,8 +102,6 @@ public class BinarySerializer {
     // We shouldn't have any dependency on concrete classes, either directly
     // or transitively, so don't import `com.ripple.core.translators` directly
     public void add(Type type, SerializedType t, TypeTranslator<SerializedType> ts) {
-        byte[] wireBytes = ts.toWireBytes(t);
-
         switch (type) {
             case UNKNOWN:
             case DONE:
@@ -113,30 +115,36 @@ public class BinarySerializer {
             case PATHSET:
             case HASH128:
             case HASH160:
-                add(wireBytes);
+                ts.toWireBytes(t, buffer);
                 break;
 
-            // TODO
             case ACCOUNT:
+            case VECTOR256:
             case VL:
-                addLengthEncoded(wireBytes);
+                ByteArrayList inner = new ByteArrayList();
+                ts.toWireBytes(t, inner);
+                add(encodeVL(inner.length()));
+                add(inner);
                 break;
 
             case OBJECT:
-                add(wireBytes);
+                ts.toWireBytes(t, buffer);
                 add(Markers.OBJECT_END_MARKER);
                 break;
             case ARRAY:
-                add(wireBytes);
+                ts.toWireBytes(t, buffer);
                 add(Markers.ARRAY_END_MARKER);
                 break;
 
-            case VECTOR256:  // This just use VL encoding
             case TRANSACTION:
             case LEDGERENTRY:
             case VALIDATION:
                 throw new UnsupportedOperationException("Can't serialize " + type.toString());
         }
+    }
+
+    private void add(ByteArrayList inner) {
+        buffer.add(inner);
     }
 
     private int addFieldHeader(Field f) {

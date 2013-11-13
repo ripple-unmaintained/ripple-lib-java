@@ -49,15 +49,18 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
             return array;
         }
 
-        @Override
-        public byte[] toWireBytes(STArray obj) {
-            ByteArrayList bytes = new ByteArrayList();
+//        @Override
+//        public byte[] toWireBytes(STArray obj) {
+//            ByteArrayList bytes = new ByteArrayList();
+//            toWireBytes(obj, bytes);
+//            return bytes.bytes();
+//        }
 
+        @Override
+        public void toWireBytes(STArray obj, ByteArrayList bytes) {
             for (STObject stObject : obj) {
                 bytes.add(STObject.translate.toWireBytes(stObject));
             }
-
-            return bytes.bytes();
         }
     }
     static public Translator translate = new Translator();

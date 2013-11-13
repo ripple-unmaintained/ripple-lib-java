@@ -3,6 +3,7 @@ package com.ripple.core.types;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.ByteArrayList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.hash.Hash160;
@@ -125,9 +126,14 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
             return AccountID.fromString(value);
         }
 
+//        @Override
+//        public byte[] toWireBytes(AccountID obj) {
+//            return obj.bytes();
+//        }
+
         @Override
-        public byte[] toWireBytes(AccountID obj) {
-            return obj.bytes();
+        public void toWireBytes(AccountID obj, ByteArrayList to) {
+            to.add(obj.bytes());
         }
     }
 

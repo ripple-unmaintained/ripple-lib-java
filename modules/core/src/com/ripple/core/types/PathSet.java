@@ -148,11 +148,17 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
             return paths;
         }
 
+//        @Override
+//        public byte[] toWireBytes(PathSet obj) {
+//            ByteArrayList buffer = new ByteArrayList();
+//            toWireBytes(obj, buffer);
+//            return buffer.bytes();
+//        }
+
         @Override
-        public byte[] toWireBytes(PathSet obj) {
-            ByteArrayList buffer = new ByteArrayList();
+        public void toWireBytes(PathSet obj, ByteArrayList buffer) {
             byte typeBoundary = (byte) 0xff,
-                      typeEnd = (byte) 0x00;
+                    typeEnd = (byte) 0x00;
 
             int n = 0;
             for (Path path: obj) {
@@ -179,7 +185,6 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
                 }
             }
             buffer.add(typeEnd);
-            return buffer.bytes();
         }
     }
     static public Translator translate = new Translator();
