@@ -5,6 +5,7 @@ import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.Type;
 import com.ripple.core.formats.TxFormat;
+import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BinarySerializer;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
@@ -377,6 +378,50 @@ public class STObjectTest {
 
         STObject fromJSON = STObject.fromJSONObject(new JSONObject(tx_json));
         assertEquals(expectedSerialization, fromJSON.toHex());
+//        for (Field field : fromJSON) {
+//            System.out.println(field);
+//        }
+    }
+
+    @Test
+    public void testBinaryParsing() throws Exception {
+        /*
+        * TransactionType
+          Sequence
+          Amount
+          Fee
+          SigningPubKey
+          Account
+          Destination
+        * */
+
+        String expectedSerialization = "120000240000000561D4C44364C5BB000000000000000000000000000055534" +
+                "40000000000B5F762798A53D543A014CAF8B297CFF8F2F937E8684000000000" +
+                "00000F73210330E7FC9D56BB25D6893BA3F317AE5BCF33B3291BD63DB32654A" +
+                "313222F7FD0208114B5F762798A53D543A014CAF8B297CFF8F2F937E88314FD" +
+                "94A75318DE40B1D513E6764ECBCB6F1E7056ED";
+
+        BinaryParser binaryParser = new BinaryParser(expectedSerialization);
+        Field field;
+
+        field = binaryParser.readField();
+        assertEquals(Field.TransactionType, field);
+        assertEquals(Field.TransactionType, UInt16.TransactionType.getField());
+        UInt16 uInt16 = UInt16.translate.fromParser(binaryParser);
+        assertEquals(0, uInt16.intValue());
+
+        field = binaryParser.readField();
+        assertEquals(Field.Sequence, field);
+        UInt32 sequence = UInt32.translate.fromParser(binaryParser);
+        assertEquals(5, sequence.intValue());
+
+        field = binaryParser.readField();
+        assertEquals(Field.Amount, field);
+
+        binaryParser = new BinaryParser(expectedSerialization);
+        STObject so = STObject.translate.fromParser(binaryParser);
+        assertEquals(expectedSerialization, so.toHex());
+
     }
 
     @Test

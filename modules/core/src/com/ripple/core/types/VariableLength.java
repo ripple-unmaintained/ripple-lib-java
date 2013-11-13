@@ -18,8 +18,8 @@ public class VariableLength implements SerializedType {
 
     static class Translator extends TypeTranslator<VariableLength> {
         @Override
-        public VariableLength fromWireBytes(BinaryParser parser) {
-            return null;
+        public VariableLength fromParser(BinaryParser parser, Integer sizeHint) {
+            return new VariableLength(parser.read(sizeHint));
         }
 
         @Override
@@ -37,13 +37,8 @@ public class VariableLength implements SerializedType {
             return new VariableLength(Hex.decode(value));
         }
 
-//        @Override
-//        public byte[] toWireBytes(VariableLength obj) {
-//            return obj.buffer;
-//        }
-
         @Override
-        public void toWireBytes(VariableLength obj, BytesTree to) {
+        public void toBytesTree(VariableLength obj, BytesTree to) {
             to.add(obj.buffer);
         }
     }

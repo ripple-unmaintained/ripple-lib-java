@@ -1,5 +1,8 @@
 package com.ripple.core.serialized;
 
+import com.ripple.core.fields.Field;
+import com.ripple.encodings.common.B16;
+
 /**
  * This class should parse headers and object markers
  */
@@ -12,27 +15,77 @@ public class BinaryParser {
         this.bytes = bytes;
         size = bytes.length;
     }
+
+
+
+    public BinaryParser(String hex) {
+        this(B16.decode(hex));
+    }
+
     public byte[] peek(int n) {
         return read(n, false);
     }
     public byte peekOne() {
-        return read(1, false)[0];
+        return bytes[cursor];
     }
     public byte[] read(int n) {
         return read(n, true);
     }
-    public byte readOne(int n) {
-        return read(1, true)[0];
+
+    public Field readField() {
+        byte tagByte = readOne();
+
+        int typeBits = (tagByte & 0xFF) >>> 4;
+        if (typeBits == 0) typeBits = readOne();
+
+        int fieldBits = tagByte & 0x0F;
+        if (fieldBits == 0) fieldBits = readOne();
+
+        return Field.fromCode(typeBits << 16 | fieldBits);
+    }
+
+    public boolean end() {
+        return cursor >= size; // greater guard against infinite loops
+    }
+
+    public int pos() {
+        return cursor;
+    }
+
+    public int readVLLength() {
+        byte b1 = readOne();
+        int result;
+
+        if (b1 <= 192) {
+            result = b1;
+        } else if (b1 <= 240) {
+            int b2 = readOne();
+            result = 193 + (b1 - 193) * 256 + b2;
+        } else if (b1 <= 254) {
+            int b2 = readOne();
+            int b3 = readOne();
+            result = 12481 + (b1 - 241) * 65536 + b2 * 256 + b3;
+        } else {
+            throw new RuntimeException("Invalid varint length indicator");
+        }
+
+        return result;
+    }
+
+    public byte readOne() {
+        return bytes[cursor++];
     }
     private byte[] read(int n, boolean advance) {
-        if (cursor + n > size) {
-            throw new IllegalStateException("Trying to read out of bounds");
-        }
         byte[] ret = new byte[n];
         System.arraycopy(bytes, cursor, ret, 0, n);
         if (advance) {
             cursor += n;
         }
         return ret;
+    }
+
+    public void read(int n, byte[] to, int offset) {
+        System.arraycopy(bytes, cursor, to, offset, n);
+        cursor += n;
     }
 }

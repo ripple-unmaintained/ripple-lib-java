@@ -112,7 +112,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
     public static class Translator extends TypeTranslator<PathSet> {
         @Override
-        public PathSet fromWireBytes(BinaryParser parser) {
+        public PathSet fromParser(BinaryParser parser, Integer sizeHint) {
             return null;
         }
 
@@ -149,14 +149,14 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         }
 
 //        @Override
-//        public byte[] toWireBytes(PathSet obj) {
+//        public byte[] toBytesTree(PathSet obj) {
 //            BytesTree buffer = new BytesTree();
-//            toWireBytes(obj, buffer);
+//            toBytesTree(obj, buffer);
 //            return buffer.bytes();
 //        }
 
         @Override
-        public void toWireBytes(PathSet obj, BytesTree buffer) {
+        public void toBytesTree(PathSet obj, BytesTree buffer) {
             byte typeBoundary = (byte) 0xff,
                     typeEnd = (byte) 0x00;
 

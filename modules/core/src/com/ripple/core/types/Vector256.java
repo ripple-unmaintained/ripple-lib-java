@@ -16,7 +16,7 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
 
     static class Translator extends TypeTranslator<Vector256> {
         @Override
-        public Vector256 fromWireBytes(BinaryParser parser) {
+        public Vector256 fromParser(BinaryParser parser, Integer sizeHint) {
             return null;
         }
 
@@ -54,14 +54,14 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
         }
 
 //        @Override
-//        public byte[] toWireBytes(Vector256 obj) {
+//        public byte[] toBytesTree(Vector256 obj) {
 //            BytesTree to = new BytesTree();
-//            toWireBytes(obj, to);
+//            toBytesTree(obj, to);
 //            return to.bytes();
 //        }
 
         @Override
-        public void toWireBytes(Vector256 obj, BytesTree to) {
+        public void toBytesTree(Vector256 obj, BytesTree to) {
             for (Hash256 hash256 : obj) {
                 to.add(hash256.getBytes());
             }

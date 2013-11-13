@@ -267,8 +267,40 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
 
         @Override
-        public Amount fromWireBytes(BinaryParser parser) {
-            return null;
+        public Amount fromParser(BinaryParser parser, Integer sizeHint) {
+
+            byte b1 = parser.readOne();
+            byte b2 = parser.readOne();
+
+            boolean isIOU = (b1 & 0x80) != 0;
+
+            if (isIOU) {
+                byte[] mantissaBytes = new byte[7];
+                mantissaBytes[0] = (byte) (b2 & 0x3F);
+                parser.read(6, mantissaBytes, 1);
+                String currency = Currency.decodeCurrency(parser.read(20));
+                AccountID issuer = AccountID.translate.fromParser(parser);
+
+                b1 &= 0x3f;
+                int offset = ((b1) << 2) + ((b2 & 0xff) >> 6) - 97;
+                BigDecimal value = new BigDecimal(new BigInteger(1, mantissaBytes), -offset);
+                if (value.signum() != 0 && ((b1 & 0x40) != 0)) value = value.negate();
+
+                return new Amount(value, currency, issuer, false);
+            } else {
+                boolean isPositive = (b1 & 0x40) != 0;
+
+                byte[] mantissaBytes = new byte[8];
+                mantissaBytes[0] = (byte) (b1 & 0x3F);
+                mantissaBytes[2] = b2;
+                parser.read(6, mantissaBytes, 2);
+                BigDecimal value = new BigDecimal(new BigInteger(1, mantissaBytes));
+
+                if (!isPositive) {
+                    value = value.negate();
+                }
+                return new Amount(value);
+            }
         }
 
         @Override
@@ -313,15 +345,8 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             }
         }
 
-//        @Override
-//        public byte[] toWireBytes(Amount obj) {
-//            BytesTree to = new BytesTree();
-//            toWireBytes(obj, to);
-//            return to.bytes();
-//        }
-
         @Override
-        public void toWireBytes(Amount obj, BytesTree to) {
+        public void toBytesTree(Amount obj, BytesTree to) {
             UInt64 man = obj.mantissa();
 
             if (obj.isNative) {

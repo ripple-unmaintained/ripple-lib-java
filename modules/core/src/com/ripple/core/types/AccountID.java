@@ -107,7 +107,7 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     static class Translator extends TypeTranslator<AccountID> {
 
         @Override
-        public AccountID fromWireBytes(BinaryParser parser) {
+        public AccountID fromParser(BinaryParser parser, Integer sizeHint) {
             return AccountID.fromAddressBytes(parser.read(20));
         }
 
@@ -127,12 +127,12 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
         }
 
 //        @Override
-//        public byte[] toWireBytes(AccountID obj) {
+//        public byte[] toBytesTree(AccountID obj) {
 //            return obj.bytes();
 //        }
 
         @Override
-        public void toWireBytes(AccountID obj, BytesTree to) {
+        public void toBytesTree(AccountID obj, BytesTree to) {
             to.add(obj.bytes());
         }
     }

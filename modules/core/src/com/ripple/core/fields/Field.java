@@ -159,6 +159,11 @@ public enum Field {
         return ((type.id > 0) && (type.id < 256) && (id > 0) && (id < 256));
     }
 
+
+    public boolean isVLEncoded() {
+        return type == Type.VL || type == Type.ACCOUNT || type == Type.VECTOR256;
+    }
+
     //
     public boolean isSigningField() {
         return isSerialized() && this != TxnSignature;

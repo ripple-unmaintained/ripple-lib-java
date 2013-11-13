@@ -17,7 +17,7 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
     public static class Translator extends TypeTranslator<STArray> {
 
         @Override
-        public STArray fromWireBytes(BinaryParser parser) {
+        public STArray fromParser(BinaryParser parser, Integer sizeHint) {
             return null;
         }
 
@@ -50,14 +50,14 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
         }
 
 //        @Override
-//        public byte[] toWireBytes(STArray obj) {
+//        public byte[] toBytesTree(STArray obj) {
 //            BytesTree bytes = new BytesTree();
-//            toWireBytes(obj, bytes);
+//            toBytesTree(obj, bytes);
 //            return bytes.bytes();
 //        }
 
         @Override
-        public void toWireBytes(STArray obj, BytesTree bytes) {
+        public void toBytesTree(STArray obj, BytesTree bytes) {
             for (STObject stObject : obj) {
                 bytes.add(STObject.translate.toWireBytes(stObject));
             }

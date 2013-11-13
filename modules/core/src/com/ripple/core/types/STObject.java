@@ -1,6 +1,5 @@
 package com.ripple.core.types;
 
-import com.ripple.core.serialized.*;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.enums.TransactionType;
@@ -11,6 +10,7 @@ import com.ripple.core.fields.Type;
 import com.ripple.core.formats.Format;
 import com.ripple.core.formats.SLEFormat;
 import com.ripple.core.formats.TxFormat;
+import com.ripple.core.serialized.*;
 import com.ripple.core.types.hash.Hash128;
 import com.ripple.core.types.hash.Hash160;
 import com.ripple.core.types.hash.Hash256;
@@ -18,7 +18,6 @@ import com.ripple.core.types.uint.UInt16;
 import com.ripple.core.types.uint.UInt32;
 import com.ripple.core.types.uint.UInt64;
 import com.ripple.core.types.uint.UInt8;
-import com.ripple.encodings.common.B16;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,10 +25,10 @@ import java.util.Iterator;
 import java.util.TreeMap;
 
 public class STObject implements SerializedType, Iterable<Field> {
-    public TreeMap<Field, SerializedType> fields = new TreeMap<Field, SerializedType>();
+    private TreeMap<Field, SerializedType> fields = new TreeMap<Field, SerializedType>();
 
     public String toHex() {
-        return B16.toString(translate.toWireBytes(this)).toUpperCase();
+        return translate.toHex(this);
     }
     public byte[] toWireBytes() {
         return translate.toWireBytes(this);
@@ -87,8 +86,24 @@ public class STObject implements SerializedType, Iterable<Field> {
     public static class Translator extends TypeTranslator<STObject> {
 
         @Override
-        public STObject fromWireBytes(BinaryParser parser) {
-            return null;
+        public STObject fromParser(BinaryParser parser, Integer sizeHint) {
+            STObject so = new STObject();
+            TypeTranslator<SerializedType> tr;
+            SerializedType st;
+            Field field;
+
+            while (!parser.end()) {
+                field = parser.readField();
+                if (field == null) throw new IllegalStateException("Couldn't parse field");
+                tr = Translators.forField(field);
+
+                sizeHint = field.isVLEncoded() ? parser.readVLLength() : null;
+                st = tr.fromParser(parser, sizeHint);
+                if (st == null) throw new IllegalStateException("Parsed " + field + "as null");
+                so.put(field, st);
+            }
+
+            return so;
         }
 
         @Override
@@ -171,7 +186,7 @@ public class STObject implements SerializedType, Iterable<Field> {
         }
 
         @Override
-        public void toWireBytes(STObject obj, BytesTree to) {
+        public void toBytesTree(STObject obj, BytesTree to) {
             BinarySerializer serializer = new BinarySerializer(to);
 
             for (Field field : obj) {
@@ -238,7 +253,7 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     private void put(Field f, byte[] bytes) {
-        fields.put(f, Translators.forField(f).fromWireBytes(new BinaryParser(bytes)));
+        fields.put(f, Translators.forField(f).fromParser(new BinaryParser(bytes)));
     }
 
     public void put(Field f, String s) {
