@@ -94,7 +94,10 @@ public abstract class TypeTranslator<T extends SerializedType> {
     }
 
     public abstract Object toJSON(T obj);
+
+    public abstract void toBytesTree(T obj, BytesTree to);
     public abstract T fromParser(BinaryParser parser, Integer sizeHint);
+
     public T fromParser(BinaryParser parser) { return fromParser(parser, null);}
 
     public byte[] toWireBytes(T obj) {
@@ -102,8 +105,6 @@ public abstract class TypeTranslator<T extends SerializedType> {
         toBytesTree(obj, to);
         return to.bytes();
     }
-
-    public abstract void toBytesTree(T obj, BytesTree to);
 
     public String toHex(T obj) {
         return Hex.toHexString(toWireBytes(obj)).toUpperCase();

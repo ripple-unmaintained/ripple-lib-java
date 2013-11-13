@@ -273,6 +273,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             byte b2 = parser.readOne();
 
             boolean isIOU = (b1 & 0x80) != 0;
+            boolean isPositive = (b1 & 0x40) != 0;
 
             if (isIOU) {
                 byte[] mantissaBytes = new byte[7];
@@ -284,11 +285,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 b1 &= 0x3f;
                 int offset = ((b1) << 2) + ((b2 & 0xff) >> 6) - 97;
                 BigDecimal value = new BigDecimal(new BigInteger(1, mantissaBytes), -offset);
-                if (value.signum() != 0 && ((b1 & 0x40) != 0)) value = value.negate();
+                if (!isPositive) value = value.negate();
 
                 return new Amount(value, currency, issuer, false);
             } else {
-                boolean isPositive = (b1 & 0x40) != 0;
 
                 byte[] mantissaBytes = new byte[8];
                 mantissaBytes[0] = (byte) (b1 & 0x3F);

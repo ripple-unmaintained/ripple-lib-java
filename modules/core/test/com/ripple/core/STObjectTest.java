@@ -421,7 +421,32 @@ public class STObjectTest {
         binaryParser = new BinaryParser(expectedSerialization);
         STObject so = STObject.translate.fromParser(binaryParser);
         assertEquals(expectedSerialization, so.toHex());
+    }
 
+    @Test
+    public void testAmountSerializations() throws Exception {
+        rehydrationTest(amt("1/USD/bob"));
+        rehydrationTest(amt("1"));
+        rehydrationTest(amt("-1/USD/bob"));
+        rehydrationTest(amt("-1"));
+        rehydrationTest(amt("-0.0001"));
+        rehydrationTest(amt("0.0001"));
+        rehydrationTest(amt("0.0001/USD/bob"));
+        rehydrationTest(amt("-0.0001/USD/bob"));
+    }
+
+    private void rehydrationTest(Amount positiveIOU) {
+        assertEquals(positiveIOU, wetDried(positiveIOU));
+    }
+
+    private Amount wetDried(Amount positiveIOU) {
+        Amount.Translator tran = Amount.translate;
+        String hex = tran.toHex(positiveIOU);
+        return tran.fromParser(new BinaryParser(hex));
+    }
+
+    private Amount amt(String val) {
+        return Amount.fromString(val);
     }
 
     @Test
