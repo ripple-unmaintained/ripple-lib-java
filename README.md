@@ -14,8 +14,8 @@ the basis for various clients/wallets.
 
 Current status:
 
-  - Working implementation of sjcl.json aes/ccm for (wallet) blob decrytion
-  - Working implementation of binary serialization
+  - sjcl.json aes/ccm for (wallet) blob decrytion
+  - binary serialization/parsing/shamap
   - Crude implementation of a high level client
   - Api client choice of websocket transport
   - Test suite for core types
@@ -30,12 +30,13 @@ Current status:
 TODO:
   - TESTS TESTS TESTS
     - walk ledger history verifying ShaMap hashes
+      - use json from rippled
+         - json -> STObject -> json -> STObject -> hex verification
   - Publisher contexts
     - thread execution context
       - runOnUiThread 
     - easily unbind handlers in onDestroy/onSemanticallyEtc
   - Class path patcher for android needs testing on 2.x
-  - Binary parsing
   - Documentation
   - General cleanup/stabilisation of code / api surface
   - Generate keypair for particular account_id from a master_seed
