@@ -113,9 +113,53 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
     public static class Translator extends TypeTranslator<PathSet> {
         @Override
         public PathSet fromParser(BinaryParser parser, Integer hint) {
-            PathSet paths = new PathSet();
-            return paths;
+            PathSet pathSet = new PathSet();
+            PathSet.Path path = null;
+            while (!parser.end()) {
+                byte type = parser.readOne();
+                if (type == 0x00) {
+                    break;
+                }
+                if (path == null) {
+                    path = new PathSet.Path();
+                    pathSet.add(path);
+                }
+                if (type == (byte) 0xFF) {
+                    path = null;
+                    continue;
+                }
+
+                PathSet.Hop hop = new PathSet.Hop();
+                path.add(hop);
+                if ((type & 0x01) != 0) {
+                    hop.account = AccountID.translate.fromParser(parser);
+                }
+                if ((type & 0x10) != 0) {
+                    byte[] read = parser.read(20);
+                    boolean zero = true;
+                    for (byte b : read) {
+                        zero = (b == 0x00);
+                        if (!zero) {
+                            break;
+                        }
+                    }
+                    if (zero) {
+                        hop.currency = "XRP";
+                        hop.iouXRP = false;
+                    }
+                    hop.currency = Currency.decodeCurrency(read);
+                    if (hop.currency.equals("XRP")) {
+                        hop.iouXRP = true;
+                    }
+                }
+                if ((type & 0x20) != 0) {
+                    hop.issuer = AccountID.translate.fromParser(parser);
+                }
+            }
+
+            return pathSet;
         }
+
 
         @Override
         public Object toJSON(PathSet obj) {
