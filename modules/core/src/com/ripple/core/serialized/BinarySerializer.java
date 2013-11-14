@@ -129,11 +129,11 @@ public class BinarySerializer {
 
             case OBJECT:
                 ts.toBytesTree(t, buffer);
-                add(Markers.OBJECT_END_MARKER);
+                add(Markers.OBJECT_END);
                 break;
             case ARRAY:
                 ts.toBytesTree(t, buffer);
-                add(Markers.ARRAY_END_MARKER);
+                add(Markers.ARRAY_END);
                 break;
 
             case TRANSACTION:

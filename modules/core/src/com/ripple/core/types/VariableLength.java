@@ -18,8 +18,8 @@ public class VariableLength implements SerializedType {
 
     static class Translator extends TypeTranslator<VariableLength> {
         @Override
-        public VariableLength fromParser(BinaryParser parser, Integer sizeHint) {
-            return new VariableLength(parser.read(sizeHint));
+        public VariableLength fromParser(BinaryParser parser, Integer hint) {
+            return new VariableLength(parser.read(hint));
         }
 
         @Override

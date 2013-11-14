@@ -107,7 +107,7 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     static class Translator extends TypeTranslator<AccountID> {
 
         @Override
-        public AccountID fromParser(BinaryParser parser, Integer sizeHint) {
+        public AccountID fromParser(BinaryParser parser, Integer hint) {
             return AccountID.fromAddressBytes(parser.read(20));
         }
 

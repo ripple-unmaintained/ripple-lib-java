@@ -9,11 +9,11 @@ import com.ripple.encodings.common.B16;
 public class BinaryParser {
     byte[] bytes;
     private int cursor = 0;
-    int size;
+    private final int size;
 
     public BinaryParser(byte[] bytes) {
-        this.bytes = bytes;
         size = bytes.length;
+        this.bytes = bytes;
     }
 
 
@@ -91,5 +91,18 @@ public class BinaryParser {
     public void read(int n, byte[] to, int offset) {
         System.arraycopy(bytes, cursor, to, offset, n);
         cursor += n;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void safelyAdvancePast(byte marker) {
+        if (!end() && peekOne() == marker) {
+            readOne();}
+    }
+
+    public boolean notConsumedOrAtMarker(byte marker) {
+        return !end() && peekOne() != marker;
     }
 }

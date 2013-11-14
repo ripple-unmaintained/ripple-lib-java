@@ -16,8 +16,16 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
 
     static class Translator extends TypeTranslator<Vector256> {
         @Override
-        public Vector256 fromParser(BinaryParser parser, Integer sizeHint) {
-            return null;
+        public Vector256 fromParser(BinaryParser parser, Integer hint) {
+            Vector256 vector256 = new Vector256();
+            if (hint == null) {
+                hint = parser.getSize();
+            }
+            for (int i = 0; i < hint / 32; i++) {
+                vector256.add(Hash256.translate.fromParser(parser));
+            }
+
+            return vector256;
         }
 
         @Override

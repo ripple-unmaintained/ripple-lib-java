@@ -70,7 +70,7 @@ public class HASH implements SerializedType {
         public abstract int byteWidth();
 
         @Override
-        public T fromParser(BinaryParser parser, Integer sizeHint) {
+        public T fromParser(BinaryParser parser, Integer hint) {
             return newInstance(parser.read(byteWidth()));
         }
 

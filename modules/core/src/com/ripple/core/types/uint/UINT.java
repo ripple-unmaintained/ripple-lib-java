@@ -194,7 +194,7 @@ abstract public class UINT<ValueType, Subclass extends UINT> extends Number impl
         public abstract int byteWidth();
 
         @Override
-        public T fromParser(BinaryParser parser, Integer sizeHint) {
+        public T fromParser(BinaryParser parser, Integer hint) {
             return newInstance(new BigInteger(1, parser.read(byteWidth())));
         }
 

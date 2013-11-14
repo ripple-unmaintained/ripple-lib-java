@@ -86,28 +86,33 @@ public class STObject implements SerializedType, Iterable<Field> {
     public static class Translator extends TypeTranslator<STObject> {
 
         @Override
-        public STObject fromParser(BinaryParser parser, Integer sizeHint) {
+        public STObject fromParser(BinaryParser parser, Integer hint) {
+            byte objectEnd = Markers.OBJECT_END;
             STObject so = new STObject();
             TypeTranslator<SerializedType> tr;
             SerializedType st;
             Field field;
+            Integer sizeHint;
+            Integer fieldsToParse = hint != null ? hint : 0;
 
-            while (!parser.end()) {
+            while (parser.notConsumedOrAtMarker(objectEnd)) {
                 int fieldCode = parser.readFieldCode();
                 field = Field.fromCode(fieldCode);
                 if (field == null) {
                     throw new IllegalStateException("Couldn't parse field from " +
-                                                     Integer.toHexString(fieldCode));
+                            Integer.toHexString(fieldCode));
                 }
                 tr = Translators.forField(field);
-
                 sizeHint = field.isVLEncoded() ? parser.readVLLength() : null;
                 st = tr.fromParser(parser, sizeHint);
-                if (st == null) throw new IllegalStateException("Parsed " + field + "as null");
+                if (st == null) {
+                    throw new IllegalStateException("Parsed " + field + "as null");
+                }
                 so.put(field, st);
-                // TODO object end marker
+                if (so.size() == fieldsToParse) break;
             }
 
+            parser.safelyAdvancePast(objectEnd);
             return so;
         }
 
@@ -201,6 +206,10 @@ public class STObject implements SerializedType, Iterable<Field> {
                 }
             }
         }
+    }
+
+    public int size() {
+        return fields.size();
     }
 
     static public Translator translate = new Translator();

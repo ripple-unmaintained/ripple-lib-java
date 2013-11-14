@@ -112,8 +112,9 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
     public static class Translator extends TypeTranslator<PathSet> {
         @Override
-        public PathSet fromParser(BinaryParser parser, Integer sizeHint) {
-            return null;
+        public PathSet fromParser(BinaryParser parser, Integer hint) {
+            PathSet paths = new PathSet();
+            return paths;
         }
 
         @Override

@@ -1,11 +1,8 @@
 package com.ripple.core.types;
 
-import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.BytesTree;
+import com.ripple.core.serialized.*;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.HasField;
-import com.ripple.core.serialized.SerializedType;
-import com.ripple.core.serialized.TypeTranslator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,8 +14,17 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
     public static class Translator extends TypeTranslator<STArray> {
 
         @Override
-        public STArray fromParser(BinaryParser parser, Integer sizeHint) {
-            return null;
+        public STArray fromParser(BinaryParser parser, Integer hint) {
+            byte arrayEnd = Markers.ARRAY_END;
+            STArray stArray = new STArray();
+            int nfields = 1; // These top level objects only have one key
+                             // and aren't separated by object markers
+
+            while (parser.notConsumedOrAtMarker(arrayEnd))
+                stArray.add(STObject.translate.fromParser(parser, nfields));
+
+            parser.safelyAdvancePast(arrayEnd);
+            return stArray;
         }
 
         @Override
@@ -59,7 +65,7 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
         @Override
         public void toBytesTree(STArray obj, BytesTree bytes) {
             for (STObject stObject : obj) {
-                bytes.add(STObject.translate.toWireBytes(stObject));
+                STObject.translate.toBytesTree(stObject, bytes);
             }
         }
     }

@@ -9,12 +9,6 @@ public abstract class TypeTranslator<T extends SerializedType> {
 
     @SuppressWarnings("unchecked")
     public <V> T fromValue(V object) {
-//        try {
-//            return (T) object;
-//        } catch (ClassCastException ignored) {
-//
-//        }
-
         switch (Value.typeOf(object)) {
             case STRING:
                 return fromString((String) object);
@@ -96,7 +90,7 @@ public abstract class TypeTranslator<T extends SerializedType> {
     public abstract Object toJSON(T obj);
 
     public abstract void toBytesTree(T obj, BytesTree to);
-    public abstract T fromParser(BinaryParser parser, Integer sizeHint);
+    public abstract T fromParser(BinaryParser parser, Integer hint);
 
     public T fromParser(BinaryParser parser) { return fromParser(parser, null);}
 

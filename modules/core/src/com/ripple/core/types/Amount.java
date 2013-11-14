@@ -204,7 +204,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return (compareTo(val) >= 0 ? this : val);
     }
 
-    private com.ripple.core.types.Amount newValue(BigDecimal newValue) {
+    private Amount newValue(BigDecimal newValue) {
         return new Amount(newValue, this.currencyString(), this.issuer(), isNative);
     }
 
@@ -267,7 +267,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
 
         @Override
-        public Amount fromParser(BinaryParser parser, Integer sizeHint) {
+        public Amount fromParser(BinaryParser parser, Integer hint) {
             BigDecimal value;
             byte[] mantissa = parser.read(8);
             byte b1 = mantissa[0], b2 = mantissa[1];
