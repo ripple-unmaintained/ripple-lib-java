@@ -32,14 +32,18 @@ containing an arbitrary amount of Field -> SerializedType pairs.
 
   This is problematic when storing as json. Consider this pseudocode.
 
+    ```
     >>> so STObject()
     >>> so.name = "FieldName"
     >>> so["FieldOfDreams"] = "A Kevin Costner Movie"
     >>> sa = STArray([so])
+    ```
 
   How could `sa` be declared as json?
 
+    ```
     >>> [{"FieldName" : {"FieldOfDreams": "OK"}}]
+    ```
 
   This is infact how rippled works. There is no 1:1 mapping of STObject to {}
 
@@ -48,14 +52,11 @@ containing an arbitrary amount of Field -> SerializedType pairs.
 * Ripple uses 32 byte hashes for object indexes, taking half of a SHA512 hash,
   which is ~%33 faster than SHA256.
 
-* Simply using google protocol buffers was considered inadequate
+* Simply using google protocol buffers was considered inadequate [link](https://github.com/ripple/rippled/blob/ee51968820fc41c5aeadf2067bfdae54ff21fa66/BinaryFormats.txt#L16)
 
-# STObject
+= Class Overview
 
-[1] https://github.com/ripple/rippled/blob/ee51968820fc41c5aeadf2067bfdae54ff21fa66/BinaryFormats.txt#L16
-
-= Topologically Sorted Classes
-
+```
 com
 └── ripple
     ├── core
@@ -118,3 +119,5 @@ com
     │       │   ├── ShaMap
     │       │   ├── ShaMapLeafNode
     │       │   └── ShaMapNode
+```
+  
