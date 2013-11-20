@@ -206,7 +206,7 @@ com.ripple.core.fields
   How could `sa` be declared as json?
 
     ```
-    >>> [{"FieldName" : {"FieldOfDreams": "OK"}}]
+    >>> [{"FieldName" : {"FieldOfDreams": "A Kevin Costner Movie"}}]
     ```
 
   This is infact how rippled works. There is no 1:1 mapping of STObject to {}
