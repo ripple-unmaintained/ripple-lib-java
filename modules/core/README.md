@@ -196,8 +196,8 @@ com.ripple.core.fields
 
   This is problematic when storing as json. Consider this pseudocode.
 
-    ```
-    >>> so STObject()
+    ```python
+    >>> so = STObject()
     >>> so.name = "FieldName"
     >>> so["FieldOfDreams"] = "A Kevin Costner Movie"
     >>> sa = STArray([so])
