@@ -19,7 +19,7 @@ public class AmountTest {
     @Test
     public void testSerializing0XRP() throws Exception {
         Amount amt = Amount.fromDropString("0");
-        String s = translator.toHex(amt);
+        String s = translator.toWireHex(amt);
         assertEquals("4000000000000000", s);
         assertEquals(Amount.cPosNative.toString(16), s);
     }
@@ -29,7 +29,7 @@ public class AmountTest {
         String json = "{\"currency\": \"USD\", \"issuer\": \"rrrrrrrrrrrrrrrrrrrrBZbvji\", \"value\": \"-99.2643419677474\"}";
 
         Amount amount = translator.fromJSONObject(new JSONObject(json));
-        String hex = translator.toHex(amount);
+        String hex = translator.toWireHex(amount);
 
         int offset = amount.getOffset();
         assertEquals(-14, offset);
@@ -76,7 +76,7 @@ public class AmountTest {
         String expected_hex = "800000000000000000000000000000000000000058525000000000000000000000000000000000000000000000000001";
 
         Amount legacyAmount = translator.fromJSONObject(new JSONObject(legacy));
-        assertEquals(expected_hex, translator.toHex(legacyAmount));
+        assertEquals(expected_hex, translator.toWireHex(legacyAmount));
 
     }
 

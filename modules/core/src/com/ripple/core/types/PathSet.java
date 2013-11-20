@@ -193,20 +193,14 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
             return paths;
         }
 
-//        @Override
-//        public byte[] toBytesTree(PathSet obj) {
-//            BytesTree buffer = new BytesTree();
-//            toBytesTree(obj, buffer);
-//            return buffer.bytes();
-//        }
-
         @Override
         public void toBytesTree(PathSet obj, BytesTree buffer) {
+            // TODO, move these to fields to share with fromParser()
             byte typeBoundary = (byte) 0xff,
                     typeEnd = (byte) 0x00;
 
             int n = 0;
-            for (Path path: obj) {
+            for (Path path : obj) {
                 if (n++ != 0) {
                     buffer.add(typeBoundary);
                 }

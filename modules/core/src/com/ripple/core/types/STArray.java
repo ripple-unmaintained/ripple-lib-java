@@ -55,13 +55,6 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
             return array;
         }
 
-//        @Override
-//        public byte[] toBytesTree(STArray obj) {
-//            BytesTree bytes = new BytesTree();
-//            toBytesTree(obj, bytes);
-//            return bytes.bytes();
-//        }
-
         @Override
         public void toBytesTree(STArray obj, BytesTree bytes) {
             for (STObject stObject : obj) {

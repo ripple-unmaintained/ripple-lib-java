@@ -9,6 +9,7 @@ import com.ripple.core.types.Amount;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -25,7 +26,7 @@ public class AnalyzeDump {
         BufferedReader bufferedReader = openDumpReader();
 
         AccountID giveAwayAccount = AccountID.fromAddress("rMTzGg7nPPEMJthjgEBfiPZGoAM7MEVa1r");
-        Amount    giveAwayAmount  = Amount.fromString("888.0");
+        Amount    giveAwayAmount  = Amount.fromString("1000.0");
 
         int successful = 0, created = 0;
         String line;
@@ -37,7 +38,7 @@ public class AnalyzeDump {
                 for (int i = 0; i < transactions.length(); i++) {
                     JSONObject tx = transactions.getJSONObject(i);
                     TransactionResult tr;
-                    tr = new TransactionResult(tx, TransactionResult.Source.request_account_tx);
+                    tr = new TransactionResult(tx, TransactionResult.Source.request_account_tx_binary);
 
                     if (tr.engineResult      == TransactionEngineResult.tesSUCCESS &&
                         tr.transactionType() == TransactionType.Payment            &&
@@ -49,12 +50,13 @@ public class AnalyzeDump {
                 }
             }
         }
-        LOG("Successful outbound 888xrp payments: %d, creating: %d, paid out %s",
-             successful, created, giveAwayAmount.multiply(successful));
+
+        LOG("Successful outbound %s payments: %d, creating: %d, paid out %s",
+             giveAwayAmount, successful, created, giveAwayAmount.multiply(successful));
     }
 
     private static BufferedReader openDumpReader() throws FileNotFoundException {
-        FileReader reader = new FileReader("dump.json");
+        FileReader reader = new FileReader("binary-transactions.json");
         return new BufferedReader(reader);
     }
 }

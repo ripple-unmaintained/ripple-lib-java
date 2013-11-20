@@ -465,7 +465,7 @@ public class STObjectTest {
 
     private Amount wetDried(Amount amt) {
         Amount.Translator tran = Amount.translate;
-        String hex = tran.toHex(amt);
+        String hex = tran.toWireHex(amt);
         return tran.fromParser(new BinaryParser(hex));
     }
 

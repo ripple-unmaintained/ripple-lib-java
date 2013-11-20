@@ -28,7 +28,7 @@ public class STObject implements SerializedType, Iterable<Field> {
     private TreeMap<Field, SerializedType> fields = new TreeMap<Field, SerializedType>();
 
     public String toHex() {
-        return translate.toHex(this);
+        return translate.toWireHex(this);
     }
     public byte[] toWireBytes() {
         return translate.toWireBytes(this);

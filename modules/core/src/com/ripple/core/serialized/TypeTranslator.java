@@ -1,6 +1,7 @@
 package com.ripple.core.serialized;
 
 import com.ripple.core.runtime.Value;
+import com.ripple.encodings.common.B16;
 import org.bouncycastle.util.encoders.Hex;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -88,10 +89,9 @@ public abstract class TypeTranslator<T extends SerializedType> {
     }
 
     public abstract Object toJSON(T obj);
-
     public abstract void toBytesTree(T obj, BytesTree to);
-    public abstract T fromParser(BinaryParser parser, Integer hint);
 
+    public abstract T fromParser(BinaryParser parser, Integer hint);
     public T fromParser(BinaryParser parser) { return fromParser(parser, null);}
 
     public byte[] toWireBytes(T obj) {
@@ -100,11 +100,13 @@ public abstract class TypeTranslator<T extends SerializedType> {
         return to.bytes();
     }
 
-    public String toHex(T obj) {
-        return Hex.toHexString(toWireBytes(obj)).toUpperCase();
+    public T fromWireBytes(byte[] b) {
+        return fromParser(new BinaryParser(b));
     }
-
+    public String toWireHex(T obj) {
+        return B16.toString(toWireBytes(obj)).toUpperCase();
+    }
     public T fromWireHex(String hex) {
-        return fromParser(new BinaryParser(hex));
+        return fromWireBytes(B16.decode(hex));
     }
 }

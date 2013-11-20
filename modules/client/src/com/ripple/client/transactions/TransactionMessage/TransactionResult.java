@@ -35,7 +35,7 @@ public class TransactionResult {
 
     public enum Source {
         request_tx_result,
-        request_account_tx, transaction_subscription_notification
+        request_account_tx, request_account_tx_binary, transaction_subscription_notification
     }
 
     public TransactionResult(JSONObject json, Source resultMessageSource) {
@@ -81,6 +81,30 @@ public class TransactionResult {
                     transaction = STObject.fromJSONObject(tx);
                     hash = transaction.get(Hash256.hash);
                     ledgerIndex = new UInt32(tx.getLong("ledger_index"));
+                    ledgerHash = null;
+                }
+            } else if (resultMessageSource == Source.request_account_tx_binary) {
+                validated = json.optBoolean("validated", false);
+                if (validated && !json.has("meta")) {
+                    throw new IllegalStateException("It's validated, why doesn't it have meta??");
+                }
+                if (validated) {
+                    /*
+                    {
+                      "ledger_index": 3378767,
+                      "meta": "201 ...",
+                      "tx_blob": "120 ...",
+                      "validated": true
+                    },
+                    */
+
+                    String tx = json.getString("tx_blob");
+                    meta = STObject.translate.fromWireHex(json.getString("meta"));
+                    transaction = STObject.translate.fromWireHex(tx);
+
+                    engineResult = TransactionEngineResult.fromNumber(meta.get(UInt8.TransactionResult));
+                    hash = transaction.get(Hash256.hash);
+                    ledgerIndex = new UInt32(json.getLong("ledger_index"));
                     ledgerHash = null;
                 }
             }
