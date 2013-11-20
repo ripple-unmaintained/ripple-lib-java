@@ -56,7 +56,7 @@ public class UInt16 extends UINT<Integer, UInt16> {
 
     private UInt16(){}
 
-    public abstract static class UInt16Field extends UInt16 implements HasField {}
+    public abstract static class UInt16Field implements HasField {}
     public static UInt16Field int16Field(final Field f) {
         return new UInt16Field(){ @Override public Field getField() {return f;}};
     }

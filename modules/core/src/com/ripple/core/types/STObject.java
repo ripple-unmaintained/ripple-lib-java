@@ -222,7 +222,7 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
 
-    private abstract static class STObjectField extends STObject implements HasField{}
+    private abstract static class STObjectField implements HasField{}
 
     public static STObjectField stobjectField(final Field f) {
         return new STObjectField() {@Override public Field getField() {return f; } };

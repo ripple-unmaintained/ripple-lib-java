@@ -57,7 +57,7 @@ public class UInt8 extends UINT<Short, UInt8> {
     private UInt8() {
     }
 
-    public abstract static class UInt8Field extends UInt8 implements HasField {}
+    public abstract static class UInt8Field implements HasField {}
 
     private static UInt8Field int8Field(final Field f) {
         return new UInt8Field() {@Override public Field getField() {return f; } };

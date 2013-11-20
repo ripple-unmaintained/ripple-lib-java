@@ -46,7 +46,7 @@ public class VariableLength implements SerializedType {
 
     private VariableLength(){}
     
-    abstract static class VariableLengthField extends VariableLength implements HasField{}
+    abstract static class VariableLengthField implements HasField{}
     public static VariableLengthField variablelengthField(final Field f) {
         return new VariableLengthField(){ @Override public Field getField() {return f;}};
     }

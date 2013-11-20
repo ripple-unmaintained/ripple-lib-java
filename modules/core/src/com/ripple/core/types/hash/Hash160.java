@@ -31,7 +31,7 @@ public class Hash160 extends HASH {
     public static Translator translate = new Translator();
     private Hash160(){}
 
-    public abstract static class Hash160Field extends Hash160 implements HasField {}
+    public abstract static class Hash160Field implements HasField {}
     public static Hash160Field hash160Field(final Field f) {
         return new Hash160Field(){ @Override public Field getField() {return f;}};
     }

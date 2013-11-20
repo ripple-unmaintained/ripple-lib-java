@@ -230,7 +230,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
     private PathSet(){}
     
-    protected abstract static class PathSetField extends PathSet implements HasField{}
+    protected abstract static class PathSetField implements HasField{}
     public static PathSetField pathsetField(final Field f) {
         return new PathSetField(){ @Override public Field getField() {return f;}};
     }

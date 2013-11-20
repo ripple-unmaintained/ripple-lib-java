@@ -23,7 +23,7 @@ public class Hash128 extends HASH {
 
     private Hash128(){}
 
-    public abstract static class Hash128Field extends Hash128 implements HasField {}
+    public abstract static class Hash128Field implements HasField {}
     public static Hash128Field hash128Field(final Field f) {
         return new Hash128Field(){ @Override public Field getField() {return f;}};
     }

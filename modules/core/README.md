@@ -25,6 +25,170 @@ fields to other SerializedTypes (even an STObject itself)
 An STArray is an array of STObjects with a single Field, mapped to an STObject,
 containing an arbitrary amount of Field -> SerializedType pairs.
 
+## Types
+
+We'll have a bit of a dive through some of the classes, sorted somewhat
+topologically.
+
+The following json representation of metadata related to a finalized transaction
+can be used as a concrete example and will be referenced later.
+
+```json
+{"AffectedNodes": [{"CreatedNode": {"LedgerEntryType": "Offer",
+                                    "LedgerIndex": "3596CE72C902BAFAAB56CC486ACAF9B4AFC67CF7CADBB81A4AA9CBDC8C5CB1AA",
+                                    "NewFields": {"Account": "raD5qJMAShLeHZXf9wjUmo6vRK4arj9cF3",
+                                                  "BookDirectory": "62A3338CAF2E1BEE510FC33DE1863C56948E962CCE173CA55C14BE8A20D7F000",
+                                                  "OwnerNode": "000000000000000E",
+                                                  "Sequence": 103929,
+                                                  "TakerGets": {"currency": "ILS",
+                                                                "issuer": "rNPRNzBB92BVpAhhZr4iXDTveCgV5Pofm9",
+                                                                "value": "1694.768"},
+                                                  "TakerPays": "98957503520"}}},
+                   {"CreatedNode": {"LedgerEntryType": "DirectoryNode",
+                                    "LedgerIndex": "62A3338CAF2E1BEE510FC33DE1863C56948E962CCE173CA55C14BE8A20D7F000",
+                                    "NewFields": {"ExchangeRate": "5C14BE8A20D7F000",
+                                                  "RootIndex": "62A3338CAF2E1BEE510FC33DE1863C56948E962CCE173CA55C14BE8A20D7F000",
+                                                  "TakerGetsCurrency": "000000000000000000000000494C530000000000",
+                                                  "TakerGetsIssuer": "92D705968936C419CE614BF264B5EEB1CEA47FF4"}}},
+                   {"ModifiedNode": {"FinalFields": {"Flags": 0,
+                                                     "IndexPrevious": "0000000000000000",
+                                                     "Owner": "raD5qJMAShLeHZXf9wjUmo6vRK4arj9cF3",
+                                                     "RootIndex": "801C5AFB5862D4666D0DF8E5BE1385DC9B421ED09A4269542A07BC0267584B64"},
+                                     "LedgerEntryType": "DirectoryNode",
+                                     "LedgerIndex": "AB03F8AA02FFA4635E7CE2850416AEC5542910A2B4DBE93C318FEB08375E0DB5"}},
+                   {"ModifiedNode": {"FinalFields": {"Account": "raD5qJMAShLeHZXf9wjUmo6vRK4arj9cF3",
+                                                     "Balance": "106861218302",
+                                                     "Flags": 0,
+                                                     "OwnerCount": 9,
+                                                     "Sequence": 103930},
+                                     "LedgerEntryType": "AccountRoot",
+                                     "LedgerIndex": "CF23A37E39A571A0F22EC3E97EB0169936B520C3088963F16C5EE4AC59130B1B",
+                                     "PreviousFields": {"Balance": "106861218312",
+                                                        "OwnerCount": 8,
+                                                        "Sequence": 103929},
+                                     "PreviousTxnID": "DE15F43F4A73C4F6CB1C334D9E47BDE84467C0902796BB81D4924885D1C11E6D",
+                                     "PreviousTxnLgrSeq": 3225338}}],
+ "TransactionIndex": 0,
+ "TransactionResult": "tesSUCCESS"}
+ ```
+
+* Note that ALL field names are upper case (in fact field names may be
+lower cased but aren't serialized)
+
+* The `AffectedNodes` is an STArray. As stated, the immediate
+children each contain only a single key (or [Field](src/com/ripple/core/fields/Field.java#L96-L97))
+
+  * CreatedNode
+  * ModifiedNode
+
+Moving on with walking through our classes.
+
+```
+com
+└── ripple
+    ├── core
+    │   │
+    │   ├── enums
+    │   │   ├── LedgerEntryType
+    │   │   ├── TransactionEngineResult
+    │   │   └── TransactionType
+```
+
+* In the json above look at the [TransactionResult](src/com/ripple/core/fields/Field.java#L112) field.
+  Note that it has a Type of of UINT8, yet clearly it's represented in json as a string.
+
+  These `field symbolics` are enumerated [here](src/com/ripple/core/enums) and an
+  abstract interface for dealing with them [here](src/com/ripple/core/fields/FieldSymbolics.java#L9)
+
+```
+com.ripple.core
+    │   ├── fields
+    │   │   ├── Type
+```
+  
+  This is a simple Java enum(eration) of the various types. eg.
+    
+    ```UINT32(2)```
+    
+  This definition implies giving the static ordinal `2` to the UINT32 type.
+
+```
+com.ripple.core.fields
+    │   │   ├── Field
+```
+
+  Consider the following definition of a field
+  
+    ```QualityIn(20, Type.UINT32)```
+
+  As stated before a Field has name and type ordinals, but it also has an
+  implied symbolic string representation (as seen used in the json above)
+  
+  The string name can be looked up via a `code`, which is an integer created by
+  shifting the type ordinal 16 bits to the left and ORing it with the name.
+  
+  See: [com.ripple.core.fields.Field#fromCode](src/com/ripple/core/fields/Field.java)
+
+```
+com.ripple.core.fields
+    │   │   ├── FieldSymbolics
+```
+  
+  We've already seen the use of FieldSymbolics for
+  
+  * TransactionResult
+  * LedgerEntryType
+  * TransactionType
+
+```
+com.ripple.core.fields
+    │   │   └── HasField
+```
+
+  This is simply an interface for returning a Field
+
+  We know that a Field implies a Type and a name and there's a set amount of
+  them.
+  
+  On each concrete class implementation of a given Type, we create field class
+  that implements HasField
+  
+  eg. 
+  
+  ```java
+  protected abstract static class STArrayField implements HasField{}
+  public static STArrayField starrayField(final Field f) {
+      return new STArrayField(){ @Override public Field getField() {return f;}};
+  }
+  ```
+  
+  Then we can create static members on the concrete class
+  
+  ```java
+  static public STArrayField AffectedNodes = starrayField(Field.AffectedNodes);
+  static public STArrayField Signatures = starrayField(Field.Signatures);
+  static public STArrayField Template = starrayField(Field.Template);
+  ```
+  
+  Later this is used create an api that looks as so
+  
+  ```java
+  if (transactionType() == TransactionType.Payment && meta.has(STArray.AffectedNodes)) {
+      STArray affected = meta.get(STArray.AffectedNodes);
+      for (STObject node : affected) {
+          if (node.has(STObject.CreatedNode)) {
+              STObject created = node.get(STObject.CreatedNode);
+  ```
+  
+  
+  This is implemented by using wilcard generics to overload get()
+  
+  ```java
+  public <T extends STArray.STArrayField> STArray get(T f) {
+      return (STArray) fields.get(f.getField());
+  }
+  ```
+
 ## Notes
 
 * In the C++ implementation of serialized objects, an STObject can, itself, be
@@ -54,24 +218,10 @@ containing an arbitrary amount of Field -> SerializedType pairs.
 
 * Simply using google protocol buffers was considered inadequate [link](https://github.com/ripple/rippled/blob/ee51968820fc41c5aeadf2067bfdae54ff21fa66/BinaryFormats.txt#L16)
 
-= Class Overview
+
+#TYPES TODO
 
 ```
-com
-└── ripple
-    ├── core
-    │   │
-    │   ├── fields
-    │   │   ├── Type
-    │   │   ├── Field
-    │   │   ├── FieldSymbolics
-    │   │   └── HasField
-    │   │
-    │   ├── enums
-    │   │   ├── LedgerEntryType
-    │   │   ├── TransactionEngineResult
-    │   │   └── TransactionType
-
 com
 └── ripple
     ├── core

@@ -79,7 +79,7 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
 
     private Vector256(){}
     
-    protected abstract static class Vector256Field extends Vector256 implements HasField{}
+    protected abstract static class Vector256Field implements HasField{}
     public static Vector256Field vector256Field(final Field f) {
         return new Vector256Field(){ @Override public Field getField() {return f;}};
     }

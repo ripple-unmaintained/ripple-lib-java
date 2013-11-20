@@ -56,7 +56,7 @@ public class UInt64 extends UINT<BigInteger, UInt64> {
 
     private UInt64(){}
 
-    public abstract static class UInt64Field extends UInt64 implements HasField {}
+    public abstract static class UInt64Field implements HasField {}
     private static UInt64Field int64Field(final Field f) {
         return new UInt64Field(){ @Override public Field getField() {return f;}};
     }

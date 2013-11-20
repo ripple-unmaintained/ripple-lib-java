@@ -66,18 +66,19 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
 
     private STArray(){}
     
-    protected abstract static class STArrayField extends STArray implements HasField{}
+    protected abstract static class STArrayField implements HasField{}
     public static STArrayField starrayField(final Field f) {
         return new STArrayField(){ @Override public Field getField() {return f;}};
     }
-    
+
+    static public STArrayField AffectedNodes = starrayField(Field.AffectedNodes);
+
     static public STArrayField SigningAccounts = starrayField(Field.SigningAccounts);
     static public STArrayField TxnSignatures = starrayField(Field.TxnSignatures);
     static public STArrayField Signatures = starrayField(Field.Signatures);
     static public STArrayField Template = starrayField(Field.Template);
     static public STArrayField Necessary = starrayField(Field.Necessary);
     static public STArrayField Sufficient = starrayField(Field.Sufficient);
-    static public STArrayField AffectedNodes = starrayField(Field.AffectedNodes);
-    
+
     
 }

@@ -184,7 +184,7 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     protected AccountID() {
     }
 
-    protected abstract static class AccountIDField extends AccountID implements HasField {
+    protected abstract static class AccountIDField implements HasField {
     }
 
     public static AccountIDField accountField(final Field f) {

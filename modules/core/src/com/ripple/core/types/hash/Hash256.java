@@ -122,7 +122,7 @@ public class Hash256 extends HASH{
     public static Translator translate = new Translator();
     private Hash256(){}
 
-    public abstract static class Hash256Field extends Hash256 implements HasField {}
+    public abstract static class Hash256Field implements HasField {}
     public static Hash256Field hash256Field(final Field f) {
         return new Hash256Field(){ @Override public Field getField() {return f;}};
     }

@@ -238,7 +238,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return toTextFull();
     }
 
-    public abstract static class AmountField extends Amount implements HasField {}
+    public abstract static class AmountField implements HasField {}
     public static AmountField amountField(final Field f) {
         return new AmountField() {
             @Override
