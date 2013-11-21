@@ -250,16 +250,12 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     public void put(Field f, Integer i) {
-        fields.put(f, Translators.forField(f).fromInteger(i));
+        put(f, Translators.forField(f).fromInteger(i));
     }
 
     public <T extends HasField> void put(T hf, String s) {
         put(hf.getField(), s);
     }
-
-//    public <T extends HasField> void put(T hf, SerializedType s) {
-//        put(hf.getField(), s);
-//    }
 
     public <T extends HasField> void put(T hf, byte [] bytes) {
         Field f = hf.getField();
@@ -268,7 +264,7 @@ public class STObject implements SerializedType, Iterable<Field> {
 
     private void put(Field f, byte[] bytes) {
         // TODO, all!!!
-        fields.put(f, Translators.forField(f).fromParser(new BinaryParser(bytes)));
+        put(f, Translators.forField(f).fromParser(new BinaryParser(bytes)));
     }
 
     public void put(Field f, String s) {
@@ -277,7 +273,7 @@ public class STObject implements SerializedType, Iterable<Field> {
             return;
         }
 
-        fields.put(f, Translators.forField(f).fromString(s));
+        put(f, Translators.forField(f).fromString(s));
     }
 
     public void put(Field f, SerializedType value) {
@@ -296,60 +292,60 @@ public class STObject implements SerializedType, Iterable<Field> {
         fields.put(f, value1);
     }
 
-    public <T extends AccountID.AccountIDField> AccountID get(T f) {
-        return (AccountID) fields.get(f.getField());
+    public AccountID get(AccountID.AccountIDField f) {
+        return (AccountID) get(f.getField());
     }
 
-    public <T extends Amount.AmountField> Amount get(T f) {
-        return (Amount) fields.get(f.getField());
+    public Amount get(Amount.AmountField f) {
+        return (Amount) get(f.getField());
     }
 
-    public <T extends STArray.STArrayField> STArray get(T f) {
-        return (STArray) fields.get(f.getField());
+    public STArray get(STArray.STArrayField f) {
+        return (STArray) get(f.getField());
     }
 
-    public <T extends Hash128.Hash128Field> Hash128 get(T f) {
-        return (Hash128) fields.get(f.getField());
+    public Hash128 get(Hash128.Hash128Field f) {
+        return (Hash128) get(f.getField());
     }
 
-    public <T extends Hash160.Hash160Field> Hash160 get(T f) {
-        return (Hash160) fields.get(f.getField());
+    public Hash160 get(Hash160.Hash160Field f) {
+        return (Hash160) get(f.getField());
     }
 
-    public <T extends Hash256.Hash256Field> Hash256 get(T f) {
-        return (Hash256) fields.get(f.getField());
+    public Hash256 get(Hash256.Hash256Field f) {
+        return (Hash256) get(f.getField());
     }
 
-    public <T extends STObject.STObjectField> STObject get(T f) {
-        return (STObject) fields.get(f.getField());
+    public STObject get(STObject.STObjectField f) {
+        return (STObject) get(f.getField());
     }
 
-    public <T extends PathSet.PathSetField> PathSet get(T f) {
-        return (PathSet) fields.get(f.getField());
+    public PathSet get(PathSet.PathSetField f) {
+        return (PathSet) get(f.getField());
     }
 
-    public <T extends UInt16.UInt16Field> UInt16 get(T f) {
-        return (UInt16) fields.get(f.getField());
+    public UInt16 get(UInt16.UInt16Field f) {
+        return (UInt16) get(f.getField());
     }
 
-    public <T extends UInt32.UInt32Field> UInt32 get(T f) {
-        return (UInt32) fields.get(f.getField());
+    public UInt32 get(UInt32.UInt32Field f) {
+        return (UInt32) get(f.getField());
     }
 
-    public <T extends UInt64.UInt64Field> UInt64 get(T f) {
-        return (UInt64) fields.get(f.getField());
+    public UInt64 get(UInt64.UInt64Field f) {
+        return (UInt64) get(f.getField());
     }
 
-    public <T extends UInt8.UInt8Field> UInt8 get(T f) {
-        return (UInt8) fields.get(f.getField());
+    public UInt8 get(UInt8.UInt8Field f) {
+        return (UInt8) get(f.getField());
     }
 
-    public <T extends Vector256.Vector256Field> Vector256 get(T f) {
-        return (Vector256) fields.get(f.getField());
+    public Vector256 get(Vector256.Vector256Field f) {
+        return (Vector256) get(f.getField());
     }
 
-    public <T extends VariableLength.VariableLengthField> VariableLength get(T f) {
-        return (VariableLength) fields.get(f.getField());
+    public VariableLength get(VariableLength.VariableLengthField f) {
+        return (VariableLength) get(f.getField());
     }
 
     public static class Translators {

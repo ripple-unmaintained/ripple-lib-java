@@ -161,10 +161,10 @@ com
               STObject created = node.get(STObject.CreatedNode);
   ```
 
-  This is implemented by using wilcard generics to overload get()
+  This is implemented by overloading get()
 
   ```java
-  public <T extends STArray.STArrayField> STArray get(T f) {
+  public STArray get(STArray.STArrayField f) {
       return (STArray) fields.get(f.getField());
   }
   ```
