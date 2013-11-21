@@ -1,9 +1,9 @@
 package com.ripple.core.types;
 
+import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.uint.UInt64;
@@ -238,9 +238,8 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return toTextFull();
     }
 
-    public abstract static class AmountField implements HasField {}
-    public static AmountField amountField(final Field f) {
-        return new AmountField() {
+    public static TypedFields.AmountField amountField(final Field f) {
+        return new TypedFields.AmountField() {
             @Override
             public Field getField() {
                 return f;
@@ -248,17 +247,17 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         };
     }
 
-    static public AmountField Amount = amountField(Field.Amount);
-    static public AmountField Balance = amountField(Field.Balance);
-    static public AmountField LimitAmount = amountField(Field.LimitAmount);
-    static public AmountField TakerPays = amountField(Field.TakerPays);
-    static public AmountField TakerGets = amountField(Field.TakerGets);
-    static public AmountField LowLimit = amountField(Field.LowLimit);
-    static public AmountField HighLimit = amountField(Field.HighLimit);
-    static public AmountField Fee = amountField(Field.Fee);
-    static public AmountField SendMax = amountField(Field.SendMax);
-    static public AmountField MinimumOffer = amountField(Field.MinimumOffer);
-    static public AmountField RippleEscrow = amountField(Field.RippleEscrow);
+    static public TypedFields.AmountField Amount = amountField(Field.Amount);
+    static public TypedFields.AmountField Balance = amountField(Field.Balance);
+    static public TypedFields.AmountField LimitAmount = amountField(Field.LimitAmount);
+    static public TypedFields.AmountField TakerPays = amountField(Field.TakerPays);
+    static public TypedFields.AmountField TakerGets = amountField(Field.TakerGets);
+    static public TypedFields.AmountField LowLimit = amountField(Field.LowLimit);
+    static public TypedFields.AmountField HighLimit = amountField(Field.HighLimit);
+    static public TypedFields.AmountField Fee = amountField(Field.Fee);
+    static public TypedFields.AmountField SendMax = amountField(Field.SendMax);
+    static public TypedFields.AmountField MinimumOffer = amountField(Field.MinimumOffer);
+    static public TypedFields.AmountField RippleEscrow = amountField(Field.RippleEscrow);
 
     public static class Translator extends TypeTranslator<Amount> {
         @Override

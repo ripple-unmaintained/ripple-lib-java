@@ -1,7 +1,7 @@
 package com.ripple.core.types;
 
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.HasField;
+import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.serialized.SerializedType;
@@ -71,13 +71,12 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
     static public Translator translate = new Translator();
 
     private Vector256(){}
-    
-    protected abstract static class Vector256Field implements HasField{}
-    public static Vector256Field vector256Field(final Field f) {
-        return new Vector256Field(){ @Override public Field getField() {return f;}};
+
+    public static TypedFields.Vector256Field vector256Field(final Field f) {
+        return new TypedFields.Vector256Field(){ @Override public Field getField() {return f;}};
     }
     
-    static public Vector256Field Indexes = vector256Field(Field.Indexes);
-    static public Vector256Field Hashes = vector256Field(Field.Hashes);
-    static public Vector256Field Features = vector256Field(Field.Features);
+    static public TypedFields.Vector256Field Indexes = vector256Field(Field.Indexes);
+    static public TypedFields.Vector256Field Hashes = vector256Field(Field.Hashes);
+    static public TypedFields.Vector256Field Features = vector256Field(Field.Features);
 }

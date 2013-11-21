@@ -3,10 +3,7 @@ package com.ripple.core.types;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.enums.TransactionType;
-import com.ripple.core.fields.Field;
-import com.ripple.core.fields.FieldSymbolics;
-import com.ripple.core.fields.HasField;
-import com.ripple.core.fields.Type;
+import com.ripple.core.fields.*;
 import com.ripple.core.formats.Format;
 import com.ripple.core.formats.SLEFormat;
 import com.ripple.core.formats.TxFormat;
@@ -222,20 +219,18 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
 
-    private abstract static class STObjectField implements HasField{}
-
-    public static STObjectField stobjectField(final Field f) {
-        return new STObjectField() {@Override public Field getField() {return f; } };
+    public static TypedFields.STObjectField stobjectField(final Field f) {
+        return new TypedFields.STObjectField() {@Override public Field getField() {return f; } };
     }
 
-    static public STObjectField TransactionMetaData = stobjectField(Field.TransactionMetaData);
-    static public STObjectField CreatedNode = stobjectField(Field.CreatedNode);
-    static public STObjectField DeletedNode = stobjectField(Field.DeletedNode);
-    static public STObjectField ModifiedNode = stobjectField(Field.ModifiedNode);
-    static public STObjectField PreviousFields = stobjectField(Field.PreviousFields);
-    static public STObjectField FinalFields = stobjectField(Field.FinalFields);
-    static public STObjectField NewFields = stobjectField(Field.NewFields);
-    static public STObjectField TemplateEntry = stobjectField(Field.TemplateEntry);
+    static public TypedFields.STObjectField TransactionMetaData = stobjectField(Field.TransactionMetaData);
+    static public TypedFields.STObjectField CreatedNode = stobjectField(Field.CreatedNode);
+    static public TypedFields.STObjectField DeletedNode = stobjectField(Field.DeletedNode);
+    static public TypedFields.STObjectField ModifiedNode = stobjectField(Field.ModifiedNode);
+    static public TypedFields.STObjectField PreviousFields = stobjectField(Field.PreviousFields);
+    static public TypedFields.STObjectField FinalFields = stobjectField(Field.FinalFields);
+    static public TypedFields.STObjectField NewFields = stobjectField(Field.NewFields);
+    static public TypedFields.STObjectField TemplateEntry = stobjectField(Field.TemplateEntry);
 
     public <T extends HasField> void put(T f, Object value) {
         if (value instanceof String) {
@@ -292,59 +287,59 @@ public class STObject implements SerializedType, Iterable<Field> {
         fields.put(f, value1);
     }
 
-    public AccountID get(AccountID.AccountIDField f) {
+    public AccountID get(TypedFields.AccountIDField f) {
         return (AccountID) get(f.getField());
     }
 
-    public Amount get(Amount.AmountField f) {
+    public Amount get(TypedFields.AmountField f) {
         return (Amount) get(f.getField());
     }
 
-    public STArray get(STArray.STArrayField f) {
+    public STArray get(TypedFields.STArrayField f) {
         return (STArray) get(f.getField());
     }
 
-    public Hash128 get(Hash128.Hash128Field f) {
+    public Hash128 get(TypedFields.Hash128Field f) {
         return (Hash128) get(f.getField());
     }
 
-    public Hash160 get(Hash160.Hash160Field f) {
+    public Hash160 get(TypedFields.Hash160Field f) {
         return (Hash160) get(f.getField());
     }
 
-    public Hash256 get(Hash256.Hash256Field f) {
+    public Hash256 get(TypedFields.Hash256Field f) {
         return (Hash256) get(f.getField());
     }
 
-    public STObject get(STObject.STObjectField f) {
+    public STObject get(TypedFields.STObjectField f) {
         return (STObject) get(f.getField());
     }
 
-    public PathSet get(PathSet.PathSetField f) {
+    public PathSet get(TypedFields.PathSetField f) {
         return (PathSet) get(f.getField());
     }
 
-    public UInt16 get(UInt16.UInt16Field f) {
+    public UInt16 get(TypedFields.UInt16Field f) {
         return (UInt16) get(f.getField());
     }
 
-    public UInt32 get(UInt32.UInt32Field f) {
+    public UInt32 get(TypedFields.UInt32Field f) {
         return (UInt32) get(f.getField());
     }
 
-    public UInt64 get(UInt64.UInt64Field f) {
+    public UInt64 get(TypedFields.UInt64Field f) {
         return (UInt64) get(f.getField());
     }
 
-    public UInt8 get(UInt8.UInt8Field f) {
+    public UInt8 get(TypedFields.UInt8Field f) {
         return (UInt8) get(f.getField());
     }
 
-    public Vector256 get(Vector256.Vector256Field f) {
+    public Vector256 get(TypedFields.Vector256Field f) {
         return (Vector256) get(f.getField());
     }
 
-    public VariableLength get(VariableLength.VariableLengthField f) {
+    public VariableLength get(TypedFields.VariableLengthField f) {
         return (VariableLength) get(f.getField());
     }
 

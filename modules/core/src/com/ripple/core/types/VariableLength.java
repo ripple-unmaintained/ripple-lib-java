@@ -1,7 +1,7 @@
 package com.ripple.core.types;
 
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.HasField;
+import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.serialized.SerializedType;
@@ -45,23 +45,22 @@ public class VariableLength implements SerializedType {
     static public Translator translate = new Translator();
 
     private VariableLength(){}
-    
-    abstract static class VariableLengthField implements HasField{}
-    public static VariableLengthField variablelengthField(final Field f) {
-        return new VariableLengthField(){ @Override public Field getField() {return f;}};
+
+    public static TypedFields.VariableLengthField variablelengthField(final Field f) {
+        return new TypedFields.VariableLengthField(){ @Override public Field getField() {return f;}};
     }
     
-    static public VariableLengthField PublicKey = variablelengthField(Field.PublicKey);
-    static public VariableLengthField MessageKey = variablelengthField(Field.MessageKey);
-    static public VariableLengthField SigningPubKey = variablelengthField(Field.SigningPubKey);
-    static public VariableLengthField TxnSignature = variablelengthField(Field.TxnSignature);
-    static public VariableLengthField Generator = variablelengthField(Field.Generator);
-    static public VariableLengthField Signature = variablelengthField(Field.Signature);
-    static public VariableLengthField Domain = variablelengthField(Field.Domain);
-    static public VariableLengthField FundCode = variablelengthField(Field.FundCode);
-    static public VariableLengthField RemoveCode = variablelengthField(Field.RemoveCode);
-    static public VariableLengthField ExpireCode = variablelengthField(Field.ExpireCode);
-    static public VariableLengthField CreateCode = variablelengthField(Field.CreateCode);
+    static public TypedFields.VariableLengthField PublicKey = variablelengthField(Field.PublicKey);
+    static public TypedFields.VariableLengthField MessageKey = variablelengthField(Field.MessageKey);
+    static public TypedFields.VariableLengthField SigningPubKey = variablelengthField(Field.SigningPubKey);
+    static public TypedFields.VariableLengthField TxnSignature = variablelengthField(Field.TxnSignature);
+    static public TypedFields.VariableLengthField Generator = variablelengthField(Field.Generator);
+    static public TypedFields.VariableLengthField Signature = variablelengthField(Field.Signature);
+    static public TypedFields.VariableLengthField Domain = variablelengthField(Field.Domain);
+    static public TypedFields.VariableLengthField FundCode = variablelengthField(Field.FundCode);
+    static public TypedFields.VariableLengthField RemoveCode = variablelengthField(Field.RemoveCode);
+    static public TypedFields.VariableLengthField ExpireCode = variablelengthField(Field.ExpireCode);
+    static public TypedFields.VariableLengthField CreateCode = variablelengthField(Field.CreateCode);
     
     
 }

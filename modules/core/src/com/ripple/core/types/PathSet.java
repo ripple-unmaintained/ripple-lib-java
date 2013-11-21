@@ -1,9 +1,9 @@
 package com.ripple.core.types;
 
+import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.HasField;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import org.json.JSONArray;
@@ -229,11 +229,10 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
     static public Translator translate = new Translator();
 
     private PathSet(){}
-    
-    protected abstract static class PathSetField implements HasField{}
-    public static PathSetField pathsetField(final Field f) {
-        return new PathSetField(){ @Override public Field getField() {return f;}};
+
+    public static TypedFields.PathSetField pathsetField(final Field f) {
+        return new TypedFields.PathSetField(){ @Override public Field getField() {return f;}};
     }
     
-    static public PathSetField Paths = pathsetField(Field.Paths);
+    static public TypedFields.PathSetField Paths = pathsetField(Field.Paths);
 }

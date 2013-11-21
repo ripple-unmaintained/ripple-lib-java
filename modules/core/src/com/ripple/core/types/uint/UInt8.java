@@ -1,7 +1,7 @@
 package com.ripple.core.types.uint;
 
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.HasField;
+import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.TypeTranslator;
 
 import java.math.BigInteger;
@@ -57,13 +57,11 @@ public class UInt8 extends UINT<UInt8> {
     private UInt8() {
     }
 
-    public abstract static class UInt8Field implements HasField {}
-
-    private static UInt8Field int8Field(final Field f) {
-        return new UInt8Field() {@Override public Field getField() {return f; } };
+    private static TypedFields.UInt8Field int8Field(final Field f) {
+        return new TypedFields.UInt8Field() {@Override public Field getField() {return f; } };
     }
 
-    static public UInt8Field CloseResolution = int8Field(Field.CloseResolution);
-    static public UInt8Field TemplateEntryType = int8Field(Field.TemplateEntryType);
-    static public UInt8Field TransactionResult = int8Field(Field.TransactionResult);
+    static public TypedFields.UInt8Field CloseResolution = int8Field(Field.CloseResolution);
+    static public TypedFields.UInt8Field TemplateEntryType = int8Field(Field.TemplateEntryType);
+    static public TypedFields.UInt8Field TransactionResult = int8Field(Field.TransactionResult);
 }

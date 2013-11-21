@@ -1,7 +1,7 @@
 package com.ripple.core.types;
 
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.HasField;
+import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.serialized.SerializedType;
@@ -184,11 +184,8 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     protected AccountID() {
     }
 
-    protected abstract static class AccountIDField implements HasField {
-    }
-
-    public static AccountIDField accountField(final Field f) {
-        return new AccountIDField() {
+    public static TypedFields.AccountIDField accountField(final Field f) {
+        return new TypedFields.AccountIDField() {
             @Override
             public Field getField() {
                 return f;
@@ -196,10 +193,10 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
         };
     }
 
-    static public AccountIDField Account = accountField(Field.Account);
-    static public AccountIDField Owner = accountField(Field.Owner);
-    static public AccountIDField Destination = accountField(Field.Destination);
-    static public AccountIDField Issuer = accountField(Field.Issuer);
-    static public AccountIDField Target = accountField(Field.Target);
-    static public AccountIDField RegularKey = accountField(Field.RegularKey);
+    static public TypedFields.AccountIDField Account = accountField(Field.Account);
+    static public TypedFields.AccountIDField Owner = accountField(Field.Owner);
+    static public TypedFields.AccountIDField Destination = accountField(Field.Destination);
+    static public TypedFields.AccountIDField Issuer = accountField(Field.Issuer);
+    static public TypedFields.AccountIDField Target = accountField(Field.Target);
+    static public TypedFields.AccountIDField RegularKey = accountField(Field.RegularKey);
 }
