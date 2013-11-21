@@ -173,16 +173,16 @@ com
 
 #### com.ripple.core.serialized.SerializedType
 
-Merely an tag interface. Doesn't actually require any methods be implemented.
+Merely a tag interface. Doesn't actually require any methods be implemented.
 
 #### com.ripple.core.serialized.BytesTree
 
-A dynamic array of byte[] or another BytesTree itself, avoiding needless copies.
-Used by TypeTranslators.
+A dynamic array of byte[] or other BytesTree instances. Used by TypeTranslators
+to avoid needless copying (see fromParser(paser, hint)).
 
 #### com.ripple.core.serialized.Markers
 
-Definitions of STObject and STArray end binary stream end markers
+Definitions of STObject and STArray, binary stream, end markers.
 
 #### com.ripple.core.serialized.BinaryParser
 
@@ -194,6 +194,8 @@ hints.
 
 Handles converting a SerializedType instances to/from json, binary and other non
 SerializedType values.
+
+Has methods like fromWireHex, fromWireBytes, which delegate to fromParser.
 
 #### com.ripple.core.serialized.BinarySerializer
 
