@@ -6,10 +6,14 @@ import org.bouncycastle.util.encoders.Hex;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ *
+ * @param <T> The SerializedType class
+ */
 public abstract class TypeTranslator<T extends SerializedType> {
 
     @SuppressWarnings("unchecked")
-    public <V> T fromValue(V object) {
+    public T fromValue(Object object) {
         switch (Value.typeOf(object)) {
             case STRING:
                 return fromString((String) object);
@@ -28,7 +32,6 @@ public abstract class TypeTranslator<T extends SerializedType> {
             case UNKNOWN:
             default:
                 return (T) object;
-
         }
     }
 
@@ -91,6 +94,12 @@ public abstract class TypeTranslator<T extends SerializedType> {
     public abstract Object toJSON(T obj);
     public abstract void toBytesTree(T obj, BytesTree to);
 
+    /**
+     *
+     * @param hint Using a boxed integer, as null != 0 && null != -1
+     *             This parameter can be used to hint the amount of
+     *             bytes (VL) or similar.
+     */
     public abstract T fromParser(BinaryParser parser, Integer hint);
     public T fromParser(BinaryParser parser) { return fromParser(parser, null);}
 

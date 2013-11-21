@@ -4,10 +4,8 @@ Ripple uses a node store, where objects are keyed by a 32byte hash value.
 
 These indexes are created by hashing a binary representation of the whole object
 or a unique identifier, prefixed with a name-spacing sequence of bytes, unique
-to each class of object.
-
-As such, a method of consistently producing a binary sequence from a given
-object was required.
+to each class of object. As such, a method of consistently producing a binary
+sequence from a given object was required.
 
 Objects have fields, which are a pairing of a name and a type. Names are simply
 ordinals used to look up preassigned names in a table. The type ordinal,
@@ -15,15 +13,14 @@ similarly, is used to lookup a given class.
 
 In ripple-lib-java the type equates to a `SerializedType`, with types such as 32
 bit unsigned integer, variable length byte strings and even arrays of objects.
-
 The fields have an ordinal quality, and can be deterministically sorted,
 important for consistent binary representation.
 
-An STObject, short for `SerializedType Object`, is an associative container of
-fields to other SerializedTypes (even an STObject itself)
-
-An STArray is an array of STObjects with a single Field, mapped to an STObject,
-containing an arbitrary amount of Field -> SerializedType pairs.
+There are also container types: An STObject, short for `SerializedType Object`,
+is an associative container of fields to other SerializedTypes (even an STObject
+itself). An STArray is an array of STObjects with a single Field, mapped to an
+STObject, containing an arbitrary amount of Field -> SerializedType pairs. (See
+notes below on C++ implementation)
 
 ## Types
 
@@ -100,78 +97,62 @@ com
   These `field symbolics` are enumerated [here](src/com/ripple/core/enums) and an
   abstract interface for dealing with them [here](src/com/ripple/core/fields/FieldSymbolics.java#L9)
 
-```
-com.ripple.core
-    │   ├── fields
-    │   │   ├── Type
-```
-  
+#### com.ripple.core.fields.Type
+
   This is a simple Java enum(eration) of the various types. eg.
-    
-    ```UINT32(2)```
-    
+
+    UINT32(2)
+
   This definition implies giving the static ordinal `2` to the UINT32 type.
 
-```
-com.ripple.core.fields
-    │   │   ├── Field
-```
+#### com.ripple.core.fields.Field
 
   Consider the following definition of a field
-  
-    ```QualityIn(20, Type.UINT32)```
+
+    QualityIn(20, Type.UINT32)
 
   As stated before a Field has name and type ordinals, but it also has an
   implied symbolic string representation (as seen used in the json above)
-  
+
   The string name can be looked up via a `code`, which is an integer created by
   shifting the type ordinal 16 bits to the left and ORing it with the name.
-  
+
   See: [com.ripple.core.fields.Field#fromCode](src/com/ripple/core/fields/Field.java)
 
-```
-com.ripple.core.fields
-    │   │   ├── FieldSymbolics
-```
-  
+#### com.ripple.core.fields.FieldSymbolics
+
   We've already seen the use of FieldSymbolics for
-  
+
   * TransactionResult
   * LedgerEntryType
   * TransactionType
 
-```
-com.ripple.core.fields
-    │   │   └── HasField
-```
+#### com.ripple.core.fields.HasField
 
-  This is simply an interface for returning a Field
+  This is simply an interface for returning a Field. We know that a Field
+  implies a Type and a name and there's a set amount of them. On each concrete
+  class implementation of a given Type, we create a XXXfield class that
+  implements HasField
 
-  We know that a Field implies a Type and a name and there's a set amount of
-  them.
-  
-  On each concrete class implementation of a given Type, we create field class
-  that implements HasField
-  
-  eg. 
-  
+  eg.
+
   ```java
   protected abstract static class STArrayField implements HasField{}
   public static STArrayField starrayField(final Field f) {
       return new STArrayField(){ @Override public Field getField() {return f;}};
   }
   ```
-  
+
   Then we can create static members on the concrete class
-  
+
   ```java
   static public STArrayField AffectedNodes = starrayField(Field.AffectedNodes);
   static public STArrayField Signatures = starrayField(Field.Signatures);
   static public STArrayField Template = starrayField(Field.Template);
   ```
-  
+
   Later this is used create an api that looks as so
-  
+
   ```java
   if (transactionType() == TransactionType.Payment && meta.has(STArray.AffectedNodes)) {
       STArray affected = meta.get(STArray.AffectedNodes);
@@ -179,15 +160,44 @@ com.ripple.core.fields
           if (node.has(STObject.CreatedNode)) {
               STObject created = node.get(STObject.CreatedNode);
   ```
-  
-  
+
   This is implemented by using wilcard generics to overload get()
-  
+
   ```java
   public <T extends STArray.STArrayField> STArray get(T f) {
       return (STArray) fields.get(f.getField());
   }
   ```
+
+### com.ripple.core.serialized
+
+#### com.ripple.core.serialized.SerializedType
+
+Merely an tag interface. Doesn't actually require any methods be implemented.
+
+#### com.ripple.core.serialized.BytesTree
+
+A dynamic array of byte[] or another BytesTree itself, avoiding needless copies.
+Used by TypeTranslators.
+
+#### com.ripple.core.serialized.Markers
+
+Definitions of STObject and STArray end binary stream end markers
+
+#### com.ripple.core.serialized.BinaryParser
+
+Responsible for decoding Fields and VL encoded structures. Delegates the work of
+actually decoding SerializedTypes to TypeTranslators, passing along any VL size
+hints.
+
+#### com.ripple.core.serialized.TypeTranslator
+
+Handles converting a SerializedType instances to/from json, binary and other non
+SerializedType values.
+
+#### com.ripple.core.serialized.BinarySerializer
+
+Responsible for encoding Fields/SerializeType into binary.
 
 ## Notes
 
@@ -205,7 +215,7 @@ com.ripple.core.fields
 
   How could `sa` be declared as json?
 
-    ```
+    ```json
     >>> [{"FieldName" : {"FieldOfDreams": "A Kevin Costner Movie"}}]
     ```
 
@@ -218,22 +228,7 @@ com.ripple.core.fields
 
 * Simply using google protocol buffers was considered inadequate [link](https://github.com/ripple/rippled/blob/ee51968820fc41c5aeadf2067bfdae54ff21fa66/BinaryFormats.txt#L16)
 
-
-#TYPES TODO
-
 ```
-com
-└── ripple
-    ├── core
-    │   │
-    │   ├── serialized
-    │   │   ├── BytesTree
-    │   │   ├── Markers
-    │   │   ├── BinarySerializer
-    │   │   ├── BinaryParser
-    │   │   ├── SerializedType
-    │   │   └── TypeTranslator
-
 com
 └── ripple
     ├── core
@@ -270,4 +265,3 @@ com
     │       │   ├── ShaMapLeafNode
     │       │   └── ShaMapNode
 ```
-  

@@ -21,7 +21,7 @@ public enum Value {
     LONG,
     SHORT, BOOLEAN;
 
-    static public <T> Value typeOf (T object) {
+    static public Value typeOf (Object object) {
         if (object instanceof String) {
             return STRING;
         }

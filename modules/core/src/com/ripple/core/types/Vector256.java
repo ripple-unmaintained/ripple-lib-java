@@ -61,13 +61,6 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
             return vector;
         }
 
-//        @Override
-//        public byte[] toBytesTree(Vector256 obj) {
-//            BytesTree to = new BytesTree();
-//            toBytesTree(obj, to);
-//            return to.bytes();
-//        }
-
         @Override
         public void toBytesTree(Vector256 obj, BytesTree to) {
             for (Hash256 hash256 : obj) {
