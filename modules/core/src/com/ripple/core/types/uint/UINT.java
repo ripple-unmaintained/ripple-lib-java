@@ -7,7 +7,7 @@ import com.ripple.core.serialized.TypeTranslator;
 
 import java.math.BigInteger;
 
-abstract public class UINT<ValueType, Subclass extends UINT> extends Number implements SerializedType, Comparable<UINT> {
+abstract public class UINT<Subclass extends UINT> extends Number implements SerializedType, Comparable<UINT> {
 
     private BigInteger value;
 
@@ -143,7 +143,7 @@ abstract public class UINT<ValueType, Subclass extends UINT> extends Number impl
         }
     }
 
-    abstract public ValueType value();
+    abstract public Object value();
 
     public BigInteger bigInteger(){
         return value;
