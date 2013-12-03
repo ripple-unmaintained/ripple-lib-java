@@ -63,7 +63,7 @@ public class TransactionTest {
 
     }
 
-    @Test
+//    @Test
     public void testCreatePaymentTransaction() throws Exception {
         final String niqwit1Seed = "snSq7dKr5v39hJ8Enb45RpXFJL25h";
         final AccountID niqwit1 = AccountID.fromSeedString(niqwit1Seed);

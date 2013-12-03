@@ -27,6 +27,16 @@
             <version>${platform.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.ripple</groupId>
+            <artifactId>ripple-client</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.ripple</groupId>
+            <artifactId>ripple-client-transports</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${project.artifactId}</finalName>
@@ -34,14 +44,15 @@
             <plugin>
                 <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                 <artifactId>android-maven-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.8.0</version>
                 <configuration>
+                    <extractDuplicates>true</extractDuplicates>
                     <androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
                     <assetsDirectory>${project.basedir}/assets</assetsDirectory>
                     <resourceDirectory>${project.basedir}/res</resourceDirectory>
                     <nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
                     <sdk>
-                        <platform>16</platform>
+                        <platform>18</platform>
                     </sdk>
                     <undeployBeforeDeploy>true</undeployBeforeDeploy>
                     <proguard>
@@ -55,8 +66,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.5.1</version>
                 <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
+                    <source>1.6</source>
+                    <target>1.6</target>
                 </configuration>
             </plugin>
         </plugins>

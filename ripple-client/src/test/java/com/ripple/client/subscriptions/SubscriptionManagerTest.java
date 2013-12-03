@@ -15,7 +15,7 @@ import static junit.framework.TestCase.assertEquals;
 public class SubscriptionManagerTest {
     public static AccountID bob_account = AccountID.fromSeedString("shn6zJ8zzkaoFSfsEWvJLZf3V344C");
 
-    @Test
+//    @Test
     public void testConnectionSubscription() throws Exception {
         SubscriptionManager sm = new SubscriptionManager();
         sm.addStream(SubscriptionManager.Stream.ledger);
