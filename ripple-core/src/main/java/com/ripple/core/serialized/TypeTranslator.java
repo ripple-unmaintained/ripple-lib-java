@@ -96,9 +96,9 @@ public abstract class TypeTranslator<T extends SerializedType> {
     public abstract void toBytesTree(T obj, BytesTree to);
 
     /**
-     * @param hint Using a boxed integer, as null != 0 && null != -1 This
-     *            parameter can be used to hint the amount of bytes (VL) or
-     *            similar.
+     * @param hint Using a boxed integer, allowing null for no hint
+     *             This generic parameter can be used to hint the amount of
+     *             bytes (VL) or amount of fields (STObject) for example
      */
     public abstract T fromParser(BinaryParser parser, Integer hint);
 
