@@ -117,6 +117,11 @@ public class TransactionManager {
                 return;
 
             case telLOCAL_ERROR:
+                // TODO, this could actually resolve ...
+                // Resubmitting exactly the same transaction probably wont hurt
+                // For the moment we are just going to make sure to watch for it
+                // closing
+                submitted.add(transaction);
             case temMALFORMED:
             case tefFAILURE:
             case terRETRY:
