@@ -1,3 +1,4 @@
+
 package com.ripple.core.serialized;
 
 import com.ripple.core.runtime.Value;
@@ -7,7 +8,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- *
  * @param <T> The SerializedType class
  */
 public abstract class TypeTranslator<T extends SerializedType> {
@@ -92,16 +92,19 @@ public abstract class TypeTranslator<T extends SerializedType> {
     }
 
     public abstract Object toJSON(T obj);
+
     public abstract void toBytesTree(T obj, BytesTree to);
 
     /**
-     *
-     * @param hint Using a boxed integer, as null != 0 && null != -1
-     *             This parameter can be used to hint the amount of
-     *             bytes (VL) or similar.
+     * @param hint Using a boxed integer, as null != 0 && null != -1 This
+     *            parameter can be used to hint the amount of bytes (VL) or
+     *            similar.
      */
     public abstract T fromParser(BinaryParser parser, Integer hint);
-    public T fromParser(BinaryParser parser) { return fromParser(parser, null);}
+
+    public T fromParser(BinaryParser parser) {
+        return fromParser(parser, parser.getSize());
+    }
 
     public byte[] toWireBytes(T obj) {
         BytesTree to = new BytesTree();
@@ -112,9 +115,11 @@ public abstract class TypeTranslator<T extends SerializedType> {
     public T fromWireBytes(byte[] b) {
         return fromParser(new BinaryParser(b));
     }
+
     public String toWireHex(T obj) {
         return B16.toString(toWireBytes(obj)).toUpperCase();
     }
+
     public T fromWireHex(String hex) {
         return fromWireBytes(B16.decode(hex));
     }
