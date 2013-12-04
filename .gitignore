@@ -1,5 +1,6 @@
-.idea/workspace.xml
+.idea/*
 out/*
+*.iml
 lib/*.gz
 scripts/*
 lib/bcprov-jdk15on-149/*
