@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="predexed">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/examples/android/assets/predexed.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
