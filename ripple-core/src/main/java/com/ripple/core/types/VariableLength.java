@@ -1,3 +1,4 @@
+
 package com.ripple.core.types;
 
 import com.ripple.core.fields.Field;
@@ -19,6 +20,9 @@ public class VariableLength implements SerializedType {
     static class Translator extends TypeTranslator<VariableLength> {
         @Override
         public VariableLength fromParser(BinaryParser parser, Integer hint) {
+            if (hint == null) {
+                hint = parser.getSize();
+            }
             return new VariableLength(parser.read(hint));
         }
 
@@ -42,14 +46,21 @@ public class VariableLength implements SerializedType {
             to.add(obj.buffer);
         }
     }
+
     static public Translator translate = new Translator();
 
-    private VariableLength(){}
+    private VariableLength() {
+    }
 
     public static TypedFields.VariableLengthField variablelengthField(final Field f) {
-        return new TypedFields.VariableLengthField(){ @Override public Field getField() {return f;}};
+        return new TypedFields.VariableLengthField() {
+            @Override
+            public Field getField() {
+                return f;
+            }
+        };
     }
-    
+
     static public TypedFields.VariableLengthField PublicKey = variablelengthField(Field.PublicKey);
     static public TypedFields.VariableLengthField MessageKey = variablelengthField(Field.MessageKey);
     static public TypedFields.VariableLengthField SigningPubKey = variablelengthField(Field.SigningPubKey);
@@ -61,6 +72,5 @@ public class VariableLength implements SerializedType {
     static public TypedFields.VariableLengthField RemoveCode = variablelengthField(Field.RemoveCode);
     static public TypedFields.VariableLengthField ExpireCode = variablelengthField(Field.ExpireCode);
     static public TypedFields.VariableLengthField CreateCode = variablelengthField(Field.CreateCode);
-    
-    
+
 }

@@ -29,12 +29,9 @@
         </dependency>
         <dependency>
             <groupId>com.ripple</groupId>
-            <artifactId>ripple-client</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.ripple</groupId>
-            <artifactId>ripple-client-transports</artifactId>
+            <artifactId>
+                ripple-client-java-websocket-transport
+            </artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
@@ -44,7 +41,6 @@
             <plugin>
                 <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                 <artifactId>android-maven-plugin</artifactId>
-                <version>3.8.0</version>
                 <configuration>
                     <extractDuplicates>true</extractDuplicates>
                     <androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>

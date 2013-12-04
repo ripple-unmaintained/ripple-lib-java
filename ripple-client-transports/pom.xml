@@ -7,6 +7,7 @@
     <artifactId>ripple-lib-java</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
+  
   <groupId>com.ripple</groupId>
   <artifactId>ripple-client-transports</artifactId>
   <version>0.0.1-SNAPSHOT</version>
@@ -27,4 +28,8 @@
           <version>0.0.1-SNAPSHOT</version>
       </dependency>
   </dependencies>
+  <packaging>pom</packaging>
+  <modules>
+      <module>ripple-client-java-websocket-transport</module>
+  </modules>
 </project>
