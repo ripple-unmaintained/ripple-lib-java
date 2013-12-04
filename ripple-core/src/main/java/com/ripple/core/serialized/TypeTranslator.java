@@ -103,7 +103,7 @@ public abstract class TypeTranslator<T extends SerializedType> {
     public abstract T fromParser(BinaryParser parser, Integer hint);
 
     public T fromParser(BinaryParser parser) {
-        return fromParser(parser, parser.getSize());
+        return fromParser(parser, null);
     }
 
     public byte[] toWireBytes(T obj) {

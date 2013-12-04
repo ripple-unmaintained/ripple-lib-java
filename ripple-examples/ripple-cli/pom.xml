@@ -23,7 +23,9 @@
       </dependency>
       <dependency>
           <groupId>com.ripple</groupId>
-          <artifactId>ripple-client-transports</artifactId>
+          <artifactId>
+              ripple-client-java-websocket-transport
+          </artifactId>
           <version>0.0.1-SNAPSHOT</version>
       </dependency>
   </dependencies>
