@@ -20,21 +20,40 @@ import java.io.IOException;
 import static com.ripple.cli.log.Log.LOG;
 
 public class MakePayment {
+    /**
+     * These refer to the blobs storing the contacts and wallet secret at payward
+     * That is where the account information for the https://ripple.com/client
+     * is by default stored.
+     */
+    public static String PAYWARD_USER = "niq1";
+    public static String PAYWARD_PASS = "";
+
+    public static String DESTINATION_ACCOUNT = "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH";
+    public static String SEND_AMOUNT = "1"; /* drop, or millionth of an XRP.
+                                               Specify an amount with a decimal (eg. 1.0) to indicate XRPS
+                                               Sadly "1" != "1.0" in ripple json string format
+                                               Be aware :)
+                                               */
     public static void main(String[] args) throws Exception {
         ClientLogger.quiet = false;
         makeAPayment();
     }
 
     private static void makeAPayment() throws IOException, InvalidCipherTextException, JSONException, InterruptedException {
-        Client client = new Client(new JavaWebSocketTransportImpl());
-        client.connect("wss://s1.ripple.com");
-        BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
-        JSONObject blob = blobVault.getBlob("niq1", "");
-        Account account = client.accountFromSeed(blob.getString("master_seed"));
-        makePayment(account, "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH", "1");
+        if (PAYWARD_USER.isEmpty() || PAYWARD_PASS.isEmpty()) {
+            LOG("Must configure PAYWARD_USER && PAYWARD_PASS");
+        } else {
+            Client client = new Client(new JavaWebSocketTransportImpl());
+            client.connect("wss://s1.ripple.com");
+            BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
+            JSONObject blob = blobVault.getBlob(PAYWARD_USER, PAYWARD_PASS);
+            Account account = client.accountFromSeed(blob.getString("master_seed"));
+            makePayment(account, DESTINATION_ACCOUNT, SEND_AMOUNT);
+        }
+
     }
 
-    private static void makePayment(Account account, Object destination, String amt) {
+    private static void makePayment(Account account, Object destination, Object amt) {
         TransactionManager tm = account.transactionManager();
         Transaction        tx = tm.payment();
 
