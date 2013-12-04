@@ -29,14 +29,13 @@ public class Hash160 extends HASH {
         }
     }
     public static Translator translate = new Translator();
-    private Hash160(){}
 
     public static TypedFields.Hash160Field hash160Field(final Field f) {
         return new TypedFields.Hash160Field(){ @Override public Field getField() {return f;}};
     }
 
-    static public TypedFields.Hash160Field TakerPaysCurrency = hash160Field(Field.TakerPaysCurrency);
     static public TypedFields.Hash160Field TakerPaysIssuer = hash160Field(Field.TakerPaysIssuer);
     static public TypedFields.Hash160Field TakerGetsCurrency = hash160Field(Field.TakerGetsCurrency);
+    static public TypedFields.Hash160Field TakerPaysCurrency = hash160Field(Field.TakerPaysCurrency);
     static public TypedFields.Hash160Field TakerGetsIssuer = hash160Field(Field.TakerGetsIssuer);
 }

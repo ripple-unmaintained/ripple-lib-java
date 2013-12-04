@@ -81,7 +81,7 @@ public class HASH implements SerializedType {
 
         @Override
         public T fromString(String value) {
-            return newInstance(Hex.decode(value));
+            return newInstance(B16.decode(value));
         }
 
 //        @Override

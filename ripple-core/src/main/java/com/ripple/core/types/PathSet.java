@@ -17,7 +17,8 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
     public static class Hop{
         AccountID account;
         AccountID issuer;
-        String currency;
+        public Currency currencyBytes;
+
         int type;
 
         public static byte TYPE_ACCOUNT  = (byte) 0x01;
@@ -59,7 +60,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
             type = 0;
 
             if (account != null) type |= TYPE_ACCOUNT;
-            if (currency != null) type |= TYPE_CURRENCY;
+            if (currencyString() != null) type |= TYPE_CURRENCY;
             if (issuer != null) type |= TYPE_ISSUER;
         }
 
@@ -70,7 +71,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
                 if (account  != null) object.put("account", AccountID.translate.toJSON(account));
                 if (issuer   != null) object.put("issuer", AccountID.translate.toJSON(issuer));
-                if (currency != null) object.put("currency", currency);
+                if (currencyString() != null) object.put("currency", currencyString());
 
             } catch (JSONException e) {
                 throw new RuntimeException(e);
@@ -79,11 +80,15 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         }
 
         public void currency(String currency) {
-            String normalized = Currency.normalizeCurrency(currency);
-            if (currency.length() == 40 && normalized.equals("XRP")) {
-                this.iouXRP = true;
-            }
-            this.currency = normalized;
+            this.currencyBytes = Currency.translate.fromString(currency);
+        }
+
+        public String currencyString() {
+            return currencyBytes.toString();
+        }
+
+        public void currency(byte[] read) {
+            currencyBytes = new Currency(read);
         }
     }
     public static class Path extends ArrayList<Hop> {
@@ -135,22 +140,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
                     hop.account = AccountID.translate.fromParser(parser);
                 }
                 if ((type & 0x10) != 0) {
-                    byte[] read = parser.read(20);
-                    boolean zero = true;
-                    for (byte b : read) {
-                        zero = (b == 0x00);
-                        if (!zero) {
-                            break;
-                        }
-                    }
-                    if (zero) {
-                        hop.currency = "XRP";
-                        hop.iouXRP = false;
-                    }
-                    hop.currency = Currency.decodeCurrency(read);
-                    if (hop.currency.equals("XRP")) {
-                        hop.iouXRP = true;
-                    }
+                    hop.currencyBytes = Currency.translate.fromParser(parser);
                 }
                 if ((type & 0x20) != 0) {
                     hop.issuer = AccountID.translate.fromParser(parser);
@@ -211,12 +201,8 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
                         buffer.add(hop.account.bytes());
                     }
                     // TODO, need to create a Currency class!!
-                    if (hop.currency != null) {
-                        if (hop.currency.equals("XRP") && !hop.iouXRP) {
-                            buffer.add(new byte[20]);
-                        } else {
-                            buffer.add(Currency.encodeCurrency(hop.currency));
-                        }
+                    if (hop.currencyString() != null) {
+                        buffer.add(hop.currencyBytes.getBytes());
                     }
                     if (hop.issuer != null) {
                         buffer.add(hop.issuer.bytes());

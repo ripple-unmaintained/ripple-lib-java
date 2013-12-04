@@ -1,10 +1,101 @@
 package com.ripple.core.types;
 
-import org.bouncycastle.util.encoders.Hex;
+import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.types.hash.Hash160;
+import com.ripple.encodings.common.B16;
 
-public class Currency {
+/**
+ * Funnily enough, yes, in rippled a currency is represented by a Hash160 type.
+ * For the sake of consistency and convenience, this quirk is repeated here.
+ */
+public class Currency extends Hash160 {
+    public Currency(byte[] bytes) {
+        super(bytes);
+    }
+
+    /**
+     * It's better to extend HashTranslator than the Hash160.Translator directly
+     * That way the generics can still vibe with the @Override
+     */
+    public static class CurrencyTranslator extends HashTranslator<Currency> {
+        @Override
+        public int byteWidth() {
+            return 20;
+        }
+
+        @Override
+        public Currency fromParser(BinaryParser parser, Integer hint) {
+            return newInstance(parser.read(20));
+        }
+
+        @Override
+        public Currency newInstance(byte[] b) {
+            return new Currency(b);
+        }
+
+        @Override
+        public Currency fromString(String value) {
+
+            if (value.length() == 40 /* byteWidth() * 2 */) {
+                return newInstance(B16.decode(value));
+            } else if (value.equals("XRP")) {
+                return XRP_CURRENCY;
+            } else {
+                if (!value.matches("[A-Z]{3}")) {
+                    throw new RuntimeException("Currency code must be 3 characters");
+                }
+                return newInstance(encodeCurrency(value));
+            }
+        }
+
+        @Override
+        public String toString(Currency obj) {
+            return obj.toString();
+        }
+    }
+
+    static Currency fromString(String currency) {
+        return translate.fromString(currency);
+    }
+
+    @Override
+    public String toString() {
+        String code = decodeCurrency(getBytes());
+        if (code.equals("XRP")) {
+            // HEX of the bytes
+            return super.toString();
+        } else if (code.equals("\0\0\0")) {
+            return "XRP";
+        } else {
+            // the 3 letter code
+            return code;
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Currency) {
+            Currency other = (Currency) obj;
+            byte[] bytes = this.getBytes();
+            byte[] otherBytes = other.getBytes();
+
+            return (bytes[12] == otherBytes[12] &&
+                    bytes[13] == otherBytes[13] &&
+                    bytes[14] == otherBytes[14]);
+        }
+        return super.equals(obj);
+    }
+
+    public static CurrencyTranslator translate = new CurrencyTranslator();
+
+    // This is used to represent a native currency
     public static final byte[] ZERO = new byte[20];
+    public static final Currency XRP_CURRENCY = new Currency(ZERO);
 
+    /*
+    * The following are static methods, legacy from when there was no
+    * usage of Currency objects, just String with "XRP" ambiguity.
+    * */
     public static byte[] encodeCurrency(String currencyCode) {
         byte[] currencyBytes = new byte[20];
         currencyBytes[12] = (byte) currencyCode.codePointAt(0);
@@ -17,31 +108,21 @@ public class Currency {
         int i;
         boolean zeroInNonCurrencyBytes = true;
 
-        for (i=0; i<20; i++) {
+        for (i = 0; i < 20; i++) {
             zeroInNonCurrencyBytes = zeroInNonCurrencyBytes &&
-                                   ((i == 12 || i == 13 || i == 14) || // currency bytes (0 or any other)
-                                     bytes[i] == 0);                   // non currency bytes (0)
+                    ((i == 12 || i == 13 || i == 14) || // currency bytes (0 or any other)
+                            bytes[i] == 0);                   // non currency bytes (0)
         }
 
         if (zeroInNonCurrencyBytes) {
             return currencyStringFromBytesAndOffset(bytes, 12);
-        }
-        else {
+        } else {
             throw new IllegalStateException("Currency is invalid");
         }
     }
 
     private static char charFrom(byte[] bytes, int i) {
         return (char) bytes[i];
-    }
-
-    public static String normalizeCurrency(String currency) {
-        if (currency.length() == 40) {
-            byte[] bytes = Hex.decode(currency.substring(24, 24 + 6));
-            assert bytes.length == 3;
-            return currencyStringFromBytesAndOffset(bytes, 0);
-        }
-        return currency;
     }
 
     private static String currencyStringFromBytesAndOffset(byte[] bytes, int offset) {

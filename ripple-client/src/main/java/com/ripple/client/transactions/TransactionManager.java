@@ -96,8 +96,9 @@ public class TransactionManager {
     * The $10,000 question is when does sequence get decremented?
     * */
     private UInt32 getSubmissionSequence() {
-        if (sequence == -1) {
-            sequence = accountRoot.Sequence.longValue();
+        long server = accountRoot.Sequence.longValue();
+        if (sequence == -1 || server > sequence ) {
+            sequence = server;
         }
         return new UInt32(sequence++);
     }

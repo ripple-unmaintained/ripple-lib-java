@@ -17,16 +17,20 @@ import java.math.RoundingMode;
 public class Amount extends Number implements SerializedType, Comparable<Amount>
 
 {
-    public static int IOU_SERIALIZED_BYTE_LENGTH = 8 + 20 + 20;
     protected BigDecimal value; // When native the value is in `drops`
 
     UInt64 mantissa = null;
+    /*
+    TODO: Consider deleting these;
     static public UInt64 cMinValue = new UInt64("1000000000000000");
     static public UInt64 cMaxValue = new UInt64("9999999999999999");
     static public UInt64 cMaxNative = new UInt64("9000000000000000000");
     static public UInt64 cMaxNativeN = new UInt64("100000000000000000");
+    */
     static public UInt64 cNotNative = new UInt64("8000000000000000", 16);
     static public UInt64 cPosNative = new UInt64("4000000000000000", 16);
+
+
 
     private static BigDecimal asDrops(String s) {
         return new BigDecimal(s.replace(",", "")).scaleByPowerOfTen(6);
@@ -37,10 +41,17 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     private AccountID issuerAccount;
 
+    private Currency currency;
+
     public Amount(BigDecimal newValue, String currency, AccountID issuer, boolean nativeSource) {
+        this(newValue, Currency.fromString(currency), issuer, nativeSource);
+    }
+
+    public Amount(BigDecimal value, Currency currency, AccountID issuer, boolean nativeSource) {
         isNative = nativeSource;
-        this.currency(currency);
-        this.setValue(newValue);
+        this.currency = currency;
+        this.setValue(value);
+        // done AFTER set value which sets some default values
         issuerAccount = issuer;
     }
 
@@ -51,12 +62,11 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     private int offset;
 
     public String currencyString() {
-        return currency;
+        return currency.toString();
     }
 
     public void currency(String currency) {
-        currency = Currency.normalizeCurrency(currency);
-        this.currency = currency;
+        this.currency = Currency.fromString(currency);
     }
 
     public String issuerString() {
@@ -72,7 +82,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     public void issuer(String issuer) {
         if (issuer != null) {
-            // blows up if issuer is shitty, but we ALSO wanna wanna nah?
+            // blows up if issuer is shitty
             issuerAccount = AccountID.fromString(issuer);
         }
     }
@@ -218,7 +228,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     public boolean equalsExceptIssuer(Amount amt) {
         return equalValue(amt) &&
-                currency.equals(amt.currency);
+                currencyString().equals(amt.currencyString());
     }
 
     private boolean equalValue(Amount amt) {
@@ -277,13 +287,13 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
             if (isIOU) {
                 mantissa[0]      =  0;
-                String currency  =  Currency.decodeCurrency(parser.read(20));
+                Currency curr    =  Currency.translate.fromParser(parser);
                 AccountID issuer =  AccountID.translate.fromParser(parser);
                 int offset       =  ((b1 & 0x3F) << 2) + ((b2 & 0xff) >> 6) - 97;
                 mantissa[1]     &=  0x3F;
 
                 value = new BigDecimal(new BigInteger(sign, mantissa), -offset);
-                return  new Amount(value, currency, issuer, false);
+                return  new Amount(value, curr, issuer, false);
             } else {
                 mantissa[0] &= 0x3F;
                 value = new BigDecimal(new BigInteger(sign, mantissa));
@@ -355,7 +365,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 }
 
                 to.add(value.toByteArray());
-                to.add(Currency.encodeCurrency(obj.currencyString()));
+                to.add(obj.currency.getBytes());
                 to.add(obj.issuerBytes());
             }
         }
@@ -370,9 +380,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     static public Translator translate = new Translator();
-
-    private Amount() {
-    }
 
     @Override
     public int intValue() {
@@ -409,12 +416,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public boolean isNative;
-    private String currency;
-    private String issuer;
 
     private Amount(BigDecimal value) {
         isNative = true;
-        currency("XRP");
+        currency = Currency.XRP_CURRENCY;
         this.setValue(value);
     }
 
