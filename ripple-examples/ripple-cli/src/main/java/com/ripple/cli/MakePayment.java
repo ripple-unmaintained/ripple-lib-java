@@ -29,11 +29,16 @@ public class MakePayment {
     public static String PAYWARD_PASS = "";
 
     public static String DESTINATION_ACCOUNT = "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH";
-    public static String SEND_AMOUNT = "1"; /* drop, or millionth of an XRP.
+    public static Object SEND_AMOUNT = "1"; /* drop, or millionth of an XRP.
                                                Specify an amount with a decimal (eg. 1.0) to indicate XRPS
                                                Sadly "1" != "1.0" in ripple json string format
                                                Be aware :)
                                                */
+    static {
+        // Uncomment to send a non native SEND_AMOUNT
+        // SEND_AMOUNT = Amount.fromString("0.00001/USD/" + DESTINATION_ACCOUNT);
+    }
+
     public static void main(String[] args) throws Exception {
         ClientLogger.quiet = false;
         makeAPayment();

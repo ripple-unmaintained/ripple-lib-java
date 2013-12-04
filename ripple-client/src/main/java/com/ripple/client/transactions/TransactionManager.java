@@ -10,6 +10,7 @@ import com.ripple.client.transactions.TransactionMessage.TransactionResult;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.types.AccountID;
+import com.ripple.core.types.Amount;
 import com.ripple.core.types.hash.Hash256;
 import com.ripple.core.types.uint.UInt32;
 import com.ripple.crypto.ecdsa.IKeyPair;
@@ -69,6 +70,9 @@ public class TransactionManager {
 
         final Request req = client.newRequest(Command.submit);
         req.json("tx_blob", B16.toString(transaction.tx_blob));
+        if (!transaction.get(Amount.Amount).isNative) {
+            req.json("build_path", true);
+        }
 
         req.once(Request.OnSuccess.class, new Request.OnSuccess() {
             @Override
