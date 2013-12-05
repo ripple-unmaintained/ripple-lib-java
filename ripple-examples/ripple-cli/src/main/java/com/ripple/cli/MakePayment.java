@@ -5,7 +5,7 @@ import com.ripple.client.Client;
 import com.ripple.client.ClientLogger;
 import com.ripple.client.Response;
 import com.ripple.client.blobvault.BlobVault;
-import com.ripple.client.transactions.Transaction;
+import com.ripple.client.transactions.ManagedTransaction;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transactions.TransactionMessage.TransactionResult;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
@@ -24,8 +24,10 @@ public class MakePayment {
      * These refer to the blobs storing the contacts and wallet secret at payward
      * That is where the account information for the https://ripple.com/client
      * is by default stored.
+     *
+     * These can be set with operating system environment variables
      */
-    public static String PAYWARD_USER = "niq1";
+    public static String PAYWARD_USER = "";
     public static String PAYWARD_PASS = "";
 
     public static String DESTINATION_ACCOUNT = "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH";
@@ -35,7 +37,13 @@ public class MakePayment {
                                                Be aware :)
                                                */
     static {
+        String envPass = System.getenv("PAYWARD_PASS");
+        String envUser = System.getenv("PAYWARD_USER");
+
+        if (envUser != null) PAYWARD_USER = envUser;
+        if (envPass != null) PAYWARD_PASS = envPass;
         ClientLogger.quiet = false;
+
         // Uncomment to send a non native SEND_AMOUNT
         // SEND_AMOUNT = Amount.fromString("0.00001/USD/" + DESTINATION_ACCOUNT);
     }
@@ -60,18 +68,18 @@ public class MakePayment {
 
     private static void makePayment(Account account, Object destination, Object amt) {
         TransactionManager tm = account.transactionManager();
-        Transaction        tx = tm.payment();
+        ManagedTransaction tx = tm.payment();
 
         tx.put(AccountID.Destination, destination);
         tx.put(Amount.Amount, amt);
 
-        tx.once(Transaction.OnSubmitSuccess.class, new Transaction.OnSubmitSuccess() {
+        tx.once(ManagedTransaction.OnSubmitSuccess.class, new ManagedTransaction.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
                 LOG("Submit response: %s", response.engineResult());
             }
         });
-        tx.once(Transaction.OnTransactionValidated.class, new Transaction.OnTransactionValidated() {
+        tx.once(ManagedTransaction.OnTransactionValidated.class, new ManagedTransaction.OnTransactionValidated() {
             @Override
             public void called(TransactionResult result) {
                 LOG("Transaction finalized on ledger: %s", result.ledgerIndex);

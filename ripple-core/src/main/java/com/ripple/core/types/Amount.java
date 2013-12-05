@@ -202,8 +202,8 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return newValue(value.negate());
     }
 
-    public Amount plus() {
-        return newValue(value.plus());
+    public Amount abs() {
+        return newValue(value.abs());
     }
 
     public Amount min(Amount val) {
@@ -215,7 +215,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     private Amount newValue(BigDecimal newValue) {
-        return new Amount(newValue, this.currencyString(), this.issuer(), isNative);
+        return new Amount(newValue, currency, issuerAccount, isNative);
     }
 
     public BigInteger toBigInteger() {
@@ -365,7 +365,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 }
 
                 to.add(value.toByteArray());
-                to.add(obj.currency.getBytes());
+                to.add(obj.currency.bytes());
                 to.add(obj.issuerBytes());
             }
         }

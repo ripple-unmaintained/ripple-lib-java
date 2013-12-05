@@ -2,7 +2,6 @@ package com.ripple.client.subscriptions;
 
 import com.ripple.core.types.AccountID;
 import org.json.JSONObject;
-import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;
 

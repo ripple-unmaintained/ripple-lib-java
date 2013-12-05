@@ -63,6 +63,7 @@ public class ServerInfo {
     }
 
     public Amount transactionFee(UInt16 uInt16) {
+        // TODO:
         TransactionType tt = TransactionType.fromNumber(uInt16.intValue());
         return transactionFee();
     }

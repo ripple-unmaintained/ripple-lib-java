@@ -10,7 +10,7 @@ public class HashTest{
     @Test
     public void testPadding() {
         Hash128 hash128 = new Hash128(new byte[]{0});
-        assertEquals(16, hash128.getBytes().length);
+        assertEquals(16, hash128.bytes().length);
     }
 
     @Test(expected = RuntimeException.class)

@@ -12,6 +12,7 @@ import com.ripple.core.enums.TransactionType;
 import com.ripple.core.types.AccountID;
 import com.ripple.core.types.Amount;
 import com.ripple.core.types.hash.Hash256;
+import com.ripple.core.types.uint.UInt16;
 import com.ripple.core.types.uint.UInt32;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.encodings.common.B16;
@@ -28,8 +29,8 @@ public class TransactionManager {
     public long sequence = -1;
     public long transactionID;
 
-    ArrayList<Transaction> submitted = new ArrayList<Transaction>();
-    ArrayList<Transaction> queued = new ArrayList<Transaction>();
+    ArrayList<ManagedTransaction> submitted = new ArrayList<ManagedTransaction>();
+    ArrayList<ManagedTransaction> queued = new ArrayList<ManagedTransaction>();
 
     public int awaiting() {
         return queued.size() + submitted.size();
@@ -42,7 +43,7 @@ public class TransactionManager {
         this.keyPair = keyPair;
     }
 
-    public void queue(final Transaction transaction) {
+    public void queue(final ManagedTransaction transaction) {
         queued.add(transaction);
 
         if (canSubmit()) {
@@ -65,8 +66,9 @@ public class TransactionManager {
         return client.serverInfo.primed() && accountRoot.primed();
     }
 
-    private Request makeSubmitRequest(final Transaction transaction) {
-        transaction.prepare(keyPair, client.serverInfo, getSubmissionSequence());
+    private Request makeSubmitRequest(final ManagedTransaction transaction) {
+        Amount fee = client.serverInfo.transactionFee(transaction.get(UInt16.TransactionType));
+        transaction.prepare(keyPair, fee, getSubmissionSequence());
 
         final Request req = client.newRequest(Command.submit);
         req.json("tx_blob", B16.toString(transaction.tx_blob));
@@ -103,18 +105,18 @@ public class TransactionManager {
         return new UInt32(sequence++);
     }
 
-    public void handleSubmitError(Transaction transaction, Response response) {
+    public void handleSubmitError(ManagedTransaction transaction, Response response) {
         invalidateSequence(transaction.sequence());
     }
 
-    public void handleSubmitSuccess(Transaction transaction, Response res) {
+    public void handleSubmitSuccess(ManagedTransaction transaction, Response res) {
         queued.remove(transaction); // TODO: re-queue
 
         TransactionEngineResult tr = res.engineResult();
         switch (tr.resultClass()) {
             case tesSUCCESS:
                 submitted.add(transaction);
-                transaction.emit(Transaction.OnSubmitSuccess.class, res);
+                transaction.emit(ManagedTransaction.OnSubmitSuccess.class, res);
                 return;
 
             case telLOCAL_ERROR:
@@ -127,7 +129,7 @@ public class TransactionManager {
             case tefFAILURE:
             case terRETRY:
             case tecCLAIMED:
-                transaction.emit(Transaction.OnSubmitError.class, res);
+                transaction.emit(ManagedTransaction.OnSubmitError.class, res);
                 break;
         }
     }
@@ -136,30 +138,30 @@ public class TransactionManager {
 
     }
 
-    public Transaction payment() {
+    public ManagedTransaction payment() {
         return transaction(TransactionType.Payment);
     }
 
-    private Transaction transaction(TransactionType tt) {
-        Transaction tx = new Transaction(tt, transactionID++);
+    private ManagedTransaction transaction(TransactionType tt) {
+        ManagedTransaction tx = new ManagedTransaction(tt, transactionID++);
         tx.put(AccountID.Account, accountID);
         return tx;
     }
 
     public void onTransactionResultMessage(TransactionResult tm) {
-        Transaction tx = submittedTransaction(tm.hash);
+        ManagedTransaction tx = submittedTransaction(tm.hash);
         if (tx != null) {
-            tx.emit(Transaction.OnTransactionValidated.class, tm);
+            tx.emit(ManagedTransaction.OnTransactionValidated.class, tm);
         } else {
             ClientLogger.log("Can't find transaction");
         }
     }
 
-    private Transaction submittedTransaction(Hash256 hash) {
-        Iterator<Transaction> iterator = submitted.iterator();
+    private ManagedTransaction submittedTransaction(Hash256 hash) {
+        Iterator<ManagedTransaction> iterator = submitted.iterator();
 
         while (iterator.hasNext()) {
-            Transaction transaction = iterator.next();
+            ManagedTransaction transaction = iterator.next();
             if (transaction.hash.equals(hash)) {
                 iterator.remove();
                 return transaction;

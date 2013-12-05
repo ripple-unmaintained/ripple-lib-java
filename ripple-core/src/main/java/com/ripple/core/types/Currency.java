@@ -1,6 +1,5 @@
 package com.ripple.core.types;
 
-import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.types.hash.Hash160;
 import com.ripple.encodings.common.B16;
 
@@ -21,11 +20,6 @@ public class Currency extends Hash160 {
         @Override
         public int byteWidth() {
             return 20;
-        }
-
-        @Override
-        public Currency fromParser(BinaryParser parser, Integer hint) {
-            return newInstance(parser.read(20));
         }
 
         @Override
@@ -60,7 +54,7 @@ public class Currency extends Hash160 {
 
     @Override
     public String toString() {
-        String code = decodeCurrency(getBytes());
+        String code = decodeCurrency(bytes());
         if (code.equals("XRP")) {
             // HEX of the bytes
             return super.toString();
@@ -76,8 +70,8 @@ public class Currency extends Hash160 {
     public boolean equals(Object obj) {
         if (obj instanceof Currency) {
             Currency other = (Currency) obj;
-            byte[] bytes = this.getBytes();
-            byte[] otherBytes = other.getBytes();
+            byte[] bytes = this.bytes();
+            byte[] otherBytes = other.bytes();
 
             return (bytes[12] == otherBytes[12] &&
                     bytes[13] == otherBytes[13] &&

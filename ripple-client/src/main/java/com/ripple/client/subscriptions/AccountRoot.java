@@ -9,6 +9,9 @@ import com.ripple.core.types.hash.Hash256;
 import com.ripple.core.types.uint.UInt32;
 import org.json.JSONObject;
 
+/**
+ * This should probably be a
+ */
 public class AccountRoot extends Publisher<AccountRoot.events> {
     public static abstract class events<T> extends Publisher.Callback<T> {}
     public static abstract class OnUpdate extends events<AccountRoot> {}

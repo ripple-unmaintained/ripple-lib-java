@@ -51,7 +51,7 @@ public class HASH implements SerializedType {
         return new BigInteger(1, hash);
     }
 
-    public byte[] getBytes() {
+    public byte[] bytes() {
         return hash;
     }
 

@@ -111,7 +111,7 @@ public class ShaMapTest {
         return new ShaMapLeafNode.Item() {
             @Override
             public byte[] bytes() {
-                return id1.getBytes();
+                return id1.bytes();
             }
         };
     }

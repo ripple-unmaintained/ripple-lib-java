@@ -62,7 +62,7 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
 
     static public AccountID fromInteger(Integer n) {
         AccountID a = new AccountID();
-        a.addressBytes = new Hash160(new UInt32(n).toByteArray()).getBytes();
+        a.addressBytes = new Hash160(new UInt32(n).toByteArray()).bytes();
         a.address = getB58IdentiferCodecs().encodeAddress(a.bytes());
         return a;
     }

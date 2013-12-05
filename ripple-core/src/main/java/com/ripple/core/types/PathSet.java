@@ -15,8 +15,8 @@ import java.util.ArrayList;
 public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
     public static class Hop{
-        AccountID account;
-        AccountID issuer;
+        public AccountID account;
+        public AccountID issuer;
         public Currency currencyBytes;
 
         int type;
@@ -24,7 +24,6 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         public static byte TYPE_ACCOUNT  = (byte) 0x01;
         public static byte TYPE_CURRENCY = (byte) 0x10;
         public static byte TYPE_ISSUER   = (byte) 0x20;
-        boolean iouXRP = false;
 
         public int getType() {
             if (type == 0) {
@@ -202,7 +201,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
                     }
                     // TODO, need to create a Currency class!!
                     if (hop.currencyString() != null) {
-                        buffer.add(hop.currencyBytes.getBytes());
+                        buffer.add(hop.currencyBytes.bytes());
                     }
                     if (hop.issuer != null) {
                         buffer.add(hop.issuer.bytes());

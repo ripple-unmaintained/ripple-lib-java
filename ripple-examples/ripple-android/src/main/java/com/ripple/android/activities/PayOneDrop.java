@@ -15,7 +15,7 @@ import com.ripple.client.Client;
 import com.ripple.client.Response;
 import com.ripple.client.blobvault.BlobVault;
 import com.ripple.client.subscriptions.AccountRoot;
-import com.ripple.client.transactions.Transaction;
+import com.ripple.client.transactions.ManagedTransaction;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transactions.TransactionMessage.TransactionResult;
 import com.ripple.core.types.AccountID;
@@ -305,24 +305,24 @@ public class PayOneDrop extends Activity {
      */
     private void makePayment(final Account account, Object destination, Object amt) {
         TransactionManager tm = account.transactionManager();
-        Transaction tx = tm.payment();
+        ManagedTransaction tx = tm.payment();
 
         tx.put(AccountID.Destination, destination);
         tx.put(Amount.Amount, amt);
 
-        tx.once(Transaction.OnSubmitSuccess.class, new Transaction.OnSubmitSuccess() {
+        tx.once(ManagedTransaction.OnSubmitSuccess.class, new ManagedTransaction.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
                 threadSafeSetStatus("Transaction submitted " + awaitingTransactionsParenthetical(account));
             }
         });
-        tx.once(Transaction.OnSubmitError.class, new Transaction.OnSubmitError() {
+        tx.once(ManagedTransaction.OnSubmitError.class, new ManagedTransaction.OnSubmitError() {
             @Override
             public void called(Response response) {
                 threadSafeSetStatus("Transaction submission failed" + awaitingTransactionsParenthetical(account));
             }
         });
-        tx.once(Transaction.OnTransactionValidated.class, new Transaction.OnTransactionValidated() {
+        tx.once(ManagedTransaction.OnTransactionValidated.class, new ManagedTransaction.OnTransactionValidated() {
             @Override
             public void called(TransactionResult result) {
                 threadSafeSetStatus("Transaction finalized " + awaitingTransactionsParenthetical(account));

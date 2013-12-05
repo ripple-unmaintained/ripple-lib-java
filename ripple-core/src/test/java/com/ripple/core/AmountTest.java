@@ -14,12 +14,24 @@ import static org.junit.Assert.*;
 public class AmountTest {
     public String rootAddress = TestFixtures.master_seed_address;
 
-    Amount.Translator translator = Amount.translate;
+    Amount.Translator amounts = Amount.translate;
+
+
+    @Test
+    public void testAbs() throws Exception {
+        assertEquals(amt("-11").abs(), amt("11"));
+    }
+
+    @Test
+    public void testSubtraction() throws Exception {
+        assertEquals(amt("10"), amt("11").subtract(amt("1")));
+        assertEquals(amt("10"), amt("11").subtract(1));
+    }
 
     @Test
     public void testSerializing0XRP() throws Exception {
         Amount amt = Amount.fromDropString("0");
-        String s = translator.toWireHex(amt);
+        String s = amounts.toWireHex(amt);
         assertEquals("4000000000000000", s);
         assertEquals(Amount.cPosNative.toString(16), s);
     }
@@ -28,8 +40,8 @@ public class AmountTest {
     public void testSerializingNegativeIOU() throws Exception {
         String json = "{\"currency\": \"USD\", \"issuer\": \"rrrrrrrrrrrrrrrrrrrrBZbvji\", \"value\": \"-99.2643419677474\"}";
 
-        Amount amount = translator.fromJSONObject(new JSONObject(json));
-        String hex = translator.toWireHex(amount);
+        Amount amount = amounts.fromJSONObject(new JSONObject(json));
+        String hex = amounts.toWireHex(amount);
 
         int offset = amount.getOffset();
         assertEquals(-14, offset);
@@ -50,16 +62,16 @@ public class AmountTest {
                         "  \"value\": \"0\"\n" +
                         "}";
 
-        Amount amount = translator.fromJSONObject(new JSONObject(json));
+        Amount amount = amounts.fromJSONObject(new JSONObject(json));
 //        assertEquals("XRP", amount.currencyString());
         assertFalse(amount.isNative);
 
-        JSONObject jsonObject = translator.toJSONObject(amount);
-        Amount rebuilt = translator.fromJSONObject(jsonObject);
+        JSONObject jsonObject = amounts.toJSONObject(amount);
+        Amount rebuilt = amounts.fromJSONObject(jsonObject);
         assertEquals(amount, rebuilt);
 
-        byte[] a1bytes = translator.toWireBytes(amount);
-        byte[] a2bytes = translator.toWireBytes(rebuilt);
+        byte[] a1bytes = amounts.toWireBytes(amount);
+        byte[] a2bytes = amounts.toWireBytes(rebuilt);
 
         boolean equals = Arrays.equals(a1bytes, a2bytes);
         assertTrue(equals);
@@ -75,8 +87,8 @@ public class AmountTest {
                 "";
         String expected_hex = "800000000000000000000000000000000000000058525000000000000000000000000000000000000000000000000001";
 
-        Amount legacyAmount = translator.fromJSONObject(new JSONObject(legacy));
-        assertEquals(expected_hex, translator.toWireHex(legacyAmount));
+        Amount legacyAmount = amounts.fromJSONObject(new JSONObject(legacy));
+        assertEquals(expected_hex, amounts.toWireHex(legacyAmount));
 
     }
 

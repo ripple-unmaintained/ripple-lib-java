@@ -70,7 +70,7 @@ public class Hash256 extends HASH{
         }
 
         public void update(Hash256 hash) {
-            messageDigest.update(hash.getBytes());
+            messageDigest.update(hash.bytes());
         }
 
         public Hash256 finish() {
