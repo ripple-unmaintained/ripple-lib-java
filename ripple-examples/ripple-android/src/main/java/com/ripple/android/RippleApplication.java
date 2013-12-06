@@ -8,7 +8,7 @@ public class RippleApplication extends DexedrineApp {
     @Override
     public void onCreate() {
         super.onCreate();
-        hitTheDex();
+//        hitTheDex();
         callBootStrapperOnOtherSideWithApplication("com.ripple.android.Bootstrap", "bootstrap");
     }
 
