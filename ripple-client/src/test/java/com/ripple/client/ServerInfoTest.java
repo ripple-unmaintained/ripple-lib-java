@@ -10,7 +10,7 @@ import static junit.framework.TestCase.assertEquals;
 public class ServerInfoTest {
     @Test(expected = IllegalStateException.class)
     public void test_LedgerInfo_doesnt_rely_on_defaults() {
-        new ServerInfo().transactionFee();
+        new ServerInfo().transactionFee(null);
     }
 
     @Test
@@ -26,7 +26,7 @@ public class ServerInfoTest {
         info.load_base   =    256;
         info.load_factor =    256;
 
-        Amount fee = info.transactionFee();
+        Amount fee = info.transactionFee(null);
         assertEquals(fee, amt("11"));
     }
 

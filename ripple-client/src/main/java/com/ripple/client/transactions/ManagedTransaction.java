@@ -5,7 +5,7 @@ import com.ripple.client.pubsub.IPublisher;
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.transactions.TransactionMessage.TransactionResult;
 import com.ripple.core.enums.TransactionType;
-import com.ripple.core.known.Transaction;
+import com.ripple.core.known.tx.Transaction;
 
 public class ManagedTransaction extends Transaction implements Sequenced, IPublisher<ManagedTransaction.events> {
     private final Publisher<events> publisher = new Publisher<events>();

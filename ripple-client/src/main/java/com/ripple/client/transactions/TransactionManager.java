@@ -67,7 +67,7 @@ public class TransactionManager {
     }
 
     private Request makeSubmitRequest(final ManagedTransaction transaction) {
-        Amount fee = client.serverInfo.transactionFee(transaction.get(UInt16.TransactionType));
+        Amount fee = client.serverInfo.transactionFee(transaction);
         transaction.prepare(keyPair, fee, getSubmissionSequence());
 
         final Request req = client.newRequest(Command.submit);

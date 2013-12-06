@@ -1,9 +1,8 @@
 package com.ripple.client.subscriptions;
 
 import com.ripple.config.Config;
-import com.ripple.core.enums.TransactionType;
+import com.ripple.core.known.tx.Transaction;
 import com.ripple.core.types.Amount;
-import com.ripple.core.types.uint.UInt16;
 import org.json.JSONObject;
 
 public class ServerInfo {
@@ -34,7 +33,7 @@ public class ServerInfo {
         return Amount.fromString(s);
     }
 
-    public Amount transactionFee() {
+    public Amount transactionFee(Transaction transaction) {
         return computeFee(fee_base);
     }
 
@@ -60,12 +59,6 @@ public class ServerInfo {
 
     public boolean primed() {
         return updated;
-    }
-
-    public Amount transactionFee(UInt16 uInt16) {
-        // TODO:
-        TransactionType tt = TransactionType.fromNumber(uInt16.intValue());
-        return transactionFee();
     }
 }
 
