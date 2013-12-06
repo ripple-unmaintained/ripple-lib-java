@@ -3,9 +3,9 @@
 Ripple uses a node store, where objects are keyed by a 32byte hash value.
 
 These indexes are created by hashing a binary representation of the whole object
-or a unique identifier, prefixed with a name-spacing sequence of bytes, unique
-to each class of object. As such, a method of consistently producing a binary
-sequence from a given object was required.
+prefixed with a name-spacing sequence of bytes, unique to each class of object.
+As such, a method of consistently producing a binary sequence from a given
+object was required.
 
 Objects have fields, which are a pairing of a name and a type. Names are simply
 ordinals used to look up preassigned names in a table. The type ordinal,
