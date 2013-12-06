@@ -1,4 +1,4 @@
-package com.ripple.core.known;
+package com.ripple.core.known.tx;
 
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.fields.Field;
