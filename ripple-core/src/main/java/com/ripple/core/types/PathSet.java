@@ -83,6 +83,9 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         }
 
         public String currencyString() {
+            if (currencyBytes == null) {
+                return null;
+            }
             return currencyBytes.toString();
         }
 

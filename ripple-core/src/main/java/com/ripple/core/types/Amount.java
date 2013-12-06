@@ -12,11 +12,12 @@ import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.RoundingMode;
+import java.math.MathContext;
 
 public class Amount extends Number implements SerializedType, Comparable<Amount>
 
 {
+    public static final MathContext MATH_CONTEXT = MathContext.DECIMAL64;
     protected BigDecimal value; // When native the value is in `drops`
 
     UInt64 mantissa = null;
@@ -29,7 +30,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     */
     static public UInt64 cNotNative = new UInt64("8000000000000000", 16);
     static public UInt64 cPosNative = new UInt64("4000000000000000", 16);
-
 
 
     private static BigDecimal asDrops(String s) {
@@ -120,10 +120,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     public void setValue(BigDecimal value) {
         this.value = value.stripTrailingZeros();
-        canonicalize();
+        initialize();
     }
 
-    private void canonicalize() {
+    private void initialize() {
         if (isNative) {
             issuerAccount = AccountID.ZERO;
             checkXRPBounds(value);
@@ -153,19 +153,17 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return newValue(value.subtract(subtrahend.value));
     }
 
-    // TODO, should this round too ?
     public Amount multiply(Amount multiplicand) {
-        return newValue(value.multiply(multiplicand.value));
+        return newValue(value.multiply(multiplicand.value, MATH_CONTEXT), true);
     }
 
     public Amount divide(Amount divisor) {
-        return newValue(round(isNative, value.divide(divisor.value, 16, RoundingMode.DOWN)));
+        return newValue(value.divide(divisor.value, MATH_CONTEXT), true);
     }
 
     private static BigDecimal round(boolean nativeSrc, BigDecimal value) {
         int i = value.precision() - value.scale();
-
-        return value.setScale(nativeSrc ? 0 : 16 - i, BigDecimal.ROUND_DOWN);
+        return value.setScale(nativeSrc ? 0 : 16 - i, MATH_CONTEXT.getRoundingMode());
     }
 
     @Override
@@ -191,11 +189,11 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public Amount multiply(Number multiplicand) {
-        return newValue(value.multiply(BigDecimal.valueOf(multiplicand.longValue())));
+        return newValue(value.multiply(BigDecimal.valueOf(multiplicand.longValue())), true);
     }
 
     public Amount divide(Number divisor) {
-        return newValue(value.divide(BigDecimal.valueOf(divisor.longValue())));
+        return newValue(value.divide(BigDecimal.valueOf(divisor.longValue())), true);
     }
 
     public Amount negate() {
@@ -215,11 +213,18 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     private Amount newValue(BigDecimal newValue) {
+        return newValue(newValue, false);
+    }
+
+    private Amount newValue(BigDecimal newValue, boolean round) {
+        if (round) {
+            newValue = round(isNative, newValue);
+        }
         return new Amount(newValue, currency, issuerAccount, isNative);
     }
 
     public BigInteger toBigInteger() {
-        return value.toBigInteger();
+        return value.toBigIntegerExact();
     }
 
     public AccountID issuer() {
@@ -411,7 +416,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     private Amount(BigDecimal value, String currency) {
         isNative = false;
-        this.currency(currency);
+        this.currency(Currency.normalizeIOUCode(currency));
         this.setValue(value);
     }
 

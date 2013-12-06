@@ -29,13 +29,12 @@ public class Currency extends Hash160 {
 
         @Override
         public Currency fromString(String value) {
-
             if (value.length() == 40 /* byteWidth() * 2 */) {
                 return newInstance(B16.decode(value));
             } else if (value.equals("XRP")) {
                 return XRP_CURRENCY;
             } else {
-                if (!value.matches("[A-Z]{3}")) {
+                if (!value.matches("[A-Z0-9]{3}")) {
                     throw new RuntimeException("Currency code must be 3 characters");
                 }
                 return newInstance(encodeCurrency(value));
@@ -96,6 +95,14 @@ public class Currency extends Hash160 {
         currencyBytes[13] = (byte) currencyCode.codePointAt(1);
         currencyBytes[14] = (byte) currencyCode.codePointAt(2);
         return currencyBytes;
+    }
+
+    public static String normalizeIOUCode(String code) {
+        if (code.equals("XRP")) {
+            return "0000000000000000000000005852500000000000";
+        } else {
+            return code;
+        }
     }
 
     public static String decodeCurrency(byte[] bytes) {
