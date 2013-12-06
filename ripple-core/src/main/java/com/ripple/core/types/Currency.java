@@ -32,7 +32,7 @@ public class Currency extends Hash160 {
             if (value.length() == 40 /* byteWidth() * 2 */) {
                 return newInstance(B16.decode(value));
             } else if (value.equals("XRP")) {
-                return XRP_CURRENCY;
+                return XRP;
             } else {
                 if (!value.matches("[A-Z0-9]{3}")) {
                     throw new RuntimeException("Currency code must be 3 characters");
@@ -47,7 +47,7 @@ public class Currency extends Hash160 {
         }
     }
 
-    static Currency fromString(String currency) {
+    public static Currency fromString(String currency) {
         return translate.fromString(currency);
     }
 
@@ -83,7 +83,7 @@ public class Currency extends Hash160 {
 
     // This is used to represent a native currency
     public static final byte[] ZERO = new byte[20];
-    public static final Currency XRP_CURRENCY = new Currency(ZERO);
+    public static final Currency XRP = new Currency(ZERO);
 
     /*
     * The following are static methods, legacy from when there was no

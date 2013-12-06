@@ -1,4 +1,4 @@
-package com.ripple.client.transactions.TransactionMessage;
+package com.ripple.client.transactions;
 
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.enums.TransactionEngineResult;
