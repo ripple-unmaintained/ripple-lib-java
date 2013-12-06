@@ -84,7 +84,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return issuer.toString();
     }
 
-    private byte[] issuerBytes() {
+    public byte[] issuerBytes() {
         return issuer.bytes();
     }
 
@@ -474,10 +474,16 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     /**
      * @return A String containing the value as a decimal number (in XRP scale when native)
-     *
      */
-    private String valueText() {
-        return value.signum() == 0 ? "0" : (isNative ? value.scaleByPowerOfTen(-6) : value).toPlainString();
+    public String valueText() {
+        return value.signum() == 0 ? "0" : value().toPlainString();
+    }
+
+    /**
+     * @return A BigDecimal containing the value (in XRP scale when native)
+     */
+    public BigDecimal value() {
+        return isNative ? value.scaleByPowerOfTen(-6) : value;
     }
 
     private static void checkLowerDropBound(BigDecimal val) {

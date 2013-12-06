@@ -1,4 +1,7 @@
 package com.ripple.core.known.sle;
 
-public class Offer {
+import com.ripple.core.types.STObject;
+
+public class Offer extends STObject {
+
 }
