@@ -4,16 +4,17 @@ import com.ripple.client.enums.Command;
 import com.ripple.client.enums.Message;
 import com.ripple.client.enums.RPCErr;
 import com.ripple.client.pubsub.Publisher;
+import com.ripple.client.requests.Request;
+import com.ripple.client.responses.Response;
 import com.ripple.client.subscriptions.AccountRoot;
 import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.client.subscriptions.SubscriptionManager;
 import com.ripple.client.transactions.TransactionManager;
-import com.ripple.client.transactions.TransactionMessage.TransactionResult;
+import com.ripple.client.transactions.TransactionResult;
 import com.ripple.client.transport.TransportEventHandler;
 import com.ripple.client.transport.WebSocketTransport;
 import com.ripple.client.wallet.Wallet;
-import com.ripple.core.types.AccountID;
-import com.ripple.core.types.STObject;
+import com.ripple.core.types.*;
 import com.ripple.core.types.hash.Hash256;
 import com.ripple.core.types.uint.UInt32;
 import org.json.JSONException;
@@ -26,6 +27,34 @@ import java.util.TreeMap;
 
 public class Client extends Publisher<Client.events> implements TransportEventHandler {
     public boolean connected = false;
+
+
+    public Request requestBookOffers(Issue pay, Issue get) {
+        return requestBookOffers(pay.currency(), pay.issuer(), get.currency(), get.issuer());
+    }
+    public Request requestBookOffers(Currency payCurrency, AccountID payIssuer, Currency getCurrency, AccountID getIssuer) {
+        Request request = newRequest(Command.book_offers);
+
+        JSONObject gets = new JSONObject();
+        JSONObject pays = new JSONObject();
+
+        try {
+            gets.put("currency", getCurrency);
+            pays.put("currency", payCurrency);
+            if (payIssuer != null) {
+                pays.put("issuer", payIssuer);
+            }
+            if (getIssuer != null) {
+                gets.put("issuer", getIssuer.toString());
+            }
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        request.json("taker_pays", pays);
+        request.json("taker_gets", gets);
+        return request;
+    }
 
     public static abstract class events<T>      extends Publisher.Callback<T> {}
 

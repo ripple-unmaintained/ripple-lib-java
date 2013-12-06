@@ -75,6 +75,9 @@ public enum Field {
     SendMax(9, Type.AMOUNT),
     MinimumOffer(16, Type.AMOUNT),
     RippleEscrow(17, Type.AMOUNT),
+    // Hrmmm ...
+    quality(257, Type.AMOUNT),
+
     PublicKey(1, Type.VL),
     MessageKey(2, Type.VL),
     SigningPubKey(3, Type.VL),

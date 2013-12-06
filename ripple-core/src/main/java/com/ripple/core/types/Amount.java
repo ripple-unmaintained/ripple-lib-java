@@ -39,7 +39,15 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     public static final BigDecimal MAX_DROPS = asDrops("100,000,000,000.0");
     public static final BigDecimal MIN_DROPS = asDrops("0.000,001");
 
-    private AccountID issuerAccount;
+    public Issue issue() {
+        return new Issue(currency, issuer);
+    }
+
+    private AccountID issuer;
+
+    public Currency currency() {
+        return currency;
+    }
 
     private Currency currency;
 
@@ -52,7 +60,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         this.currency = currency;
         this.setValue(value);
         // done AFTER set value which sets some default values
-        issuerAccount = issuer;
+        this.issuer = issuer;
     }
 
     public int getOffset() {
@@ -70,20 +78,20 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public String issuerString() {
-        if (issuerAccount == null) {
+        if (issuer == null) {
             return "";
         }
-        return issuerAccount.toString();
+        return issuer.toString();
     }
 
-    private byte[] issuerBytes() {
-        return issuerAccount.bytes();
+    public byte[] issuerBytes() {
+        return issuer.bytes();
     }
 
     public void issuer(String issuer) {
         if (issuer != null) {
             // blows up if issuer is shitty
-            issuerAccount = AccountID.fromString(issuer);
+            this.issuer = AccountID.fromString(issuer);
         }
     }
 
@@ -125,14 +133,14 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     private void initialize() {
         if (isNative) {
-            issuerAccount = AccountID.ZERO;
+            issuer = AccountID.ZERO;
             checkXRPBounds(value);
             offset = 0;
         } else {
             if (value.precision() > 16) {
                 throw new PrecisionError("Overflow Error!");
             }
-            issuerAccount = AccountID.ONE;
+            issuer = AccountID.ONE;
             offset = calculateOffset();
         }
     }
@@ -177,7 +185,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     public boolean equals(Amount amt) {
         return equalValue(amt) &&
                 currency.equals(amt.currency) &&
-                issuerAccount.equals(amt.issuerAccount);
+                issuer.equals(amt.issuer);
     }
 
     public Amount add(Number augend) {
@@ -220,7 +228,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         if (round) {
             newValue = round(isNative, newValue);
         }
-        return new Amount(newValue, currency, issuerAccount, isNative);
+        return new Amount(newValue, currency, issuer, isNative);
     }
 
     public BigInteger toBigInteger() {
@@ -228,7 +236,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public AccountID issuer() {
-        return issuerAccount;
+        return issuer;
     }
 
     public boolean equalsExceptIssuer(Amount amt) {
@@ -424,7 +432,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     private Amount(BigDecimal value) {
         isNative = true;
-        currency = Currency.XRP_CURRENCY;
+        currency = Currency.XRP;
         this.setValue(value);
     }
 
@@ -456,7 +464,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         if (isNative) {
             return toDropsString();
         } else {
-            if (issuerAccount != null) {
+            if (issuer != null) {
                 return String.format("%s/%s/%s", valueText(), currencyString(), issuerString());
             } else {
                 return String.format("%s/%s", valueText(), currencyString());
@@ -466,10 +474,16 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     /**
      * @return A String containing the value as a decimal number (in XRP scale when native)
-     *
      */
-    private String valueText() {
-        return value.signum() == 0 ? "0" : (isNative ? value.scaleByPowerOfTen(-6) : value).toPlainString();
+    public String valueText() {
+        return value.signum() == 0 ? "0" : value().toPlainString();
+    }
+
+    /**
+     * @return A BigDecimal containing the value (in XRP scale when native)
+     */
+    public BigDecimal value() {
+        return isNative ? value.scaleByPowerOfTen(-6) : value;
     }
 
     private static void checkLowerDropBound(BigDecimal val) {

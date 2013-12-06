@@ -1,7 +1,7 @@
 package com.ripple.cli;
 
 
-import com.ripple.client.transactions.TransactionMessage.TransactionResult;
+import com.ripple.client.transactions.TransactionResult;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.types.AccountID;
@@ -9,7 +9,6 @@ import com.ripple.core.types.Amount;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

@@ -1,6 +1,7 @@
-package com.ripple.client;
+package com.ripple.client.responses;
 
 import com.ripple.client.enums.RPCErr;
+import com.ripple.client.requests.Request;
 import com.ripple.core.enums.TransactionEngineResult;
 import org.json.JSONException;
 import org.json.JSONObject;

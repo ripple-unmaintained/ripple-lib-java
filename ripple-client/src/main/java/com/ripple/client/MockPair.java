@@ -1,5 +1,6 @@
 package com.ripple.client;
 
+import com.ripple.client.requests.Request;
 import com.ripple.client.transport.TransportEventHandler;
 import com.ripple.client.transport.WebSocketTransport;
 import org.json.JSONException;

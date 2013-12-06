@@ -1,5 +1,7 @@
-package com.ripple.client;
+package com.ripple.client.requests;
 
+import com.ripple.client.Client;
+import com.ripple.client.responses.Response;
 import com.ripple.client.enums.Command;
 import com.ripple.client.pubsub.Publisher;
 import org.json.JSONException;
@@ -23,11 +25,11 @@ public class Request extends Publisher<Request.events> {
     public abstract static class OnError    extends events<Response> {}
     public abstract static class OnResponse extends events<Response> {}
 
-    Client                client;
+    Client client;
     public Command           cmd;
     public Response     response;
     private JSONObject      json;
-    int                       id;
+    public int                id;
 
     public Request(Command command, int assignedId, Client client) {
         this.client = client;

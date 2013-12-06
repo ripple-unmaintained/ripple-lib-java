@@ -2,12 +2,11 @@ package com.ripple.cli;
 
 import com.ripple.client.Client;
 import com.ripple.client.ClientLogger;
-import com.ripple.client.Request;
-import com.ripple.client.Response;
+import com.ripple.client.requests.Request;
+import com.ripple.client.responses.Response;
 import com.ripple.client.enums.Command;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
