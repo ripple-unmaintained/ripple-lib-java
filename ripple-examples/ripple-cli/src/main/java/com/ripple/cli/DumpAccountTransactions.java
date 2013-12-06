@@ -57,13 +57,7 @@ public class DumpAccountTransactions {
                         walkAccountTx(c, newMarker, pages - 1);
                     }
 
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                } catch (FileNotFoundException e) {
-                    throw new RuntimeException(e);
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
 

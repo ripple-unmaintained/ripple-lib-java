@@ -6,3 +6,4 @@ scripts/*
 lib/bcprov-jdk15on-149/*
 dump.json
 examples/android/assets/dev-credentials.json
+ripple-examples/ripple-cli/src/main/java/com/ripple/cli/AnalyzeAccountState.java

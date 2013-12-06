@@ -49,30 +49,39 @@ public class MakePayment {
     }
 
     public static void main(String[] args) throws Exception {
-        makeAPayment();
+        if (PAYWARD_USER.isEmpty() || PAYWARD_PASS.isEmpty()) {
+            LOG("Must configure PAYWARD_USER && PAYWARD_PASS");
+        }
+        else {
+            makeAPayment();
+        }
     }
 
     private static void makeAPayment() throws IOException, InvalidCipherTextException, JSONException, InterruptedException {
-        if (PAYWARD_USER.isEmpty() || PAYWARD_PASS.isEmpty()) {
-            LOG("Must configure PAYWARD_USER && PAYWARD_PASS");
-        } else {
-            Client client = new Client(new JavaWebSocketTransportImpl());
-            client.connect("wss://s1.ripple.com");
-            BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
-            JSONObject blob = blobVault.getBlob(PAYWARD_USER, PAYWARD_PASS);
-            Account account = client.accountFromSeed(blob.getString("master_seed"));
-            makePayment(account, DESTINATION_ACCOUNT, SEND_AMOUNT);
-        }
-
+        // Create a client instance using the Java WebSocket Transport
+        Client client = new Client(new JavaWebSocketTransportImpl());
+        // Connect to s1
+        client.connect("wss://s1.ripple.com");
+        // We want to access a blob from payward
+        BlobVault payward = new BlobVault("https://blobvault.payward.com/");
+        JSONObject blob = payward.getBlob(PAYWARD_USER, PAYWARD_PASS);
+        // The blob has the master seed (the secret is deterministically derived
+        // Constructing this will automatically subscribe to the accounts
+        Account account = client.accountFromSeed(blob.getString("master_seed"));
+        // Make the actual payment
+        makePayment(account, DESTINATION_ACCOUNT, SEND_AMOUNT);
     }
 
     private static void makePayment(Account account, Object destination, Object amt) {
         TransactionManager tm = account.transactionManager();
         ManagedTransaction tx = tm.payment();
 
+        // tx is an STObject subclass, an associative container of Field to
+        // SerializedType. Here conversion from Object is done automatically.
         tx.put(AccountID.Destination, destination);
         tx.put(Amount.Amount, amt);
 
+        // The ManagedTransaction publishes events
         tx.once(ManagedTransaction.OnSubmitSuccess.class, new ManagedTransaction.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
@@ -92,6 +101,8 @@ public class MakePayment {
             }
         });
 
+        // This doesn't necessarily immediately submit, it may need to wait until the AccountRoot
+        // information has been retrieved from the server, to get the Sequence.
         tm.queue(tx);
     }
 }
