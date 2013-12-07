@@ -1,3 +1,4 @@
+
 package com.ripple.android.activities;
 
 import java.io.BufferedReader;
@@ -40,24 +41,38 @@ import com.ripple.core.types.Amount;
 
 public class PayOneDrop extends Activity {
     AndroidClient client;
+
     Account account;
 
     TextView status;
+
     TextView messageLog;
-    RelativeLayout.LayoutParams  statusLayoutParams;
+
+    RelativeLayout.LayoutParams statusLayoutParams;
 
     EditText username;
+
     EditText password;
+
     Button retrieveWallet;
+
     Button payOneDrop;
+
     Spinner contacts;
+
     LinearLayout loginForm;
+
     RelativeLayout paymentForm;
+
     ArrayAdapter<String> contactsAdapter;
-    ArrayList<AccountID> contactsAddresses = new ArrayList<AccountID>(); // parallel array
+
+    ArrayList<AccountID> contactsAddresses = new ArrayList<AccountID>(); // parallel
+                                                                         // array
 
     BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
+
     DownloadBlobTask blobDownloadTask;
+
     String masterSeed;
 
     /**
@@ -72,6 +87,7 @@ public class PayOneDrop extends Activity {
         showOnlyLogin();
 
         tryLoadDevCredentialsFromAssets();
+
     }
 
     @SuppressWarnings("unused")
@@ -115,7 +131,7 @@ public class PayOneDrop extends Activity {
      * Thread: ui thread
      */
     private void setupClient() {
-        client = ((RippleApplication)getApplication()).getClient();
+        client = ((RippleApplication) getApplication()).getClient();
         account = null;
     }
 
@@ -165,7 +181,6 @@ public class PayOneDrop extends Activity {
             }
         });
 
-
         retrieveWallet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -173,8 +188,8 @@ public class PayOneDrop extends Activity {
                     threadSafeSetStatus("Must enter username and password");
                 } else if (blobDownloadTask == null) {
                     blobDownloadTask = new DownloadBlobTask();
-                    blobDownloadTask.execute(username.getText().toString(),
-                            password.getText().toString());
+                    blobDownloadTask.execute(username.getText().toString(), password.getText()
+                            .toString());
                     threadSafeSetStatus("Retrieving blob!");
                 } else {
                     threadSafeSetStatus("Waiting for blob to be retrieved!");
@@ -194,7 +209,9 @@ public class PayOneDrop extends Activity {
 
     /**
      * This must NOT be called from the UI thread
-     * @param runnable the Runnable to execute on the pay_one_drop thread, blocking calling while it runs
+     * 
+     * @param runnable the Runnable to execute on the pay_one_drop thread,
+     *            blocking calling while it runs
      */
     public void waitForUiThread(final Runnable runnable) {
         if (runningFromUiThread()) {
@@ -212,7 +229,7 @@ public class PayOneDrop extends Activity {
                     }
                 }
             }
-        } );
+        });
         try {
             synchronized (lock) {
                 lock.wait();
@@ -236,7 +253,8 @@ public class PayOneDrop extends Activity {
                 Logger.LOG("Account is unfunded");
                 threadSafeSetStatus("Account unfunded");
                 showOnlyLogin();
-                // TODO, need to clean up this account, removeListener from Client store and unbind all handlers
+                // TODO, need to clean up this account, removeListener from
+                // Client store and unbind all handlers
                 account = null;
             }
         });
@@ -255,25 +273,25 @@ public class PayOneDrop extends Activity {
     private void showPaymentForm() {
         statusLayoutParams.addRule(RelativeLayout.ABOVE, 0);
         paymentForm.setVisibility(View.VISIBLE);
-//        retrieveWallet.setVisibility(View.VISIBLE);
-//        contacts.setVisibility(View.VISIBLE);
-//        retrieveWallet.setText(getString(R.string.pay_one_drop));
+        // retrieveWallet.setVisibility(View.VISIBLE);
+        // contacts.setVisibility(View.VISIBLE);
+        // retrieveWallet.setText(getString(R.string.pay_one_drop));
     }
 
     /**
      * Thread: ui thread
      */
     private void setViewsVisibility(int visibility, View... views) {
-        for (View view : views) view.setVisibility(visibility);
+        for (View view : views)
+            view.setVisibility(visibility);
     }
-
 
     /**
      * Thread: ui thread
      */
     private void showOnlyLogin() {
         statusLayoutParams.addRule(RelativeLayout.ABOVE, R.id.loginForm);
-//        status.setLayoutParams();
+        // status.setLayoutParams();
 
         setViewsVisibility(View.VISIBLE, loginForm);
         setViewsVisibility(View.GONE, paymentForm);
@@ -321,21 +339,25 @@ public class PayOneDrop extends Activity {
         tx.once(ManagedTransaction.OnSubmitSuccess.class, new ManagedTransaction.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
-                threadSafeSetStatus("Transaction submitted " + awaitingTransactionsParenthetical(account));
+                threadSafeSetStatus("Transaction submitted "
+                        + awaitingTransactionsParenthetical(account));
             }
         });
         tx.once(ManagedTransaction.OnSubmitError.class, new ManagedTransaction.OnSubmitError() {
             @Override
             public void called(Response response) {
-                threadSafeSetStatus("Transaction submission failed" + awaitingTransactionsParenthetical(account));
+                threadSafeSetStatus("Transaction submission failed"
+                        + awaitingTransactionsParenthetical(account));
             }
         });
-        tx.once(ManagedTransaction.OnTransactionValidated.class, new ManagedTransaction.OnTransactionValidated() {
-            @Override
-            public void called(TransactionResult result) {
-                threadSafeSetStatus("Transaction finalized " + awaitingTransactionsParenthetical(account));
-            }
-        });
+        tx.once(ManagedTransaction.OnTransactionValidated.class,
+                new ManagedTransaction.OnTransactionValidated() {
+                    @Override
+                    public void called(TransactionResult result) {
+                        threadSafeSetStatus("Transaction finalized "
+                                + awaitingTransactionsParenthetical(account));
+                    }
+                });
         tm.queue(tx);
         threadSafeSetStatus("Transaction queued " + awaitingTransactionsParenthetical(account));
     }
@@ -356,7 +378,7 @@ public class PayOneDrop extends Activity {
      * Thread: any
      */
     private void threadSafeSetStatus(final String str) {
-        runOnUiThread( new Runnable() {
+        runOnUiThread(new Runnable() {
             public void run() {
                 status.setText(str);
             }
@@ -441,11 +463,9 @@ public class PayOneDrop extends Activity {
             addContact("Niq", "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH");
             for (int i = 0; i < rawContacts.length(); i++) {
                 JSONObject contact = rawContacts.getJSONObject(i);
-                addContact(contact.getString("name"),
-                           contact.getString("address"));
+                addContact(contact.getString("name"), contact.getString("address"));
             }
-        }
-        catch (JSONException e) {
+        } catch (JSONException e) {
             throw new RuntimeException(e);
         }
     }
