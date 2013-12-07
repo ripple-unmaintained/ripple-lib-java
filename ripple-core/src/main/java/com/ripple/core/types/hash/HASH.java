@@ -5,12 +5,11 @@ import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.encodings.common.B16;
-import org.bouncycastle.util.encoders.Hex;
 
 import java.math.BigInteger;
 import java.util.Arrays;
 
-public class HASH implements SerializedType {
+public class HASH<Subclass extends HASH> implements SerializedType, Comparable<Subclass> {
     protected byte[] hash;
     protected int hashCode = -1;
 
@@ -35,7 +34,9 @@ public class HASH implements SerializedType {
     private void setHash(byte[] bytes, int size) {
         int length = bytes.length;
         if (length > size) {
-            throw new RuntimeException("Hash length of " + length + "  is too wide for " + getClass().getSimpleName());
+            String simpleName = "";
+
+            throw new RuntimeException("Hash length of " + length + "  is too wide for " + simpleName);
         }
         if (length == size) {
             hash = bytes;
@@ -62,6 +63,20 @@ public class HASH implements SerializedType {
         }
 
         return super.equals(obj);
+    }
+
+    @Override
+    public int compareTo(Subclass another) {
+        int thisLength = bytes().length;
+        byte[] bytes = another.bytes();
+
+        for (int i = 0; i < thisLength; i++) {
+            int cmp = hash[i] - bytes[i];
+            if (cmp != 0) {
+                return cmp;
+            }
+        }
+        return 0;
     }
 
     static public abstract class HashTranslator<T extends HASH> extends TypeTranslator<T> {

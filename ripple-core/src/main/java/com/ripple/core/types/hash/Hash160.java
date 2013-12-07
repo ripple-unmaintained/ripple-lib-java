@@ -4,7 +4,7 @@ import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.types.AccountID;
 
-public class Hash160 extends HASH {
+public class Hash160 extends HASH<Hash160> {
     public Hash160(byte[] bytes) {
         super(bytes, 20);
     }

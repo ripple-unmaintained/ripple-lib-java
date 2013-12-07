@@ -3,7 +3,7 @@ package com.ripple.core.types.hash;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 
-public class Hash128 extends HASH {
+public class Hash128 extends HASH<Hash128> {
     public Hash128(byte[] bytes) {
         super(bytes, 16);
     }

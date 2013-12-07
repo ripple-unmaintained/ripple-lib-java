@@ -211,7 +211,7 @@ public class STObject implements SerializedType, Iterable<Field> {
 
     static public Translator translate = new Translator();
 
-    protected STObject() {
+    public STObject() {
     }
 
     public static STObject newInstance() {

@@ -45,7 +45,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 pays.put("issuer", payIssuer);
             }
             if (getIssuer != null) {
-                gets.put("issuer", getIssuer.toString());
+                gets.put("issuer", getIssuer);
             }
         } catch (JSONException e) {
             throw new RuntimeException(e);

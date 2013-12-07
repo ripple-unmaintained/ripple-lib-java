@@ -6,7 +6,7 @@ import com.ripple.core.types.AccountID;
 
 import java.security.MessageDigest;
 
-public class Hash256 extends HASH{
+public class Hash256 extends HASH<Hash256> {
 
     public static final byte[] LEDGER_SPACE_ACCOUNT      = new byte[]{0, 'a'};
     public static final byte[] LEDGER_SPACE_DIR_NODE     = new byte[]{0, 'd'};
