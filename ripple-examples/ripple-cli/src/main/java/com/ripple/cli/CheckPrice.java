@@ -40,16 +40,15 @@ public class CheckPrice {
     private static void showOfferInfo(STObject offer) {
         Amount takerPays = offer.get(Amount.TakerPays);
         Amount takerGets = offer.get(Amount.TakerGets);
-        Amount quality = takerPays.computeQuality(takerGets);
+        Amount payForOne = takerPays.computeQuality(takerGets);
 
         printSeparatorBanner();
 
         Amount getsOne = takerGets.oneAtXRPScale();
         Amount paysOne = takerPays.oneAtXRPScale();
 
-        System.out.printf("%60s == %s\n", quality,                 getsOne);
-        System.out.printf("%60s == %s\n", getsOne.divide(quality), paysOne);
-
+        System.out.printf("%60s == %s\n", payForOne,                 getsOne);
+        System.out.printf("%60s == %s\n", getsOne.divide(payForOne), paysOne);
     }
 
     private static void printSeparatorBanner() {
