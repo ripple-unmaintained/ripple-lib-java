@@ -5,24 +5,30 @@ import com.ripple.client.ClientLogger;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
+import com.ripple.core.types.Amount;
 import com.ripple.core.types.Issue;
+import com.ripple.core.types.STArray;
+import com.ripple.core.types.STObject;
+import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 public class CheckPrice {
     public static final Issue BITSTAMP_USD = Issue.fromString("USD/rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B");
+    public static final Issue XRP = Issue.XRP;
 
     public static void main(String[] args) throws JSONException {
-        ClientLogger.quiet = false;
+        ClientLogger.quiet = true;
         Client client = new Client(new JavaWebSocketTransportImpl());
         client.connect("wss://s1.ripple.com");
 
-        Request request = client.requestBookOffers(Issue.XRP, BITSTAMP_USD);
+        Request request = client.requestBookOffers(BITSTAMP_USD, XRP);
         request.once(Request.OnResponse.class, new Request.OnResponse() {
             @Override
             public void called(Response response) {
                 if (response.succeeded) {
-                    System.out.println(prettyJSON(response.result));
+                    JSONArray offersJSON = response.result.optJSONArray("offers");
+                    STArray offers = STArray.translate.fromJSONArray(offersJSON);
+                    for (STObject offer : offers) showOfferInfo(offer);
                 } else {
                     System.out.println("There was an error: " + response.message);
                 }
@@ -31,11 +37,22 @@ public class CheckPrice {
         request.request();
     }
 
-    private static String prettyJSON(JSONObject object)  {
-        try {
-            return object.toString(4);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+    private static void showOfferInfo(STObject offer) {
+        Amount takerPays = offer.get(Amount.TakerPays);
+        Amount takerGets = offer.get(Amount.TakerGets);
+        Amount payForOne = takerPays.computeQuality(takerGets);
+
+        printSeparatorBanner();
+
+        Amount getsOne = takerGets.oneAtXRPScale();
+        Amount paysOne = takerPays.oneAtXRPScale();
+
+        System.out.printf("%60s == %s\n", payForOne,                 getsOne);
+        System.out.printf("%60s == %s\n", getsOne.divide(payForOne), paysOne);
+    }
+
+    private static void printSeparatorBanner() {
+        for (int i = 0; i < 120; i++) System.out.print("-");
+        System.out.println();
     }
 }

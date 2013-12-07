@@ -1,5 +1,10 @@
 package com.ripple.core.types;
 
+import java.math.BigDecimal;
+
+/**
+ * Represents a currency/issuer pair
+ */
 public class Issue {
     public static final Issue XRP = fromString("XRP");
     Currency currency;
@@ -32,5 +37,12 @@ public class Issue {
 
     public AccountID issuer() {
         return issuer;
+    }
+
+    public Amount amount(BigDecimal value) {
+        return new Amount(value, currency, issuer, this == XRP);
+    }
+    public Amount amount(Number value) {
+        return new Amount(BigDecimal.valueOf(value.longValue()), currency, issuer, this == XRP);
     }
 }

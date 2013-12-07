@@ -1,6 +1,5 @@
 package com.ripple.core.known.sle;
 
-import com.ripple.core.fields.Field;
 import com.ripple.core.types.Amount;
 import com.ripple.core.types.STObject;
 import org.json.JSONObject;
@@ -25,29 +24,5 @@ public class OfferTest {
                 " \"TakerPays\": \"11848420000\"," +
                 " \"index\": \"630579D43A800A7B8DE70F85C40536640DF94678A8018818BAD2986A17B1DC0A\"," +
                 " \"quality\": \"149980000\"}";
-
-        STObject fields = STObject.fromJSONObject(new JSONObject(offer));
-
-        Amount quality = (Amount) fields.get(Field.quality);
-        Amount divide = fields.get(Amount.TakerPays)
-                              .divide(
-                                fields.get(Amount.TakerGets));
-
-        Amount m = Amount.fromString("5/USD");
-
-        System.out.println(divide);
-        System.out.println(quality);
-        System.out.println(quality.equals(divide));
-        String s = quality.valueText();
-        System.out.println(quality.value().floatValue());
-
-        Amount thatMany = m.multiply(quality);
-        System.out.println(thatMany);
-
-
-//        for (Field field : fields) {
-//            System.out.println(field);
-//        }
-
     }
 }

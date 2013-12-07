@@ -70,7 +70,7 @@ public class BlobVault {
         try {
             byte[] toHashBytes = toHash.getBytes("utf8");
             byte[] sha256 = MessageDigest.getInstance("SHA-256").digest(toHashBytes);
-            return B16.toString(sha256).toUpperCase();
+            return B16.toString(sha256);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

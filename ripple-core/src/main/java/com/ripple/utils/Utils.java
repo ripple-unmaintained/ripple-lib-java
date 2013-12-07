@@ -83,7 +83,7 @@ public class Utils {
     }
 
     public static String bigHex(BigInteger bn) {
-        return B16.toString(bn.toByteArray()).toUpperCase();
+        return B16.toString(bn.toByteArray());
     }
 
     public static BigInteger uBigInt(byte[] bytes) {

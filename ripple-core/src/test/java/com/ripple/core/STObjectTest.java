@@ -14,6 +14,7 @@ import com.ripple.core.types.uint.UInt16;
 import com.ripple.core.types.uint.UInt32;
 import com.ripple.core.types.uint.UInt64;
 import com.ripple.core.types.uint.UInt8;
+import com.ripple.encodings.common.B16;
 import org.bouncycastle.util.encoders.Hex;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -249,7 +250,7 @@ public class STObjectTest {
 
             BinarySerializer bn = new BinarySerializer();
             bn.add(field, serializedType, tr);
-            String hex = Hex.toHexString(bn.bytes());
+            String hex = B16.toString(bn.bytes());
 
             if (field.getType() == Type.ARRAY) {
                 STArray array = (STArray) serializedType;

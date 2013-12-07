@@ -117,7 +117,7 @@ public abstract class TypeTranslator<T extends SerializedType> {
     }
 
     public String toWireHex(T obj) {
-        return B16.toString(toWireBytes(obj)).toUpperCase();
+        return B16.toString(toWireBytes(obj));
     }
 
     public T fromWireHex(String hex) {

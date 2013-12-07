@@ -30,14 +30,14 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     */
     static public UInt64 cNotNative = new UInt64("8000000000000000", 16);
     static public UInt64 cPosNative = new UInt64("4000000000000000", 16);
-
-
     private static BigDecimal asDrops(String s) {
         return new BigDecimal(s.replace(",", "")).scaleByPowerOfTen(6);
     }
 
+
     public static final BigDecimal MAX_DROPS = asDrops("100,000,000,000.0");
     public static final BigDecimal MIN_DROPS = asDrops("0.000,001");
+    private static final Amount ONE_XRP = fromString("1.0");
 
     public Issue issue() {
         return new Issue(currency, issuer);
@@ -197,11 +197,19 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public Amount multiply(Number multiplicand) {
-        return newValue(value.multiply(BigDecimal.valueOf(multiplicand.longValue())), true);
+        return newValue(value.multiply(BigDecimal.valueOf(multiplicand.longValue()), MATH_CONTEXT), true);
     }
 
     public Amount divide(Number divisor) {
-        return newValue(value.divide(BigDecimal.valueOf(divisor.longValue())), true);
+        return newValue(value.divide(BigDecimal.valueOf(divisor.longValue()), MATH_CONTEXT), true);
+    }
+
+    public Amount divide(BigDecimal divisor) {
+        return newValue(value.divide(divisor, MATH_CONTEXT), true);
+    }
+
+    public Amount multiply(BigDecimal divisor) {
+        return newValue(value.multiply(divisor, MATH_CONTEXT), true);
     }
 
     public Amount negate() {
@@ -281,6 +289,26 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     static public TypedFields.AmountField SendMax = amountField(Field.SendMax);
     static public TypedFields.AmountField MinimumOffer = amountField(Field.MinimumOffer);
     static public TypedFields.AmountField RippleEscrow = amountField(Field.RippleEscrow);
+
+//    static public TypedFields.AmountField quality = amountField(Field.quality);
+    static public TypedFields.AmountField taker_gets_funded = amountField(Field.taker_gets_funded);
+    static public TypedFields.AmountField taker_pays_funded = amountField(Field.taker_pays_funded);
+
+    public BigDecimal value() {
+        return value;
+    }
+
+    public Amount computeQuality(Amount takerGets) {
+        return newValue(xrpScaleValue().divide(takerGets.xrpScaleValue(), MATH_CONTEXT));
+    }
+
+    public Amount oneAtXRPScale() {
+        if (isNative) {
+            return ONE_XRP;
+        } else {
+            return issue().amount(1);
+        }
+    }
 
     public static class Translator extends TypeTranslator<Amount> {
         @Override
@@ -476,13 +504,13 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
      * @return A String containing the value as a decimal number (in XRP scale when native)
      */
     public String valueText() {
-        return value.signum() == 0 ? "0" : value().toPlainString();
+        return value.signum() == 0 ? "0" : (isNative ? xrpScaleValue(): value).toPlainString();
     }
 
     /**
      * @return A BigDecimal containing the value (in XRP scale when native)
      */
-    public BigDecimal value() {
+    public BigDecimal xrpScaleValue() {
         return isNative ? value.scaleByPowerOfTen(-6) : value;
     }
 

@@ -6,6 +6,7 @@ import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.enums.Command;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
+import com.sun.org.apache.xpath.internal.SourceTree;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -42,10 +43,11 @@ public class DumpAccountTransactions {
                 JSONObject result = response.result;
                 try {
                     JSONArray transactions = result.getJSONArray("transactions");
-                    System.out.printf("Found %d transactions %n",transactions.length());
-                    appendTo(result.toString(), outputFile);
+                    System.out.printf("Found %d (more) transactions %n",transactions.length());
+                    appendTo(outputFile, result.toString());
 
-                    Object newMarker = result.get("marker");
+                    Object newMarker = result.opt("marker");
+                    System.out.printf("Marker %s%n", newMarker);
                     if (marker != null && marker.toString().equals(newMarker.toString())) {
                         // This shouldn't happen since Stef's patch but who knows how
                         // pervasively it's been deployed ?
@@ -66,7 +68,7 @@ public class DumpAccountTransactions {
         request.request();
     }
 
-    private static void appendTo(String result, String outputFile) throws IOException {
+    private static void appendTo(String outputFile, String result) throws IOException {
         PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputFile, true)));
         writer.write(result);
         writer.write("\n");
