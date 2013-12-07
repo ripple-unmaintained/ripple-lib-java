@@ -1,14 +1,11 @@
 package com.ripple.core;
 
-import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.types.STObject;
 import com.ripple.core.types.hash.Hash128;
 import com.ripple.core.types.hash.Hash256;
-import com.ripple.core.types.hash.Hash256Test;
 import org.junit.Test;
 
-import java.util.TreeMap;
-
+import static com.ripple.core.types.hash.Hash256.Hash256Map;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
@@ -41,7 +38,7 @@ public class HashTest{
         c.bytes()[0] = 'c';
         d.bytes()[0] = 'a';
 
-        TreeMap<Hash256, STObject> tree = new TreeMap<Hash256, STObject>();
+        Hash256Map<STObject> tree = new Hash256Map<STObject>();
         tree.put(a, objectA);
 
         // There can be ONLY one

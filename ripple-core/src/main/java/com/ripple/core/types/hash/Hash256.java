@@ -5,8 +5,12 @@ import com.ripple.core.fields.TypedFields;
 import com.ripple.core.types.AccountID;
 
 import java.security.MessageDigest;
+import java.util.TreeMap;
 
 public class Hash256 extends HASH<Hash256> {
+
+
+    public static class Hash256Map<Value> extends TreeMap<Hash256, Value> {}
 
     public static final byte[] LEDGER_SPACE_ACCOUNT      = new byte[]{0, 'a'};
     public static final byte[] LEDGER_SPACE_DIR_NODE     = new byte[]{0, 'd'};
