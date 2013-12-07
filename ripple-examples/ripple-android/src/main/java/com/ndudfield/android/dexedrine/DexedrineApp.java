@@ -3,7 +3,7 @@ package com.ndudfield.android.dexedrine;
 import android.app.Application;
 import android.content.Context;
 import android.util.Log;
-import dalvik.system.BaseDexClassLoader;
+import dalvik.system.DexClassLoader;
 import dalvik.system.DexFile;
 
 import java.io.File;
@@ -249,11 +249,11 @@ abstract public class DexedrineApp extends Application {
         return false;
     }
 
-    private BaseDexClassLoader createMyDexLoader(String allLibsJarPath) {
+    private DexClassLoader createMyDexLoader(String allLibsJarPath) {
         String apkPath = String.format(getPackageResourcePath());
 //        enumerateDexFile(apkPath);
 //        enumerateDexFile(allLibsJarPath);
-        BaseDexClassLoader loader = new DexedrineLoader(
+        DexClassLoader loader = new DexedrineLoader(
 
                 // Paths
                 new String[]{

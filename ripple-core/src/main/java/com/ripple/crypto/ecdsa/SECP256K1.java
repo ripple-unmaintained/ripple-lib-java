@@ -1,12 +1,12 @@
 package com.ripple.crypto.ecdsa;
 
-import org.bouncycastle.asn1.sec.SECNamedCurves;
-import org.bouncycastle.asn1.x9.X9ECParameters;
-import org.bouncycastle.crypto.params.ECDomainParameters;
-import org.bouncycastle.math.ec.ECCurve;
-import org.bouncycastle.math.ec.ECPoint;
-
 import java.math.BigInteger;
+
+import org.ripple.bouncycastle.asn1.sec.SECNamedCurves;
+import org.ripple.bouncycastle.asn1.x9.X9ECParameters;
+import org.ripple.bouncycastle.crypto.params.ECDomainParameters;
+import org.ripple.bouncycastle.math.ec.ECCurve;
+import org.ripple.bouncycastle.math.ec.ECPoint;
 
 public class SECP256K1 {
     private static final ECDomainParameters ecParams;

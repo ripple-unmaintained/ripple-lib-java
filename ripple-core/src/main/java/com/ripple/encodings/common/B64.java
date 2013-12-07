@@ -1,6 +1,6 @@
 package com.ripple.encodings.common;
 
-import org.bouncycastle.util.encoders.Base64;
+import org.ripple.bouncycastle.util.encoders.Base64;
 
 public class B64 {
     public static String toString(byte[] bytes) {

@@ -1,14 +1,13 @@
 package com.ripple.core.types.hash;
 
+import java.math.BigInteger;
+import java.util.Arrays;
+
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.encodings.common.B16;
-import org.bouncycastle.util.encoders.Hex;
-
-import java.math.BigInteger;
-import java.util.Arrays;
 
 public class HASH implements SerializedType {
     protected byte[] hash;

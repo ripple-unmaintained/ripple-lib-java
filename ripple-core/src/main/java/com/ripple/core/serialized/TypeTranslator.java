@@ -1,11 +1,11 @@
 
 package com.ripple.core.serialized;
 
-import com.ripple.core.runtime.Value;
-import com.ripple.encodings.common.B16;
-import org.bouncycastle.util.encoders.Hex;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import com.ripple.core.runtime.Value;
+import com.ripple.encodings.common.B16;
 
 /**
  * @param <T> The SerializedType class

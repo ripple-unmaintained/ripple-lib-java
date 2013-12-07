@@ -1,12 +1,14 @@
 package com.ripple.android.client;
 
+import org.json.JSONObject;
+
 import android.os.Handler;
 import android.os.HandlerThread;
+
 import com.ripple.android.Logger;
 import com.ripple.client.Client;
 import com.ripple.client.ClientLogger;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
-import org.json.JSONObject;
 
 public class AndroidClient extends Client {
     Handler handler;
