@@ -75,8 +75,11 @@ public enum Field {
     SendMax(9, Type.AMOUNT),
     MinimumOffer(16, Type.AMOUNT),
     RippleEscrow(17, Type.AMOUNT),
-    // Hrmmm ...
-    quality(257, Type.AMOUNT),
+
+    // These are auxillary fields
+//    quality(257, Type.AMOUNT),
+    taker_gets_funded(258, Type.AMOUNT),
+    taker_pays_funded(259, Type.AMOUNT),
 
     PublicKey(1, Type.VL),
     MessageKey(2, Type.VL),

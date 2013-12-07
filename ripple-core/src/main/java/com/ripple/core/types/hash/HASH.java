@@ -20,7 +20,7 @@ public class HASH implements SerializedType {
 
     @Override
     public String toString() {
-        return B16.toString(hash).toUpperCase();
+        return B16.toString(hash);
     }
 
     @Override
