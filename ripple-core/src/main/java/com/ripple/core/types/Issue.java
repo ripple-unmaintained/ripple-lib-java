@@ -40,9 +40,14 @@ public class Issue {
     }
 
     public Amount amount(BigDecimal value) {
-        return new Amount(value, currency, issuer, this == XRP);
+        return new Amount(value, currency, issuer, nativeCurrency());
     }
+
+    private boolean nativeCurrency() {
+        return this == XRP || currency.equals(Currency.XRP);
+    }
+
     public Amount amount(Number value) {
-        return new Amount(BigDecimal.valueOf(value.longValue()), currency, issuer, this == XRP);
+        return new Amount(BigDecimal.valueOf(value.longValue()), currency, issuer, nativeCurrency());
     }
 }
