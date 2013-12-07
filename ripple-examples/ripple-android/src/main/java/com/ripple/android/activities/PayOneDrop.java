@@ -71,7 +71,7 @@ public class PayOneDrop extends Activity {
         setupViews();
         showOnlyLogin();
 
-//        tryLoadDevCredentialsFromAssets();
+        tryLoadDevCredentialsFromAssets();
     }
 
     @SuppressWarnings("unused")
