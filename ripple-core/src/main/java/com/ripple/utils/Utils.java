@@ -60,7 +60,7 @@ public class Utils {
     public static byte[] sha512(byte[] byteArrays) {
         MessageDigest messageDigest;
         try {
-            messageDigest = MessageDigest.getInstance("SHA-512", "BC");
+            messageDigest = MessageDigest.getInstance("SHA-512", "RBC");
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         } catch (NoSuchProviderException e) {

@@ -504,7 +504,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
      * @return A String containing the value as a decimal number (in XRP scale when native)
      */
     public String valueText() {
-        return value.signum() == 0 ? "0" : (isNative ? xrpScaleValue(): value).toPlainString();
+        return value.signum() == 0 ? "0" : xrpScaleValue().toPlainString();
     }
 
     /**
