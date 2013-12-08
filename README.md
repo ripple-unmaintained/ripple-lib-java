@@ -22,9 +22,9 @@ Current status:
   - Signing / Verification
   - KeyPair creation
   - Android example
-    - Using class loader patch to use predexed Bouncy Castle 1.4.9
-      - MUCH faster builds, don't need to dex or merge each time
-      - No need to fork a squishy/boingy castle and maintain two crypto providers
+  - Inlined version of BouncyCastle 1.49
+    - Provider name: "RBC"
+    - Package name: org.ripple.bouncycastle
   - CLI example
 
 TODO:
@@ -43,4 +43,4 @@ TODO:
 
 Examples:
 
-  - See in examples/ folder
+  - See in ripple-examples/ folder
