@@ -4,6 +4,7 @@ import static com.ripple.cli.log.Log.LOG;
 
 import java.io.IOException;
 
+import com.ripple.client.transactions.ManagedTxn;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ripple.bouncycastle.crypto.InvalidCipherTextException;
@@ -13,7 +14,6 @@ import com.ripple.client.Client;
 import com.ripple.client.ClientLogger;
 import com.ripple.client.blobvault.BlobVault;
 import com.ripple.client.responses.Response;
-import com.ripple.client.transactions.ManagedTransaction;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transactions.TransactionResult;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
@@ -75,21 +75,21 @@ public class MakePayment {
 
     private static void makePayment(Account account, Object destination, Object amt) {
         TransactionManager tm = account.transactionManager();
-        ManagedTransaction tx = tm.payment();
+        ManagedTxn tx = tm.payment();
 
         // tx is an STObject subclass, an associative container of Field to
         // SerializedType. Here conversion from Object is done automatically.
         tx.put(AccountID.Destination, destination);
         tx.put(Amount.Amount, amt);
 
-        // The ManagedTransaction publishes events
-        tx.once(ManagedTransaction.OnSubmitSuccess.class, new ManagedTransaction.OnSubmitSuccess() {
+        // The ManagedTxn publishes events
+        tx.once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
                 LOG("Submit response: %s", response.engineResult());
             }
         });
-        tx.once(ManagedTransaction.OnTransactionValidated.class, new ManagedTransaction.OnTransactionValidated() {
+        tx.once(ManagedTxn.OnTransactionValidated.class, new ManagedTxn.OnTransactionValidated() {
             @Override
             public void called(TransactionResult result) {
                 LOG("Transaction finalized on ledger: %s", result.ledgerIndex);

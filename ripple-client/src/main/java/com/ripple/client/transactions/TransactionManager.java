@@ -27,8 +27,8 @@ public class TransactionManager {
     public long sequence = -1;
     public long transactionID;
 
-    ArrayList<ManagedTransaction> submitted = new ArrayList<ManagedTransaction>();
-    ArrayList<ManagedTransaction> queued = new ArrayList<ManagedTransaction>();
+    ArrayList<ManagedTxn> submitted = new ArrayList<ManagedTxn>();
+    ArrayList<ManagedTxn> queued = new ArrayList<ManagedTxn>();
 
     public int awaiting() {
         return queued.size() + submitted.size();
@@ -41,7 +41,7 @@ public class TransactionManager {
         this.keyPair = keyPair;
     }
 
-    public void queue(final ManagedTransaction transaction) {
+    public void queue(final ManagedTxn transaction) {
         queued.add(transaction);
 
         if (canSubmit()) {
@@ -64,7 +64,7 @@ public class TransactionManager {
         return client.serverInfo.primed() && accountRoot.primed();
     }
 
-    private Request makeSubmitRequest(final ManagedTransaction transaction) {
+    private Request makeSubmitRequest(final ManagedTxn transaction) {
         Amount fee = client.serverInfo.transactionFee(transaction);
         transaction.prepare(keyPair, fee, getSubmissionSequence());
 
@@ -103,18 +103,18 @@ public class TransactionManager {
         return new UInt32(sequence++);
     }
 
-    public void handleSubmitError(ManagedTransaction transaction, Response response) {
+    public void handleSubmitError(ManagedTxn transaction, Response response) {
         invalidateSequence(transaction.sequence());
     }
 
-    public void handleSubmitSuccess(ManagedTransaction transaction, Response res) {
+    public void handleSubmitSuccess(ManagedTxn transaction, Response res) {
         queued.remove(transaction); // TODO: re-queue
 
         TransactionEngineResult tr = res.engineResult();
         switch (tr.resultClass()) {
             case tesSUCCESS:
                 submitted.add(transaction);
-                transaction.emit(ManagedTransaction.OnSubmitSuccess.class, res);
+                transaction.emit(ManagedTxn.OnSubmitSuccess.class, res);
                 return;
 
             case telLOCAL_ERROR:
@@ -127,7 +127,7 @@ public class TransactionManager {
             case tefFAILURE:
             case terRETRY:
             case tecCLAIMED:
-                transaction.emit(ManagedTransaction.OnSubmitError.class, res);
+                transaction.emit(ManagedTxn.OnSubmitError.class, res);
                 break;
         }
     }
@@ -136,30 +136,30 @@ public class TransactionManager {
 
     }
 
-    public ManagedTransaction payment() {
+    public ManagedTxn payment() {
         return transaction(TransactionType.Payment);
     }
 
-    private ManagedTransaction transaction(TransactionType tt) {
-        ManagedTransaction tx = new ManagedTransaction(tt, transactionID++);
+    private ManagedTxn transaction(TransactionType tt) {
+        ManagedTxn tx = new ManagedTxn(tt, transactionID++);
         tx.put(AccountID.Account, accountID);
         return tx;
     }
 
     public void onTransactionResultMessage(TransactionResult tm) {
-        ManagedTransaction tx = submittedTransaction(tm.hash);
+        ManagedTxn tx = submittedTransaction(tm.hash);
         if (tx != null) {
-            tx.emit(ManagedTransaction.OnTransactionValidated.class, tm);
+            tx.emit(ManagedTxn.OnTransactionValidated.class, tm);
         } else {
             ClientLogger.log("Can't find transaction");
         }
     }
 
-    private ManagedTransaction submittedTransaction(Hash256 hash) {
-        Iterator<ManagedTransaction> iterator = submitted.iterator();
+    private ManagedTxn submittedTransaction(Hash256 hash) {
+        Iterator<ManagedTxn> iterator = submitted.iterator();
 
         while (iterator.hasNext()) {
-            ManagedTransaction transaction = iterator.next();
+            ManagedTxn transaction = iterator.next();
             if (transaction.hash.equals(hash)) {
                 iterator.remove();
                 return transaction;

@@ -1,8 +1,7 @@
 
 package com.ripple.client;
 
-import com.ripple.client.subscriptions.ServerInfo;
-import com.ripple.client.transactions.ManagedTransaction;
+import com.ripple.client.transactions.ManagedTxn;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.fields.Field;
 import com.ripple.core.types.AccountID;
@@ -85,7 +84,7 @@ public class TransactionTest {
         final String niqwit1Seed = "snSq7dKr5v39hJ8Enb45RpXFJL25h";
         final AccountID niqwit1 = AccountID.fromSeedString(niqwit1Seed);
 
-        ManagedTransaction transaction = new ManagedTransaction(TransactionType.Payment, 0);
+        ManagedTxn transaction = new ManagedTxn(TransactionType.Payment, 0);
         transaction.prepare(
                 niqwit1.getKeyPair(),
                 Amount.fromString("15"),

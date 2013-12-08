@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+import com.ripple.client.transactions.ManagedTxn;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,7 +34,6 @@ import com.ripple.client.Client;
 import com.ripple.client.blobvault.BlobVault;
 import com.ripple.client.responses.Response;
 import com.ripple.client.subscriptions.AccountRoot;
-import com.ripple.client.transactions.ManagedTransaction;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transactions.TransactionResult;
 import com.ripple.core.types.AccountID;
@@ -331,27 +331,27 @@ public class PayOneDrop extends Activity {
      */
     private void makePayment(final Account account, Object destination, Object amt) {
         TransactionManager tm = account.transactionManager();
-        ManagedTransaction tx = tm.payment();
+        ManagedTxn tx = tm.payment();
 
         tx.put(AccountID.Destination, destination);
         tx.put(Amount.Amount, amt);
 
-        tx.once(ManagedTransaction.OnSubmitSuccess.class, new ManagedTransaction.OnSubmitSuccess() {
+        tx.once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
                 threadSafeSetStatus("Transaction submitted "
                         + awaitingTransactionsParenthetical(account));
             }
         });
-        tx.once(ManagedTransaction.OnSubmitError.class, new ManagedTransaction.OnSubmitError() {
+        tx.once(ManagedTxn.OnSubmitError.class, new ManagedTxn.OnSubmitError() {
             @Override
             public void called(Response response) {
                 threadSafeSetStatus("Transaction submission failed"
                         + awaitingTransactionsParenthetical(account));
             }
         });
-        tx.once(ManagedTransaction.OnTransactionValidated.class,
-                new ManagedTransaction.OnTransactionValidated() {
+        tx.once(ManagedTxn.OnTransactionValidated.class,
+                new ManagedTxn.OnTransactionValidated() {
                     @Override
                     public void called(TransactionResult result) {
                         threadSafeSetStatus("Transaction finalized "

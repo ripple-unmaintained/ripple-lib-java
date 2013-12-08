@@ -6,7 +6,7 @@ import com.ripple.client.pubsub.Publisher;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.known.tx.Transaction;
 
-public class ManagedTransaction extends Transaction implements Sequenced, IPublisher<ManagedTransaction.events> {
+public class ManagedTxn extends Transaction implements Sequenced, IPublisher<ManagedTxn.events> {
     private final Publisher<events> publisher = new Publisher<events>();
 
     public <T extends events> void on(Class<T> key, T cb) {
@@ -32,7 +32,7 @@ public class ManagedTransaction extends Transaction implements Sequenced, IPubli
     public static abstract class OnTransactionValidated extends events<TransactionResult> {}
     public static abstract class OnSumbitRequestError extends events<Exception> {}
 
-    public ManagedTransaction(TransactionType type, long transactionId) {
+    public ManagedTxn(TransactionType type, long transactionId) {
         super(transactionId, type);
     }
 
