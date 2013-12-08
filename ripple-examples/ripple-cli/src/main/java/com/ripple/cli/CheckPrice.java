@@ -39,17 +39,16 @@ public class CheckPrice {
     }
 
     private static void showOfferInfo(STObject offer) {
-        Amount takerPays = offer.get(Amount.TakerPays);
-        Amount takerGets = offer.get(Amount.TakerGets);
+        Amount takerPays     = offer.get(Amount.TakerPays);
+        Amount takerGets     = offer.get(Amount.TakerGets);
         BigDecimal payForOne = takerPays.computeQuality(takerGets);
-
 
         Amount getsOne = takerGets.oneAtXRPScale();
         Amount paysOne = takerPays.oneAtXRPScale();
 
         printSeparatorBanner();
         print("%60s == %s\n", paysOne.multiply(payForOne), getsOne);
-        print("%60s == %s\n", getsOne.divide(payForOne), paysOne);
+        print("%60s == %s\n", getsOne.divide(payForOne),   paysOne);
     }
 
     private static void print(String fmt, Object... args) {
