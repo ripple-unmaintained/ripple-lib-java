@@ -22,7 +22,7 @@ public class CheckPrice {
         Client client = new Client(new JavaWebSocketTransportImpl());
         client.connect("wss://s1.ripple.com");
 
-        Request request = client.requestBookOffers(XRP, BITSTAMP_BTC);
+        Request request = client.requestBookOffers(BITSTAMP_USD, XRP);
         request.once(Request.OnResponse.class, new Request.OnResponse() {
             @Override
             public void called(Response response) {
@@ -53,8 +53,8 @@ public class CheckPrice {
 
         printSeparatorBanner();
         // Multiply and divide will round/scale to the required bounds
-        print("%60s == %s\n", paysOne.multiply(payForOne), getsOne);
-        print("%60s == %s\n", getsOne.divide(payForOne),   paysOne);
+        print("%40s == %s\n", paysOne.multiply(payForOne).toText(), getsOne.toText());
+        print("%40s == %s\n", getsOne.divide(payForOne).toText(),  paysOne.toText());
     }
 
     private static void print(String fmt, Object... args) {
@@ -62,7 +62,7 @@ public class CheckPrice {
     }
 
     private static void printSeparatorBanner() {
-        for (int i = 0; i < 120; i++) System.out.print("-");
+        for (int i = 0; i < 80; i++) System.out.print("-");
         System.out.println();
     }
 }

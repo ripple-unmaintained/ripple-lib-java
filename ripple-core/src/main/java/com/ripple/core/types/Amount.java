@@ -269,18 +269,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return compareTo(amt) == 0;
     }
 
-    public String toTextFull() {
-        if (!isNative) {
-            return stringRepr();
-        } else {
-            return String.format("%s/XRP", valueText());
-        }
-    }
-
-    @Override
-    public String toString() {
-        return toTextFull();
-    }
 
     public static TypedFields.AmountField amountField(final Field f) {
         return new TypedFields.AmountField() {
@@ -501,15 +489,48 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return bigIntegerDrops().toString();
     }
 
+    /**
+     *
+     * @return A String representation as used by ripple json format
+     */
     public String stringRepr() {
         if (isNative) {
             return toDropsString();
         } else {
-            if (issuer != null) {
-                return String.format("%s/%s/%s", valueText(), currencyString(), issuerString());
-            } else {
-                return String.format("%s/%s", valueText(), currencyString());
-            }
+            return iouTextFull();
+        }
+    }
+
+    private String iouText() {
+        return String.format("%s/%s", valueText(), currencyString());
+    }
+
+    private String iouTextFull() {
+        return String.format("%s/%s/%s", valueText(), currencyString(), issuerString());
+    }
+
+    public String toTextFull() {
+        if (isNative) {
+            return nativeText();
+        } else {
+            return iouTextFull();
+        }
+    }
+
+    private String nativeText() {
+        return String.format("%s/XRP", valueText());
+    }
+
+    @Override
+    public String toString() {
+        return toTextFull();
+    }
+
+    public String toText() {
+        if (isNative) {
+            return toTextFull();
+        } else {
+            return iouText();
         }
     }
 
@@ -543,9 +564,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
-    /**
-     * PRVIATE !! Doesn't do checking!!
-     */
     public static Amount fromDropString(String val) {
         BigDecimal drops = new BigDecimal(val);
         checkDropsValueWhole(val);
