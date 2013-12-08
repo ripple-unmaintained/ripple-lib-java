@@ -1,9 +1,10 @@
+
 package com.ripple.client.blobvault;
 
 import com.ripple.crypto.sjcljson.JSONEncrypt;
 import com.ripple.encodings.common.B16;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.util.encoders.Base64;
+import org.ripple.bouncycastle.crypto.InvalidCipherTextException;
+import org.ripple.bouncycastle.util.encoders.Base64;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -16,13 +17,15 @@ import java.security.MessageDigest;
 
 public class BlobVault {
     String baseUrl;
+
     public JSONEncrypt sjcl = new JSONEncrypt();
 
     public BlobVault(String baseUrl) {
         this.baseUrl = baseUrl;
     }
 
-    public JSONObject getBlob(String user, String pass) throws IOException, InvalidCipherTextException {
+    public JSONObject getBlob(String user, String pass) throws IOException,
+            InvalidCipherTextException {
         String userPassUrl = userPassHash(user, pass);
         URL blobUrl = new URL(baseUrl + userPassUrl);
         String data = readAllFromConnection(createGETRequestConnection(blobUrl));
@@ -56,7 +59,7 @@ public class BlobVault {
         BufferedReader buf = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         String line;
         StringBuilder text = new StringBuilder();
-        while((line = buf.readLine()) != null)
+        while ((line = buf.readLine()) != null)
             text.append(line);
         return text.toString();
     }

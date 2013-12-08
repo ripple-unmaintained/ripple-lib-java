@@ -1,13 +1,14 @@
 package com.ripple.core;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+import org.ripple.bouncycastle.util.encoders.Hex;
+
 import com.ripple.core.types.AccountID;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
-import org.bouncycastle.util.encoders.Hex;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class KeyPairTest {
     IKeyPair keyPair = Seed.createKeyPair(TestFixtures.master_seed_bytes);

@@ -1,5 +1,12 @@
 package com.ripple.core.types;
 
+import static com.ripple.config.Config.getB58IdentiferCodecs;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.ripple.bouncycastle.util.encoders.Hex;
+
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BinaryParser;
@@ -11,12 +18,6 @@ import com.ripple.core.types.uint.UInt32;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
 import com.ripple.utils.Utils;
-import org.bouncycastle.util.encoders.Hex;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.ripple.config.Config.getB58IdentiferCodecs;
 
 public class AccountID implements SerializedType, Comparable<AccountID> {
     public String masterSeed;

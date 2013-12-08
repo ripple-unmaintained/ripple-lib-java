@@ -42,6 +42,7 @@
         <module>ripple-client</module>
         <module>ripple-client-transports</module>
         <module>ripple-examples</module>
+        <module>ripple-bouncycastle</module>
     </modules>
     <dependencies>
         <dependency>
@@ -49,11 +50,6 @@
             <artifactId>junit</artifactId>
             <version>4.11</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpg-jdk15on</artifactId>
-            <version>1.49</version>
         </dependency>
     </dependencies>
     <repositories>

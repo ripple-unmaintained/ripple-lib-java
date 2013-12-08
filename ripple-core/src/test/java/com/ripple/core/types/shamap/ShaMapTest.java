@@ -1,19 +1,19 @@
 
 package com.ripple.core.types.shamap;
 
+import static com.ripple.core.types.shamap.ShaMapNode.NodeType.tnTRANSACTION_MD;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
+
+import java.util.HashSet;
+
+import org.junit.Test;
+import org.ripple.bouncycastle.util.encoders.Hex;
+
 import com.ripple.config.Config;
 import com.ripple.core.serialized.BinarySerializer;
 import com.ripple.core.types.hash.Hash256;
 import com.ripple.encodings.common.B16;
-import org.bouncycastle.util.encoders.Hex;
-import org.junit.Test;
-
-import java.util.HashSet;
-
-import static com.ripple.core.types.shamap.ShaMapNode.NodeType.tnTRANSACTION_MD;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
 
 public class ShaMapTest {
     static {

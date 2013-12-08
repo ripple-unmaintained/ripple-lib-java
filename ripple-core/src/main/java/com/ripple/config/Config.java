@@ -1,10 +1,11 @@
 package com.ripple.config;
 
+import java.security.Security;
+
+import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import com.ripple.encodings.B58IdentiferCodecs;
 import com.ripple.encodings.base58.B58;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
-import java.security.Security;
 
 // Somewhat of a global registry, dependency injection ala guice would be nicer, but trying to KISS
 public class Config {

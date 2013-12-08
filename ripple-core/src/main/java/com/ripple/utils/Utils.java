@@ -1,13 +1,14 @@
 package com.ripple.utils;
 
-import com.ripple.encodings.common.B16;
-import org.bouncycastle.crypto.digests.RIPEMD160Digest;
-import org.bouncycastle.util.encoders.Hex;
-
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+
+import org.ripple.bouncycastle.crypto.digests.RIPEMD160Digest;
+import org.ripple.bouncycastle.util.encoders.Hex;
+
+import com.ripple.encodings.common.B16;
 
 public class Utils {
     private static final MessageDigest digest;

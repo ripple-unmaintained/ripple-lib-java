@@ -1,6 +1,8 @@
 
 package com.ripple.core.types;
 
+import org.ripple.bouncycastle.util.encoders.Hex;
+
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BinaryParser;
@@ -8,7 +10,6 @@ import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.encodings.common.B16;
-import org.bouncycastle.util.encoders.Hex;
 
 public class VariableLength implements SerializedType {
     public VariableLength(byte[] bytes) {

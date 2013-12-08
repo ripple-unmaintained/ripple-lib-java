@@ -1,29 +1,22 @@
+
 package com.ripple.android;
 
-import com.ndudfield.android.dexedrine.DexedrineApp;
+import com.ripple.android.client.AndroidClient;
 
-import java.io.File;
+import android.app.Application;
 
-public class RippleApplication extends DexedrineApp {
+public class RippleApplication extends Application {
+    public AndroidClient client;
+
+    public AndroidClient getClient() {
+        return client;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
-//        hitTheDex();
-        callBootStrapperOnOtherSideWithApplication("com.ripple.android.Bootstrap", "bootstrap");
+        client = new AndroidClient();
+        client.connect("wss://ct.ripple.com");
     }
 
-    @Override
-    public String getAssetName() {
-        return "predexed.jar";
-    }
-
-    @Override
-    public boolean forceAssetCopy() {
-        return false;
-    }
-
-    @Override
-    public File manuallyCopiedPredexedLibsPath() {
-        return null;
-    }
 }

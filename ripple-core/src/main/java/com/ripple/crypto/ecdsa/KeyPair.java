@@ -1,12 +1,13 @@
 package com.ripple.crypto.ecdsa;
 
-import com.ripple.utils.Utils;
-import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
-import org.bouncycastle.crypto.params.ECPublicKeyParameters;
-import org.bouncycastle.crypto.signers.ECDSASigner;
-import org.bouncycastle.math.ec.ECPoint;
-
 import java.math.BigInteger;
+
+import org.ripple.bouncycastle.crypto.params.ECPrivateKeyParameters;
+import org.ripple.bouncycastle.crypto.params.ECPublicKeyParameters;
+import org.ripple.bouncycastle.crypto.signers.ECDSASigner;
+import org.ripple.bouncycastle.math.ec.ECPoint;
+
+import com.ripple.utils.Utils;
 
 public class KeyPair implements IKeyPair {
     BigInteger priv, pub;
