@@ -41,12 +41,18 @@ public class CheckPrice {
     private static void showOfferInfo(STObject offer) {
         Amount takerPays     = offer.get(Amount.TakerPays);
         Amount takerGets     = offer.get(Amount.TakerGets);
+
+        // The quality is a high precision BigDecimal
         BigDecimal payForOne = takerPays.computeQuality(takerGets);
 
+        // The real native unit is a drop, one million of which are an XRP
+        // We want `one` unit at XRP scale (1e6 drops), or if it's an IOU,
+        // just `one`
         Amount getsOne = takerGets.oneAtXRPScale();
         Amount paysOne = takerPays.oneAtXRPScale();
 
         printSeparatorBanner();
+        // Multiply and divide will round/scale to the required bounds
         print("%60s == %s\n", paysOne.multiply(payForOne), getsOne);
         print("%60s == %s\n", getsOne.divide(payForOne),   paysOne);
     }
