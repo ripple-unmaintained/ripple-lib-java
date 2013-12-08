@@ -1,13 +1,16 @@
 language: java
+jdk: oraclejdk7
+env:
+    matrix:
+    - ANDROID_TARGET=android-10  ANDROID_SDKS=android-10,build-tools-17.0.0,sysimg-10 ANDROID_BUILD_TOOLS_VERSION=17.0.0 ANDROID_ABI=armeabi
 before_install:
   # download the latest android sdk and unzip
   - wget http://dl.google.com/android/android-sdk_r22.3-linux.tgz
   - tar -zxf android-sdk_r22.3-linux.tgz
   - export ANDROID_HOME=`pwd`/android-sdk-linux
-  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
+  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/build-tools/$ANDROID_BUILD_TOOLS_VERSION
   # only update the sdk for the tools and platform-tools (1,2) and whatever api level
   # you are building for android (run "android list sdk" to get the full list.  9 = 2.3.3 or API level 10
-  - echo -e "y\n" > accept.txt
-  - android update sdk --filter 1,2,9 --no-ui --force < accept.txt
-jdk: oraclejdk7
+   - echo -e "y\n" > accept.txt
+   - android update sdk --filter platform-tools,extra-android-support,$ANDROID_SDKS --no-ui --force < accept.txt
 script: mvn install
