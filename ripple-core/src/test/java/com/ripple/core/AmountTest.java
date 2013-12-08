@@ -178,7 +178,7 @@ public class AmountTest {
 
     @Test
     public void test_Division() {
-        Amount d = a50.divide(b20).multiply(c5);
+        Amount d = a50.roundedDivide(b20).roundedMultiply(c5);
         assertEquals("50/USD/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh", a50.stringRepr());
         assertEquals("12.5/USD/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh", d.stringRepr());
     }
@@ -392,151 +392,151 @@ public class AmountTest {
     }
     @Test
     public void test_Multiply_0_XRP_with_0_XRP() {
-        assertEquals("0/XRP", amt("0").multiply(amt("0")).toTextFull());
+        assertEquals("0/XRP", amt("0").roundedMultiply(amt("0")).toTextFull());
     }
     @Test
     public void test_Multiply_0_USD_with_0_XRP() {
-        assertEquals("0/USD/" + rootAddress, amt("0/USD/root").multiply(amt("0")).toTextFull());
+        assertEquals("0/USD/" + rootAddress, amt("0/USD/root").roundedMultiply(amt("0")).toTextFull());
     }
     @Test
     public void test_Multiply_0_XRP_with_0_USD() {
-        assertEquals("0/XRP", amt("0").multiply(amt("0/USD/root")).toTextFull());
+        assertEquals("0/XRP", amt("0").roundedMultiply(amt("0/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_1_XRP_with_0_XRP() {
-        assertEquals("0/XRP", amt("1").multiply(amt("0")).toTextFull());
+        assertEquals("0/XRP", amt("1").roundedMultiply(amt("0")).toTextFull());
     }
     @Test
     public void test_Multiply_1_USD_with_0_XRP() {
-        assertEquals("0/USD/" + rootAddress, amt("1/USD/root").multiply(amt("0")).toTextFull());
+        assertEquals("0/USD/" + rootAddress, amt("1/USD/root").roundedMultiply(amt("0")).toTextFull());
     }
     @Test
     public void test_Multiply_1_XRP_with_0_USD() {
-        assertEquals("0/XRP", amt("1").multiply(amt("0/USD/root")).toTextFull());
+        assertEquals("0/XRP", amt("1").roundedMultiply(amt("0/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_0_XRP_with_1_XRP() {
-        assertEquals("0/XRP", amt("0").multiply(amt("1")).toTextFull());
+        assertEquals("0/XRP", amt("0").roundedMultiply(amt("1")).toTextFull());
     }
     @Test
     public void test_Multiply_0_USD_with_1_XRP() {
-        assertEquals("0/USD/" + rootAddress, amt("0/USD/root").multiply(amt("1")).toTextFull());
+        assertEquals("0/USD/" + rootAddress, amt("0/USD/root").roundedMultiply(amt("1")).toTextFull());
     }
     @Test
     public void test_Multiply_0_XRP_with_1_USD() {
-        assertEquals("0/XRP", amt("0").multiply(amt("1/USD/root")).toTextFull());
+        assertEquals("0/XRP", amt("0").roundedMultiply(amt("1/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_XRP_with_USD() {
-        assertEquals("2000/XRP", amt("200.0").multiply(amt("10/USD/root")).toTextFull());
+        assertEquals("2000/XRP", amt("200.0").roundedMultiply(amt("10/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_XRP_with_USD2() {
-        assertEquals("0.2/XRP", amt("20000").multiply(amt("10/USD/root")).toTextFull());
+        assertEquals("0.2/XRP", amt("20000").roundedMultiply(amt("10/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_XRP_with_USD3() {
-        assertEquals("20/XRP", amt("2000000").multiply(amt("10/USD/root")).toTextFull());
+        assertEquals("20/XRP", amt("2000000").roundedMultiply(amt("10/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_XRP_with_USD_neg() {
-        assertEquals("-0.002/XRP", amt("200").multiply(amt("-10/USD/root")).toTextFull());
+        assertEquals("-0.002/XRP", amt("200").roundedMultiply(amt("-10/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_XRP_with_USD_neg_frac() {
-        assertEquals("-0.222/XRP", amt("-6000").multiply(amt("37/USD/root")).toTextFull());
+        assertEquals("-0.222/XRP", amt("-6000").roundedMultiply(amt("37/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_USD_with_USD() {
-        assertEquals("20000/USD/" + rootAddress, amt("2000/USD/root").multiply(amt("10/USD/root")).toTextFull());
+        assertEquals("20000/USD/" + rootAddress, amt("2000/USD/root").roundedMultiply(amt("10/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_USD_with_USD2() {
-        assertEquals("200000000000/USD/" + rootAddress, amt("2000000/USD/root").multiply(amt("100000/USD/root")).toTextFull());
+        assertEquals("200000000000/USD/" + rootAddress, amt("2000000/USD/root").roundedMultiply(amt("100000/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_EUR_with_USD_result_1() {
-        assertEquals("100000/EUR/" + rootAddress, amt("100/EUR/root").multiply(amt("1000/USD/root")).toTextFull());
+        assertEquals("100000/EUR/" + rootAddress, amt("100/EUR/root").roundedMultiply(amt("1000/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_EUR_with_USD_neg() {
-        assertEquals("-48000000/EUR/" + rootAddress, amt("-24000/EUR/root").multiply(amt("2000/USD/root")).toTextFull());
+        assertEquals("-48000000/EUR/" + rootAddress, amt("-24000/EUR/root").roundedMultiply(amt("2000/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_EUR_with_USD_neg_1() {
-        assertEquals("-100/EUR/" + rootAddress, amt("0.1/EUR/root").multiply(amt("-1000/USD/root")).toTextFull());
+        assertEquals("-100/EUR/" + rootAddress, amt("0.1/EUR/root").roundedMultiply(amt("-1000/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_EUR_with_XRP_factor_1() {
-        assertEquals("100/EUR/" + rootAddress, amt("0.05/EUR/root").multiply(amt("2000")).toTextFull());
+        assertEquals("100/EUR/" + rootAddress, amt("0.05/EUR/root").roundedMultiply(amt("2000")).toTextFull());
     }
     @Test
     public void test_Multiply_EUR_with_XRP_neg() {
-        assertEquals("-500/EUR/" + rootAddress, amt("-100/EUR/root").multiply(amt("5")).toTextFull());
+        assertEquals("-500/EUR/" + rootAddress, amt("-100/EUR/root").roundedMultiply(amt("5")).toTextFull());
     }
     @Test
     public void test_Multiply_EUR_with_XRP_neg_1() {
-        assertEquals("-100/EUR/" + rootAddress, amt("-0.05/EUR/root").multiply(amt("2000")).toTextFull());
+        assertEquals("-100/EUR/" + rootAddress, amt("-0.05/EUR/root").roundedMultiply(amt("2000")).toTextFull());
     }
     @Test
     public void test_Multiply_XRP_with_XRP() {
-        assertEquals("0.0001/XRP", amt("10").multiply(amt("10")).toTextFull());
+        assertEquals("0.0001/XRP", amt("10").roundedMultiply(amt("10")).toTextFull());
     }
     @Test
     public void test_Divide_XRP_by_USD() {
-        assertEquals("0.00002/XRP", amt("200").divide(amt("10/USD/root")).toTextFull());
+        assertEquals("0.00002/XRP", amt("200").roundedDivide(amt("10/USD/root")).toTextFull());
     }
     @Test
     public void test_Divide_XRP_by_USD2() {
-        assertEquals("0.002/XRP", amt("20000").divide(amt("10/USD/root")).toTextFull());
+        assertEquals("0.002/XRP", amt("20000").roundedDivide(amt("10/USD/root")).toTextFull());
     }
     @Test
     public void test_Divide_XRP_by_USD3() {
-        assertEquals("0.2/XRP", amt("2000000").divide(amt("10/USD/root")).toTextFull());
+        assertEquals("0.2/XRP", amt("2000000").roundedDivide(amt("10/USD/root")).toTextFull());
     }
     @Test
     public void test_Divide_XRP_by_USD_neg() {
-        assertEquals("-0.00002/XRP", amt("200").divide(amt("-10/USD/root")).toTextFull());
+        assertEquals("-0.00002/XRP", amt("200").roundedDivide(amt("-10/USD/root")).toTextFull());
     }
     @Test
     public void test_Divide_XRP_by_USD_neg_frac() {
-        assertEquals("-0.000162/XRP", amt("-6000").divide(amt("37/USD/root")).toTextFull());
+        assertEquals("-0.000162/XRP", amt("-6000").roundedDivide(amt("37/USD/root")).toTextFull());
     }
     @Test
     public void test_Divide_USD_by_USD() {
-        assertEquals("200/USD/" + rootAddress, amt("2000/USD/root").divide(amt("10/USD/root")).toTextFull());
+        assertEquals("200/USD/" + rootAddress, amt("2000/USD/root").roundedDivide(amt("10/USD/root")).toTextFull());
     }
     @Test
     public void test_Divide_USD_by_USD_fractional() {
-        assertEquals("57142.85714285714/USD/" + rootAddress, amt("2000000/USD/root").divide(amt("35/USD/root")).toTextFull());
+        assertEquals("57142.85714285714/USD/" + rootAddress, amt("2000000/USD/root").roundedDivide(amt("35/USD/root")).toTextFull());
     }
     @Test
     public void test_Divide_USD_by_USD2() {
-        assertEquals("20/USD/" + rootAddress, amt("2000000/USD/root").divide(amt("100000/USD/root")).toTextFull());
+        assertEquals("20/USD/" + rootAddress, amt("2000000/USD/root").roundedDivide(amt("100000/USD/root")).toTextFull());
     }
     @Test
     public void test_Divide_EUR_by_USD_factor_1() {
-        assertEquals("0.1/EUR/" + rootAddress, amt("100/EUR/root").divide(amt("1000/USD/root")).toTextFull());
+        assertEquals("0.1/EUR/" + rootAddress, amt("100/EUR/root").roundedDivide(amt("1000/USD/root")).toTextFull());
     }
     @Test
     public void test_Divide_EUR_by_USD_neg() {
-        assertEquals("-12/EUR/" + rootAddress, amt("-24000/EUR/root").divide(amt("2000/USD/root")).toTextFull());
+        assertEquals("-12/EUR/" + rootAddress, amt("-24000/EUR/root").roundedDivide(amt("2000/USD/root")).toTextFull());
     }
     @Test
     public void test_Divide_EUR_by_USD_neg_1() {
-        assertEquals("-0.1/EUR/" + rootAddress, amt("100/EUR/root").divide(amt("-1000/USD/root")).toTextFull());
+        assertEquals("-0.1/EUR/" + rootAddress, amt("100/EUR/root").roundedDivide(amt("-1000/USD/root")).toTextFull());
     }
     @Test
     public void test_Divide_EUR_by_XRP_result_1() {
-        assertEquals("0.05/EUR/" + rootAddress, amt("100/EUR/root").divide(amt("2000")).toTextFull());
+        assertEquals("0.05/EUR/" + rootAddress, amt("100/EUR/root").roundedDivide(amt("2000")).toTextFull());
     }
     @Test
     public void test_Divide_EUR_by_XRP_neg() {
-        assertEquals("-20/EUR/" + rootAddress, amt("-100/EUR/root").divide(amt("5")).toTextFull());
+        assertEquals("-20/EUR/" + rootAddress, amt("-100/EUR/root").roundedDivide(amt("5")).toTextFull());
     }
     @Test
     public void test_Divide_EUR_by_XRP_neg_1() {
-        assertEquals("-0.05/EUR/" + rootAddress, amt("-100/EUR/root").divide(amt("2000")).toTextFull());
+        assertEquals("-0.05/EUR/" + rootAddress, amt("-100/EUR/root").roundedDivide(amt("2000")).toTextFull());
     }
 
     @Test

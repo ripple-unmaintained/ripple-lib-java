@@ -105,6 +105,10 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
         return address.compareTo(o.address);
     }
 
+    public Issue issue(String code) {
+        return new Issue(Currency.fromString(code), this);
+    }
+
     static class Translator extends TypeTranslator<AccountID> {
 
         @Override

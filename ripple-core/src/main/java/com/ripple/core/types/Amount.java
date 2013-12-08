@@ -30,15 +30,17 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     */
     static public UInt64 cNotNative = new UInt64("8000000000000000", 16);
     static public UInt64 cPosNative = new UInt64("4000000000000000", 16);
+
+    public boolean unbounded = false;
+
     private static BigDecimal asDrops(String s) {
         return new BigDecimal(s.replace(",", "")).scaleByPowerOfTen(6);
     }
 
-
     public static final BigDecimal MAX_DROPS = asDrops("100,000,000,000.0");
+
     public static final BigDecimal MIN_DROPS = asDrops("0.000,001");
     private static final Amount ONE_XRP = fromString("1.0");
-
     public Issue issue() {
         return new Issue(currency, issuer);
     }
@@ -55,9 +57,14 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         this(newValue, Currency.fromString(currency), issuer, nativeSource);
     }
 
-    public Amount(BigDecimal value, Currency currency, AccountID issuer, boolean nativeSource) {
+    public Amount(BigDecimal newValue, Currency currency, AccountID issuer, boolean isNative) {
+        this(newValue, currency, issuer, isNative, false);
+    }
+
+    public Amount(BigDecimal value, Currency currency, AccountID issuer, boolean nativeSource, boolean unbounded) {
         isNative = nativeSource;
         this.currency = currency;
+        this.unbounded = unbounded;
         this.setValue(value);
         // done AFTER set value which sets some default values
         this.issuer = issuer;
@@ -134,10 +141,12 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     private void initialize() {
         if (isNative) {
             issuer = AccountID.ZERO;
-            checkXRPBounds(value);
+            if (!unbounded) {
+                checkXRPBounds(value);
+            }
             offset = 0;
         } else {
-            if (value.precision() > 16) {
+            if (value.precision() > 16 && !unbounded) {
                 throw new PrecisionError("Overflow Error!");
             }
             issuer = AccountID.ONE;
@@ -161,11 +170,11 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return newValue(value.subtract(subtrahend.value));
     }
 
-    public Amount multiply(Amount multiplicand) {
+    public Amount roundedMultiply(Amount multiplicand) {
         return newValue(value.multiply(multiplicand.value, MATH_CONTEXT), true);
     }
 
-    public Amount divide(Amount divisor) {
+    public Amount roundedDivide(Amount divisor) {
         return newValue(value.divide(divisor.value, MATH_CONTEXT), true);
     }
 
@@ -212,6 +221,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return newValue(value.multiply(divisor, MATH_CONTEXT), true);
     }
 
+    private Amount newValue(BigDecimal val, boolean round) {
+        return newValue(val, round, false);
+    }
+
     public Amount negate() {
         return newValue(value.negate());
     }
@@ -229,14 +242,14 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     private Amount newValue(BigDecimal newValue) {
-        return newValue(newValue, false);
+        return newValue(newValue, false, false);
     }
 
-    private Amount newValue(BigDecimal newValue, boolean round) {
+    private Amount newValue(BigDecimal newValue, boolean round, boolean unbounded) {
         if (round) {
             newValue = round(isNative, newValue);
         }
-        return new Amount(newValue, currency, issuer, isNative);
+        return new Amount(newValue, currency, issuer, isNative, unbounded);
     }
 
     public BigInteger toBigInteger() {
@@ -298,8 +311,8 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return value;
     }
 
-    public Amount computeQuality(Amount takerGets) {
-        return newValue(xrpScaleValue().divide(takerGets.xrpScaleValue(), MATH_CONTEXT));
+    public BigDecimal computeQuality(Amount takerGets) {
+        return xrpScaleValue().divide(takerGets.xrpScaleValue(), MathContext.DECIMAL128);
     }
 
     public Amount oneAtXRPScale() {
