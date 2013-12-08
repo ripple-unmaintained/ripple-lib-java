@@ -8,6 +8,6 @@ before_install:
   # only update the sdk for the tools and platform-tools (1,2) and whatever api level
   # you are building for android (run "android list sdk" to get the full list.  9 = 2.3.3 or API level 10
   - echo -e "y\n" > accept.txt
-  - android update sdk --filter 10 --no-ui --force < accept.txt
+  - android update sdk --filter 9 --no-ui --force < accept.txt
 jdk: oraclejdk7
 script: mvn install
