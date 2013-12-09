@@ -1,19 +1,15 @@
 language: java
 jdk: oraclejdk7
-env:
-    matrix:
-    - ANDROID_TARGET=android-10  ANDROID_SDKS=android-10,build-tools-17.0.0,sysimg-10 ANDROID_BUILD_TOOLS_VERSION=17.0.0 ANDROID_ABI=armeabi
 before_install:
-    # Install base Android SDK
-    - sudo apt-get update -qq
-    - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch; fi
-    - wget http://dl.google.com/android/android-sdk_r22-linux.tgz
-    - tar xzf android-sdk_r22-linux.tgz
-    - export ANDROID_HOME=`pwd`/android-sdk-linux
-    - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/build-tools/$ANDROID_BUILD_TOOLS_VERSION
-    # Install required Android components.
-    - android list sdk --extended
-    # Do you accept the license 'android-sdk-license-bcbbd656' [y/n]:
-    - echo -e "y\n" > accept.txt
-    - android update sdk --filter platform-tools,extra-android-support,$ANDROID_SDKS --no-ui --force < accept.txt
+  # install necessary x32-libs for Android SDK, see http://rkistner.github.io/android/2013/02/05/android-builds-on-travis-ci/
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libstdc++6:i386 lib32z1
+  # download the latest android sdk and unzip
+  - wget http://dl.google.com/android/android-sdk_r22.3-linux.tgz
+  - tar -zxf android-sdk_r22.3-linux.tgz
+  - export ANDROID_HOME=`pwd`/android-sdk-linux
+  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
+  # only update the sdk for the tools and platform-tools and required api level
+  # (run "android list sdk --extended" to get the full list)
+  - echo "y" | android update sdk --filter tools,platform-tools,build-tools-17.0.0,android-10 --no-ui --force
 script: mvn install
