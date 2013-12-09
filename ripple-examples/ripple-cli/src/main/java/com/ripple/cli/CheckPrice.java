@@ -15,8 +15,13 @@ public class CheckPrice {
     public static final AccountID BITSTAMP = AccountID.fromAddress("rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B");
     public static final Issue BITSTAMP_USD = BITSTAMP.issue("USD");
     public static final Issue BITSTAMP_BTC = BITSTAMP.issue("BTC");
+    public static final Issue BITSTAMP_AUD = BITSTAMP.issue("AUD");
     public static final Issue XRP = Issue.XRP;
 
+    /**
+     * This class encapsulates retrieving OrderBook info for a currency pair, and
+     * calculating `ask`, `bid` and `spread`
+     */
     public static class OrderBook {
         public static interface BookEvents {
             public void onUpdate(OrderBook book);
@@ -24,15 +29,9 @@ public class CheckPrice {
 
         private final BookEvents callback;
         private Client client;
-        public Issue first,
-                     second;
-
-        public STArray asks = null,
-                       bids = null;
-
-        public Amount ask = null,
-                      bid = null,
-                      spread = null;
+        public Issue first, second;
+        public STArray asks, bids;
+        public Amount ask, bid, spread;
 
         public OrderBook(Client client, Issue first, Issue second, BookEvents callback) {
             this.client = client;
@@ -41,8 +40,16 @@ public class CheckPrice {
             this.callback = callback;
         }
 
-        public boolean haveBothBooks() {
+        public boolean retrievedBothBooks() {
             return asks != null && bids != null;
+        }
+
+        public String currencyPair() {
+            return String.format("%s/%s", first.currency(), second.currency());
+        }
+
+        public boolean isEmpty() {
+            return !retrievedBothBooks() || asks.isEmpty() || bids.isEmpty();
         }
 
         private void requestUpdate() {
@@ -62,8 +69,10 @@ public class CheckPrice {
                             if (getBids) bids = offers;
                             else         asks = offers;
 
-                            if (haveBothBooks()) {
-                                calculateStats();
+                            if (retrievedBothBooks()) {
+                                if (!isEmpty()) {
+                                    calculateStats();
+                                }
                                 callback.onUpdate(OrderBook.this);
                             }
                         } else {
@@ -81,11 +90,10 @@ public class CheckPrice {
             STObject firstBid = bids.get(0);
 
             BigDecimal askQuality = firstAsk.get(Amount.TakerPays)
-                                            .computeQuality(
-                                                    firstAsk.get(Amount.TakerGets));
+                                            .computeQuality(firstAsk.get(Amount.TakerGets));
+
             BigDecimal bidQuality = firstBid.get(Amount.TakerGets)
-                                            .computeQuality(
-                                                    firstBid.get(Amount.TakerPays));
+                                            .computeQuality(firstBid.get(Amount.TakerPays));
 
             Amount secondOne = firstAsk.get(Amount.TakerPays).oneAtXRPScale();
 
@@ -95,25 +103,38 @@ public class CheckPrice {
         }
     }
 
+    private static void showPairInfo(Client client, Issue first, Issue second) {
+        new OrderBook(client, first, second, new OrderBook.BookEvents() {
+            @Override
+            public void onUpdate(OrderBook book) {
+                printSeparatorBanner();
+
+                if (!book.isEmpty()) {
+                    System.out.printf("%s Ask: %s, Bid: %s, Spread %s%n",
+                            book.currencyPair(),
+                            book.ask.toText(),
+                            book.bid.toText(),
+                            book.spread.toText());
+                /*
+                System.out.printf("%nAsk offers%n");
+                for (STObject offer : book.asks) showOfferInfo(offer);
+                */
+                } else {
+                    System.out.printf("%s No info!%n", book.currencyPair());
+                }
+            }
+        }).requestUpdate();
+    }
+
     public static void main(String[] args) throws JSONException {
         ClientLogger.quiet = true;
         Client client = new Client(new JavaWebSocketTransportImpl());
         client.connect("wss://s1.ripple.com");
 
-        OrderBook book = new OrderBook(client, BITSTAMP_USD, XRP, new OrderBook.BookEvents() {
-            @Override
-            public void onUpdate(OrderBook book) {
-                System.out.printf("First: %s, Second: %s %n", book.first, book.second);
-                System.out.printf("Ask: %s, Bid: %s, Spread %s%n",  book.ask.toText(),
-                                                                  book.bid.toText(),
-                                                                  book.spread.toText());
+        showPairInfo(client, BITSTAMP_USD, XRP);
+        showPairInfo(client, BITSTAMP_USD, BITSTAMP_BTC);
+        showPairInfo(client, BITSTAMP_AUD, BITSTAMP_BTC);
 
-                System.out.printf("%nAsk offers%n");
-                for (STObject offer : book.asks) showOfferInfo(offer);
-            }
-        });
-
-        book.requestUpdate();
     }
 
     private static void showOfferInfo(STObject offer) {
