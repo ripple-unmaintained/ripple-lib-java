@@ -30,29 +30,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
 
     public Request requestBookOffers(Issue get, Issue pay) {
-        return requestBookOffers(get.currency(), get.issuer(), pay.currency(), pay.issuer());
-    }
-    public Request requestBookOffers(Currency getCurrency, AccountID getIssuer, Currency payCurrency, AccountID payIssuer) {
         Request request = newRequest(Command.book_offers);
-
-        JSONObject gets = new JSONObject();
-        JSONObject pays = new JSONObject();
-
-        try {
-            gets.put("currency", getCurrency);
-            pays.put("currency", payCurrency);
-            if (payIssuer != null) {
-                pays.put("issuer", payIssuer);
-            }
-            if (getIssuer != null) {
-                gets.put("issuer", getIssuer);
-            }
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-
-        request.json("taker_pays", pays);
-        request.json("taker_gets", gets);
+        request.json("taker_pays", pay.toJSON());
+        request.json("taker_gets", get.toJSON());
         return request;
     }
 

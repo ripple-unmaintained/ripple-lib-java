@@ -1,5 +1,8 @@
 package com.ripple.core.types;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.math.BigDecimal;
 
 /**
@@ -46,6 +49,17 @@ public class Issue {
         } else {
             return String.format("%s/%s", currency, issuer);
         }
+    }
+
+    public JSONObject toJSON() {
+        JSONObject o = new JSONObject();
+        try {
+            o.put("currency", currency);
+            o.put("issuer", issuer);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+        return o;
     }
 
     public Amount amount(BigDecimal value) {
