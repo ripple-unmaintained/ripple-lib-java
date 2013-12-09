@@ -29,10 +29,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public boolean connected = false;
 
 
-    public Request requestBookOffers(Issue pay, Issue get) {
-        return requestBookOffers(pay.currency(), pay.issuer(), get.currency(), get.issuer());
+    public Request requestBookOffers(Issue get, Issue pay) {
+        return requestBookOffers(get.currency(), get.issuer(), pay.currency(), pay.issuer());
     }
-    public Request requestBookOffers(Currency payCurrency, AccountID payIssuer, Currency getCurrency, AccountID getIssuer) {
+    public Request requestBookOffers(Currency getCurrency, AccountID getIssuer, Currency payCurrency, AccountID payIssuer) {
         Request request = newRequest(Command.book_offers);
 
         JSONObject gets = new JSONObject();

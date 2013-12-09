@@ -39,6 +39,15 @@ public class Issue {
         return issuer;
     }
 
+    @Override
+    public String toString() {
+        if (isNative()) {
+            return "XRP";
+        } else {
+            return String.format("%s/%s", currency, issuer);
+        }
+    }
+
     public Amount amount(BigDecimal value) {
         return new Amount(value, currency, issuer, isNative());
     }

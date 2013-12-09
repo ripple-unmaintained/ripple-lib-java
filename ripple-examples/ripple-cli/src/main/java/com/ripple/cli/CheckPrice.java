@@ -17,25 +17,103 @@ public class CheckPrice {
     public static final Issue BITSTAMP_BTC = BITSTAMP.issue("BTC");
     public static final Issue XRP = Issue.XRP;
 
+    public static class OrderBook {
+        public static interface BookEvents {
+            public void onUpdate(OrderBook book);
+        }
+
+        private final BookEvents callback;
+        private Client client;
+        public Issue first,
+                     second;
+
+        public STArray asks = null,
+                       bids = null;
+
+        public Amount ask = null,
+                      bid = null,
+                      spread = null;
+
+        public OrderBook(Client client, Issue first, Issue second, BookEvents callback) {
+            this.client = client;
+            this.first = first;
+            this.second = second;
+            this.callback = callback;
+        }
+
+        public boolean haveBothBooks() {
+            return asks != null && bids != null;
+        }
+
+        private void requestUpdate() {
+            for (int i = 0; i < 2; i++) {
+                final boolean getBids = i == 1;
+
+                Issue firstIssue  = i == 0 ? first  : second,
+                      secondIssue = i == 0 ? second : first;
+
+                Request request = client.requestBookOffers(secondIssue, firstIssue);
+                request.once(Request.OnResponse.class, new Request.OnResponse() {
+                    @Override
+                    public void called(Response response) {
+                        if (response.succeeded) {
+                            JSONArray offersJSON = response.result.optJSONArray("offers");
+                            STArray offers = STArray.translate.fromJSONArray(offersJSON);
+                            if (getBids) bids = offers;
+                            else         asks = offers;
+
+                            if (haveBothBooks()) {
+                                calculateStats();
+                                callback.onUpdate(OrderBook.this);
+                            }
+                        } else {
+                            System.out.println("There was an error: " + response.message);
+                        }
+                    }
+                });
+                request.request();
+            }
+
+        }
+
+        private void calculateStats() {
+            STObject firstAsk = asks.get(0);
+            STObject firstBid = bids.get(0);
+
+            BigDecimal askQuality = firstAsk.get(Amount.TakerPays)
+                                            .computeQuality(
+                                                    firstAsk.get(Amount.TakerGets));
+            BigDecimal bidQuality = firstBid.get(Amount.TakerGets)
+                                            .computeQuality(
+                                                    firstBid.get(Amount.TakerPays));
+
+            Amount secondOne = firstAsk.get(Amount.TakerPays).oneAtXRPScale();
+
+            ask = secondOne.multiply(askQuality);
+            bid = secondOne.multiply(bidQuality);
+            spread = ask.subtract(bid).abs();
+        }
+    }
+
     public static void main(String[] args) throws JSONException {
         ClientLogger.quiet = true;
         Client client = new Client(new JavaWebSocketTransportImpl());
         client.connect("wss://s1.ripple.com");
 
-        Request request = client.requestBookOffers(BITSTAMP_USD, XRP);
-        request.once(Request.OnResponse.class, new Request.OnResponse() {
+        OrderBook book = new OrderBook(client, BITSTAMP_USD, XRP, new OrderBook.BookEvents() {
             @Override
-            public void called(Response response) {
-                if (response.succeeded) {
-                    JSONArray offersJSON = response.result.optJSONArray("offers");
-                    STArray offers = STArray.translate.fromJSONArray(offersJSON);
-                    for (STObject offer : offers) showOfferInfo(offer);
-                } else {
-                    System.out.println("There was an error: " + response.message);
-                }
+            public void onUpdate(OrderBook book) {
+                System.out.printf("First: %s, Second: %s %n", book.first, book.second);
+                System.out.printf("Ask: %s, Bid: %s, Spread %s%n",  book.ask.toText(),
+                                                                  book.bid.toText(),
+                                                                  book.spread.toText());
+
+                System.out.printf("%nAsk offers%n");
+                for (STObject offer : book.asks) showOfferInfo(offer);
             }
         });
-        request.request();
+
+        book.requestUpdate();
     }
 
     private static void showOfferInfo(STObject offer) {
