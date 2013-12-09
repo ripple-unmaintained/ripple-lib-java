@@ -38,7 +38,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public static final BigDecimal MAX_DROPS = asDrops("100,000,000,000.0");
-
     public static final BigDecimal MIN_DROPS = asDrops("0.000,001");
     private static final Amount ONE_XRP = fromString("1.0");
     public Issue issue() {
