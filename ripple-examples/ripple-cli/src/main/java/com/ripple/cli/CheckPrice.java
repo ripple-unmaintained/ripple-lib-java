@@ -52,7 +52,7 @@ public class CheckPrice {
                 Issue firstIssue  = i == 0 ? first  : second,
                       secondIssue = i == 0 ? second : first;
 
-                Request request = client.requestBookOffers(secondIssue, firstIssue);
+                Request request = client.requestBookOffers(firstIssue, secondIssue);
                 request.once(Request.OnResponse.class, new Request.OnResponse() {
                     @Override
                     public void called(Response response) {
