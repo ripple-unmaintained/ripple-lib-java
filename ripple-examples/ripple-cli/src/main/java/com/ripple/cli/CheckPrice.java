@@ -1,3 +1,4 @@
+
 package com.ripple.cli;
 
 import com.ripple.client.Client;
@@ -12,15 +13,20 @@ import org.json.JSONException;
 import java.math.BigDecimal;
 
 public class CheckPrice {
-    public static final AccountID BITSTAMP = AccountID.fromAddress("rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B");
-    public static final Issue BITSTAMP_USD = BITSTAMP.issue("USD");
+    public static final AccountID BITSTAMP = AccountID
+            .fromAddress("razqQKzJRdB4UxFPWf5NEpEG3WMkmwgcXA");
+
+    public static final Issue BITSTAMP_USD = BITSTAMP.issue("CNY");
+
     public static final Issue BITSTAMP_BTC = BITSTAMP.issue("BTC");
+
     public static final Issue BITSTAMP_AUD = BITSTAMP.issue("AUD");
+
     public static final Issue XRP = Issue.XRP;
 
     /**
-     * This class encapsulates retrieving OrderBook info for a currency pair, and
-     * calculating `ask`, `bid` and `spread`
+     * This class encapsulates retrieving OrderBook info for a currency pair,
+     * and calculating `ask`, `bid` and `spread`
      */
     public static class OrderBook {
         public static interface BookEvents {
@@ -28,9 +34,13 @@ public class CheckPrice {
         }
 
         private final BookEvents callback;
+
         private Client client;
+
         public Issue first, second;
+
         public STArray asks, bids;
+
         public Amount ask, bid, spread;
 
         public OrderBook(Client client, Issue first, Issue second, BookEvents callback) {
@@ -56,8 +66,7 @@ public class CheckPrice {
             for (int i = 0; i < 2; i++) {
                 final boolean getBids = i == 1;
 
-                Issue getIssue  = i == 0 ? first  : second,
-                      payIssue = i == 0 ? second : first;
+                Issue getIssue = i == 0 ? first : second, payIssue = i == 0 ? second : first;
 
                 Request request = client.requestBookOffers(getIssue, payIssue);
                 request.once(Request.OnResponse.class, new Request.OnResponse() {
@@ -66,8 +75,10 @@ public class CheckPrice {
                         if (response.succeeded) {
                             JSONArray offersJSON = response.result.optJSONArray("offers");
                             STArray offers = STArray.translate.fromJSONArray(offersJSON);
-                            if (getBids) bids = offers;
-                            else         asks = offers;
+                            if (getBids)
+                                bids = offers;
+                            else
+                                asks = offers;
 
                             if (retrievedBothBooks()) {
                                 if (!isEmpty()) {
@@ -89,11 +100,11 @@ public class CheckPrice {
             STObject firstAsk = asks.get(0);
             STObject firstBid = bids.get(0);
 
-            BigDecimal askQuality = firstAsk.get(Amount.TakerPays)
-                                            .computeQuality(firstAsk.get(Amount.TakerGets));
+            BigDecimal askQuality = firstAsk.get(Amount.TakerPays).computeQuality(
+                    firstAsk.get(Amount.TakerGets));
 
-            BigDecimal bidQuality = firstBid.get(Amount.TakerGets)
-                                            .computeQuality(firstBid.get(Amount.TakerPays));
+            BigDecimal bidQuality = firstBid.get(Amount.TakerGets).computeQuality(
+                    firstBid.get(Amount.TakerPays));
 
             Amount secondOne = firstAsk.get(Amount.TakerPays).oneAtXRPScale();
 
@@ -110,15 +121,12 @@ public class CheckPrice {
                 printSeparatorBanner();
 
                 if (!book.isEmpty()) {
-                    System.out.printf("%s Ask: %s, Bid: %s, Spread %s%n",
-                            book.currencyPair(),
-                            book.ask.toText(),
-                            book.bid.toText(),
-                            book.spread.toText());
-                /*
-                System.out.printf("%nAsk offers%n");
-                for (STObject offer : book.asks) showOfferInfo(offer);
-                */
+                    System.out.printf("%s Ask: %s, Bid: %s, Spread %s%n", book.currencyPair(),
+                            book.ask.toText(), book.bid.toText(), book.spread.toText());
+                    /*
+                     * System.out.printf("%nAsk offers%n"); for (STObject offer
+                     * : book.asks) showOfferInfo(offer);
+                     */
                 } else {
                     System.out.printf("%s No info!%n", book.currencyPair());
                 }
@@ -131,15 +139,15 @@ public class CheckPrice {
         Client client = new Client(new JavaWebSocketTransportImpl());
         client.connect("wss://s1.ripple.com");
 
-        showPairInfo(client, BITSTAMP_USD, XRP);
+        showPairInfo(client, XRP, BITSTAMP_USD);
         showPairInfo(client, BITSTAMP_USD, BITSTAMP_BTC);
         showPairInfo(client, BITSTAMP_AUD, BITSTAMP_BTC);
 
     }
 
     private static void showOfferInfo(STObject offer) {
-        Amount takerPays     = offer.get(Amount.TakerPays);
-        Amount takerGets     = offer.get(Amount.TakerGets);
+        Amount takerPays = offer.get(Amount.TakerPays);
+        Amount takerGets = offer.get(Amount.TakerGets);
 
         // The quality is a high precision BigDecimal
         BigDecimal payForOne = takerPays.computeQuality(takerGets);
@@ -153,7 +161,7 @@ public class CheckPrice {
         printSeparatorBanner();
         // Multiply and divide will round/scale to the required bounds
         print("%40s == %s\n", paysOne.multiply(payForOne).toText(), getsOne.toText());
-        print("%40s == %s\n", getsOne.divide(payForOne).toText(),  paysOne.toText());
+        print("%40s == %s\n", getsOne.divide(payForOne).toText(), paysOne.toText());
     }
 
     private static void print(String fmt, Object... args) {
@@ -161,7 +169,8 @@ public class CheckPrice {
     }
 
     private static void printSeparatorBanner() {
-        for (int i = 0; i < 80; i++) System.out.print("-");
+        for (int i = 0; i < 80; i++)
+            System.out.print("-");
         System.out.println();
     }
 }
