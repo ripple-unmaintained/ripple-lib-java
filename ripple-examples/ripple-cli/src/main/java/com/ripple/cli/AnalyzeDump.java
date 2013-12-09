@@ -70,7 +70,7 @@ public class AnalyzeDump {
                         tr.initiatingAccount().equals(giveAwayAccount)) {
                         Amount amount = tr.transaction.get(Amount.Amount);
 
-                        if (amount.isNative) {
+                        if (amount.isNative()) {
                             successful++;
                             BigDecimal value = amount.xrpScaleValue();
                             payments.count(value);

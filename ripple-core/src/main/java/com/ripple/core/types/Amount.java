@@ -114,7 +114,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
      * @return a postive value for the mantissa
      */
     private UInt64 calculateMantissa() {
-        if (isNative) {
+        if (isNative()) {
             return new UInt64(bigIntegerDrops().abs());
         } else {
             return new UInt64(bigIntegerIOUMantissa());
@@ -139,7 +139,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     private void initialize() {
-        if (isNative) {
+        if (isNative()) {
             issuer = AccountID.ZERO;
             if (!unbounded) {
                 checkXRPBounds(value);
@@ -170,11 +170,11 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return newValue(value.subtract(subtrahend.value));
     }
 
-    public Amount roundedMultiply(Amount multiplicand) {
+    public Amount multiply(Amount multiplicand) {
         return newValue(value.multiply(multiplicand.value, MATH_CONTEXT), true);
     }
 
-    public Amount roundedDivide(Amount divisor) {
+    public Amount divide(Amount divisor) {
         return newValue(value.divide(divisor.value, MATH_CONTEXT), true);
     }
 
@@ -247,9 +247,9 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     private Amount newValue(BigDecimal newValue, boolean round, boolean unbounded) {
         if (round) {
-            newValue = round(isNative, newValue);
+            newValue = round(isNative(), newValue);
         }
-        return new Amount(newValue, currency, issuer, isNative, unbounded);
+        return new Amount(newValue, currency, issuer, isNative(), unbounded);
     }
 
     public BigInteger toBigInteger() {
@@ -304,11 +304,15 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public Amount oneAtXRPScale() {
-        if (isNative) {
+        if (isNative()) {
             return ONE_XRP;
         } else {
             return issue().amount(1);
         }
+    }
+
+    public boolean isNative() {
+        return isNative;
     }
 
     public static class Translator extends TypeTranslator<Amount> {
@@ -364,7 +368,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
         @Override
         public Object toJSON(Amount obj) {
-            if (obj.isNative) {
+            if (obj.isNative()) {
                 return obj.toDropsString();
             } else {
                 return toJSONObject(obj);
@@ -389,7 +393,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         public void toBytesTree(Amount obj, BytesTree to) {
             UInt64 man = obj.mantissa();
 
-            if (obj.isNative) {
+            if (obj.isNative()) {
                 if (!obj.isNegative()) {
                     man = man.or(cPosNative);
                 }
@@ -457,7 +461,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         this.setValue(value);
     }
 
-    public boolean isNative;
+    private boolean isNative;
 
     private Amount(BigDecimal value) {
         isNative = true;
@@ -483,7 +487,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public String toDropsString() {
-        if (!isNative) {
+        if (!isNative()) {
             throw new RuntimeException("Amount is not native");
         }
         return bigIntegerDrops().toString();
@@ -494,7 +498,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
      * @return A String representation as used by ripple json format
      */
     public String stringRepr() {
-        if (isNative) {
+        if (isNative()) {
             return toDropsString();
         } else {
             return iouTextFull();
@@ -510,7 +514,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public String toTextFull() {
-        if (isNative) {
+        if (isNative()) {
             return nativeText();
         } else {
             return iouTextFull();
@@ -527,7 +531,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public String toText() {
-        if (isNative) {
+        if (isNative()) {
             return toTextFull();
         } else {
             return iouText();
@@ -545,7 +549,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
      * @return A BigDecimal containing the value (in XRP scale when native)
      */
     public BigDecimal xrpScaleValue() {
-        return isNative ? value.scaleByPowerOfTen(-6) : value;
+        return isNative() ? value.scaleByPowerOfTen(-6) : value;
     }
 
     private static void checkLowerDropBound(BigDecimal val) {

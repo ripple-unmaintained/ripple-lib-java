@@ -70,7 +70,7 @@ public class TransactionManager {
 
         final Request req = client.newRequest(Command.submit);
         req.json("tx_blob", B16.toString(transaction.tx_blob));
-        if (!transaction.get(Amount.Amount).isNative) {
+        if (!transaction.get(Amount.Amount).isNative()) {
             req.json("build_path", true);
         }
 
