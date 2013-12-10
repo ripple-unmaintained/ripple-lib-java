@@ -1,9 +1,9 @@
 package com.ripple.core.types;
 
+import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesTree;
-import com.ripple.core.fields.Field;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.types.uint.UInt64;
@@ -290,6 +290,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     static public TypedFields.AmountField MinimumOffer = amountField(Field.MinimumOffer);
     static public TypedFields.AmountField RippleEscrow = amountField(Field.RippleEscrow);
 
+    // TODO: create a Quality extends BigDecimal type
 //    static public TypedFields.AmountField quality = amountField(Field.quality);
     static public TypedFields.AmountField taker_gets_funded = amountField(Field.taker_gets_funded);
     static public TypedFields.AmountField taker_pays_funded = amountField(Field.taker_pays_funded);
@@ -302,6 +303,12 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return xrpScaleValue().divide(takerGets.xrpScaleValue(), MathContext.DECIMAL128);
     }
 
+    /**
+     * @return one Amount
+     *  The real native unit is a drop, one million of which are an XRP.
+     *  We want `one` unit at XRP scale (1e6 drops), or if it's an IOU,
+     *  just `one`.
+     */
     public Amount oneAtXRPScale() {
         if (isNative()) {
             return ONE_XRP;
@@ -553,7 +560,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     private static void checkLowerDropBound(BigDecimal val) {
         if (val.scale() > 0) {
-            throw new RuntimeException("XRP string is log of bounds");
+            throw getIllegalArgumentException(val, "bigger", MIN_DROPS);
         }
     }
 
