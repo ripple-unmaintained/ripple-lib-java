@@ -7,7 +7,6 @@ import com.ripple.client.responses.Response;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
 import com.ripple.core.known.sle.Offer;
 import com.ripple.core.types.*;
-import com.ripple.core.types.uint.UInt16;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -56,19 +55,17 @@ public class CheckPrice {
         }
 
         private void calculateStats() {
-            STObject firstAsk = asks.get(0);
-            STObject firstBid = bids.get(0);
+            Offer firstAsk = (Offer) asks.get(0);
+            Offer firstBid = (Offer) bids.get(0);
 
-            BigDecimal askQuality = firstAsk.get(Amount.TakerPays).computeQuality(
-                    firstAsk.get(Amount.TakerGets));
+            BigDecimal askQuality = firstAsk.askQuality();
+            BigDecimal bidQuality = firstBid.bidQuality();
 
-            BigDecimal bidQuality = firstBid.get(Amount.TakerGets).computeQuality(
-                    firstBid.get(Amount.TakerPays));
-
-            Amount secondOne = firstAsk.get(Amount.TakerPays).oneAtXRPScale();
+            Amount secondOne = firstAsk.paysOne();
 
             ask    = secondOne.multiply(askQuality);
             bid    = secondOne.multiply(bidQuality);
+
             spread = ask.subtract(bid).abs();
         }
 
@@ -116,7 +113,6 @@ public class CheckPrice {
         public boolean isEmpty() {
             return !retrievedBothBooks() || asks.isEmpty() || bids.isEmpty();
         }
-
     }
 
     private static void showPairInfo(Client client, Issue first, Issue second) {
@@ -144,7 +140,7 @@ public class CheckPrice {
     }
 
     private static void showOfferInfo(Offer offer) {
-        BigDecimal payForOne = offer.computeQuality();
+        BigDecimal payForOne = offer.askQuality();
         Amount getsOne = offer.getsOne();
         Amount paysOne = offer.paysOne();
 

@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import com.ripple.core.formats.SLEFormat;
 import com.ripple.core.known.sle.Offer;
 import junit.framework.TestCase;
 import org.json.JSONException;
@@ -347,7 +346,7 @@ public class STObjectTest {
         offer.put(Amount.TakerPays, "2.0");
 
         Offer casted = (Offer) STObject.formatted(offer);
-        TestCase.assertEquals(casted.computeQuality().toPlainString(), "2");
+        TestCase.assertEquals(casted.askQuality().toPlainString(), "2");
     }
 
     @Test

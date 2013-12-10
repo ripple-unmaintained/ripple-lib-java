@@ -11,7 +11,11 @@ public class Offer extends STObject {
         return Quality.fromOfferBookDirectory(this);
     }
 
-    public BigDecimal computeQuality() {
+    public BigDecimal askQuality() {
+        return get(Amount.TakerPays).computeQuality(get(Amount.TakerGets));
+    }
+
+    public BigDecimal bidQuality() {
         return get(Amount.TakerPays).computeQuality(get(Amount.TakerGets));
     }
 
