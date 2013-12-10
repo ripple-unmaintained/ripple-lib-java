@@ -26,6 +26,14 @@ import java.util.TreeMap;
 
 public class STObject implements SerializedType, Iterable<Field> {
 
+    public static STObject fromJSON(String offerJson) {
+        try {
+            return fromJSONObject(new JSONObject(offerJson));
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static class FieldsMap extends TreeMap<Field, SerializedType> {}
 
     protected FieldsMap fields;
@@ -126,6 +134,9 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
     public TransactionEngineResult transactionResult() {
         UInt8 uInt8 = get(UInt8.TransactionResult);
+        if (uInt8 == null) {
+            return null;
+        }
         return TransactionEngineResult.fromNumber(uInt8.intValue());
     }
     public LedgerEntryType ledgerEntryType() {

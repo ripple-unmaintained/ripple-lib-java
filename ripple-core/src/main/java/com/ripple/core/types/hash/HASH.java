@@ -80,20 +80,22 @@ public class HASH<Subclass extends HASH> implements SerializedType, Comparable<S
     }
 
     public byte[] slice(int start) {
-
         return slice(start, 0);
     }
 
-    public byte[] slice(int start, int end) {
-        byte[] bytes = bytes();
+    public byte get(int i) {
+        if (i < 0) i += hash.length;
+        return hash[i];
+    }
 
-        if (start < 0)  start += bytes.length;
-        if (end  <= 0)  end   += bytes.length;
+    public byte[] slice(int start, int end) {
+        if (start < 0)  start += hash.length;
+        if (end  <= 0)  end   += hash.length;
 
         int length = end - start;
         byte[] slice = new byte[length];
 
-        System.arraycopy(bytes, start, slice, 0, length);
+        System.arraycopy(hash, start, slice, 0, length);
         return slice;
     }
 

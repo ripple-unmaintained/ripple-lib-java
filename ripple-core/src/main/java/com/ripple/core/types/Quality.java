@@ -8,7 +8,7 @@ import java.math.BigInteger;
 public class Quality  {
     public static BigDecimal fromBookDirectory(Hash256 bookDirectory, boolean isNative) {
         byte[] value  = bookDirectory.slice(-7);
-        int offset = bookDirectory.slice(-8, -7)[0] - 100;
+        int offset = bookDirectory.get(-8) - 100;
         return new BigDecimal(new BigInteger(1, value), -(isNative ? offset - 6 : offset));
     }
     public static BigDecimal fromOfferBookDirectory(STObject offer) {
