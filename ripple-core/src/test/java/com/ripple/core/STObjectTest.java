@@ -5,6 +5,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.ripple.core.formats.SLEFormat;
+import com.ripple.core.known.sle.Offer;
+import junit.framework.TestCase;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -334,6 +337,17 @@ public class STObjectTest {
         String actual = meta.toHex();
         assertEquals(jsonHexed.length(), actual.length());
         assertEquals(jsonHexed, actual);
+    }
+
+    @Test
+    public void testFormatted() throws Exception {
+        STObject offer = new STObject();
+        offer.put(UInt16.LedgerEntryType, LedgerEntryType.Offer.asInteger());
+        offer.put(Amount.TakerGets, "1.0");
+        offer.put(Amount.TakerPays, "2.0");
+
+        Offer casted = (Offer) STObject.formatted(offer);
+        TestCase.assertEquals(casted.computeQuality().toPlainString(), "2");
     }
 
     @Test
