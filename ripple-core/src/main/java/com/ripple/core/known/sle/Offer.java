@@ -16,7 +16,7 @@ public class Offer extends STObject {
     }
 
     public BigDecimal bidQuality() {
-        return get(Amount.TakerPays).computeQuality(get(Amount.TakerGets));
+        return get(Amount.TakerGets).computeQuality(get(Amount.TakerPays));
     }
 
     public Amount getsOne() {
