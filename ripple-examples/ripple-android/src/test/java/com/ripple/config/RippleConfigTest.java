@@ -20,7 +20,6 @@ import android.content.res.AssetManager;
 @RunWith(RobolectricTestRunner.class)
 public class RippleConfigTest {
     AssetManager assetManager;
-    String sp = System.getProperty("file.separator");
     ObjectMapper mapper;
     InputStream inputStream;
 
@@ -37,7 +36,7 @@ public class RippleConfigTest {
     }
 
     @Test
-    public void assertGetAssetsNotNull() {
+    public void should_return_not_null_when_get_asset_manager() {
         assertNotNull(assetManager);
 
         assetManager = Robolectric.application.getAssets();
