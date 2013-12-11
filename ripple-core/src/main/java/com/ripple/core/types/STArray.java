@@ -64,7 +64,7 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
     }
     static public Translator translate = new Translator();
 
-    private STArray(){}
+    public STArray(){}
 
     public static TypedFields.STArrayField starrayField(final Field f) {
         return new TypedFields.STArrayField(){ @Override public Field getField() {return f;}};

@@ -1,4 +1,6 @@
 package com.ripple.core.known.sle;
 
-public class AccountRoot {
+import com.ripple.core.types.STObject;
+
+public class AccountRoot extends STObject{
 }

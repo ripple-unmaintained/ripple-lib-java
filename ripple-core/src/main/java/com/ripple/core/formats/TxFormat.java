@@ -13,13 +13,13 @@ public class TxFormat extends Format {
         return getTxFormat(TransactionType.valueOf(name));
     }
 
-    static public TxFormat fromInteger(int ord) {
+    static public TxFormat fromNumber(Number ord) {
         return getTxFormat(TransactionType.fromNumber(ord));
     }
 
     static public TxFormat fromValue(Object o) {
         if (o instanceof Number) {
-            return fromInteger(((Number) o).intValue());
+            return fromNumber(((Number) o).intValue());
         } else if (o instanceof String){
             return fromString((String) o);
         }

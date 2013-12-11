@@ -12,13 +12,13 @@ public class SLEFormat extends Format {
         return getLedgerFormat(LedgerEntryType.valueOf(name));
     }
 
-    static public SLEFormat fromInteger(int ord) {
+    static public SLEFormat fromNumber(Number ord) {
         return getLedgerFormat(LedgerEntryType.fromNumber(ord));
     }
 
     static public SLEFormat fromValue(Object o) {
         if (o instanceof Number) {
-            return fromInteger(((Number) o).intValue());
+            return fromNumber(((Number) o).intValue());
         } else if (o instanceof String){
             return fromString((String) o);
         }
@@ -27,7 +27,7 @@ public class SLEFormat extends Format {
         }
     }
 
-    private static SLEFormat getLedgerFormat(LedgerEntryType key) {
+    public static SLEFormat getLedgerFormat(LedgerEntryType key) {
         if (key == null) return null;
         return formats.get(key);
     }

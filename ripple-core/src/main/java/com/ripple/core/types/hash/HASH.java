@@ -79,6 +79,26 @@ public class HASH<Subclass extends HASH> implements SerializedType, Comparable<S
         return 0;
     }
 
+    public byte[] slice(int start) {
+        return slice(start, 0);
+    }
+
+    public byte get(int i) {
+        if (i < 0) i += hash.length;
+        return hash[i];
+    }
+
+    public byte[] slice(int start, int end) {
+        if (start < 0)  start += hash.length;
+        if (end  <= 0)  end   += hash.length;
+
+        int length = end - start;
+        byte[] slice = new byte[length];
+
+        System.arraycopy(hash, start, slice, 0, length);
+        return slice;
+    }
+
     static public abstract class HashTranslator<T extends HASH> extends TypeTranslator<T> {
 
         public abstract T newInstance(byte[] b);

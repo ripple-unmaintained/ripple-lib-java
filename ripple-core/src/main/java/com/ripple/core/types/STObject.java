@@ -7,6 +7,9 @@ import com.ripple.core.fields.*;
 import com.ripple.core.formats.Format;
 import com.ripple.core.formats.SLEFormat;
 import com.ripple.core.formats.TxFormat;
+import com.ripple.core.known.sle.AccountRoot;
+import com.ripple.core.known.sle.Offer;
+import com.ripple.core.known.sle.RippleState;
 import com.ripple.core.serialized.*;
 import com.ripple.core.types.hash.Hash128;
 import com.ripple.core.types.hash.Hash160;
@@ -22,7 +25,74 @@ import java.util.Iterator;
 import java.util.TreeMap;
 
 public class STObject implements SerializedType, Iterable<Field> {
-    private TreeMap<Field, SerializedType> fields = new TreeMap<Field, SerializedType>();
+
+    public static STObject fromJSON(String offerJson) {
+        try {
+            return fromJSONObject(new JSONObject(offerJson));
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static class FieldsMap extends TreeMap<Field, SerializedType> {}
+
+    protected FieldsMap fields;
+    public Format format;
+
+    public STObject() {
+        fields = new FieldsMap();
+    }
+    public STObject(FieldsMap fieldsMap) {
+        fields = fieldsMap;
+    }
+
+    public static STObject newInstance() {
+        return new STObject();
+    }
+
+    public static STObject formatted(STObject source) {
+        LedgerEntryType ledgerEntryType = source.ledgerEntryType();
+        if (ledgerEntryType == null) {
+            return source;
+        }
+
+        STObject constructed = null;
+        switch (ledgerEntryType) {
+            case Offer:
+                constructed = new Offer();
+                break;
+            case RippleState:
+                constructed = new RippleState();
+                break;
+            case AccountRoot:
+                constructed = new AccountRoot();
+                break;
+            case Invalid:
+                break;
+            case DirectoryNode:
+                break;
+            case GeneratorMap:
+                break;
+            case Nickname:
+                break;
+            case Contract:
+                break;
+            case LedgerHashes:
+                break;
+            case EnabledFeatures:
+                break;
+            case FeeSettings:
+                break;
+        }
+        if (constructed == null) {
+            return source;
+        }  else {
+            // getFormat() may get the Format from the fields
+            constructed.setFormat(source.getFormat());
+            constructed.fields = source.stealFields();
+            return constructed;
+        }
+    }
 
     public String toHex() {
         return translate.toWireHex(this);
@@ -30,12 +100,33 @@ public class STObject implements SerializedType, Iterable<Field> {
     public byte[] toWireBytes() {
         return translate.toWireBytes(this);
     }
+
     public static STObject fromJSONObject(JSONObject json) {
         return translate.fromJSONObject(json);
     }
 
+    public FieldsMap stealFields() {
+        /*Steal the fields map*/
+        FieldsMap stolen = fields;
+        /*Any subsequent usage will blow up*/
+        fields = null;
+        return stolen;
+    }
+
     public Format getFormat() {
+        if (format == null) computeFormat();
         return format;
+    }
+
+    private void computeFormat() {
+        UInt16 tt = get(UInt16.TransactionType);
+        if (tt != null) {
+            setFormat(TxFormat.fromNumber(tt));
+        }
+        UInt16 let = get(UInt16.LedgerEntryType);
+        if (let != null) {
+            setFormat(SLEFormat.fromNumber(let));
+        }
     }
 
     public void setFormat(Format format) {
@@ -43,17 +134,25 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
     public TransactionEngineResult transactionResult() {
         UInt8 uInt8 = get(UInt8.TransactionResult);
+        if (uInt8 == null) {
+            return null;
+        }
         return TransactionEngineResult.fromNumber(uInt8.intValue());
     }
     public LedgerEntryType ledgerEntryType() {
         UInt16 uInt16 = get(UInt16.LedgerEntryType);
-        return LedgerEntryType.fromNumber(uInt16.intValue());
+        if (uInt16 == null) {
+            return null;
+        }
+        return LedgerEntryType.fromNumber(uInt16);
     }
     public TransactionType transactionType() {
         UInt16 uInt16 = get(UInt16.TransactionType);
-        return TransactionType.fromNumber(uInt16.intValue());
+        if (uInt16 == null) {
+            return null;
+        }
+        return TransactionType.fromNumber(uInt16);
     }
-    public Format format;
 
     public SerializedType remove(Field f) {
         return fields.remove(f);
@@ -110,7 +209,7 @@ public class STObject implements SerializedType, Iterable<Field> {
             }
 
             parser.safelyAdvancePast(objectEnd);
-            return so;
+            return STObject.formatted(so);
         }
 
         @Override
@@ -158,38 +257,16 @@ public class STObject implements SerializedType, Iterable<Field> {
                     }
                     if (fieldKey == null) {
                         continue;
-//                        throw new RuntimeException("Unknown message " + key);
-                    } else if (fieldKey == Field.TransactionType) {
-                        TxFormat format = TxFormat.fromValue(value);
-
-                        if (format == null) {
-                            throw new RuntimeException("Value (un)specified for TransactionType is invalid. " +
-                                    "Must be string or int mapping to a TxFormat");
-                        } else {
-                            so.setFormat(format);
-                            value = format.transactionType.asInteger();
-                        }
-
-                    } else if (fieldKey == Field.LedgerEntryType) {
-                        SLEFormat format = SLEFormat.fromValue(value);
-
-                        if (format == null) {
-                            throw new RuntimeException("Value specified for LedgerEntryType is invalid. " +
-                                    "Must be string or int mapping to a SLEFormat");
-                        } else {
-                            so.setFormat(format);
-                            value = format.ledgerEntryType.asInteger();
-                        }
-                    } else if (fieldKey == Field.TransactionResult && value instanceof String) {
-                        value = TransactionEngineResult.valueOf((String) value).asInteger();
-
+                    }
+                    if (FieldSymbolics.isSymbolicField(fieldKey) && value instanceof String) {
+                        value = FieldSymbolics.asInteger(fieldKey, (String) value);
                     }
                     so.put(fieldKey, value);
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
             }
-            return so;
+            return STObject.formatted(so);
         }
 
         @Override
@@ -211,12 +288,6 @@ public class STObject implements SerializedType, Iterable<Field> {
 
     static public Translator translate = new Translator();
 
-    public STObject() {
-    }
-
-    public static STObject newInstance() {
-        return new STObject();
-    }
 
 
     public static TypedFields.STObjectField stobjectField(final Field f) {
