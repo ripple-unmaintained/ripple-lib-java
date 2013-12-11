@@ -16,7 +16,7 @@
     <name>ripple-android</name>
     <url>http://maven.apache.org</url>
     <properties>
-        <platform.version>4.1.1.4</platform.version>
+        <platform.version>2.3.3</platform.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

@@ -90,7 +90,7 @@ public class LoginActivity extends Activity {
                 return;
             }
             showMessage("Retrieved blob!");
-
+//            MyAccountActivity.launch(this,blob);
         }
 
         /**

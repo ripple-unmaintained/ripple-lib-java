@@ -1,6 +1,8 @@
 
 package com.ripple.android.activities;
 
+import static org.junit.Assert.*;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,11 +17,15 @@ import android.os.Bundle;
 @RunWith(RobolectricTestRunner.class)
 public class MyAccountActivityTest {
     private ActivityController<MyAccountActivity> controller;
-    private MyAccountActivity activity;
+
+    private MyAccountActivity myAccountActivity;
 
     @Before
     public void setUp() {
         controller = Robolectric.buildActivity(MyAccountActivity.class);
+        Intent intent = new Intent(Robolectric.application, MyAccountActivity.class);
+        myAccountActivity = (MyAccountActivity) controller.withIntent(intent).create().start()
+                .visible().get();
     }
 
     @After
@@ -28,17 +34,12 @@ public class MyAccountActivityTest {
     }
 
     private void createWithIntent(String myExtra) {
-        Intent intent = new Intent(Robolectric.application,
-                MyAccountActivity.class);
+        Intent intent = new Intent(Robolectric.application, MyAccountActivity.class);
         Bundle extras = new Bundle();
         extras.putString("myExtra", myExtra);
         intent.putExtras(extras);
-        activity = (MyAccountActivity) controller
-                .withIntent(intent)
-                .create()
-                .start()
-                .visible()
-                .get();
+        myAccountActivity = (MyAccountActivity) controller.withIntent(intent).create().start()
+                .visible().get();
     }
 
     @Test
@@ -55,9 +56,8 @@ public class MyAccountActivityTest {
     }
 
     @Test
-    public void recreatesActivity() {
-        createWithIntent("foo");
-        // activity.recreate();
-        // Assertions go here
+    public void should_return_user_not_null_when_my_account_activity_launch() {
+        assertNotNull(myAccountActivity.getCurrentUser());
     }
+
 }
