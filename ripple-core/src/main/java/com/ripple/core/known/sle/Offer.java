@@ -20,10 +20,10 @@ public class Offer extends STObject {
     }
 
     public Amount getsOne() {
-        return get(Amount.TakerGets).oneAtXRPScale();
+        return get(Amount.TakerGets).one();
     }
     public Amount paysOne() {
-        return get(Amount.TakerPays).oneAtXRPScale();
+        return get(Amount.TakerPays).one();
     }
 
 }

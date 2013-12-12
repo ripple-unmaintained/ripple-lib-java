@@ -72,7 +72,7 @@ public class AnalyzeDump {
 
                         if (amount.isNative()) {
                             successful++;
-                            BigDecimal value = amount.xrpScaleValue();
+                            BigDecimal value = amount.value();
                             payments.count(value);
                             if (tr.createdAccount() != null) {
                                 createdStats.count(value);

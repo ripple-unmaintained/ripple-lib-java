@@ -28,7 +28,7 @@ public class OfferTest {
                 " \"quality\": \"149980000\"}");
 
         Offer offer = (Offer) STObject.fromJSONObject(offerJson);
-        assertEquals(offer.askQuality(), Amount.fromString(offerJson.getString("quality")).xrpScaleValue());
+        assertEquals(offer.askQuality(), Amount.fromString(offerJson.getString("quality")).value());
         assertEquals("USD", offer.getsOne().currencyString());
         assertEquals("XRP", offer.paysOne().currencyString());
     }

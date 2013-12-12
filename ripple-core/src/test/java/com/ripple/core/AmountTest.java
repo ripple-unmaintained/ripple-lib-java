@@ -1,6 +1,7 @@
 package com.ripple.core;
 
 import com.ripple.core.types.Amount;
+import com.ripple.core.types.uint.UInt32;
 import com.ripple.encodings.base58.EncodingFormatException;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -16,6 +17,12 @@ public class AmountTest {
 
     Amount.Translator amounts = Amount.translate;
 
+    @Test
+    public void testXRPFromMantissaBytes() throws Exception {
+        byte[] mantissa = new UInt32(99000001).toByteArray();
+        BigDecimal bigDecimal = Amount.xrpFromDropsMantissa(mantissa, 1);
+        assertEquals("99000001", bigDecimal.scaleByPowerOfTen(6).toPlainString());
+    }
 
     @Test
     public void testAbs() throws Exception {
@@ -24,8 +31,9 @@ public class AmountTest {
 
     @Test
     public void testSubtraction() throws Exception {
-        assertEquals(amt("10"), amt("11").subtract(amt("1")));
-        assertEquals(amt("10"), amt("11").subtract(1));
+//        assertEquals(amt("10"), amt("11").subtract(amt("1")));
+        assertEquals(amt("10"), amt("11").subtract(Amount.fromString("0.000001")));
+        assertEquals(amt("10"), amt("11").subtract(new BigDecimal("0.000001")));
     }
 
     @Test
@@ -165,6 +173,13 @@ public class AmountTest {
         assertOffset("999999999999999",    -1 );
         assertOffset("9999999999999999",    0 );
 
+    }
+
+    @Test
+    public void testRidiculousNess() throws Exception {
+        Amount oneXRP = amt("1.0");
+        Amount oneUSD = amt("1.0/USD");
+        assertEquals(oneUSD, oneUSD.multiply(oneXRP));
     }
 
     private void assertOffset(String s, int i) {
@@ -444,7 +459,7 @@ public class AmountTest {
     }
     @Test
     public void test_Multiply_XRP_with_USD_neg_frac() {
-        assertEquals("-0.222/XRP", amt("-6000").multiply(amt("37/USD/root")).toTextFull());
+        assertEquals("-0.222/XRP", amt("-0.006").multiply(amt("37/USD/root")).toTextFull());
     }
     @Test
     public void test_Multiply_USD_with_USD() {
@@ -468,19 +483,22 @@ public class AmountTest {
     }
     @Test
     public void test_Multiply_EUR_with_XRP_factor_1() {
-        assertEquals("100/EUR/" + rootAddress, amt("0.05/EUR/root").multiply(amt("2000")).toTextFull());
+        assertEquals("0.0001/EUR/" + rootAddress, amt("0.05/EUR/root").multiply(amt("0.002000")).toTextFull());
     }
     @Test
     public void test_Multiply_EUR_with_XRP_neg() {
-        assertEquals("-500/EUR/" + rootAddress, amt("-100/EUR/root").multiply(amt("5")).toTextFull());
+        assertEquals("-0.0005/EUR/" + rootAddress, amt("-100/EUR/root").multiply(amt("0.000005")).toTextFull());
     }
     @Test
     public void test_Multiply_EUR_with_XRP_neg_1() {
-        assertEquals("-100/EUR/" + rootAddress, amt("-0.05/EUR/root").multiply(amt("2000")).toTextFull());
+        assertEquals("-0.0001/EUR/" + rootAddress, amt("-0.05/EUR/root").multiply(amt("0.002000")).toTextFull());
     }
     @Test
     public void test_Multiply_XRP_with_XRP() {
-        assertEquals("0.0001/XRP", amt("10").multiply(amt("10")).toTextFull());
+        // This is actually too small for XRP so is rounded into nothingness
+        // TODO, rounding values that are inside bound extremes seems fine
+        // but rounding to nothingness ?? Should that blow up ??
+        assertEquals("0/XRP", amt("10").multiply(amt("10")).toTextFull());
     }
     @Test
     public void test_Divide_XRP_by_USD() {
@@ -528,15 +546,15 @@ public class AmountTest {
     }
     @Test
     public void test_Divide_EUR_by_XRP_result_1() {
-        assertEquals("0.05/EUR/" + rootAddress, amt("100/EUR/root").divide(amt("2000")).toTextFull());
+        assertEquals("50000/EUR/" + rootAddress, amt("100/EUR/root").divide(amt("0.002000")).toTextFull());
     }
     @Test
     public void test_Divide_EUR_by_XRP_neg() {
-        assertEquals("-20/EUR/" + rootAddress, amt("-100/EUR/root").divide(amt("5")).toTextFull());
+        assertEquals("-20000000/EUR/" + rootAddress, amt("-100/EUR/root").divide(amt("0.000005")).toTextFull());
     }
     @Test
     public void test_Divide_EUR_by_XRP_neg_1() {
-        assertEquals("-0.05/EUR/" + rootAddress, amt("-100/EUR/root").divide(amt("2000")).toTextFull());
+        assertEquals("-50000/EUR/" + rootAddress, amt("-100/EUR/root").divide(amt("0.002000")).toTextFull());
     }
 
     @Test
