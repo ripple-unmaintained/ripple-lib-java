@@ -1,35 +1,41 @@
 
 package com.ripple.service;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
 public class RippleServiceTest {
+    private static final String EXPECTED_MASTER_SEED = "spkzBtpghrz6i8M2wSHafvxXAJbto";
+
+    private static final String TEST_ACCOUNT_CONFIG = "/myAccount.json";
+
     RippleService rippleService;
 
-    private JSONObject jsonObject;
+    private String userName = "userName";
 
-    private String userName;
+    private String password = "password";
 
-    private String password;
-
-    private String address;
+    private static final String EXPECTED_ADDRESS = "rHnS75sy8Dp6qb5twi1rHHTZwujst6hn0";
 
     @Before
     public void setUp() {
-        rippleService = new RippleService();
-        // need set your account. then you can comment out should_return_json_object_not_null_when_login_success
-        //and should_return_json_object_when_to_string
-        jsonObject = rippleService.login(userName, password);
+        rippleService = mock(RippleService.class);
+        when(rippleService.login(userName, password)).thenReturn(
+                RippleService.convertToUser(this.getClass()
+                        .getResourceAsStream(TEST_ACCOUNT_CONFIG)));
+        when(rippleService.login("user", "password")).thenReturn(null);
     }
 
-    // @Test
+    @Test
     public void should_return_json_object_not_null_when_login_success() {
-        assertNotNull(jsonObject);
+        assertNotNull(rippleService.login(userName, password));
     }
 
     @Test
@@ -37,9 +43,33 @@ public class RippleServiceTest {
         assertNull(rippleService.login("user", "password"));
     }
 
-//    @Test
-    public void should_return_json_object_when_to_string() throws JSONException {
-        assertEquals(address, jsonObject.getString("account_id"));
+    @Test
+    public void should_return_expected_address_when_get_wallet_address() throws JSONException {
+        assertEquals(EXPECTED_ADDRESS, rippleService.login(userName, password).getWalletAddress());
     }
 
+    @Test
+    public void should_return_expected_master_seed_when_get_master_seed() throws JSONException {
+        assertEquals(EXPECTED_MASTER_SEED, rippleService.login(userName, password).getMasterSeed());
+    }
+
+    @Test
+    public void should_return_5_when_get_contracts_size() throws JSONException {
+        assertEquals(5, rippleService.login(userName, password).getContacts().size());
+    }
+//////////////////////////////real test////////////////////////////////////////////////////
+//    @Test
+    public void should_return_correct_account_when_get_account() throws JSONException {
+        rippleService = new RippleService();
+        rippleService.connectServer("wss://s1.ripple.com");
+        assertEquals(100, rippleService.getAccountFromSeed("spkzBtpZuMo6i8M2wSHafvxXAJbto")
+                .getAccountRoot());
+    }
+
+//    @Test
+    public void should_return_correct_balance_when_get_balance() throws JSONException {
+        rippleService = new RippleService();
+        assertEquals(100, rippleService.login("", "").getBalance()
+                .intValue());
+    }
 }

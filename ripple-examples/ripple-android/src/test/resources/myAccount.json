@@ -1,0 +1,30 @@
+{
+    account_id: "rHnS75sy8Dp6qb5twi1rHHTZwujst6hn0", 
+    master_seed: "spkzBtpghrz6i8M2wSHafvxXAJbto", 
+    preferred_second_issuer: { }, 
+    preferred_issuer: {
+        CNY: "razqQKzJRdB4UxFPWf5NEpEG3WMkmwgcXA"
+    }, 
+    contacts: [
+        {
+            address: "rfERiudSg7YWkYcdvUC3bkwHsDZTXtwpQf", 
+            name: "test"
+        }, 
+        {
+            address: "rNKXT1p7jpt5WxSRSzmUV6ZB6kY7jdqHmx", 
+            name: "WCG"
+        }, 
+        {
+            address: "razqQKzJRdB4UxFPWf5NEpEG3WMkmwgcXA", 
+            name: "ripplechina"
+        }, 
+        {
+            address: "rM8199qFwspxiWNZRChZdZbGN5WrCepVP1", 
+            name: "xrpchina"
+        }, 
+        {
+            address: "rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK", 
+            name: "rippleCN"
+        }
+    ]
+}

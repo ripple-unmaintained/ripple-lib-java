@@ -1,3 +1,4 @@
+
 package com.ripple.client.subscriptions;
 
 import com.ripple.client.ClientLogger;
@@ -13,35 +14,62 @@ import org.json.JSONObject;
  * This should probably be a
  */
 public class AccountRoot extends Publisher<AccountRoot.events> {
-    public static abstract class events<T> extends Publisher.Callback<T> {}
-    public static abstract class OnUpdate extends events<AccountRoot> {}
+    public static abstract class events<T> extends Publisher.Callback<T> {
+    }
+
+    public static abstract class OnUpdate extends events<AccountRoot> {
+    }
+
     boolean updated = false;
 
     public boolean primed() {
         return updated;
     }
 
-    public void updateFromTransaction(Hash256 transactionHash, UInt32 transactionLedgerIndex, STObject rootUpdates) {
-        if (!updated  || PreviousTxnID.equals(rootUpdates.get(Hash256.PreviousTxnID))) {
+    public void updateFromTransaction(Hash256 transactionHash, UInt32 transactionLedgerIndex,
+            STObject rootUpdates) {
+        if (!updated || PreviousTxnID.equals(rootUpdates.get(Hash256.PreviousTxnID))) {
             setFromSTObject(rootUpdates.get(STObject.FinalFields));
             PreviousTxnID = transactionHash;
             PreviousTxnLgrSeq = transactionLedgerIndex;
         } else {
-            ClientLogger.log("hrmmm .... "); // We should keep track of these and try and form a chain
+            ClientLogger.log("hrmmm .... "); // We should keep track of these
+                                             // and try and form a chain
         }
     }
 
-    public AccountID     Account;
-    public Amount        Balance;
-    public UInt32        Sequence;
-    public UInt32        OwnerCount;
-    public UInt32        Flags;
-    public Hash256       PreviousTxnID;
-    public UInt32        PreviousTxnLgrSeq;
+    public AccountID Account;
 
-    public AccountRoot(JSONObject object){setFromJSON(object);    }
-    public AccountRoot(STObject   object){setFromSTObject(object);}
-    public AccountRoot()   {}
+    private Amount balance;
+
+    public Amount getBalance() {
+        return balance;
+    }
+
+    public void setBalance(Amount balance) {
+        this.balance = balance;
+    }
+
+    public UInt32 Sequence;
+
+    public UInt32 OwnerCount;
+
+    public UInt32 Flags;
+
+    public Hash256 PreviousTxnID;
+
+    public UInt32 PreviousTxnLgrSeq;
+
+    public AccountRoot(JSONObject object) {
+        setFromJSON(object);
+    }
+
+    public AccountRoot(STObject object) {
+        setFromSTObject(object);
+    }
+
+    public AccountRoot() {
+    }
 
     public void setFromJSON(JSONObject jsonObject) {
         setFromSTObject(STObject.translate.fromJSONObject(jsonObject));
@@ -49,7 +77,7 @@ public class AccountRoot extends Publisher<AccountRoot.events> {
 
     public void setUnfundedAccount(AccountID account) {
         Account = account;
-        Balance = Amount.fromString("0");
+        balance = Amount.fromString("0");
         Sequence = new UInt32(1);
         OwnerCount = new UInt32(0);
         Flags = new UInt32(0);
@@ -61,13 +89,20 @@ public class AccountRoot extends Publisher<AccountRoot.events> {
 
     public void setFromSTObject(STObject so) {
 
-        if (so.has(AccountID.Account))         Account            = so.get(AccountID.Account);
-        if (so.has(Amount.Balance))            Balance            = so.get(Amount.Balance);
-        if (so.has(UInt32.Sequence))           Sequence           = so.get(UInt32.Sequence);
-        if (so.has(UInt32.OwnerCount))         OwnerCount         = so.get(UInt32.OwnerCount);
-        if (so.has(UInt32.Flags))              Flags              = so.get(UInt32.Flags);
-        if (so.has(Hash256.PreviousTxnID))     PreviousTxnID      = so.get(Hash256.PreviousTxnID);
-        if (so.has(UInt32.PreviousTxnLgrSeq))  PreviousTxnLgrSeq  = so.get(UInt32.PreviousTxnLgrSeq);
+        if (so.has(AccountID.Account))
+            Account = so.get(AccountID.Account);
+        if (so.has(Amount.Balance))
+            balance = so.get(Amount.Balance);
+        if (so.has(UInt32.Sequence))
+            Sequence = so.get(UInt32.Sequence);
+        if (so.has(UInt32.OwnerCount))
+            OwnerCount = so.get(UInt32.OwnerCount);
+        if (so.has(UInt32.Flags))
+            Flags = so.get(UInt32.Flags);
+        if (so.has(Hash256.PreviousTxnID))
+            PreviousTxnID = so.get(Hash256.PreviousTxnID);
+        if (so.has(UInt32.PreviousTxnLgrSeq))
+            PreviousTxnLgrSeq = so.get(UInt32.PreviousTxnLgrSeq);
 
         notifyUpdate();
     }
