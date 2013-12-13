@@ -5,6 +5,7 @@ import static com.ripple.config.Config.getB58IdentiferCodecs;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ripple.encodings.common.B16;
 import org.ripple.bouncycastle.util.encoders.Hex;
 
 import com.ripple.core.fields.Field;
@@ -147,7 +148,7 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
         if (value.startsWith("r") && value.length() >= 26) {
             return AccountID.fromAddress(value);
         } else if (value.length() == 160 / 4) {
-            return AccountID.fromAddressBytes(Hex.decode(value));
+            return AccountID.fromAddressBytes(B16.decode(value));
         } else {
             // This is potentially dangerous but fromString in
             // generic sense is used by Amount for parsing strings

@@ -7,7 +7,7 @@ import com.ripple.core.types.STObject;
 import java.math.BigDecimal;
 
 public class Offer extends STObject {
-    BigDecimal quality() {
+    BigDecimal directoryQuality() {
         return Quality.fromOfferBookDirectory(this);
     }
 

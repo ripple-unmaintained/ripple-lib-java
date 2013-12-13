@@ -543,12 +543,13 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     @Override
     public String toString() {
+        // TODO toText() ???
         return toTextFull();
     }
 
     public String toText() {
         if (isNative()) {
-            return toTextFull();
+            return nativeText();
         } else {
             return iouText();
         }
