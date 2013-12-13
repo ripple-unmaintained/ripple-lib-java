@@ -14,7 +14,7 @@ import org.junit.Test;
 public class RippleServiceTest {
     private static final String EXPECTED_MASTER_SEED = "spkzBtpghrz6i8M2wSHafvxXAJbto";
 
-    private static final String TEST_ACCOUNT_CONFIG = "/myAccount.json";
+    public static final String TEST_ACCOUNT_CONFIG = "/myAccount.json";
 
     RippleService rippleService;
 
@@ -56,20 +56,5 @@ public class RippleServiceTest {
     @Test
     public void should_return_5_when_get_contracts_size() throws JSONException {
         assertEquals(5, rippleService.login(userName, password).getContacts().size());
-    }
-//////////////////////////////real test////////////////////////////////////////////////////
-//    @Test
-    public void should_return_correct_account_when_get_account() throws JSONException {
-        rippleService = new RippleService();
-        rippleService.connectServer("wss://s1.ripple.com");
-        assertEquals(100, rippleService.getAccountFromSeed("spkzBtpZuMo6i8M2wSHafvxXAJbto")
-                .getAccountRoot());
-    }
-
-//    @Test
-    public void should_return_correct_balance_when_get_balance() throws JSONException {
-        rippleService = new RippleService();
-        assertEquals(100, rippleService.login("", "").getBalance()
-                .intValue());
     }
 }

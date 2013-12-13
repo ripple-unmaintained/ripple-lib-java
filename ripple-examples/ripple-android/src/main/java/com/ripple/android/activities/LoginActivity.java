@@ -1,8 +1,6 @@
 
 package com.ripple.android.activities;
 
-import org.json.JSONObject;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -17,12 +15,13 @@ import android.widget.Toast;
 
 import com.google.common.base.Strings;
 import com.ripple.android.R;
-import com.ripple.client.blobvault.BlobVault;
+import com.ripple.android.profile.User;
+import com.ripple.service.RippleService;
 
 public class LoginActivity extends Activity {
     protected static final String TAG = LoginActivity.class.getName();
 
-    private BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
+    private RippleService mRippleService = new RippleService();
 
     private Button mLoginBtn;
 
@@ -52,14 +51,16 @@ public class LoginActivity extends Activity {
             }
 
             private void checkLoginFields() {
+
                 if (loginFieldsValid()) {
-                    showMessage("Login field emptys");
-                } else {
-                    if (mLoginTask == null) {
-                        mLoginTask = new LoginTask();
-                    }
+                    threadSafeSetStatus("Must enter username and password");
+                } else if (mLoginTask == null) {
+                    mLoginTask = new LoginTask();
                     mLoginTask.execute(mUsername.getText().toString(), mPassword.getText()
                             .toString());
+                    threadSafeSetStatus("Retrieving blob!");
+                } else {
+                    threadSafeSetStatus("Waiting for blob to be retrieved!");
                 }
             }
 
@@ -75,22 +76,31 @@ public class LoginActivity extends Activity {
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
+    private void threadSafeSetStatus(final String str) {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     /**
      * Thread: any
      */
-    private class LoginTask extends AsyncTask<String, String, JSONObject> {
+    private class LoginTask extends AsyncTask<String, String, User> {
         /**
          * Thread: ui thread
          */
         @Override
-        protected void onPostExecute(final JSONObject blob) {
+        protected void onPostExecute(final User user) {
             mLoginTask = null;
-            if (blob == null) {
+            if (user == null) {
                 showMessage("Failed to retrieve blob!");
                 return;
             }
             showMessage("Retrieved blob!");
-//            MyAccountActivity.launch(this,blob);
+
+            AccountActivity.launch(LoginActivity.this, user);
         }
 
         /**
@@ -104,11 +114,11 @@ public class LoginActivity extends Activity {
          * Thread: own
          */
         @Override
-        protected JSONObject doInBackground(String... credentials) {
+        protected User doInBackground(String... credentials) {
             try {
                 String username = credentials[0];
                 String password = credentials[1];
-                return blobVault.getBlob(username, password);
+                return mRippleService.login(username, password);
             } catch (Exception e) {
                 Log.e(TAG, e.getMessage());
                 return null;

@@ -31,22 +31,22 @@ public class RippleService {
 
     public User login(String userName, String password) {
         try {
-            connectServer("wss://s1.ripple.com");
+//            connectServer("wss://s1.ripple.com");
             User user = convertToUser(getBlob(userName, password));
-            rippleClient.accountFromSeed(user.getMasterSeed());
-            user.setBalance(getAccountFromSeed(user.getMasterSeed()).getAccountRoot().getBalance()
-                    .value());
+//            rippleClient.accountFromSeed(user.getMasterSeed());
+//            user.setBalance(getAccountFromSeed(user.getMasterSeed()).getAccountRoot().getBalance()
+//                    .value());
             return user;
         } catch (Exception e) {
             return null;
         }
     }
 
-    public void connectServer(String uri) {
+    private void connectServer(String uri) {
         rippleClient.connect(uri);
     }
 
-    public JSONObject getBlob(String userName, String password) throws InvalidCipherTextException,
+    private JSONObject getBlob(String userName, String password) throws InvalidCipherTextException,
             IOException {
         return blobVault.getBlob(userName, password);
     }

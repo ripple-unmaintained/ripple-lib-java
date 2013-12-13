@@ -59,4 +59,8 @@ public class User implements Serializable {
 
     }
 
+    public String getUserName() {
+        return "test";
+    }
+
 }
