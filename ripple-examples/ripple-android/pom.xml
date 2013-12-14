@@ -83,6 +83,7 @@
                     <sdk>
                         <platform>10</platform>
                     </sdk>
+                    <device>Android2.3.3.4.0</device>
                     <undeployBeforeDeploy>true</undeployBeforeDeploy>
                     <proguard>
                         <skip>true</skip>

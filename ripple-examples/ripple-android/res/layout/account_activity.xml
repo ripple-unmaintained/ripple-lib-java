@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/account_username"
             android:layout_margin="5dp"
-            android:text="Enter the Name and Passphrase used to encrypt your Wallet below."
+            android:text="Balance is Loading"
             android:textColor="#000"
             android:textSize="20sp" />
     </RelativeLayout>

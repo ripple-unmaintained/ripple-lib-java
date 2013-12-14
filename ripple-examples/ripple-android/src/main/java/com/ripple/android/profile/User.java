@@ -11,7 +11,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonIgnoreProperties({
-        "preferred_second_issuer", "preferred_issuer"
+        "preferred_second_issuer", "preferred_issuer", "userName"
 })
 public class User implements Serializable {
     private static final long serialVersionUID = 590287486343419861L;
@@ -25,6 +25,8 @@ public class User implements Serializable {
     private List<Contact> contacts;
 
     private BigDecimal balance;
+
+    private String userName;
 
     public List<Contact> getContacts() {
         return contacts;
@@ -60,7 +62,11 @@ public class User implements Serializable {
     }
 
     public String getUserName() {
-        return "test";
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
 }

@@ -9,12 +9,10 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONObject;
 import org.ripple.bouncycastle.crypto.InvalidCipherTextException;
 
+import com.ripple.android.client.AndroidClient;
 import com.ripple.android.profile.User;
 import com.ripple.client.Account;
-import com.ripple.client.Client;
 import com.ripple.client.blobvault.BlobVault;
-import com.ripple.client.subscriptions.AccountRoot;
-import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
 
 public class RippleService {
     private static final String BLOBVAULT_SERVER = "https://blobvault.payward.com/";
@@ -27,15 +25,16 @@ public class RippleService {
 
     private BlobVault blobVault = new BlobVault(BLOBVAULT_SERVER);
 
-    private Client rippleClient = new Client(new JavaWebSocketTransportImpl());
+    private AndroidClient rippleClient = new AndroidClient();
 
     public User login(String userName, String password) {
         try {
-//            connectServer("wss://s1.ripple.com");
+            // connectServer("wss://s1.ripple.com");
             User user = convertToUser(getBlob(userName, password));
-//            rippleClient.accountFromSeed(user.getMasterSeed());
-//            user.setBalance(getAccountFromSeed(user.getMasterSeed()).getAccountRoot().getBalance()
-//                    .value());
+            user.setUserName(userName);
+            // rippleClient.accountFromSeed(user.getMasterSeed());
+            // user.setBalance(getAccountFromSeed(user.getMasterSeed()).getAccountRoot().getBalance()
+            // .value());
             return user;
         } catch (Exception e) {
             return null;
@@ -46,12 +45,19 @@ public class RippleService {
         rippleClient.connect(uri);
     }
 
+    private boolean isConnected() {
+        return rippleClient.connected;
+    }
+
     private JSONObject getBlob(String userName, String password) throws InvalidCipherTextException,
             IOException {
         return blobVault.getBlob(userName, password);
     }
 
     public Account getAccountFromSeed(String masterSeed) {
+        if (!isConnected()) {
+            connectServer("wss://s1.ripple.com");
+        }
         Account account = rippleClient.accountFromSeed(masterSeed);
         return account;
     }
@@ -74,5 +80,9 @@ public class RippleService {
             return null;
         }
 
+    }
+
+    public AndroidClient getClient() {
+        return rippleClient;
     }
 }
