@@ -127,11 +127,16 @@ public class CheckPrice {
                             book.ask.toText(),
                             book.bid.toText(),
                             book.spread.toText());
-                System.out.printf("%nAsk offers%n");
-                for (STObject offer : book.asks) {
-                    showOfferInfo((Offer) offer);
-                }
 
+                    System.out.printf("%nAsk offers%n");
+                    for (STObject offer : book.asks) {
+                        showOfferInfo((Offer) offer);
+                    }
+
+                    System.out.printf("%nBid offers%n");
+                    for (STObject offer : book.bids) {
+                        showOfferInfo((Offer) offer);
+                    }
                 } else {
                     System.out.printf("%s No info!%n", book.currencyPair());
                 }
@@ -144,7 +149,9 @@ public class CheckPrice {
         Amount getsOne = offer.getsOne();
         Amount paysOne = offer.paysOne();
 
+
         printSeparatorBanner();
+        System.out.println("Directory quality: "+ offer.directoryAskQuality().toPlainString());
         // Multiply and divide will round/scale to the required bounds
         print("%40s == %s\n", paysOne.multiply(payForOne).toText(), getsOne.toText());
         print("%40s == %s\n", getsOne.divide(payForOne).toText(),  paysOne.toText());

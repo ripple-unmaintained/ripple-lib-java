@@ -4,6 +4,7 @@ import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesTree;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
+import com.ripple.encodings.common.B16;
 
 import java.math.BigInteger;
 
@@ -224,7 +225,7 @@ abstract public class UINT<Subclass extends UINT> extends Number implements Seri
 
         @Override
         public String toString(T obj) {
-            return obj.toString(16).toUpperCase();
+            return B16.toString(obj.toByteArray());
         }
 
         @Override
