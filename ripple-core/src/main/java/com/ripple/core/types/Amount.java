@@ -33,24 +33,16 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     public boolean unbounded = false;
 
-    private static BigDecimal asDrops(String s) {
-        return new BigDecimal(s.replace(",", "")).scaleByPowerOfTen(6);
+    private static BigDecimal parseXRP(String s) {
+        return new BigDecimal(s.replace(",", "")); //# .scaleByPowerOfTen(6);
     }
 
-    public static final BigDecimal MAX_DROPS = asDrops("100,000,000,000.0");
-    public static final BigDecimal MIN_DROPS = asDrops("0.000,001");
+    public static final BigDecimal MAX_DROPS = parseXRP("100,000,000,000.0");
+    public static final BigDecimal MIN_DROPS = parseXRP("0.000,001");
     private static final Amount ONE_XRP = fromString("1.0");
-    public Issue issue() {
-        return new Issue(currency, issuer);
-    }
-
-    private AccountID issuer;
-
-    public Currency currency() {
-        return currency;
-    }
 
     private Currency currency;
+    private AccountID issuer;
 
     public Amount(BigDecimal newValue, String currency, AccountID issuer, boolean nativeSource) {
         this(newValue, Currency.fromString(currency), issuer, nativeSource);
@@ -67,6 +59,14 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         this.setValue(value);
         // done AFTER set value which sets some default values
         this.issuer = issuer;
+    }
+
+    public Currency currency() {
+        return currency;
+    }
+
+    public Issue issue() {
+        return new Issue(currency, issuer);
     }
 
     public int getOffset() {
@@ -114,7 +114,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
      */
     private UInt64 calculateMantissa() {
         if (isNative()) {
-            return new UInt64(bigIntegerDrops().abs());
+            return new UInt64(scaledExact(6).abs());
         } else {
             return new UInt64(bigIntegerIOUMantissa());
         }
@@ -125,7 +125,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     private BigInteger bigIntegerDrops() {
-        return value.toBigIntegerExact();
+        return scaledExact(6);
     }
 
     private BigInteger scaledExact(int n) {
@@ -179,7 +179,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     private static BigDecimal round(boolean nativeSrc, BigDecimal value) {
         int i = value.precision() - value.scale();
-        return value.setScale(nativeSrc ? 0 : 16 - i, MATH_CONTEXT.getRoundingMode());
+        return value.setScale(nativeSrc ? 6 : 16 - i, MATH_CONTEXT.getRoundingMode());
     }
 
     @Override
@@ -204,6 +204,14 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return newValue(value.subtract(BigDecimal.valueOf(subtrahend.longValue())));
     }
 
+    public Amount add(BigDecimal augend) {
+        return newValue(value.add(augend));
+    }
+
+    public Amount subtract(BigDecimal subtrahend) {
+        return newValue(value.subtract(subtrahend));
+    }
+
     public Amount multiply(Number multiplicand) {
         return newValue(value.multiply(BigDecimal.valueOf(multiplicand.longValue()), MATH_CONTEXT), true);
     }
@@ -221,6 +229,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     private Amount newValue(BigDecimal val, boolean round) {
+
         return newValue(val, round, false);
     }
 
@@ -295,12 +304,8 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     static public TypedFields.AmountField taker_gets_funded = amountField(Field.taker_gets_funded);
     static public TypedFields.AmountField taker_pays_funded = amountField(Field.taker_pays_funded);
 
-    public BigDecimal value() {
-        return value;
-    }
-
     public BigDecimal computeQuality(Amount takerGets) {
-        return xrpScaleValue().divide(takerGets.xrpScaleValue(), MathContext.DECIMAL128);
+        return value().divide(takerGets.value(), MathContext.DECIMAL128);
     }
 
     /**
@@ -309,7 +314,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
      *  We want `one` unit at XRP scale (1e6 drops), or if it's an IOU,
      *  just `one`.
      */
-    public Amount oneAtXRPScale() {
+    public Amount one() {
         if (isNative()) {
             return ONE_XRP;
         } else {
@@ -348,7 +353,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 return  new Amount(value, curr, issuer, false);
             } else {
                 mantissa[0] &= 0x3F;
-                value = new BigDecimal(new BigInteger(sign, mantissa));
+                value = xrpFromDropsMantissa(mantissa, sign);
                 return  new Amount(value);
             }
         }
@@ -423,6 +428,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
+    public static BigDecimal xrpFromDropsMantissa(byte[] mantissa, int sign) {
+        return new BigDecimal(new BigInteger(sign, mantissa), 6);
+    }
+
     private boolean isPositive() {
         return value.signum() == 1;
     }
@@ -489,7 +498,8 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     private static Amount fromXrpString(String valueString) {
         BigDecimal val = new BigDecimal(valueString);
 
-        return new Amount(val.scaleByPowerOfTen(6));
+        return new Amount(val);
+//        return new Amount(val.scaleByPowerOfTen(6));
     }
 
     public String toDropsString() {
@@ -533,33 +543,34 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     @Override
     public String toString() {
+        // TODO toText() ???
         return toTextFull();
     }
 
     public String toText() {
         if (isNative()) {
-            return toTextFull();
+            return nativeText();
         } else {
             return iouText();
         }
     }
 
     /**
-     * @return A String containing the value as a decimal number (in XRP scale when native)
+     * @return A String containing the value as a decimal number (in XRP scale)
      */
     public String valueText() {
-        return value.signum() == 0 ? "0" : xrpScaleValue().toPlainString();
+        return value.signum() == 0 ? "0" : value().toPlainString();
     }
 
     /**
-     * @return A BigDecimal containing the value (in XRP scale when native)
+     * @return A BigDecimal containing the value (in XRP scale)
      */
-    public BigDecimal xrpScaleValue() {
-        return isNative() ? value.scaleByPowerOfTen(-6) : value;
+    public BigDecimal value() {
+        return value;
     }
 
     private static void checkLowerDropBound(BigDecimal val) {
-        if (val.scale() > 0) {
+        if (val.scale() > 6) {
             throw getIllegalArgumentException(val, "bigger", MIN_DROPS);
         }
     }
@@ -575,7 +586,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public static Amount fromDropString(String val) {
-        BigDecimal drops = new BigDecimal(val);
+        BigDecimal drops = new BigDecimal(val).scaleByPowerOfTen(-6);
         checkDropsValueWhole(val);
         return new Amount(drops);
     }

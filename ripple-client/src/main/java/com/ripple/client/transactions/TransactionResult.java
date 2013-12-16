@@ -25,7 +25,7 @@ public class TransactionResult {
     public boolean validated;
 
     public STObject transaction;
-    STObject meta;
+    public STObject meta;
 
     public JSONObject message;
 
@@ -35,7 +35,9 @@ public class TransactionResult {
 
     public enum Source {
         request_tx_result,
-        request_account_tx, request_account_tx_binary, transaction_subscription_notification
+        request_account_tx,
+        request_account_tx_binary,
+        transaction_subscription_notification
     }
 
     public TransactionResult(JSONObject json, Source resultMessageSource) {
