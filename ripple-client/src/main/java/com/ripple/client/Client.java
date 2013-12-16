@@ -1,3 +1,4 @@
+
 package com.ripple.client;
 
 import com.ripple.client.enums.Command;
@@ -28,7 +29,6 @@ import java.util.TreeMap;
 public class Client extends Publisher<Client.events> implements TransportEventHandler {
     public boolean connected = false;
 
-
     public Request requestBookOffers(Issue get, Issue pay) {
         Request request = newRequest(Command.book_offers);
         request.json("taker_pays", pay.toJSON());
@@ -36,35 +36,42 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         return request;
     }
 
-    public static abstract class events<T>      extends Publisher.Callback<T> {}
+    public static abstract class events<T> extends Publisher.Callback<T> {
+    }
 
-    public abstract static class OnLedgerClosed extends events<ServerInfo> {}
-    public abstract static class OnConnected    extends events<Client> {}
-    public abstract static class OnDisconnected extends events<Client> {}
-    public abstract static class OnSubscribed   extends events<ServerInfo> {}
-    public abstract static class OnMessage extends events<JSONObject> {}
+    public abstract static class OnLedgerClosed extends events<ServerInfo> {
+    }
+
+    public abstract static class OnConnected extends events<Client> {
+    }
+
+    public abstract static class OnDisconnected extends events<Client> {
+    }
+
+    public abstract static class OnSubscribed extends events<ServerInfo> {
+    }
+
+    public abstract static class OnMessage extends events<JSONObject> {
+    }
 
     private HashMap<AccountID, Account> accounts = new HashMap<AccountID, Account>();
+
     SubscriptionManager subscriptions = new SubscriptionManager();
 
     public Account account(final AccountID id) {
         if (accounts.containsKey(id)) {
             return accounts.get(id);
-        }
-        else {
+        } else {
             AccountRoot accountRoot = accountRoot(id);
-            Account account = new Account(
-                    id,
-                    accountRoot,
-                    new Wallet(),
-                    new TransactionManager(this, accountRoot, id, id.getKeyPair())
-            );
+            Account account = new Account(id, accountRoot, new Wallet(), new TransactionManager(
+                    this, accountRoot, id, id.getKeyPair()));
             accounts.put(id, account);
             subscriptions.addAccount(id);
 
             return account;
         }
     }
+
     public Account accountFromSeed(String masterSeed) {
         return account(AccountID.fromSeedString(masterSeed));
     }
@@ -75,7 +82,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         return accountRoot;
     }
 
-    private void requestAccountRoot(final AccountID id, final AccountRoot accountRoot, final int attempt) {
+    private void requestAccountRoot(final AccountID id, final AccountRoot accountRoot,
+            final int attempt) {
         Request req = newRequest(Command.ledger_entry);
         req.json("account_root", id);
 
@@ -103,9 +111,11 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     public ServerInfo serverInfo = new ServerInfo();
+
     public TreeMap<Integer, Request> requests = new TreeMap<Integer, Request>();
 
     WebSocketTransport ws;
+
     private int cmdIDs;
 
     public Client(WebSocketTransport ws) {
@@ -142,15 +152,15 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             }
         } catch (Exception e) {
             e.printStackTrace();
-            // This seems to be swallowed higher up, (at least by the Java-WebSocket transport implementation)
+            // This seems to be swallowed higher up, (at least by the
+            // Java-WebSocket transport implementation)
             throw new RuntimeException(e);
         }
     }
 
     void onTransaction(JSONObject msg) {
-        TransactionResult tr = new TransactionResult(msg, TransactionResult
-                                                            .Source
-                                                            .transaction_subscription_notification);
+        TransactionResult tr = new TransactionResult(msg,
+                TransactionResult.Source.transaction_subscription_notification);
 
         if (tr.validated) {
             ClientLogger.log("Transaction %s is validated", tr.hash);
@@ -164,7 +174,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                     Account account = accounts.get(entry.getKey());
                     if (account != null) {
                         STObject rootUpdates = entry.getValue();
-                        account.root.updateFromTransaction(transactionHash, transactionLedgerIndex, rootUpdates);
+                        account.getAccountRoot().updateFromTransaction(transactionHash,
+                                transactionLedgerIndex, rootUpdates);
                     }
                 }
             }
@@ -268,19 +279,20 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     @Override
-    public void
-    onConnected() {
+    public void onConnected() {
         connected = true;
         ClientLogger.log("onConnected");
         emit(OnConnected.class, this);
         subscribe(prepareSubscription());
-        subscriptions.on(SubscriptionManager.OnSubscribed.class, new SubscriptionManager.OnSubscribed() {
-            @Override
-            public void called(JSONObject subscription) {
-                if (!connected) return;
-                subscribe(subscription);
-            }
-        });
+        subscriptions.on(SubscriptionManager.OnSubscribed.class,
+                new SubscriptionManager.OnSubscribed() {
+                    @Override
+                    public void called(JSONObject subscription) {
+                        if (!connected)
+                            return;
+                        subscribe(subscription);
+                    }
+                });
     }
 
     private void subscribe(JSONObject subscription) {
@@ -320,7 +332,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         ws.sendMessage(object);
     }
 
-    private String prettyJSON(JSONObject object)  {
+    private String prettyJSON(JSONObject object) {
         try {
             return object.toString(4);
         } catch (JSONException e) {

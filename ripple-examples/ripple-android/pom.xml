@@ -16,7 +16,7 @@
     <name>ripple-android</name>
     <url>http://maven.apache.org</url>
     <properties>
-        <platform.version>4.1.1.4</platform.version>
+        <platform.version>2.3.3</platform.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -39,6 +39,34 @@
             <artifactId>ripple-bouncycastle</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>15.0</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-asl</artifactId>
+            <version>1.9.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.9.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.robolectric</groupId>
+            <artifactId>robolectric</artifactId>
+            <version>2.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${project.artifactId}</finalName>
@@ -55,6 +83,7 @@
                     <sdk>
                         <platform>10</platform>
                     </sdk>
+                    <device>Android2.3.3.4.0</device>
                     <undeployBeforeDeploy>true</undeployBeforeDeploy>
                     <proguard>
                         <skip>true</skip>

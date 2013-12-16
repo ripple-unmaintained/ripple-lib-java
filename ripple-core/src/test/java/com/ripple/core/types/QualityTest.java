@@ -15,3 +15,4 @@ public class QualityTest {
         assertEquals(0, BigDecimal.valueOf(24.299).compareTo(Quality.fromBookDirectory(hash256, true, false)));
     }
 }
+

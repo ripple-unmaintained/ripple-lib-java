@@ -173,7 +173,7 @@ public class PayOneDrop extends Activity {
         payOneDrop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!account.root.primed()) {
+                if (!account.getAccountRoot().primed()) {
                     threadSafeSetStatus("Awaiting account_info");
                 } else {
                     payOneDrop(account);
@@ -202,7 +202,7 @@ public class PayOneDrop extends Activity {
      * Thread: Client thread
      */
     private boolean accountIsUnfunded() {
-        return account.root.Balance.isZero();
+        return account.getAccountRoot().getBalance().isZero();
     }
 
     public final Object lock = new Object();
@@ -350,14 +350,13 @@ public class PayOneDrop extends Activity {
                         + awaitingTransactionsParenthetical(account));
             }
         });
-        tx.once(ManagedTxn.OnTransactionValidated.class,
-                new ManagedTxn.OnTransactionValidated() {
-                    @Override
-                    public void called(TransactionResult result) {
-                        threadSafeSetStatus("Transaction finalized "
-                                + awaitingTransactionsParenthetical(account));
-                    }
-                });
+        tx.once(ManagedTxn.OnTransactionValidated.class, new ManagedTxn.OnTransactionValidated() {
+            @Override
+            public void called(TransactionResult result) {
+                threadSafeSetStatus("Transaction finalized "
+                        + awaitingTransactionsParenthetical(account));
+            }
+        });
         tm.queue(tx);
         threadSafeSetStatus("Transaction queued " + awaitingTransactionsParenthetical(account));
     }
@@ -392,11 +391,10 @@ public class PayOneDrop extends Activity {
         @Override
         public void run() {
             account = client.accountFromSeed(masterSeed);
-            account.root.once(AccountRoot.OnUpdate.class, new AccountRoot.OnUpdate() {
+            account.getAccountRoot().once(AccountRoot.OnUpdate.class, new AccountRoot.OnUpdate() {
                 @Override
                 public void called(AccountRoot accountRoot) {
                     if (accountIsUnfunded()) {
-                        handleUnfundedAccount();
                     }
                 }
             });
