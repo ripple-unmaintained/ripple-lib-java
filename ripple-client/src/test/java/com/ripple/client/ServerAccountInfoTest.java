@@ -23,6 +23,6 @@ public class ServerAccountInfoTest {
 
         JSONObject json = new JSONObject(info);
         AccountRoot accountRoot = new AccountRoot(json);
-        assertEquals(accountRoot.Balance, Amount.fromDropString("99249214166"));
+        assertEquals(accountRoot.getBalance(), Amount.fromDropString("99249214166"));
     }
 }

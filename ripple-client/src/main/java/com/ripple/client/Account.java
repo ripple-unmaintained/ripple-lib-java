@@ -1,3 +1,4 @@
+
 package com.ripple.client;
 
 import com.ripple.client.pubsub.IPublisher;
@@ -8,10 +9,10 @@ import com.ripple.client.wallet.Wallet;
 import com.ripple.core.types.AccountID;
 
 /*
-*
-* We want this guy to be able to track accounts we have the secret for or not
-*
-* */
+ *
+ * We want this guy to be able to track accounts we have the secret for or not
+ *
+ * */
 public class Account extends AccountID implements IPublisher<Account.events> {
     private final Publisher<events> publisher = new Publisher<events>();
 
@@ -36,27 +37,49 @@ public class Account extends AccountID implements IPublisher<Account.events> {
     }
 
     // events enumeration
-    public static abstract class events<T> extends Publisher.Callback<T> {}
-    public static abstract class OnServerInfo extends events {}
+    public static abstract class events<T> extends Publisher.Callback<T> {
+    }
 
-    public AccountRoot root;
-    public Wallet                 wallet;
-    private TransactionManager     tm;
+    public static abstract class OnServerInfo extends events {
+    }
 
-    public AccountID id() {return id;}
-    AccountID              id;
+    private AccountRoot accountRoot;
+    private Wallet wallet;
+    private TransactionManager tm;
+
+    public AccountID id() {
+        return id;
+    }
+
+    public AccountRoot getAccountRoot() {
+        return accountRoot;
+    }
+
+    public void setAccountRoot(AccountRoot accountRoot) {
+        this.accountRoot = accountRoot;
+    }
+
+    public Wallet getWallet() {
+        return wallet;
+    }
+
+    public void setWallet(Wallet wallet) {
+        this.wallet = wallet;
+    }
+
+    private AccountID id;
 
     private Account() {
         super();
     }
 
     public Account(AccountID id,
-                   AccountRoot root,
-                   Wallet wallet,
-                   TransactionManager tm) {
+            AccountRoot root,
+            Wallet wallet,
+            TransactionManager tm) {
         cloneFields(id);
 
-        this.root = root;
+        this.accountRoot = root;
         this.wallet = wallet;
         this.tm = tm;
     }
