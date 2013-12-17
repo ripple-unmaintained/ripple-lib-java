@@ -164,7 +164,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                     Account account = accounts.get(entry.getKey());
                     if (account != null) {
                         STObject rootUpdates = entry.getValue();
-                        account.root.updateFromTransaction(transactionHash, transactionLedgerIndex, rootUpdates);
+                        account.getAccountRoot().updateFromTransaction(transactionHash, transactionLedgerIndex, rootUpdates);
                     }
                 }
             }

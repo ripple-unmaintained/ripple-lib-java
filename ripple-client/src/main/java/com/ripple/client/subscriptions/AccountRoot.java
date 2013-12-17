@@ -32,7 +32,15 @@ public class AccountRoot extends Publisher<AccountRoot.events> {
     }
 
     public AccountID     Account;
-    public Amount        Balance;
+    public Amount getBalance() {
+        return Balance;
+    }
+
+    public void setBalance(Amount balance) {
+        Balance = balance;
+    }
+
+    private Amount        Balance;
     public UInt32        Sequence;
     public UInt32        OwnerCount;
     public UInt32        Flags;
