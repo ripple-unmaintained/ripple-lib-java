@@ -22,24 +22,24 @@ public class Offer extends STObject {
 
     // TODO: these methods would be useful on an OfferCreate transaction too
     public BigDecimal askQuality() {
-        return get(Amount.TakerPays).computeQuality(get(Amount.TakerGets));
+        return takerPays().computeQuality(takerGets());
     }
 
     public BigDecimal bidQuality() {
-        return get(Amount.TakerGets).computeQuality(get(Amount.TakerPays));
+        return takerGets().computeQuality(takerPays());
     }
 
     public Amount getsOne() {
-        return get(Amount.TakerGets).one();
+        return takerGets().one();
     }
 
     public Amount paysOne() {
-        return get(Amount.TakerPays).one();
+        return takerPays().one();
     }
 
     public String getPayCurrencyPair() {
-        return get(Amount.TakerGets).currencyString() + "/" +
-               get(Amount.TakerPays).currencyString();
+        return takerGets().currencyString() + "/" +
+               takerPays().currencyString();
     }
 
     public STObject inOut(STObject finals) {

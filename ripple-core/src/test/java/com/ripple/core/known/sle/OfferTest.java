@@ -74,7 +74,7 @@ public class OfferTest {
                 STObject asPrevious = node.nodeAsPrevious();
                 // If it's an offer
                 if (asPrevious.ledgerEntryType() == LedgerEntryType.Offer) {
-                    // We an up-cast this to use Offer specific methods
+                    // We can down-cast this to use Offer specific methods
                     Offer offer = (Offer) asPrevious;
                     offersExecuted.add(offer);
                 }
