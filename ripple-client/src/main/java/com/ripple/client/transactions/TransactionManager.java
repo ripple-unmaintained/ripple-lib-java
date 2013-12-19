@@ -114,14 +114,14 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
     public void handleSubmitError(ManagedTxn transaction, Response res) {
 //        resubmitFirstTransactionWithTakenSequence(transaction.sequence());
-        if (transaction.isFinalized()) {
+        if (transaction.finalizedOrHandlerForPriorSubmission(res)) {
             return;
         }
         transaction.emit(ManagedTxn.OnSubmitError.class, res);
     }
 
     public void handleSubmitSuccess(final ManagedTxn transaction, final Response res) {
-        if (transaction.isFinalized()) {
+        if (transaction.finalizedOrHandlerForPriorSubmission(res)) {
             return;
         }
         TransactionEngineResult tr = res.engineResult();
@@ -170,7 +170,9 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                         if (queued.isEmpty()) {
                             sequence--;
                         } else {
-                            // Plug a Sequence gap
+                            // Plug a Sequence gap and pre-emptively resubmit some
+                            // rather than waiting for `OnValidatedSequence` which will take
+                            // quite some ledgers
                             noopTransaction(submitSequence);
                             resubmitGreaterThan(submitSequence);
                         }

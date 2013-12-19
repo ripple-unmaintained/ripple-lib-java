@@ -17,6 +17,15 @@ public class ManagedTxn extends Transaction implements IPublisher<ManagedTxn.eve
     private final Publisher<events> publisher = new Publisher<events>();
     private boolean finalized = false;
 
+    public boolean responseWasToLastSubmission(Response res) {
+        Request req = submissions.get(submissions.size() - 1).submitRequest;
+        return res.request == req;
+    }
+
+    public boolean finalizedOrHandlerForPriorSubmission(Response res) {
+        return isFinalized() || !responseWasToLastSubmission(res);
+    }
+
     public static class Submission {
         Request submitRequest;
         Response submitResponse;
