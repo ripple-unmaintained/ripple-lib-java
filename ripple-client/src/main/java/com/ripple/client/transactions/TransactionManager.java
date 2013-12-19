@@ -1,7 +1,7 @@
 package com.ripple.client.transactions;
 
 import com.ripple.client.Client;
-import com.ripple.client.pubsub.Publisher;
+import com.ripple.client.ClientLogger;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.enums.Command;
@@ -14,11 +14,12 @@ import com.ripple.core.types.hash.Hash256;
 import com.ripple.core.types.uint.UInt32;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.encodings.common.B16;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class TransactionManager extends Publisher<TransactionManager.events> {
+public class TransactionManager {
     Client client;
     AccountRoot accountRoot;
     AccountID accountID;
@@ -26,18 +27,11 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     public long sequence = -1;
     public long transactionID;
 
-    public void queue(ManagedTxn tx) {
-        queue(tx, null);
-    }
-
-    public static abstract class events<T> extends Publisher.Callback<T> {}
-    public static abstract class OnValidatedSequence extends events<UInt32> {};
-
-
+    ArrayList<ManagedTxn> submitted = new ArrayList<ManagedTxn>();
     ArrayList<ManagedTxn> queued = new ArrayList<ManagedTxn>();
 
     public int awaiting() {
-        return queued.size();
+        return queued.size() + submitted.size();
     }
 
     public TransactionManager(Client client, AccountRoot accountRoot, AccountID accountID, IKeyPair keyPair) {
@@ -47,19 +41,19 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         this.keyPair = keyPair;
     }
 
-    public void queue(final ManagedTxn transaction, final UInt32 sequence) {
+    public void queue(final ManagedTxn transaction) {
         queued.add(transaction);
 
         if (canSubmit()) {
-            makeSubmitRequest(transaction, sequence);
+            makeSubmitRequest(transaction);
         } else {
             // We wait for basically any old event n see if we are primed after each, angular styles
-            client.on(Client.OnStateChange.class, new Client.OnStateChange() {
+            client.on(Client.OnMessage.class, new Client.OnMessage() {
                 @Override
-                public void called(Client client) {
+                public void called(JSONObject jsonObject) {
                     if (canSubmit()) {
                         client.removeListener(Client.OnMessage.class, this);
-                        makeSubmitRequest(transaction, sequence);
+                        makeSubmitRequest(transaction);
                     }
                 }
             });
@@ -70,14 +64,13 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         return client.serverInfo.primed() && accountRoot.primed();
     }
 
-    private Request makeSubmitRequest(final ManagedTxn transaction, UInt32 sequence) {
+    private Request makeSubmitRequest(final ManagedTxn transaction) {
         Amount fee = client.serverInfo.transactionFee(transaction);
-        transaction.prepare(keyPair, fee, sequence == null ? getSubmissionSequence() : sequence);
+        transaction.prepare(keyPair, fee, getSubmissionSequence());
 
         final Request req = client.newRequest(Command.submit);
         req.json("tx_blob", B16.toString(transaction.tx_blob));
-        if (transaction.transactionType() == TransactionType.Payment &&
-            !transaction.get(Amount.Amount).isNative()) {
+        if (!transaction.get(Amount.Amount).isNative()) {
             req.json("build_path", true);
         }
 
@@ -95,15 +88,13 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             }
         });
 
-        transaction.trackSubmitRequest(req, client.serverInfo);
         req.request();
         return req;
     }
 
     /*
     * The $10,000 question is when does sequence get decremented?
-    * Never ... just patch holes ...
-    **/
+    * */
     private UInt32 getSubmissionSequence() {
         long server = accountRoot.Sequence.longValue();
         if (sequence == -1 || server > sequence ) {
@@ -112,117 +103,37 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         return new UInt32(sequence++);
     }
 
-    public void handleSubmitError(ManagedTxn transaction, Response res) {
-//        resubmitFirstTransactionWithTakenSequence(transaction.sequence());
-        transaction.emit(ManagedTxn.OnSubmitError.class, res);
+    public void handleSubmitError(ManagedTxn transaction, Response response) {
+        invalidateSequence(transaction.sequence());
     }
 
-    public void handleSubmitSuccess(final ManagedTxn transaction, final Response res) {
+    public void handleSubmitSuccess(ManagedTxn transaction, Response res) {
+        queued.remove(transaction); // TODO: re-queue
+
         TransactionEngineResult tr = res.engineResult();
-        final UInt32 submitSequence = res.getSubmitSequence();
-        switch (tr) {
+        switch (tr.resultClass()) {
             case tesSUCCESS:
-                finalizeTxnAndRemoveFromQueue(transaction);
+                submitted.add(transaction);
                 transaction.emit(ManagedTxn.OnSubmitSuccess.class, res);
                 return;
 
-            case tefPAST_SEQ:
-                if (transaction.sequence().equals(submitSequence)) {
-                    resubmitWithNewSequence(transaction);
-                }
-                break;
-            case terPRE_SEQ:
-                on(OnValidatedSequence.class, new OnValidatedSequence() {
-                    @Override
-                    public void called(UInt32 sequence) {
-                        if (transaction.isFinalized()) {
-                            removeListener(OnValidatedSequence.class, this);
-                        }
-                        if (sequence.equals(submitSequence)) {
-                            resubmitWithSameSequence(transaction);
-                        }
-                    }
-                });
-                break;
-            default:
-                // In which cases do we patch ?
-                switch (tr.resultClass()) {
-                    case tecCLAIMED:
-                        // Sequence was consumed, do nothing
-                        finalizeTxnAndRemoveFromQueue(transaction);
-                        transaction.emit(ManagedTxn.OnSubmitError.class, res);
-                        break;
-                        // What about this craziness /??
-                    case temMALFORMED:
-                    case tefFAILURE:
-                    case telLOCAL_ERROR:
-                    case terRETRY:
-                        finalizeTxnAndRemoveFromQueue(transaction);
-                        if (queued.isEmpty()) {
-                                sequence--;
-                        } else {
-                                // Plug a Sequence gap
-                                noopTransaction(submitSequence);
-                        }
-                        transaction.emit(ManagedTxn.OnSubmitError.class, res);
-                        // look for
-//                        queued.add(transaction);
-                        // This is kind of nasty ..
-                        break;
-
-                }
-                // TODO
-                if (tr.resultClass() == TransactionEngineResult.Class.telLOCAL_ERROR) {
-                    // keep an eye out!!!!
-                    queued.add(transaction);
-                }
+            case telLOCAL_ERROR:
+                // TODO, this could actually resolve ...
+                // Resubmitting exactly the same transaction probably wont hurt
+                // For the moment we are just going to make sure to watch for it
+                // closing
+                submitted.add(transaction);
+            case temMALFORMED:
+            case tefFAILURE:
+            case terRETRY:
+            case tecCLAIMED:
+                transaction.emit(ManagedTxn.OnSubmitError.class, res);
                 break;
         }
     }
 
-    private void noopTransaction(UInt32 sequence) {
-        ManagedTxn plug = transaction(TransactionType.AccountSet);
-        queue(plug, sequence);
-    }
+    private void invalidateSequence(UInt32 sequence) {
 
-    public void finalizeTxnAndRemoveFromQueue(ManagedTxn transaction) {
-        transaction.setFinalized();
-        queued.remove(transaction);
-    }
-
-    private void resubmitFirstTransactionWithTakenSequence(UInt32 sequence) {
-        for (ManagedTxn txn : queued) {
-            if (txn.sequence().compareTo(sequence) == 0) {
-                resubmitWithNewSequence(txn);
-                break;
-            }
-        }
-    }
-
-    private void resubmitWithNewSequence(ManagedTxn txn) {
-        resubmit(txn, getSubmissionSequence());
-    }
-
-//    private void resubmitAnyTransactionWithLesserSequence(UInt32 sequence) {
-//        for (ManagedTxn txn : queued) {
-//            if (txn.get(UInt32.Sequence).compareTo(sequence) <= 0) {
-//                resubmit(txn, getSubmissionSequence());
-//                break;
-//            }
-//        }
-//    }
-
-    private void resubmit(ManagedTxn txn, UInt32 sequence) {
-        makeSubmitRequest(txn, sequence);
-    }
-
-    private void resubmitWithSameSequence(ManagedTxn txn) {
-        UInt32 previouslySubmitted = txn.sequence();
-        if (previouslySubmitted == null) {
-            throw new IllegalStateException("We don't want to pass null " +
-                                            "further else it would increment");
-        }
-        makeSubmitRequest(txn, previouslySubmitted);
     }
 
     public ManagedTxn payment() {
@@ -236,30 +147,26 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     public void onTransactionResultMessage(TransactionResult tm) {
-        if (!tm.validated) {
-            return;
-        }
-        UInt32 validatedSequence = tm.transaction.get(UInt32.Sequence);
-
         ManagedTxn tx = submittedTransaction(tm.hash);
         if (tx != null) {
-            queued.remove(tx);
             tx.emit(ManagedTxn.OnTransactionValidated.class, tm);
         } else {
-            resubmitFirstTransactionWithTakenSequence(validatedSequence);
-            emit(OnValidatedSequence.class, validatedSequence.add(new UInt32(1)));
+            ClientLogger.log("Can't find transaction");
         }
     }
 
     private ManagedTxn submittedTransaction(Hash256 hash) {
-        Iterator<ManagedTxn> iterator = queued.iterator();
+        Iterator<ManagedTxn> iterator = submitted.iterator();
 
         while (iterator.hasNext()) {
             ManagedTxn transaction = iterator.next();
-            if (transaction.wasSubmittedWith(hash)) {
+            if (transaction.hash.equals(hash)) {
                 iterator.remove();
                 return transaction;
             }
+//            else {
+                // Client.log("hash: %s != transaction.hash: %s", hash, transaction.hash);
+//            }
         }
         return null;
     }

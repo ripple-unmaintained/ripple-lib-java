@@ -16,29 +16,17 @@
     <RelativeLayout android:layout_width="0dip"
                     android:layout_height="wrap_content"
                     android:layout_weight="6">
-
         <ImageView
 
                 android:layout_height="fill_parent"
                 android:layout_width="fill_parent"
                 android:contentDescription="logo"
-                android:id="@+id/logoImage"
                 android:src="@drawable/ripple_logo_large"
                 android:layout_centerInParent="true">
+
         </ImageView>
 
-        <RelativeLayout
-                android:layout_centerInParent="true"
-                android:layout_width="wrap_content" android:layout_height="wrap_content">
-            <ProgressBar android:layout_width="wrap_content"
-                         android:layout_height="wrap_content"
-                         android:layout_marginTop="120dp"
-                         />
-        </RelativeLayout>
-
     </RelativeLayout>
-
-
 
     <!--Just a spacer-->
     <View android:layout_width="0dip"
