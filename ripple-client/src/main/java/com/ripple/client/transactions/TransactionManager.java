@@ -130,6 +130,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 if (transaction.sequence().equals(submitSequence)) {
                     resubmitWithNewSequence(transaction);
                 }
+                break;
             case terPRE_SEQ:
                 on(OnValidatedSequence.class, new OnValidatedSequence() {
                     @Override
@@ -142,6 +143,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                         }
                     }
                 });
+                break;
             default:
                 // In which cases do we patch ?
                 switch (tr.resultClass()) {
