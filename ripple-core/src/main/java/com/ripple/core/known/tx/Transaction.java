@@ -11,8 +11,11 @@ import com.ripple.core.types.uint.UInt16;
 import com.ripple.core.types.uint.UInt32;
 import com.ripple.crypto.ecdsa.IKeyPair;
 
+import java.util.TreeSet;
+
 public class Transaction extends STObject {
     public Hash256    hash;
+
     public byte[]     tx_blob;
     /* This is used to identify a given transaction beyond a sequence or hash that can change
          *  due to something as simple as load_base / load_factor changes.
@@ -25,9 +28,9 @@ public class Transaction extends STObject {
         put(UInt16.TransactionType, type.asInteger());
     }
 
-    public UInt32 sequence() {
-        return get(UInt32.Sequence);
-    }
+//    public UInt32 sequence() {
+//        return get(UInt32.Sequence);
+//    }
 
     public void prepare(IKeyPair keyPair, Amount fee, UInt32 Sequence) {
         remove(Field.TxnSignature);

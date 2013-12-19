@@ -43,6 +43,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public abstract static class OnDisconnected extends events<Client> {}
     public abstract static class OnSubscribed   extends events<ServerInfo> {}
     public abstract static class OnMessage extends events<JSONObject> {}
+    public abstract static class OnStateChange extends events<Client> {}
 
     private HashMap<AccountID, Account> accounts = new HashMap<AccountID, Account>();
     SubscriptionManager subscriptions = new SubscriptionManager();
@@ -144,6 +145,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             e.printStackTrace();
             // This seems to be swallowed higher up, (at least by the Java-WebSocket transport implementation)
             throw new RuntimeException(e);
+        } finally {
+            emit(OnStateChange.class, this);
         }
     }
 

@@ -70,8 +70,6 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
     }
     static public Translator translate = new Translator();
 
-    private Vector256(){}
-
     public static TypedFields.Vector256Field vector256Field(final Field f) {
         return new TypedFields.Vector256Field(){ @Override public Field getField() {return f;}};
     }

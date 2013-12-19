@@ -41,38 +41,27 @@ import com.ripple.core.types.Amount;
 
 public class PayOneDrop extends Activity {
     AndroidClient client;
-
     Account account;
 
+    RelativeLayout.LayoutParams statusLayoutParams;
     TextView status;
-
     TextView messageLog;
 
-    RelativeLayout.LayoutParams statusLayoutParams;
+    LinearLayout loginForm;
+    RelativeLayout paymentForm;
 
     EditText username;
-
     EditText password;
-
     Button retrieveWallet;
-
     Button payOneDrop;
 
     Spinner contacts;
-
-    LinearLayout loginForm;
-
-    RelativeLayout paymentForm;
-
     ArrayAdapter<String> contactsAdapter;
-
     ArrayList<AccountID> contactsAddresses = new ArrayList<AccountID>(); // parallel
                                                                          // array
 
     BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
-
     DownloadBlobTask blobDownloadTask;
-
     String masterSeed;
 
     /**
