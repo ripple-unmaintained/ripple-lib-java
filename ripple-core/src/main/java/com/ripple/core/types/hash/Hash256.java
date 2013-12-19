@@ -124,7 +124,6 @@ public class Hash256 extends HASH<Hash256> {
         }
     }
     public static Translator translate = new Translator();
-    private Hash256(){}
 
     public static TypedFields.Hash256Field hash256Field(final Field f) {
         return new TypedFields.Hash256Field(){ @Override public Field getField() {return f;}};

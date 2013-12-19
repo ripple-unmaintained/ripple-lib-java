@@ -13,3 +13,5 @@ ripple-bouncycastle/target/
 .classpath
 .project
 target/
+
+offer-create-txn.json

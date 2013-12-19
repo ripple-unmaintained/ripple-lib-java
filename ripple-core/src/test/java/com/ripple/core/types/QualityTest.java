@@ -12,6 +12,7 @@ public class QualityTest {
     @Test
     public void testFromBookDirectory() throws Exception {
         Hash256 hash256 = Hash256.translate.fromString("4627DFFCFF8B5A265EDBD8AE8C14A52325DBFEDAF4F5C32E5C08A1FB2E56F800");
-        assertEquals(0, BigDecimal.valueOf(24.299).compareTo(Quality.fromBookDirectory(hash256, true, false)));
+        assertEquals(0, BigDecimal.valueOf(24.299)
+                                  .compareTo(Quality.fromBookDirectory(hash256, true, false)));
     }
 }

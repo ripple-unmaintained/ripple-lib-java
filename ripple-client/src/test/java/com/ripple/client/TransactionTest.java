@@ -45,7 +45,7 @@ public class TransactionTest {
         STObject tx = STObject.fromJSONObject(new JSONObject(tx_json));
         Hash256 hash = (Hash256) tx.remove(Field.hash);
         Hash256 rehashed = Hash256.transactionID(STObject.translate.toWireBytes(tx));
-        System.out.printf("hash: %s rehashed: %s \n", hash, rehashed);
+//        System.out.printf("hash: %s rehashed: %s \n", hash, rehashed);
         assertEquals(hash, rehashed);
     }
 

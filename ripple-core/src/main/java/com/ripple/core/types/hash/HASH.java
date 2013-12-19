@@ -10,11 +10,11 @@ import java.math.BigInteger;
 import java.util.Arrays;
 
 public class HASH<Subclass extends HASH> implements SerializedType, Comparable<Subclass> {
-    protected byte[] hash;
+    protected final byte[] hash;
     protected int hashCode = -1;
 
     public HASH(byte[] bytes, int size) {
-        setHash(bytes, size);
+        hash = normalizeAndCheckHash(bytes, size);
     }
 
     @Override
@@ -25,13 +25,12 @@ public class HASH<Subclass extends HASH> implements SerializedType, Comparable<S
     @Override
     public int hashCode() {
         if (hashCode == -1) {
-            // XXX
             hashCode = new BigInteger(1, hash).hashCode();
         }
         return hashCode;
     }
 
-    private void setHash(byte[] bytes, int size) {
+    private byte[] normalizeAndCheckHash(byte[] bytes, int size) {
         int length = bytes.length;
         if (length > size) {
             String simpleName = "";
@@ -39,14 +38,13 @@ public class HASH<Subclass extends HASH> implements SerializedType, Comparable<S
             throw new RuntimeException("Hash length of " + length + "  is too wide for " + simpleName);
         }
         if (length == size) {
-            hash = bytes;
+            return bytes;
         } else {
-            hash = new byte[size];
+            byte[] hash = new byte[size];
             System.arraycopy(bytes, 0, hash, size - length, length);
+            return hash;
         }
     }
-
-    protected HASH(){}
 
     BigInteger bigInteger() {
         return new BigInteger(1, hash);
@@ -118,11 +116,6 @@ public class HASH<Subclass extends HASH> implements SerializedType, Comparable<S
         public T fromString(String value) {
             return newInstance(B16.decode(value));
         }
-
-//        @Override
-//        public byte[] toBytesTree(T obj) {
-//            return obj.hash;
-//        }
 
         @Override
         public void toBytesTree(T obj, BytesTree to) {

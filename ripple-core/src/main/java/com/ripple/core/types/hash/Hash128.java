@@ -21,8 +21,6 @@ public class Hash128 extends HASH<Hash128> {
     }
     public static Translator translate = new Translator();
 
-    private Hash128(){}
-
     public static TypedFields.Hash128Field hash128Field(final Field f) {
         return new TypedFields.Hash128Field(){ @Override public Field getField() {return f;}};
     }
