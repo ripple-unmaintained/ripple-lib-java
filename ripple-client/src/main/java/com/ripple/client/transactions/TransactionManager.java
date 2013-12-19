@@ -114,10 +114,16 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
     public void handleSubmitError(ManagedTxn transaction, Response res) {
 //        resubmitFirstTransactionWithTakenSequence(transaction.sequence());
+        if (transaction.isFinalized()) {
+            return;
+        }
         transaction.emit(ManagedTxn.OnSubmitError.class, res);
     }
 
     public void handleSubmitSuccess(final ManagedTxn transaction, final Response res) {
+        if (transaction.isFinalized()) {
+            return;
+        }
         TransactionEngineResult tr = res.engineResult();
         final UInt32 submitSequence = res.getSubmitSequence();
         switch (tr) {
@@ -135,14 +141,17 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 on(OnValidatedSequence.class, new OnValidatedSequence() {
                     @Override
                     public void called(UInt32 sequence) {
-                        if (transaction.isFinalized()) {
+                        if (transaction.isFinalized() || !transaction.sequence().equals(submitSequence)) {
                             removeListener(OnValidatedSequence.class, this);
                         }
                         if (sequence.equals(submitSequence)) {
-                            resubmitWithSameSequence(transaction);
+                            resubmit(transaction, submitSequence);
                         }
                     }
                 });
+                break;
+            case telINSUF_FEE_P:
+                resubmit(transaction, submitSequence);
                 break;
             default:
                 // In which cases do we patch ?
@@ -152,17 +161,18 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                         finalizeTxnAndRemoveFromQueue(transaction);
                         transaction.emit(ManagedTxn.OnSubmitError.class, res);
                         break;
-                        // What about this craziness /??
+                    // What about this craziness /??
                     case temMALFORMED:
                     case tefFAILURE:
                     case telLOCAL_ERROR:
                     case terRETRY:
                         finalizeTxnAndRemoveFromQueue(transaction);
                         if (queued.isEmpty()) {
-                                sequence--;
+                            sequence--;
                         } else {
-                                // Plug a Sequence gap
-                                noopTransaction(submitSequence);
+                            // Plug a Sequence gap
+                            noopTransaction(submitSequence);
+                            resubmitGreaterThan(submitSequence);
                         }
                         transaction.emit(ManagedTxn.OnSubmitError.class, res);
                         // look for
@@ -177,6 +187,14 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                     queued.add(transaction);
                 }
                 break;
+        }
+    }
+
+    private void resubmitGreaterThan(UInt32 submitSequence) {
+        for (ManagedTxn txn : queued) {
+            if (txn.sequence().compareTo(submitSequence) == 1) {
+                resubmitWithSameSequence(txn);
+            }
         }
     }
 
