@@ -10,6 +10,7 @@ import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.types.AccountID;
 import com.ripple.core.types.Amount;
+import com.ripple.core.types.PathSet;
 import com.ripple.core.types.hash.Hash256;
 import com.ripple.core.types.uint.UInt32;
 import com.ripple.crypto.ecdsa.IKeyPair;
@@ -73,11 +74,12 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     private Request makeSubmitRequest(final ManagedTxn transaction, UInt32 sequence) {
         Amount fee = client.serverInfo.transactionFee(transaction);
         transaction.prepare(keyPair, fee, sequence == null ? getSubmissionSequence() : sequence);
-
         final Request req = client.newRequest(Command.submit);
         req.json("tx_blob", B16.toString(transaction.tx_blob));
+
         if (transaction.transactionType() == TransactionType.Payment &&
-            !transaction.get(Amount.Amount).isNative()) {
+            !transaction.get(Amount.Amount).isNative() &&
+            !transaction.has(PathSet.Paths)) {
             req.json("build_path", true);
         }
 
@@ -133,18 +135,23 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 return;
 
             case tefPAST_SEQ:
-                if (transaction.sequence().equals(submitSequence)) {
+                // we should actually not need this check given the bail out if
+                // finalizedOrHandlerForPriorSubmission
+//                if (transaction.sequence().equals(submitSequence)) {
+
+//                finalizedOrHandlerForPriorSubmission
                     resubmitWithNewSequence(transaction);
-                }
+//                }
                 break;
             case terPRE_SEQ:
                 on(OnValidatedSequence.class, new OnValidatedSequence() {
                     @Override
                     public void called(UInt32 sequence) {
-                        if (transaction.isFinalized() || !transaction.sequence().equals(submitSequence)) {
+                        if (transaction.finalizedOrHandlerForPriorSubmission(res)) {
                             removeListener(OnValidatedSequence.class, this);
                         }
                         if (sequence.equals(submitSequence)) {
+                            // resubmit:
                             resubmit(transaction, submitSequence);
                         }
                     }
@@ -152,6 +159,9 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 break;
             case telINSUF_FEE_P:
                 resubmit(transaction, submitSequence);
+                break;
+            case tefALREADY:
+                // Do nothing, the transaction has already been submitted
                 break;
             default:
                 // In which cases do we patch ?
@@ -183,9 +193,8 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                         break;
 
                 }
-                // TODO
+                // TODO: Disposition not final ??!?!? ... ????
                 if (tr.resultClass() == TransactionEngineResult.Class.telLOCAL_ERROR) {
-                    // keep an eye out!!!!
                     queued.add(transaction);
                 }
                 break;
@@ -259,15 +268,15 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         if (!tm.validated) {
             return;
         }
-        UInt32 validatedSequence = tm.transaction.get(UInt32.Sequence);
+        UInt32 txnSequence = tm.transaction.get(UInt32.Sequence);
 
         ManagedTxn tx = submittedTransaction(tm.hash);
         if (tx != null) {
-            queued.remove(tx);
+            finalizeTxnAndRemoveFromQueue(tx);
             tx.emit(ManagedTxn.OnTransactionValidated.class, tm);
         } else {
-            resubmitFirstTransactionWithTakenSequence(validatedSequence);
-            emit(OnValidatedSequence.class, validatedSequence.add(new UInt32(1)));
+            resubmitFirstTransactionWithTakenSequence(txnSequence);
+            emit(OnValidatedSequence.class, txnSequence.add(new UInt32(1)));
         }
     }
 

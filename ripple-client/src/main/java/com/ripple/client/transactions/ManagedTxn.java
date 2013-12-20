@@ -7,8 +7,10 @@ import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.known.tx.Transaction;
+import com.ripple.core.types.Amount;
 import com.ripple.core.types.hash.Hash256;
 import com.ripple.core.types.uint.UInt32;
+import com.ripple.crypto.ecdsa.IKeyPair;
 
 import java.util.ArrayList;
 import java.util.TreeSet;
@@ -22,6 +24,13 @@ public class ManagedTxn extends Transaction implements IPublisher<ManagedTxn.eve
         return res.request == req;
     }
 
+    @Override
+    public void prepare(IKeyPair keyPair, Amount fee, UInt32 Sequence) {
+        // TODO: we should be able to just resubmit one of the old submissions if the tx_blob
+        // if the Fee and Sequence are the same yeah ;) :) :)
+        super.prepare(keyPair, fee, Sequence);
+    }
+
     public boolean finalizedOrHandlerForPriorSubmission(Response res) {
         return isFinalized() || !responseWasToLastSubmission(res);
     }
@@ -31,13 +40,15 @@ public class ManagedTxn extends Transaction implements IPublisher<ManagedTxn.eve
         Response submitResponse;
         UInt32 submitSequence;
         Hash256 submitHash;
+        Amount submitFee;
         long submitLedgerSequence;
 
-        public Submission(Request request, UInt32 sequence, Hash256 hash, long ledgerSequence) {
+        public Submission(Request request, UInt32 sequence, Hash256 hash, long ledgerSequence, Amount fee) {
             submitRequest = request;
             submitSequence = sequence;
             submitHash = hash;
             submitLedgerSequence = ledgerSequence;
+//            submitFee = fee;
         }
     }
     ArrayList<Submission> submissions = new ArrayList<Submission>();
@@ -54,7 +65,7 @@ public class ManagedTxn extends Transaction implements IPublisher<ManagedTxn.eve
     }
 
     public void trackSubmitRequest(Request submitRequest, ServerInfo serverInfo) {
-        Submission submission = new Submission(submitRequest, sequence(), hash, serverInfo.ledger_index);
+        Submission submission = new Submission(submitRequest, sequence(), hash, serverInfo.ledger_index, get(Amount.Fee));
         submissions.add(submission);
         trackSubmittedID();
         trackSubmittedSequence();

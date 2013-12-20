@@ -293,6 +293,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         request.on(Request.OnSuccess.class, new Request.OnSuccess() {
             @Override
             public void called(Response response) {
+                // TODO ... make sure this isn't just an
                 serverInfo.update(response.result);
                 emit(OnSubscribed.class, serverInfo);
             }
