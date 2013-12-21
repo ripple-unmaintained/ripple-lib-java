@@ -1,4 +1,4 @@
-ripple-lib-java
+The Ripple Java Library
 ===============
 
 Java version of ripple-lib (alpha work in progress)
@@ -12,7 +12,7 @@ serialization, with a websocket library agnostic implementation of a client,
 which will track changes to accounts balances/offers/trusts, that can be used as
 the basis for various clients/wallets.
 
-Current status:
+### Current status
 
   - sjcl.json aes/ccm for (wallet) blob decrytion
   - binary serialization/parsing/shamap
@@ -27,7 +27,8 @@ Current status:
     - Package name: org.ripple.bouncycastle
   - CLI example
 
-TODO:
+### TODO
+
   - TESTS TESTS TESTS
     - walk ledger history verifying ShaMap hashes
       - use json from rippled
@@ -41,6 +42,6 @@ TODO:
   - General cleanup/stabilisation of code / api surface
   - Generate keypair for particular account_id from a master_seed
 
-Examples:
+### Examples
 
   - See in ripple-examples/ folder
