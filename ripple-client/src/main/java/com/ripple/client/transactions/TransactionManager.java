@@ -94,7 +94,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 @Override
                 public void called(Client client) {
                     if (canSubmit()) {
-                        client.removeListener(Client.OnMessage.class, this);
+                        client.removeListener(Client.OnStateChange.class, this);
                         makeSubmitRequest(transaction, sequence);
                     }
                 }
