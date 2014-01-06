@@ -4,5 +4,7 @@ public enum Message {
     ledgerClosed,
     response,
     transaction,
-    serverStatus
+    serverStatus,
+    path_find,
+    error
 }

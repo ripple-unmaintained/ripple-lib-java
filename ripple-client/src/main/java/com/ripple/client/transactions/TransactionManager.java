@@ -1,11 +1,10 @@
 package com.ripple.client.transactions;
 
 import com.ripple.client.Client;
-import com.ripple.client.enums.RPCErr;
+import com.ripple.client.enums.Command;
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
-import com.ripple.client.enums.Command;
 import com.ripple.client.subscriptions.AccountRoot;
 import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.core.enums.TransactionEngineResult;
@@ -76,7 +75,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 ManagedTxn.Submission previous = first.lastSubmission();
                 long ledgersClosed = serverInfo.ledger_index - previous.ledgerSequence;
 
-                if (ledgersClosed > 3) {
+                if (ledgersClosed > 5) {
                     resubmitWithSameSequence(first);
                 }
             }
@@ -94,7 +93,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 @Override
                 public void called(Client client) {
                     if (canSubmit()) {
-                        client.removeListener(Client.OnMessage.class, this);
+                        client.removeListener(Client.OnStateChange.class, this);
                         makeSubmitRequest(transaction, sequence);
                     }
                 }
@@ -103,7 +102,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     private boolean canSubmit() {
-        return client.serverInfo.primed() && accountRoot.primed();
+        return client.serverInfo.primed() && client.serverInfo.load_factor < 512 && accountRoot.primed();
     }
 
     private Request makeSubmitRequest(final ManagedTxn transaction, UInt32 sequence) {

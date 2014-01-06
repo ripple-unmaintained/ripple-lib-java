@@ -45,6 +45,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public abstract static class OnSubscribed   extends events<ServerInfo> {}
     public abstract static class OnMessage extends events<JSONObject> {}
     public abstract static class OnStateChange extends events<Client> {}
+    public abstract static class OnPathFind extends events<JSONObject> {}
 
     private HashMap<AccountID, Account> accounts = new HashMap<AccountID, Account>();
     SubscriptionManager subscriptions = new SubscriptionManager();
@@ -71,8 +72,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         return account(AccountID.fromSeedString(masterSeed));
     }
 
-    private AccountRoot accountRoot(final AccountID id) {
-        final AccountRoot accountRoot = new AccountRoot();
+    private AccountRoot accountRoot(AccountID id) {
+        AccountRoot accountRoot = new AccountRoot();
         requestAccountRoot(id, accountRoot, 0);
         return accountRoot;
     }
@@ -94,6 +95,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                     } else {
                         if (attempt < 5) {
                             requestAccountRoot(id, accountRoot, attempt + 1);
+                        } else {
+                            // TODO //
                         }
                     }
                 } catch (JSONException e) {
@@ -141,6 +144,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 case transaction:
                     onTransaction(msg);
                     break;
+                case path_find:
+                    emit(OnPathFind.class, msg);
+                    break;
                 default:
                     unhandledMessage(msg);
                     break;
@@ -171,7 +177,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                     Account account = accounts.get(entry.getKey());
                     if (account != null) {
                         STObject rootUpdates = entry.getValue();
-                        account.getAccountRoot().updateFromTransaction(transactionHash, transactionLedgerIndex, rootUpdates);
+                        account.getAccountRoot()
+                               .updateFromTransaction(
+                                       transactionHash, transactionLedgerIndex, rootUpdates);
                     }
                 }
             }
