@@ -20,15 +20,21 @@ public class ManagedTxn extends Transaction implements IPublisher<ManagedTxn.eve
     private boolean finalized = false;
 
     public boolean responseWasToLastSubmission(Response res) {
-        Request req = submissions.get(submissions.size() - 1).submitRequest;
+        Request req = lastSubmission().request;
         return res.request == req;
     }
 
     @Override
     public void prepare(IKeyPair keyPair, Amount fee, UInt32 Sequence) {
-        // TODO: we should be able to just resubmit one of the old submissions if the tx_blob
-        // if the Fee and Sequence are the same yeah ;) :) :)
-        super.prepare(keyPair, fee, Sequence);
+        Amount previousFee = get(Amount.Fee);
+        UInt32 previousSequence = get(UInt32.Sequence);
+
+        if ( (previousFee == null) ||
+             (previousSequence == null) ||
+             !previousFee.equals(fee) ||
+             !previousSequence.equals(Sequence) ) {
+            super.prepare(keyPair, fee, Sequence);
+        }
     }
 
     public boolean finalizedOrHandlerForPriorSubmission(Response res) {
@@ -36,24 +42,29 @@ public class ManagedTxn extends Transaction implements IPublisher<ManagedTxn.eve
     }
 
     public static class Submission {
-        Request submitRequest;
-        Response submitResponse;
-        UInt32 submitSequence;
-        Hash256 submitHash;
-        Amount submitFee;
-        long submitLedgerSequence;
+        public Request request;
+        public UInt32 sequence;
+        public Hash256 hash;
+        public Amount fee;
+        public long ledgerSequence;
 
         public Submission(Request request, UInt32 sequence, Hash256 hash, long ledgerSequence, Amount fee) {
-            submitRequest = request;
-            submitSequence = sequence;
-            submitHash = hash;
-            submitLedgerSequence = ledgerSequence;
-//            submitFee = fee;
+            this.request = request;
+            this.sequence = sequence;
+            this.hash = hash;
+            this.ledgerSequence = ledgerSequence;
+            this.fee = fee;
         }
     }
     ArrayList<Submission> submissions = new ArrayList<Submission>();
 
-    private TreeSet<UInt32> submittedSequences = new TreeSet<UInt32>();
+    public Submission lastSubmission() {
+        if (submissions.isEmpty()) {
+            return null;
+        } else {
+            return submissions.get(submissions.size() - 1);
+        }
+    }
     private TreeSet<Hash256> submittedIDs = new TreeSet<Hash256>();
 
     public boolean isFinalized() {
@@ -68,15 +79,10 @@ public class ManagedTxn extends Transaction implements IPublisher<ManagedTxn.eve
         Submission submission = new Submission(submitRequest, sequence(), hash, serverInfo.ledger_index, get(Amount.Fee));
         submissions.add(submission);
         trackSubmittedID();
-        trackSubmittedSequence();
     }
 
     public void trackSubmittedID() {
         submittedIDs.add(hash);
-    }
-
-    public void trackSubmittedSequence() {
-        submittedSequences.add(get(UInt32.Sequence));
     }
 
     boolean wasSubmittedWith(Hash256 hash) {
@@ -119,8 +125,8 @@ public class ManagedTxn extends Transaction implements IPublisher<ManagedTxn.eve
     public static abstract class OnSumbitRequestError extends events<Exception> {
     }
 
-    public ManagedTxn(TransactionType type, long transactionId) {
-        super(transactionId, type);
+    public ManagedTxn(TransactionType type) {
+        super(type);
     }
 
 }

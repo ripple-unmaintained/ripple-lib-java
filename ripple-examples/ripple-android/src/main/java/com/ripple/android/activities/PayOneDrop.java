@@ -359,7 +359,14 @@ public class PayOneDrop extends Activity {
         if (awaiting == 0) {
             return "";
         } else {
-            return String.format("(awaiting %d)", awaiting);
+            ArrayList<ManagedTxn> queued = account.transactionManager().sequenceSortedQueue();
+            String s = "";
+
+            for (ManagedTxn fields : queued) {
+                s = s + fields.transactionType() + ",";
+            }
+
+            return String.format("(awaiting %s %d)", s, awaiting);
         }
     }
 

@@ -16,7 +16,7 @@ public class RippleApplication extends Application {
     public void onCreate() {
         super.onCreate();
         client = new AndroidClient();
-        client.connect("wss://ct.ripple.com");
+        client.connect("wss://s1.ripple.com");
     }
 
 }

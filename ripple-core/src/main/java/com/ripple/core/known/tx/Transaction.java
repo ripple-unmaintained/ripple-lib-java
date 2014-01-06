@@ -17,13 +17,8 @@ public class Transaction extends STObject {
     public Hash256    hash;
 
     public byte[]     tx_blob;
-    /* This is used to identify a given transaction beyond a sequence or hash that can change
-         *  due to something as simple as load_base / load_factor changes.
-          * */
-    public long id;
 
-    public Transaction(long transactionId, TransactionType type) {
-        id = transactionId;
+    public Transaction(TransactionType type) {
         setFormat(TxFormat.formats.get(type));
         put(UInt16.TransactionType, type.asInteger());
     }

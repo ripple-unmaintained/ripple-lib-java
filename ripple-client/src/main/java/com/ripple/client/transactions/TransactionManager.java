@@ -1,22 +1,25 @@
 package com.ripple.client.transactions;
 
 import com.ripple.client.Client;
+import com.ripple.client.enums.RPCErr;
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.enums.Command;
 import com.ripple.client.subscriptions.AccountRoot;
+import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.types.AccountID;
 import com.ripple.core.types.Amount;
-import com.ripple.core.types.PathSet;
 import com.ripple.core.types.hash.Hash256;
 import com.ripple.core.types.uint.UInt32;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.encodings.common.B16;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 
 public class TransactionManager extends Publisher<TransactionManager.events> {
@@ -25,31 +28,63 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     AccountID accountID;
     IKeyPair keyPair;
     public long sequence = -1;
-    public long transactionID;
 
     public void queue(ManagedTxn tx) {
         queue(tx, null);
+    }
+
+    public ArrayList<ManagedTxn> getQueue() {
+        return queued;
+    }
+
+    public ArrayList<ManagedTxn> sequenceSortedQueue() {
+        ArrayList<ManagedTxn> queued = new ArrayList<ManagedTxn>(getQueue());
+        Collections.sort(queued, new Comparator<ManagedTxn>() {
+            @Override
+            public int compare(ManagedTxn lhs, ManagedTxn rhs) {
+                return lhs.get(UInt32.Sequence).subtract(rhs.get(UInt32.Sequence)).intValue();
+            }
+        });
+        return queued;
     }
 
     public static abstract class events<T> extends Publisher.Callback<T> {}
     public static abstract class OnValidatedSequence extends events<UInt32> {};
 
 
-    ArrayList<ManagedTxn> queued = new ArrayList<ManagedTxn>();
+    private ArrayList<ManagedTxn> queued = new ArrayList<ManagedTxn>();
 
     public int awaiting() {
-        return queued.size();
+        return getQueue().size();
     }
 
-    public TransactionManager(Client client, AccountRoot accountRoot, AccountID accountID, IKeyPair keyPair) {
+    public TransactionManager(Client client, final AccountRoot accountRoot, AccountID accountID, IKeyPair keyPair) {
         this.client = client;
         this.accountRoot = accountRoot;
         this.accountID = accountID;
         this.keyPair = keyPair;
+
+        this.client.on(Client.OnLedgerClosed.class, new Client.OnLedgerClosed() {
+            @Override
+            public void called(ServerInfo serverInfo) {
+                if (!canSubmit() || getQueue().isEmpty()) {
+                    return;
+                }
+                ArrayList<ManagedTxn> sorted = sequenceSortedQueue();
+
+                ManagedTxn first = sorted.get(0);
+                ManagedTxn.Submission previous = first.lastSubmission();
+                long ledgersClosed = serverInfo.ledger_index - previous.ledgerSequence;
+
+                if (ledgersClosed > 3) {
+                    resubmitWithSameSequence(first);
+                }
+            }
+        });
     }
 
     public void queue(final ManagedTxn transaction, final UInt32 sequence) {
-        queued.add(transaction);
+        getQueue().add(transaction);
 
         if (canSubmit()) {
             makeSubmitRequest(transaction, sequence);
@@ -73,15 +108,21 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
     private Request makeSubmitRequest(final ManagedTxn transaction, UInt32 sequence) {
         Amount fee = client.serverInfo.transactionFee(transaction);
+        // TODO: inside prepare, check if Fee and Sequence are the same and don't resign ;)
         transaction.prepare(keyPair, fee, sequence == null ? getSubmissionSequence() : sequence);
         final Request req = client.newRequest(Command.submit);
         req.json("tx_blob", B16.toString(transaction.tx_blob));
 
+
+        // DUH, this only works if you are submitting raw tx_json, not a blob
+        /*
         if (transaction.transactionType() == TransactionType.Payment &&
             !transaction.get(Amount.Amount).isNative() &&
             !transaction.has(PathSet.Paths)) {
             req.json("build_path", true);
+            // TODO: Add a SendMax
         }
+        */
 
         req.once(Request.OnSuccess.class, new Request.OnSuccess() {
             @Override
@@ -119,7 +160,16 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         if (transaction.finalizedOrHandlerForPriorSubmission(res)) {
             return;
         }
-        transaction.emit(ManagedTxn.OnSubmitError.class, res);
+        switch (res.rpcerr) {
+            case noNetwork:
+                resubmitWithSameSequence(transaction);
+                break;
+            default:
+                // TODO, what other cases should this retry?
+                finalizeTxnAndRemoveFromQueue(transaction);
+                transaction.emit(ManagedTxn.OnSubmitError.class, res);
+                break;
+        }
     }
 
     public void handleSubmitSuccess(final ManagedTxn transaction, final Response res) {
@@ -135,13 +185,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 return;
 
             case tefPAST_SEQ:
-                // we should actually not need this check given the bail out if
-                // finalizedOrHandlerForPriorSubmission
-//                if (transaction.sequence().equals(submitSequence)) {
-
-//                finalizedOrHandlerForPriorSubmission
-                    resubmitWithNewSequence(transaction);
-//                }
+                resubmitWithNewSequence(transaction);
                 break;
             case terPRE_SEQ:
                 on(OnValidatedSequence.class, new OnValidatedSequence() {
@@ -177,7 +221,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                     case telLOCAL_ERROR:
                     case terRETRY:
                         finalizeTxnAndRemoveFromQueue(transaction);
-                        if (queued.isEmpty()) {
+                        if (getQueue().isEmpty()) {
                             sequence--;
                         } else {
                             // Plug a Sequence gap and pre-emptively resubmit some
@@ -194,15 +238,15 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
                 }
                 // TODO: Disposition not final ??!?!? ... ????
-                if (tr.resultClass() == TransactionEngineResult.Class.telLOCAL_ERROR) {
-                    queued.add(transaction);
-                }
+//                if (tr.resultClass() == TransactionEngineResult.Class.telLOCAL_ERROR) {
+//                    queued.add(transaction);
+//                }
                 break;
         }
     }
 
     private void resubmitGreaterThan(UInt32 submitSequence) {
-        for (ManagedTxn txn : queued) {
+        for (ManagedTxn txn : getQueue()) {
             if (txn.sequence().compareTo(submitSequence) == 1) {
                 resubmitWithSameSequence(txn);
             }
@@ -216,11 +260,11 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
     public void finalizeTxnAndRemoveFromQueue(ManagedTxn transaction) {
         transaction.setFinalized();
-        queued.remove(transaction);
+        getQueue().remove(transaction);
     }
 
     private void resubmitFirstTransactionWithTakenSequence(UInt32 sequence) {
-        for (ManagedTxn txn : queued) {
+        for (ManagedTxn txn : getQueue()) {
             if (txn.sequence().compareTo(sequence) == 0) {
                 resubmitWithNewSequence(txn);
                 break;
@@ -259,7 +303,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     private ManagedTxn transaction(TransactionType tt) {
-        ManagedTxn tx = new ManagedTxn(tt, transactionID++);
+        ManagedTxn tx = new ManagedTxn(tt);
         tx.put(AccountID.Account, accountID);
         return tx;
     }
@@ -281,7 +325,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     private ManagedTxn submittedTransaction(Hash256 hash) {
-        Iterator<ManagedTxn> iterator = queued.iterator();
+        Iterator<ManagedTxn> iterator = getQueue().iterator();
 
         while (iterator.hasNext()) {
             ManagedTxn transaction = iterator.next();

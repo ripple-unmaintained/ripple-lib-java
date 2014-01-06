@@ -29,6 +29,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public boolean connected = false;
 
 
+
     public Request requestBookOffers(Issue get, Issue pay) {
         Request request = newRequest(Command.book_offers);
         request.json("taker_pays", pay.toJSON());
@@ -80,7 +81,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         Request req = newRequest(Command.ledger_entry);
         req.json("account_root", id);
 
-        req.on(Request.OnResponse.class, new Request.OnResponse() {
+        req.once(Request.OnResponse.class, new Request.OnResponse() {
             @Override
             public void called(Response response) {
 
@@ -114,6 +115,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         ws.setHandler(this);
     }
 
+    // TODO: reconnect if we go 60s without any message from the server
     public void connect(String uri) {
         // XXX: connect to other uris ... just parameterise connect here ??
         ws.connect(URI.create(uri));
@@ -127,6 +129,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
             switch (Message.valueOf(msg.optString("type", null))) {
                 case serverStatus:
+                    updateServerInfo(msg);
+                    break;
                 case ledgerClosed:
                     updateServerInfo(msg);
                     emit(OnLedgerClosed.class, serverInfo);
@@ -144,7 +148,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         } catch (Exception e) {
             e.printStackTrace();
             // This seems to be swallowed higher up, (at least by the Java-WebSocket transport implementation)
-            throw new RuntimeException(e);
+            throw new RuntimeException(e); // TODO
         } finally {
             emit(OnStateChange.class, this);
         }

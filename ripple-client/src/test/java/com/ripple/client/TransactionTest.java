@@ -14,9 +14,6 @@ import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;
 
-/**
- * Created with IntelliJ IDEA. User: nick Date: 10/10/13 Time: 6:37 PM
- */
 public class TransactionTest {
 
     @Test
@@ -84,7 +81,7 @@ public class TransactionTest {
         final String niqwit1Seed = "snSq7dKr5v39hJ8Enb45RpXFJL25h";
         final AccountID niqwit1 = AccountID.fromSeedString(niqwit1Seed);
 
-        ManagedTxn transaction = new ManagedTxn(TransactionType.Payment, 0);
+        ManagedTxn transaction = new ManagedTxn(TransactionType.Payment);
         transaction.prepare(
                 niqwit1.getKeyPair(),
                 Amount.fromString("15"),

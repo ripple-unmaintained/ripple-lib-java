@@ -10,7 +10,8 @@ import com.ripple.core.types.uint.UInt32;
 import org.json.JSONObject;
 
 /**
- * This should probably be a
+ * This should probably be an STObject extending class
+ * Publisher should probably be an inner (non static) class
  */
 public class AccountRoot extends Publisher<AccountRoot.events> {
     public static abstract class events<T> extends Publisher.Callback<T> {}
@@ -35,7 +36,6 @@ public class AccountRoot extends Publisher<AccountRoot.events> {
     public Amount getBalance() {
         return Balance;
     }
-
     public void setBalance(Amount balance) {
         Balance = balance;
     }
