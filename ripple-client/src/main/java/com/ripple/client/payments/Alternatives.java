@@ -9,9 +9,9 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class Alternatives extends ArrayList<Alternative> {
+    public Integer pathFindRequestID = null;
     public Alternatives(JSONArray array) {
         for (int i = 0; i < array.length(); i++) {
-
             try {
                 JSONObject alternativeJson = array.getJSONObject(i);
                 Amount sourceAmount = Amount.translate.fromValue(alternativeJson.get("source_amount"));
@@ -20,7 +20,6 @@ public class Alternatives extends ArrayList<Alternative> {
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
-
         }
     }
 }

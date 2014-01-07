@@ -30,7 +30,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
             public void called(JSONObject jsonObject) {
                 try {
                     int id = jsonObject.getInt("id");
-                    if (pathFindRequest != null && id == pathFindRequest.id) {
+                    if (pathFind != null && id == pathFind.id) {
                         emit(OnAlternatives.class, new Alternatives(jsonObject.getJSONArray("alternatives")));
                     }
                 } catch (JSONException e) {
@@ -55,7 +55,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
     BigDecimal destAmountValue;
 
     // We store these guys here so we can
-    Request pathFindRequest;
+    Request pathFind;
 
     public Request requestAccountInfo(final AccountID id) {
         // TODO try from cache
@@ -116,17 +116,17 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
             destinationAmount = new Amount(destAmountValue, destAmountCurrency, dest, false);
         }
 
-        pathFindRequest = client.newRequest(Command.path_find);
-        pathFindRequest.json("subcommand", "create");
-        pathFindRequest.json("source_account", src);
-        pathFindRequest.json("destination_account", dest);
-        pathFindRequest.json("destination_amount", Amount.translate.toJSONObject(destinationAmount));
-        pathFindRequest.request();
+        pathFind = client.newRequest(Command.path_find);
+        pathFind.json("subcommand", "create");
+        pathFind.json("source_account", src);
+        pathFind.json("destination_account", dest);
+        pathFind.json("destination_amount", Amount.translate.toJSONObject(destinationAmount));
+        pathFind.request();
 
-        pathFindRequest.once(Request.OnResponse.class, new Request.OnResponse() {
+        pathFind.once(Request.OnResponse.class, new Request.OnResponse() {
             @Override
             public void called(Response response) {
-                if (response.succeeded && response.request == pathFindRequest) {
+                if (response.succeeded && response.request == pathFind) {
                     try {
                         JSONArray alternatives = response.result.getJSONArray("alternatives");
                         emit(OnAlternatives.class, new Alternatives(alternatives));
@@ -139,7 +139,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
     }
 
     private void cancelPendingRequest() {
-        pathFindRequest = null;
+        pathFind = null;
     }
 
     public void setDestinationAmountCurrency(final Currency currency) {

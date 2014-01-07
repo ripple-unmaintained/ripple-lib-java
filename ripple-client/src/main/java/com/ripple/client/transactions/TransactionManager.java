@@ -72,7 +72,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 ArrayList<ManagedTxn> sorted = sequenceSortedQueue();
 
                 ManagedTxn first = sorted.get(0);
-                ManagedTxn.Submission previous = first.lastSubmission();
+                Submission previous = first.lastSubmission();
                 long ledgersClosed = serverInfo.ledger_index - previous.ledgerSequence;
 
                 if (ledgersClosed > 5) {

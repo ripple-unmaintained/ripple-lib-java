@@ -41,21 +41,6 @@ public class ManagedTxn extends Transaction implements IPublisher<ManagedTxn.eve
         return isFinalized() || !responseWasToLastSubmission(res);
     }
 
-    public static class Submission {
-        public Request request;
-        public UInt32 sequence;
-        public Hash256 hash;
-        public Amount fee;
-        public long ledgerSequence;
-
-        public Submission(Request request, UInt32 sequence, Hash256 hash, long ledgerSequence, Amount fee) {
-            this.request = request;
-            this.sequence = sequence;
-            this.hash = hash;
-            this.ledgerSequence = ledgerSequence;
-            this.fee = fee;
-        }
-    }
     ArrayList<Submission> submissions = new ArrayList<Submission>();
 
     public Submission lastSubmission() {

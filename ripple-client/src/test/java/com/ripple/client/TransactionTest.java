@@ -48,24 +48,15 @@ public class TransactionTest {
 
     @Test
     public void testTransactionIDCreation2() throws Exception {
-        String tx_json = "{"
-                +
-                "    \"Account\": \"rwMyB1diFJ7xqEKYGYgk9tKrforvTr33M5\","
-                +
-                "    \"Amount\": \"1\","
-                +
-                "    \"Destination\": \"rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH\","
-                +
-                "    \"Fee\": \"12\","
-                +
-                "    \"Sequence\": 91,"
-                +
-                "    \"SigningPubKey\": \"02eeaf2c95b668d411fc490746c52071514f6d3a7b742d91d82cb591b5443d1c59\","
-                +
-                "    \"TransactionType\": \"Payment\","
-                +
-                "    \"TxnSignature\": \"3045022100f1b54ed137dc491240b93c4b34a97ca6063490cca784c9c2f5d5b8593f10f0410220338e9e0f6dfacc739172d0473b5023f068c5fbbcbd66e65ed5ec6f4421781194\""
-                +
+        String tx_json = "{" +
+                "    \"Account\": \"rwMyB1diFJ7xqEKYGYgk9tKrforvTr33M5\"," +
+                "    \"Amount\": \"1\"," +
+                "    \"Destination\": \"rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH\"," +
+                "    \"Fee\": \"12\"," +
+                "    \"Sequence\": 91," +
+                "    \"SigningPubKey\": \"02eeaf2c95b668d411fc490746c52071514f6d3a7b742d91d82cb591b5443d1c59\"," +
+                "    \"TransactionType\": \"Payment\"," +
+                "    \"TxnSignature\": \"3045022100f1b54ed137dc491240b93c4b34a97ca6063490cca784c9c2f5d5b8593f10f0410220338e9e0f6dfacc739172d0473b5023f068c5fbbcbd66e65ed5ec6f4421781194\"" +
                 "}";
 
         Hash256 expected = Hash256.translate

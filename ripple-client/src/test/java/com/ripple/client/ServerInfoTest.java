@@ -15,7 +15,7 @@ public class ServerInfoTest {
 
     @Test
     public void test_LedgerInfo_can_compute_a_transactionFee() {
-        assertEquals("This was 1.5 at the time of test writing", 1.1, Config.getFeeCushion());
+        assertEquals("This was 1.1 at the time of test writing", 1.1, Config.getFeeCushion());
 
         ServerInfo info = new ServerInfo();
 
