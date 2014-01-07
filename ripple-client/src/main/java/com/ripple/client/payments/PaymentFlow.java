@@ -19,6 +19,8 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
     public static abstract class events<T> extends Publisher.Callback<T> {}
     abstract static public class OnDestInfo extends events<STObject>{}
     abstract static public class OnAlternatives extends events<Alternatives> {}
+    abstract static public class OnAlternativesStale extends events<Alternatives> {}
+    abstract static public class OnPathFind extends events<Request> {}
 
     Client client;
 
@@ -54,7 +56,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
     Currency destAmountCurrency;
     BigDecimal destAmountValue;
 
-    // We store these guys here so we can
+    // We store these guys here so we can know if they have become stale
     Request pathFind;
 
     public Request requestAccountInfo(final AccountID id) {
@@ -83,31 +85,33 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
     }
 
     public void setSource(final AccountID id) {
-        requestAccountInfo(id);
         if (src == null || !src.equals(id)) {
+            requestAccountInfo(id);
             src = id;
-            cancelPendingRequest();
+            makePathFindRequestIfCan();
         }
     }
 
     public void setDestination(final AccountID id) {
-        requestAccountInfo(id);
         if (dest == null || !dest.equals(id)) {
+            requestAccountInfo(id);
             dest = id;
-            cancelPendingRequest();
+            makePathFindRequestIfCan();
         }
     }
 
     public void setDestinationAmountValue(final BigDecimal amt) {
-        destAmountValue = amt;
-        makePathFindRequestIfCan();
+        if (destAmountValue == null || amt == null || amt.compareTo(destAmountValue) != 0) {
+            destAmountValue = amt;
+            makePathFindRequestIfCan();
+        }
     }
 
     private void makePathFindRequestIfCan() {
-        if (destAmountValue == null || destAmountCurrency == null) {
+        cancelPendingRequest();
+
+        if (tooLittleInfoForPathFindRequest()) {
             return;
-        }  else {
-            cancelPendingRequest();
         }
 
         if (destAmountCurrency.equals(Currency.XRP)) {
@@ -120,8 +124,10 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         pathFind.json("subcommand", "create");
         pathFind.json("source_account", src);
         pathFind.json("destination_account", dest);
-        pathFind.json("destination_amount", Amount.translate.toJSONObject(destinationAmount));
-        pathFind.request();
+
+        // toJSON will give us what we want ;) drops string if native, else an {} if IOU
+        pathFind.json("destination_amount", Amount.translate.toJSON(destinationAmount));
+
 
         pathFind.once(Request.OnResponse.class, new Request.OnResponse() {
             @Override
@@ -136,15 +142,28 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
                 }
             }
         });
+        pathFind.request();
+
+        emit(OnPathFind.class, pathFind);
+    }
+
+    private boolean tooLittleInfoForPathFindRequest() {
+        return destAmountValue == null || destAmountCurrency == null || src == null || dest == null;
     }
 
     private void cancelPendingRequest() {
         pathFind = null;
+        if (alternatives != null) {
+            emit(OnAlternativesStale.class, alternatives);
+        }
+        // TODO invalidate existing alternatives
     }
 
     public void setDestinationAmountCurrency(final Currency currency) {
-        destAmountCurrency = currency;
-        makePathFindRequestIfCan();
+        if (destAmountCurrency == null || !currency.equals(destAmountCurrency)) {
+            destAmountCurrency = currency;
+            makePathFindRequestIfCan();
+        }
     }
 
     public void abort() {

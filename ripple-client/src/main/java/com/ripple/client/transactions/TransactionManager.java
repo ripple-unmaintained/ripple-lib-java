@@ -179,7 +179,6 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         final UInt32 submitSequence = res.getSubmitSequence();
         switch (tr) {
             case tesSUCCESS:
-                finalizeTxnAndRemoveFromQueue(transaction);
                 transaction.emit(ManagedTxn.OnSubmitSuccess.class, res);
                 return;
 
