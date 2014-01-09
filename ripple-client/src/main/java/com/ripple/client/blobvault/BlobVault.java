@@ -31,6 +31,7 @@ public class BlobVault {
 
     public JSONObject getBlob(String user, String pass) throws IOException,
             InvalidCipherTextException {
+        user = user.toLowerCase();
         String userPassUrl = userPassHash(user, pass);
         URL blobUrl = new URL(baseUrl + userPassUrl);
         HttpURLConnection getRequest = createGETRequestConnection(blobUrl);
