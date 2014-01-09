@@ -1,4 +1,3 @@
-
 package com.ripple.client.blobvault;
 
 import com.ripple.crypto.sjcljson.JSONEncrypt;
@@ -24,11 +23,23 @@ public class BlobVault {
         this.baseUrl = baseUrl;
     }
 
+    class BlobNotFound extends RuntimeException {
+        public BlobNotFound(String ast) {
+            super(ast);
+        }
+    }
+
     public JSONObject getBlob(String user, String pass) throws IOException,
             InvalidCipherTextException {
         String userPassUrl = userPassHash(user, pass);
         URL blobUrl = new URL(baseUrl + userPassUrl);
-        String data = readAllFromConnection(createGETRequestConnection(blobUrl));
+        HttpURLConnection getRequest = createGETRequestConnection(blobUrl);
+        int responseCode = getRequest.getResponseCode();
+        String data = readAllFromConnection(getRequest);
+        if (responseCode == 404 || data.length() == 0) {
+            // We won't log the pass
+            throw new BlobNotFound("No blob found for user: " + user);
+        }
         String utf8 = base64decodeUTF8(data);
         String decryptionKey;
         try {
