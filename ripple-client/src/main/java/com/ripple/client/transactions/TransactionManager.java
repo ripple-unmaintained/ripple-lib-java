@@ -25,7 +25,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     IKeyPair keyPair;
     public long sequence = -1;
 
-    Set<Long> seenValidatedSequenes = new TreeSet<Long>();
+    Set<Long> seenValidatedSequences = new TreeSet<Long>();
 
     public void queue(ManagedTxn tx) {
         queue(tx, null);
@@ -46,9 +46,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         return queued;
     }
 
-    public static abstract class events<T> extends Publisher.Callback<T> {
-    }
-
+    public static abstract class events<T> extends Publisher.Callback<T> {}
     // This event is emitted with the Sequence of the AccountRoot
     public static abstract class OnValidatedSequence extends events<UInt32> {}
 
@@ -103,7 +101,9 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     private boolean canSubmit() {
-        return client.serverInfo.primed() && client.serverInfo.load_factor < 512 && accountRoot.primed();
+        return client.serverInfo.primed() &&
+               client.serverInfo.load_factor < 512 &&
+               accountRoot.primed();
     }
 
     private Request makeSubmitRequest(final ManagedTxn transaction, UInt32 sequence) {
@@ -112,17 +112,6 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         transaction.prepare(keyPair, fee, sequence == null ? getSubmissionSequence() : sequence);
         final Request req = client.newRequest(Command.submit);
         req.json("tx_blob", B16.toString(transaction.tx_blob));
-
-
-        // DUH, this only works if you are submitting raw tx_json, not a blob
-        /*
-        if (transaction.transactionType() == TransactionType.Payment &&
-            !transaction.get(Amount.Amount).isNative() &&
-            !transaction.has(PathSet.Paths)) {
-            req.json("build_path", true);
-            // TODO: Add a SendMax
-        }
-        */
 
         req.once(Request.OnSuccess.class, new Request.OnSuccess() {
             @Override
@@ -143,10 +132,6 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         return req;
     }
 
-    /*
-    * The $10,000 question is when does sequence get decremented?
-    * Never ... just patch holes ...
-    **/
     private UInt32 getSubmissionSequence() {
         long server = accountRoot.Sequence.longValue();
         if (sequence == -1 || server > sequence) {
@@ -271,57 +256,21 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             }
         }
     }
-
     private void resubmitWithNewSequence(final ManagedTxn txn) {
-        // TODO: ONLY ONLY ONLY if we've actually seen the Sequence
-//        implies that we need to track Sequences
-//                final UInt32 transactionSequence = transaction.sequence();
-//                if (seenValidatedSequenes.contains(transactionSequence.longValue())) {
-//                } else {
-//                    // TODO: why the hell haven't we seen this Sequence?
-//                    on(OnValidatedSequence.class, new OnValidatedSequence() {
-//                        @Override
-//                        public void called(UInt32 sequence) {
-//                            if (sequence.compareTo(transactionSequence) > 0) {
-//                                if (!transaction.isFinalized()) {
-//                                    resubmitWithNewSequence(transaction);
-//                                    removeListener(OnValidatedSequence.class, this);
-//                                }
-//                            }
-//                        }
-//                    });
-//
-//
-//
-        if (seenValidatedSequenes.contains(txn.sequence().longValue())) {
+        // ONLY ONLY ONLY if we've actually seen the Sequence
+        if (seenValidatedSequences.contains(txn.sequence().longValue())) {
             resubmit(txn, getSubmissionSequence());
         } else {
-            client.onceOnFirstLedgerClosedGreaterThan(client.serverInfo.ledger_index + 1, new Runnable() {
-                @Override
-                public void run() {
-
-                }
-            });
-
             on(OnValidatedSequence.class, new OnValidatedSequence() {
                 @Override
                 public void called(UInt32 uInt32) {
-                    if (seenValidatedSequenes.contains(txn.sequence().longValue())) {
+                    if (seenValidatedSequences.contains(txn.sequence().longValue())) {
                         resubmit(txn, getSubmissionSequence());
                     }
                 }
             });
         }
     }
-
-//    private void resubmitAnyTransactionWithLesserSequence(UInt32 sequence) {
-//        for (ManagedTxn txn : queued) {
-//            if (txn.get(UInt32.Sequence).compareTo(sequence) <= 0) {
-//                resubmit(txn, getSubmissionSequence());
-//                break;
-//            }
-//        }
-//    }
 
     private void resubmit(ManagedTxn txn, UInt32 sequence) {
         makeSubmitRequest(txn, sequence);
@@ -351,7 +300,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             return;
         }
         UInt32 txnSequence = tm.transaction.get(UInt32.Sequence);
-        seenValidatedSequenes.add(txnSequence.longValue());
+        seenValidatedSequences.add(txnSequence.longValue());
 
         ManagedTxn tx = submittedTransaction(tm.hash);
         if (tx != null) {
