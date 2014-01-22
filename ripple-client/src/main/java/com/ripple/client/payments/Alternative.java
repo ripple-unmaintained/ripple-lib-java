@@ -1,7 +1,7 @@
 package com.ripple.client.payments;
 
-import com.ripple.core.types.Amount;
-import com.ripple.core.types.PathSet;
+import com.ripple.core.coretypes.Amount;
+import com.ripple.core.coretypes.PathSet;
 
 public class Alternative {
     public Amount sourceAmount;

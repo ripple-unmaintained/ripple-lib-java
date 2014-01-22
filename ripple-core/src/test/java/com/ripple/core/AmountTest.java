@@ -1,7 +1,7 @@
 package com.ripple.core;
 
-import com.ripple.core.types.Amount;
-import com.ripple.core.types.uint.UInt32;
+import com.ripple.core.coretypes.Amount;
+import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.encodings.base58.EncodingFormatException;
 import org.json.JSONObject;
 import org.junit.Test;

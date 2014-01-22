@@ -4,4 +4,5 @@
     <string name="status_text">Login</string>
     <string name="pay_one_drop">Pay one drop!</string>
     <string name="retrieve_wallet_new">Retrieve wallet</string>
+    <string name="pay_iou">Ripple Payment</string>
 </resources>

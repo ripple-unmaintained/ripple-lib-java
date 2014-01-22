@@ -2,7 +2,7 @@ package com.ripple.client;
 
 import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.config.Config;
-import com.ripple.core.types.Amount;
+import com.ripple.core.coretypes.Amount;
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;

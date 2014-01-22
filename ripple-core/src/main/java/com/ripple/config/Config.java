@@ -40,7 +40,7 @@ public class Config {
      * We set up all the defaults here
      */
     static {
-        setAlphabet(DEFAULT_ALPHABET); // XXX: what about AccountID class `static` block caching of seeds?
+        setAlphabet(DEFAULT_ALPHABET);
         setFeeCushion(1.1);
         initBouncy();
     }

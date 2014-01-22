@@ -4,11 +4,11 @@ package com.ripple.client;
 import com.ripple.client.transactions.ManagedTxn;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.fields.Field;
-import com.ripple.core.types.AccountID;
-import com.ripple.core.types.Amount;
-import com.ripple.core.types.STObject;
-import com.ripple.core.types.hash.Hash256;
-import com.ripple.core.types.uint.UInt32;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Amount;
+import com.ripple.core.coretypes.STObject;
+import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.uint.UInt32;
 import org.json.JSONObject;
 import org.junit.Test;
 

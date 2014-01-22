@@ -1,11 +1,11 @@
 package com.ripple.core;
 
-import com.ripple.core.types.STObject;
-import com.ripple.core.types.hash.Hash128;
-import com.ripple.core.types.hash.Hash256;
+import com.ripple.core.coretypes.STObject;
+import com.ripple.core.coretypes.hash.Hash128;
+import com.ripple.core.coretypes.hash.Hash256;
 import org.junit.Test;
 
-import static com.ripple.core.types.hash.Hash256.Hash256Map;
+import static com.ripple.core.coretypes.hash.Hash256.Hash256Map;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 

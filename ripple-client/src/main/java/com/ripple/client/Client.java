@@ -14,20 +14,65 @@ import com.ripple.client.transactions.TransactionResult;
 import com.ripple.client.transport.TransportEventHandler;
 import com.ripple.client.transport.WebSocketTransport;
 import com.ripple.client.wallet.Wallet;
-import com.ripple.core.types.*;
-import com.ripple.core.types.hash.Hash256;
-import com.ripple.core.types.uint.UInt32;
+import com.ripple.core.coretypes.*;
+import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.uint.UInt32;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class Client extends Publisher<Client.events> implements TransportEventHandler {
-    public boolean connected = false;
+    public static abstract class events<T>      extends Publisher.Callback<T> {}
+    public abstract static class OnLedgerClosed extends events<ServerInfo> {}
+    public abstract static class OnConnected    extends events<Client> {}
+    public abstract static class OnDisconnected extends events<Client> {}
+    public abstract static class OnSubscribed   extends events<ServerInfo> {}
+    public abstract static class OnMessage extends events<JSONObject> {}
+    public abstract static class OnSendMessage extends events<JSONObject> {}
+    public abstract static class OnStateChange extends events<Client> {}
+    public abstract static class OnPathFind extends events<JSONObject> {}
 
+    public boolean connected = false;
+    private HashMap<AccountID, Account> accounts = new HashMap<AccountID, Account>();
+    SubscriptionManager subscriptions = new SubscriptionManager();
+
+    public Client(WebSocketTransport ws) {
+        this.ws = ws;
+        ws.setHandler(this);
+
+        on(OnLedgerClosed.class, new OnLedgerClosed() {
+            @Override
+            public void called(ServerInfo serverInfo) {
+                Iterator<LedgerClosedCallback> iterator = ledgerClosedCallbacks.iterator();
+
+                while (iterator.hasNext()) {
+                    LedgerClosedCallback next = iterator.next();
+                    if (serverInfo.ledger_index >= next.anyLedgerGreaterOrEqual) {
+                        iterator.remove();
+                        next.callback.run();
+                    }
+                }
+            }
+        });
+    }
+
+    ArrayList<LedgerClosedCallback> ledgerClosedCallbacks = new ArrayList<LedgerClosedCallback>();
+    public static class LedgerClosedCallback {
+        public long anyLedgerGreaterOrEqual;
+
+        public Runnable callback;
+        public LedgerClosedCallback(long anyLedgerGreaterOrEqual, Runnable callback) {
+            this.anyLedgerGreaterOrEqual = anyLedgerGreaterOrEqual;
+            this.callback = callback;
+        }
+
+    }
+
+    public void onceOnFirstLedgerClosedGreaterThan(long ledgerIndex, Runnable runnable) {
+        ledgerClosedCallbacks.add(new LedgerClosedCallback(ledgerIndex, runnable));
+    }
 
 
     public Request requestBookOffers(Issue get, Issue pay) {
@@ -36,19 +81,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         request.json("taker_gets", get.toJSON());
         return request;
     }
-
-    public static abstract class events<T>      extends Publisher.Callback<T> {}
-
-    public abstract static class OnLedgerClosed extends events<ServerInfo> {}
-    public abstract static class OnConnected    extends events<Client> {}
-    public abstract static class OnDisconnected extends events<Client> {}
-    public abstract static class OnSubscribed   extends events<ServerInfo> {}
-    public abstract static class OnMessage extends events<JSONObject> {}
-    public abstract static class OnStateChange extends events<Client> {}
-    public abstract static class OnPathFind extends events<JSONObject> {}
-
-    private HashMap<AccountID, Account> accounts = new HashMap<AccountID, Account>();
-    SubscriptionManager subscriptions = new SubscriptionManager();
 
     public Account account(final AccountID id) {
         if (accounts.containsKey(id)) {
@@ -113,10 +145,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     WebSocketTransport ws;
     private int cmdIDs;
 
-    public Client(WebSocketTransport ws) {
-        this.ws = ws;
-        ws.setHandler(this);
-    }
 
     // TODO: reconnect if we go 60s without any message from the server
     public void connect(String uri) {
@@ -333,6 +361,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     public void sendMessage(JSONObject object) {
         ClientLogger.log("Send: %s", prettyJSON(object));
+        emit(OnSendMessage.class, object);
         ws.sendMessage(object);
     }
 

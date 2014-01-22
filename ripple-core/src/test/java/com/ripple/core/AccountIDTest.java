@@ -1,6 +1,6 @@
 package com.ripple.core;
 
-import com.ripple.core.types.AccountID;
+import com.ripple.core.coretypes.AccountID;
 import com.ripple.encodings.base58.EncodingFormatException;
 import org.junit.Test;
 

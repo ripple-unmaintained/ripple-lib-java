@@ -93,7 +93,7 @@ public abstract class TypeTranslator<T extends SerializedType> {
 
     public abstract Object toJSON(T obj);
 
-    public abstract void toBytesTree(T obj, BytesTree to);
+    public abstract void toBytesTree(T obj, BytesList to);
 
     /**
      * @param hint Using a boxed integer, allowing null for no hint
@@ -107,7 +107,7 @@ public abstract class TypeTranslator<T extends SerializedType> {
     }
 
     public byte[] toWireBytes(T obj) {
-        BytesTree to = new BytesTree();
+        BytesList to = new BytesList();
         toBytesTree(obj, to);
         return to.bytes();
     }

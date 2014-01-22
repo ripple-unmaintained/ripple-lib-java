@@ -24,18 +24,43 @@ public class BlobVault {
         this.baseUrl = baseUrl;
     }
 
+    class BlobNotFound extends RuntimeException {
+        public BlobNotFound(String ast) {
+            super(ast);
+        }
+    }
+
     public JSONObject getBlob(String user, String pass) throws IOException,
             InvalidCipherTextException {
+        user = user.toLowerCase();
         String userPassUrl = userPassHash(user, pass);
+        System.out.println("User " + user);
+
+        System.out.println(userPassUrl);
+        //0bdf63ac4ff8639dc4c0e411ab4d4be8f2a17a592db483836a779c8e60fc3ee2
+
         URL blobUrl = new URL(baseUrl + userPassUrl);
-        String data = readAllFromConnection(createGETRequestConnection(blobUrl));
+//        HttpURLConnection getRequest = createGETRequestConnection(blobUrl);
+//        int responseCode = getRequest.getResponseCode();
+//        System.out.println(responseCode);
+//        String data = readAllFromConnection(getRequest);
+//
+//        if (responseCode == 404 || data.length() == 0) {
+//            // We won't log the pass
+//            throw new BlobNotFound("No blob found for user: " + user);
+//        }
+        String data = "eyJpdiI6IlU3eWwvQ2RqUEVQekNYL1gzSXlabWc9PSIsInYiOjEsIml0ZXIiOjEwMDAsImtzIjoyNTYsInRzIjo2NCwibW9kZSI6ImNjbSIsImFkYXRhIjoiJTVCJTVEIiwiY2lwaGVyIjoiYWVzIiwic2FsdCI6Im8rSFFwaG1RZWkwPSIsImN0IjoiVmFuTjMvR3M3UmNoUHJtMU5kV0wrYzliYjdXQjNaQ29xR0cvOXk1QVlqU2pNSVVhRjFLWUdsQ2V0S2FjYnpRUHkzak04TnFGMW9GaDMzLzltOU56bXZZNTVldU1vUkNYeFd1ZXQvQllPMFFYZG1XMUtubjBsZzl6ejBTZlhacHZqRzhBY3ZncEUzT0Y1bFBndnNGMm5vbkhPL2J3Q0dZYytEVGRTUlVOSHZxZllUOGlWditJenB5MC85SEdhTGhVUzl4TzZidkVJNHhJVVFxVEY3aFdDaDdEeDRiZWtkMzgxSWhucUV6d0Zlei9Ub1JUYXFZTFd2eFI2aDlyeENReW4xVGdyMDFvS2w0cG9rK0QvRXZKZDh0Y2VUT2huVXRVQ2hrai9VeGVZZVN1NUtGL2VLTXpsWTFTUGc9PSJ9";
         String utf8 = base64decodeUTF8(data);
+
+        System.out.println(utf8);
         String decryptionKey;
         try {
             decryptionKey = userPassDerivedDecryptionKey(user, pass);
+            System.out.println(decryptionKey);
             return sjcl.decrypt(decryptionKey, utf8);
         } catch (InvalidCipherTextException e) {
             decryptionKey = userPassDerivedDecryptionKeyOLD(user, pass);
+            System.out.println(decryptionKey);
             return sjcl.decrypt(decryptionKey, utf8);
         }
     }
@@ -69,7 +94,7 @@ public class BlobVault {
     }
 
     public String userPassHash(String user, String pass) {
-        String toHash = user.toLowerCase() + pass;
+        String toHash = user + pass;
         try {
             byte[] toHashBytes = toHash.getBytes("utf8");
             byte[] sha256 = MessageDigest.getInstance("SHA-256").digest(toHashBytes);

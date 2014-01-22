@@ -1,6 +1,6 @@
 package com.ripple.core.types.shamap;
 
-import com.ripple.core.types.hash.Hash256;
+import com.ripple.core.coretypes.hash.Hash256;
 
 public class ShaMapLeafNode extends ShaMapNode {
     Hash256 index;

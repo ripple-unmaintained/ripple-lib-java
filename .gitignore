@@ -13,5 +13,5 @@ ripple-bouncycastle/target/
 .classpath
 .project
 target/
-offer-create-txn.json
+*.json
 ripple-examples/ripple-cli/src/main/java/com/ripple/cli/MakePayment2.java

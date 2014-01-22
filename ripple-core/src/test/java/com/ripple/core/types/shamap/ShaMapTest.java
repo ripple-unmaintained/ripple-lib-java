@@ -5,14 +5,16 @@ import static com.ripple.core.types.shamap.ShaMapNode.NodeType.tnTRANSACTION_MD;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 
-import java.util.HashSet;
+import java.util.*;
 
+import com.ripple.core.coretypes.Vector256;
+import org.json.JSONArray;
 import org.junit.Test;
 import org.ripple.bouncycastle.util.encoders.Hex;
 
 import com.ripple.config.Config;
 import com.ripple.core.serialized.BinarySerializer;
-import com.ripple.core.types.hash.Hash256;
+import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.encodings.common.B16;
 
 public class ShaMapTest {
@@ -68,7 +70,7 @@ public class ShaMapTest {
     public void testShaMapDeepNodes() {
         Hash256 // 0 64
 
-        id1 = hash("0000000000000000000000000000000000000000000000000000000000000000"), id2 = hash("1000000000000000000000000000000000000000000000000000000000000000"), id3 = hash("2100000000000000000000000000000000000000000000000000000000000000"), id4 = hash("2110000000000000000000000000000000000000000000000000000000000000"), id5 = hash("2120000000000000000000000000000000000000000000000000000000000000"), id6 = hash("3000000000000000000000000000000000000000000000000000000000000000");
+                id1 = hash("0000000000000000000000000000000000000000000000000000000000000000"), id2 = hash("1000000000000000000000000000000000000000000000000000000000000000"), id3 = hash("2100000000000000000000000000000000000000000000000000000000000000"), id4 = hash("2110000000000000000000000000000000000000000000000000000000000000"), id5 = hash("2120000000000000000000000000000000000000000000000000000000000000"), id6 = hash("3000000000000000000000000000000000000000000000000000000000000000");
 
         ensureUnique(id1, id2, id3, id4, id5, id6);
 
@@ -166,5 +168,257 @@ public class ShaMapTest {
 
     private Hash256 hash(String tnh) {
         return Hash256.translate.fromString(tnh);
+    }
+
+
+    String s = "71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D";
+    byte[] prefix = B16.decode(s);
+
+    Random randomer = new Random();
+    long hashes = 0;
+    public boolean CREATE_BOOKBASES = true;
+    public int BOOK_EVERY = 5;
+    public int NUM_PREFIXES = 25;
+
+    ArrayList<byte[]> prefixes = new ArrayList<byte[]>();
+    {
+        for (int i = 0; i < NUM_PREFIXES; i++) {
+            byte[] b = new byte[24];
+            b[0] |= ((i % 16) << 4); // A little trick to ensure we hit every top level inner node children of root
+            randomer.nextBytes(b);
+            prefixes.add(b);
+        }
+    }
+
+    private Hash256 randomHash() {
+        byte[] b;
+
+        b = new byte[32];
+        randomer.nextBytes(b);
+
+//        Hash256.HalfSha512 halfSha512 = new Hash256.HalfSha512();
+//        halfSha512.update(b);
+        return new Hash256(b);
+    }
+
+    private Hash256 prefixed32() {
+        byte[] prefix1 = randomPrefix();
+
+        byte[] b;
+        b = new byte[8];
+        randomer.nextBytes(b);
+
+        byte[] f = new byte[32];
+
+        System.arraycopy(prefix1, 0, f, 0, prefix1.length);
+        System.arraycopy(b, 0, f, prefix1.length, b.length);
+        b = f;
+        return new Hash256(b);
+    }
+
+    ShaMapInnerNode.Counter<Integer> prefixIndexes = new ShaMapInnerNode.Counter<Integer>();
+
+    private byte[] randomPrefix() {
+//        prefixes.get()
+        /*int randomKeyIndex = randomer.nextInt(whichRandom.size() - 1);
+                    Hash256 keyToUpdate = whichRandom.get(randomKeyIndex);*/
+        int randomIndex = randomer.nextInt(prefixes.size() - 1);
+        prefixIndexes.count(randomIndex);
+        return prefixes.get(randomIndex);
+    }
+
+//    @Test
+    public void testWatFace() throws Exception {
+        ShaMap ledger = new ShaMap();
+        int numLedgers = 10000;
+
+        int newNodesPerLedger = 25;
+        int modifiedNodesPerLedger = 100;
+        ArrayList<Hash256> randomNodes = new ArrayList<Hash256>();
+        ArrayList<Hash256> bookBases = new ArrayList<Hash256>();
+
+        int totalLeavesAdded = 0;
+        int totalLeavesAddedOrModified = 0;
+        int ledgersDone = 0;
+        double pta;
+
+        for (int i = 0; i < numLedgers; i++) {
+            pta = now();
+            int n = 0;
+            while (n++ < newNodesPerLedger) {
+                // she gonna blow up if she is not unique anyway
+                Hash256 key;
+                if (bookKey()) {
+                    key = prefixed32();
+                    bookBases.add(key);
+                } else {
+                    key = randomHash();
+                    randomNodes.add(key);
+                }
+
+                addKeyAsValueItem(ledger, key);
+                totalLeavesAdded++;
+            }
+            double nsForAdding = now() - pta;
+
+            pta = now();
+            if (ledgersDone > 1 && modifiedNodesPerLedger <= randomNodes.size()) {
+                for (int j = 0; j < modifiedNodesPerLedger; j++) {
+                    ArrayList<Hash256> whichRandom;
+                    if (bookKey()) {
+                        whichRandom = bookBases;
+                    } else {
+                        whichRandom = randomNodes;
+                    }
+                    int randomKeyIndex = randomer.nextInt(whichRandom.size() - 1);
+                    Hash256 keyToUpdate = whichRandom.get(randomKeyIndex);
+                    // invalidating ;)
+                    ShaMapLeafNode leaf = ledger.getLeafForUpdating(keyToUpdate);
+                    // so the hash is actually different ;0
+                    leaf.blob = createItem(randomHash());
+                }
+            }
+            double nsForModding = now() - pta;
+
+            totalLeavesAddedOrModified += modifiedNodesPerLedger + newNodesPerLedger;
+
+//            ledger.compressTree();
+            pta = now();
+            ledger.hash();
+//            ledger.uncompressTree();
+
+            double nsForHashing = now() - pta;
+
+            ledgersDone++;
+
+            if (ledgersDone % 25 == 0) {
+                double uniqueInnerNodes = ledger.totalUniqueInnerNodesOverTime();
+                long l1 = ledger.unusedBranchesOverTime();
+                double ratioUnusedToUsedInInnerNodesOverTime = l1 / (uniqueInnerNodes * 16);
+
+                long totalInnerNodes = ledger.totalInnerNodes();
+                long totalSlots = ledger.totalSlots();
+                long unusedSlots = ledger.unusedSlots();
+                long usedSlots = totalSlots - ledger.unusedSlots();
+
+                System.out.println("Ledgers passed: " + ledgersDone);
+                System.out.println("Total leaf nodes in latest ledger: " + totalLeavesAdded);
+                System.out.println("Leaf nodes added per ledger: " + newNodesPerLedger);
+                System.out.println("Leaf nodes updated per ledger: " + modifiedNodesPerLedger);
+                System.out.println("Ms to add " + newNodesPerLedger + " nodes to ledger: " + nsForAdding / 1e6);
+                System.out.println("Ms to update " + modifiedNodesPerLedger + " nodes to ledger: " + nsForModding / 1e6);
+                System.out.println("Ms to hash ledger: " + nsForHashing / 1e6);
+                System.out.println("Total inner nodes in ledger: " + totalInnerNodes);
+                System.out.println("Total unique inner nodes over all ledgers: " + uniqueInnerNodes);
+                System.out.println("Total branches in ledger: " + totalSlots);
+                System.out.println("Total unused branches in ledger: " + unusedSlots);
+                System.out.println("Total unique leaf instances: " + totalLeavesAddedOrModified);
+                System.out.println("Unique inner nodes over all ledgers: " + uniqueInnerNodes);
+                System.out.println("Ratio of unused/used branches in inner nodes over all ledgers: " + ratioUnusedToUsedInInnerNodesOverTime);
+                System.out.println("Ratio of unused/used branches in ledger: " + ((double) unusedSlots) / usedSlots);
+                System.out.println("Unique inner nodes per total leaf instances in node store: " + uniqueInnerNodes / totalLeavesAddedOrModified);
+                System.out.println("Unique inner nodes per total leaf nodes in ledger: " + uniqueInnerNodes / totalLeavesAdded);
+                System.out.println();
+            }
+        }
+
+        System.out.println("Random   keys used: " + randomNodes.size());
+        System.out.println("Prefixed keys used: " + bookBases.size());
+
+        System.out.println("Prefix Histogram");
+        for (Map.Entry<Integer, Integer> count : prefixIndexes.entrySet()) {
+            System.out.printf("%s : %s%n", B16.toString(prefixes.get(count.getKey())), count.getValue());
+        }
+
+
+        System.out.println();
+        System.out.println("Unique inner node, branch usage histogram");
+        ShaMapInnerNode.Counter<Integer> integerCounter = ledger.slotHistogram(null);
+        for (Map.Entry<Integer, Integer> count : integerCounter.entrySet()) {
+            System.out.printf("%s : %s%n", count.getKey(), count.getValue());
+        }
+
+
+//        Hash256 hash = ledger.hash();
+//        System.out.println(hash);
+    }
+
+    public boolean bookKey() {
+        return CREATE_BOOKBASES && ++hashes % BOOK_EVERY == 0;
+    }
+
+    public double now() {
+        return System.nanoTime();
+    }
+
+    public void addKeyAsValueItem(ShaMap ledger, Hash256 key) {
+        ledger.addLeaf(key, ShaMapNode.NodeType.tnTRANSACTION_MD, createItem(key));
+    }
+
+    @Test
+    public void dumpRandomInnerNodeRepresentation() throws Exception {
+        for (int i = 0; i < 16; i++) {
+            byte[] r32 = new byte[32];
+            randomer.nextBytes(r32);
+            if (false && randomer.nextInt(1) == 0) {
+                System.out.println(ShaMapInnerNode.ZERO_256);
+            } else {
+                System.out.println(new Hash256(r32));
+            }
+        }
+    }
+
+    @Test
+    public void testOfferDepth() throws Exception {
+        String indexes = "[\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D0100000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D0200000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D0300000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D0400000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D0500000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D0600000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D0700000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D0800000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D0900000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D1000000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D1100000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D1200000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D1300000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D1400000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D1500000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D1600000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D1700000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D1800000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D1900000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D2000000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D2100000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D2200000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D2300000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D2400000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D2500000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D2600000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D2700000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D2800000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D2900000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D3000000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D3100000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D3200000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D3300000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D3400000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D3500000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D3600000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D3700000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D3800000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D3900000000000000\"," +
+                "\"71633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D4000000000000000\"]";
+        JSONArray array = new JSONArray(indexes);
+        Vector256 indexVector = Vector256.translate.fromJSONArray(array);
+
+        ShaMap map = new ShaMap();
+        for (Hash256 hash256 : indexVector) {
+            addKeyAsValueItem(map, hash256);
+            System.out.println(hash256);
+        }
+        System.out.println(map.totalInnerNodes());
+        System.out.println(indexVector.size());
     }
 }

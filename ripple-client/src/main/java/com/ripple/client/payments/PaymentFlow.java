@@ -6,7 +6,7 @@ import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.transactions.ManagedTxn;
-import com.ripple.core.types.*;
+import com.ripple.core.coretypes.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,8 +50,8 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
     }
 
     AccountID src, dest;
-    STObject srcInfo, destInfo;
-    Alternatives alternatives = null;
+    STObject srcInfo, destInfo; // AccountRoot objects
+    Alternatives alternatives;
 
     Currency destAmountCurrency;
     BigDecimal destAmountValue;
@@ -107,7 +107,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         }
     }
 
-    private void makePathFindRequestIfCan() {
+    public void makePathFindRequestIfCan() {
         cancelPendingRequest();
 
         if (tooLittleInfoForPathFindRequest()) {
@@ -168,6 +168,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
 
     public void abort() {
         abortPathFind();
+        cancelPendingRequest();
     }
 
     public ManagedTxn createPayment(Alternative alternative, BigDecimal sendMaxMultiplier) {

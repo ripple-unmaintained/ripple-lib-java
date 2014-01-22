@@ -5,8 +5,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import com.ripple.core.known.sle.Offer;
+import com.ripple.core.types.known.sle.Offer;
 import junit.framework.TestCase;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -20,25 +21,59 @@ import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BinarySerializer;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
-import com.ripple.core.types.AccountID;
-import com.ripple.core.types.Amount;
-import com.ripple.core.types.STArray;
-import com.ripple.core.types.STObject;
-import com.ripple.core.types.VariableLength;
-import com.ripple.core.types.uint.UInt16;
-import com.ripple.core.types.uint.UInt32;
-import com.ripple.core.types.uint.UInt64;
-import com.ripple.core.types.uint.UInt8;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Amount;
+import com.ripple.core.coretypes.STArray;
+import com.ripple.core.coretypes.STObject;
+import com.ripple.core.coretypes.VariableLength;
+import com.ripple.core.coretypes.uint.UInt16;
+import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.coretypes.uint.UInt64;
+import com.ripple.core.coretypes.uint.UInt8;
 import com.ripple.encodings.common.B16;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 public class STObjectTest {
     @Test
+    public void testDecodeYuahosHex() throws Exception {
+
+        String fields = "[\"Account\", \"BookDirectory\", \"BookNode\", \"Flags\", \"LedgerEntryType\", \"OwnerNode\", \"PreviousTxnID\", \"PreviousTxnLgrSeq\", \"Sequence\", \"TakerGets\", \"TakerPays\"]";
+        JSONArray f = new JSONArray(fields);
+
+        Map<Field, Field> fmap = new EnumMap<Field, Field>(Field.class);
+        for (int i = 0; i < f.length(); i++) {
+            String fn = f.getString(i);
+            Field field = Field.valueOf(fn);
+            fmap.put(field, field);
+        }
+
+        for (Field field : fmap.keySet()) {
+            System.out.println(field);
+        }
+
+//        System.out.println(f);
+
+        String hex = "11006F22000000002400000003250035788533000000000000000034000000000000000055555B93628BF3EC318892BB7C7CDCB6732FF53D12B6EEC4FAF60DD1AEE1C6101F501071633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D4F038D7EA4C6800064D4838D7EA4C68000000000000000000000000000425443000000000035DD7DF146893456296BF4061FBE68735D28F3286540000000000F42408114A4B8F5F7B644AEDC3447F9459C132EEB016A133B000037C6659BB98F8D09F2F4CFEB27DE8EFEAFE54DD9E1C13AECDF5794B0C0F5";
+        hex = hex.substring(0, hex.length() - 64); // the `index` is appended to the leaf node
+
+
+        STObject offer = STObject.translate.fromWireHex(hex);
+        JSONObject jsonObject = STObject.translate.toJSONObject(offer);
+        System.out.println(jsonObject.toString(4));
+
+//        System.out.println(fields);
+
+    }
+
+    @Test
     public void testNestedObjectSerialization() throws Exception {
-        String rippleLibHex =    "120007220000000024000195F964400000170A53AC2065D5460561EC9DE000000000000000000000000000" +
-                                "494C53000000000092D705968936C419CE614BF264B5EEB1CEA47FF468400000000000000A7321028472865" +
-                                "AF4CB32AA285834B57576B7290AA8C31B459047DB27E16F418D6A71667447304502202ABE08D5E78D1E74A4" +
-                                "C18F2714F64E87B8BD57444AFA5733109EB3C077077520022100DB335EE97386E4C0591CAC024D50E9230D8" +
-                                "F171EEB901B5E5E4BD6D1E0AEF98C811439408A69F0895E62149CFCC006FB89FA7D1E6E5D";
+        String rippleLibHex = "120007220000000024000195F964400000170A53AC2065D5460561EC9DE000000000000000000000000000" +
+                "494C53000000000092D705968936C419CE614BF264B5EEB1CEA47FF468400000000000000A7321028472865" +
+                "AF4CB32AA285834B57576B7290AA8C31B459047DB27E16F418D6A71667447304502202ABE08D5E78D1E74A4" +
+                "C18F2714F64E87B8BD57444AFA5733109EB3C077077520022100DB335EE97386E4C0591CAC024D50E9230D8" +
+                "F171EEB901B5E5E4BD6D1E0AEF98C811439408A69F0895E62149CFCC006FB89FA7D1E6E5D";
 
 
         String rippledHex = "120007220000000024000195F964400000170A53AC2065D5460561EC9DE000000000000000000000000000494C53000000000092D705968936C419CE614BF264B5EEB1CEA47FF468400000000000000A7321028472865AF4CB32AA285834B57576B7290AA8C31B459047DB27E16F418D6A71667447304502202ABE08D5E78D1E74A4C18F2714F64E87B8BD57444AFA5733109EB3C077077520022100DB335EE97386E4C0591CAC024D50E9230D8F171EEB901B5E5E4BD6D1E0AEF98C811439408A69F0895E62149CFCC006FB89FA7D1E6E5D";
@@ -143,96 +178,96 @@ public class STObjectTest {
 
     @Test
     public void testNestedObjectSerialization2() throws Exception {
-        String json = "{"+
-                "  \"Account\": \"rMWUykAmNQDaM9poSes8VLDZDDKEbmo7MX\","+
-                "  \"Fee\": \"10\","+
-                "  \"Flags\": 0,"+
-                "  \"OfferSequence\": 1130290,"+
-                "  \"Sequence\": 1130447,"+
-                "  \"SigningPubKey\": \"0256C64F0378DCCCB4E0224B36F7ED1E5586455FF105F760245ADB35A8B03A25FD\","+
-                "  \"TransactionType\": \"OfferCancel\","+
-                "  \"TxnSignature\": \"304502200A8BED7B8955F45633BA4E9212CE386C397E32ACFF6ECE08EB74B5C86200C606022100EF62131FF50B288244D9AB6B3D18BACD44924D2BAEEF55E1B3232B7E033A2791\","+
-                "  \"hash\": \"A197ECCF23E55193CBE292F7A373F0DE0F521D4DCAE32484E20EC634C1ACE528\","+
-                "  \"metaData\": {"+
-                "    \"AffectedNodes\": ["+
-                "      {"+
-                "        \"ModifiedNode\": {"+
-                "          \"FinalFields\": {"+
-                "            \"Account\": \"rMWUykAmNQDaM9poSes8VLDZDDKEbmo7MX\","+
-                "            \"Balance\": \"1988695002\","+
-                "            \"Flags\": 0,"+
-                "            \"OwnerCount\": 68,"+
-                "            \"Sequence\": 1130448"+
-                "          },"+
-                "          \"LedgerEntryType\": \"AccountRoot\","+
-                "          \"LedgerIndex\": \"56091AD066271ED03B106812AD376D48F126803665E3ECBFDBBB7A3FFEB474B2\","+
-                "          \"PreviousFields\": {"+
-                "            \"Balance\": \"1988695012\","+
-                "            \"OwnerCount\": 69,"+
-                "            \"Sequence\": 1130447"+
-                "          },"+
-                "          \"PreviousTxnID\": \"610A3178D0A69167DF32E28990FD60D50F5610A5CF5C832CBF0C7FCC0913516B\","+
-                "          \"PreviousTxnLgrSeq\": 3225338"+
-                "        }"+
-                "      },"+
-                "      {"+
-                "        \"ModifiedNode\": {"+
-                "          \"FinalFields\": {"+
-                "            \"ExchangeRate\": \"561993D688DA919A\","+
-                "            \"Flags\": 0,"+
-                "            \"RootIndex\": \"5943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919A\","+
-                "            \"TakerGetsCurrency\": \"0000000000000000000000004254430000000000\","+
-                "            \"TakerGetsIssuer\": \"92D705968936C419CE614BF264B5EEB1CEA47FF4\","+
-                "            \"TakerPaysCurrency\": \"0000000000000000000000004C54430000000000\","+
-                "            \"TakerPaysIssuer\": \"92D705968936C419CE614BF264B5EEB1CEA47FF4\""+
-                "          },"+
-                "          \"LedgerEntryType\": \"DirectoryNode\","+
-                "          \"LedgerIndex\": \"5943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919A\""+
-                "        }"+
-                "      },"+
-                "      {"+
-                "        \"DeletedNode\": {"+
-                "          \"FinalFields\": {"+
-                "            \"Account\": \"rMWUykAmNQDaM9poSes8VLDZDDKEbmo7MX\","+
-                "            \"BookDirectory\": \"5943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919A\","+
-                "            \"BookNode\": \"0000000000000000\","+
-                "            \"Flags\": 0,"+
-                "            \"OwnerNode\": \"0000000000003292\","+
-                "            \"PreviousTxnID\": \"C7D1671589B1B4AB1071E38299B8338632DAD19A7D0F8D28388F40845AF0BCC5\","+
-                "            \"PreviousTxnLgrSeq\": 3225110,"+
-                "            \"Sequence\": 1130290,"+
-                "            \"TakerGets\": {"+
-                "              \"currency\": \"BTC\","+
-                "              \"issuer\": \"rNPRNzBB92BVpAhhZr4iXDTveCgV5Pofm9\","+
-                "              \"value\": \"0.299233659\""+
-                "            },"+
-                "            \"TakerPays\": {"+
-                "              \"currency\": \"LTC\","+
-                "              \"issuer\": \"rNPRNzBB92BVpAhhZr4iXDTveCgV5Pofm9\","+
-                "              \"value\": \"21.5431\""+
-                "            }"+
-                "          },"+
-                "          \"LedgerEntryType\": \"Offer\","+
-                "          \"LedgerIndex\": \"78812E6E2AB80D5F291F8033D7BC23F0A6E4EA80C998BFF38E80E2A09D2C4D93\""+
-                "        }"+
-                "      },"+
-                "      {"+
-                "        \"ModifiedNode\": {"+
-                "          \"FinalFields\": {"+
-                "            \"Flags\": 0,"+
-                "            \"IndexNext\": \"0000000000003293\","+
-                "            \"IndexPrevious\": \"0000000000000000\","+
-                "            \"Owner\": \"rMWUykAmNQDaM9poSes8VLDZDDKEbmo7MX\","+
-                "            \"RootIndex\": \"2114A41BB356843CE99B2858892C8F1FEF634B09F09AF2EB3E8C9AA7FD0E3A1A\""+
-                "          },"+
-                "          \"LedgerEntryType\": \"DirectoryNode\","+
-                "          \"LedgerIndex\": \"F78A0FFA69890F27C2A79C495E1CEB187EE8E677E3FDFA5AD0B8FCFC6E644E38\""+
-                "        }"+
-                "      }"+
-                "    ],"+
-                "    \"TransactionIndex\": 1,"+
-                "    \"TransactionResult\": \"tesSUCCESS\""+
-                "  }"+
+        String json = "{" +
+                "  \"Account\": \"rMWUykAmNQDaM9poSes8VLDZDDKEbmo7MX\"," +
+                "  \"Fee\": \"10\"," +
+                "  \"Flags\": 0," +
+                "  \"OfferSequence\": 1130290," +
+                "  \"Sequence\": 1130447," +
+                "  \"SigningPubKey\": \"0256C64F0378DCCCB4E0224B36F7ED1E5586455FF105F760245ADB35A8B03A25FD\"," +
+                "  \"TransactionType\": \"OfferCancel\"," +
+                "  \"TxnSignature\": \"304502200A8BED7B8955F45633BA4E9212CE386C397E32ACFF6ECE08EB74B5C86200C606022100EF62131FF50B288244D9AB6B3D18BACD44924D2BAEEF55E1B3232B7E033A2791\"," +
+                "  \"hash\": \"A197ECCF23E55193CBE292F7A373F0DE0F521D4DCAE32484E20EC634C1ACE528\"," +
+                "  \"metaData\": {" +
+                "    \"AffectedNodes\": [" +
+                "      {" +
+                "        \"ModifiedNode\": {" +
+                "          \"FinalFields\": {" +
+                "            \"Account\": \"rMWUykAmNQDaM9poSes8VLDZDDKEbmo7MX\"," +
+                "            \"Balance\": \"1988695002\"," +
+                "            \"Flags\": 0," +
+                "            \"OwnerCount\": 68," +
+                "            \"Sequence\": 1130448" +
+                "          }," +
+                "          \"LedgerEntryType\": \"AccountRoot\"," +
+                "          \"LedgerIndex\": \"56091AD066271ED03B106812AD376D48F126803665E3ECBFDBBB7A3FFEB474B2\"," +
+                "          \"PreviousFields\": {" +
+                "            \"Balance\": \"1988695012\"," +
+                "            \"OwnerCount\": 69," +
+                "            \"Sequence\": 1130447" +
+                "          }," +
+                "          \"PreviousTxnID\": \"610A3178D0A69167DF32E28990FD60D50F5610A5CF5C832CBF0C7FCC0913516B\"," +
+                "          \"PreviousTxnLgrSeq\": 3225338" +
+                "        }" +
+                "      }," +
+                "      {" +
+                "        \"ModifiedNode\": {" +
+                "          \"FinalFields\": {" +
+                "            \"ExchangeRate\": \"561993D688DA919A\"," +
+                "            \"Flags\": 0," +
+                "            \"RootIndex\": \"5943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919A\"," +
+                "            \"TakerGetsCurrency\": \"0000000000000000000000004254430000000000\"," +
+                "            \"TakerGetsIssuer\": \"92D705968936C419CE614BF264B5EEB1CEA47FF4\"," +
+                "            \"TakerPaysCurrency\": \"0000000000000000000000004C54430000000000\"," +
+                "            \"TakerPaysIssuer\": \"92D705968936C419CE614BF264B5EEB1CEA47FF4\"" +
+                "          }," +
+                "          \"LedgerEntryType\": \"DirectoryNode\"," +
+                "          \"LedgerIndex\": \"5943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919A\"" +
+                "        }" +
+                "      }," +
+                "      {" +
+                "        \"DeletedNode\": {" +
+                "          \"FinalFields\": {" +
+                "            \"Account\": \"rMWUykAmNQDaM9poSes8VLDZDDKEbmo7MX\"," +
+                "            \"BookDirectory\": \"5943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919A\"," +
+                "            \"BookNode\": \"0000000000000000\"," +
+                "            \"Flags\": 0," +
+                "            \"OwnerNode\": \"0000000000003292\"," +
+                "            \"PreviousTxnID\": \"C7D1671589B1B4AB1071E38299B8338632DAD19A7D0F8D28388F40845AF0BCC5\"," +
+                "            \"PreviousTxnLgrSeq\": 3225110," +
+                "            \"Sequence\": 1130290," +
+                "            \"TakerGets\": {" +
+                "              \"currency\": \"BTC\"," +
+                "              \"issuer\": \"rNPRNzBB92BVpAhhZr4iXDTveCgV5Pofm9\"," +
+                "              \"value\": \"0.299233659\"" +
+                "            }," +
+                "            \"TakerPays\": {" +
+                "              \"currency\": \"LTC\"," +
+                "              \"issuer\": \"rNPRNzBB92BVpAhhZr4iXDTveCgV5Pofm9\"," +
+                "              \"value\": \"21.5431\"" +
+                "            }" +
+                "          }," +
+                "          \"LedgerEntryType\": \"Offer\"," +
+                "          \"LedgerIndex\": \"78812E6E2AB80D5F291F8033D7BC23F0A6E4EA80C998BFF38E80E2A09D2C4D93\"" +
+                "        }" +
+                "      }," +
+                "      {" +
+                "        \"ModifiedNode\": {" +
+                "          \"FinalFields\": {" +
+                "            \"Flags\": 0," +
+                "            \"IndexNext\": \"0000000000003293\"," +
+                "            \"IndexPrevious\": \"0000000000000000\"," +
+                "            \"Owner\": \"rMWUykAmNQDaM9poSes8VLDZDDKEbmo7MX\"," +
+                "            \"RootIndex\": \"2114A41BB356843CE99B2858892C8F1FEF634B09F09AF2EB3E8C9AA7FD0E3A1A\"" +
+                "          }," +
+                "          \"LedgerEntryType\": \"DirectoryNode\"," +
+                "          \"LedgerIndex\": \"F78A0FFA69890F27C2A79C495E1CEB187EE8E677E3FDFA5AD0B8FCFC6E644E38\"" +
+                "        }" +
+                "      }" +
+                "    ]," +
+                "    \"TransactionIndex\": 1," +
+                "    \"TransactionResult\": \"tesSUCCESS\"" +
+                "  }" +
                 "}";
 
         JSONObject txJson = new JSONObject(json);
@@ -304,28 +339,28 @@ public class STObjectTest {
         STObject so = STObject.fromJSONObject(new JSONObject(json));
     }
 
-    String metaString = "{\"AffectedNodes\": [{\"ModifiedNode\": {\"FinalFields\": {\"Account\": \"rwMyB1diFJ7xqEKYGYgk9tKrforvTr33M5\","+
-            "\"Balance\": \"286000447\","+
-            "\"Flags\": 0,"+
-            "\"OwnerCount\": 4,"+
-            "\"Sequence\": 35},"+
-            "\"LedgerEntryType\": \"AccountRoot\","+
-            "\"LedgerIndex\": \"32FE2333B117B257F3AB58E1CB15A6533DC27FDD61FEB1027858D367B40B559A\","+
-            "\"PreviousFields\": {\"Balance\": \"286000463\","+
-            "\"Sequence\": 34},"+
-            "\"PreviousTxnID\": \"33562B82489F263F173801272D02178C0018A40ACFDC84B59976CE7C163F41FC\","+
-            "\"PreviousTxnLgrSeq\": 2681281}},"+
-            "{\"ModifiedNode\": {\"FinalFields\": {\"Account\": \"rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH\","+
-            "\"Balance\": \"99249214171\","+
-            "\"Flags\": 0,"+
-            "\"OwnerCount\": 3,"+
-            "\"Sequence\": 177},"+
-            "\"LedgerEntryType\": \"AccountRoot\","+
-            "\"LedgerIndex\": \"D66D0EC951FD5707633BEBE74DB18B6D2DDA6771BA0FBF079AD08BFDE6066056\","+
-            "\"PreviousFields\": {\"Balance\": \"99249214170\"},"+
-            "\"PreviousTxnID\": \"33562B82489F263F173801272D02178C0018A40ACFDC84B59976CE7C163F41FC\","+
-            "\"PreviousTxnLgrSeq\": 2681281}}],"+
-            "\"TransactionIndex\": 2,"+
+    String metaString = "{\"AffectedNodes\": [{\"ModifiedNode\": {\"FinalFields\": {\"Account\": \"rwMyB1diFJ7xqEKYGYgk9tKrforvTr33M5\"," +
+            "\"Balance\": \"286000447\"," +
+            "\"Flags\": 0," +
+            "\"OwnerCount\": 4," +
+            "\"Sequence\": 35}," +
+            "\"LedgerEntryType\": \"AccountRoot\"," +
+            "\"LedgerIndex\": \"32FE2333B117B257F3AB58E1CB15A6533DC27FDD61FEB1027858D367B40B559A\"," +
+            "\"PreviousFields\": {\"Balance\": \"286000463\"," +
+            "\"Sequence\": 34}," +
+            "\"PreviousTxnID\": \"33562B82489F263F173801272D02178C0018A40ACFDC84B59976CE7C163F41FC\"," +
+            "\"PreviousTxnLgrSeq\": 2681281}}," +
+            "{\"ModifiedNode\": {\"FinalFields\": {\"Account\": \"rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH\"," +
+            "\"Balance\": \"99249214171\"," +
+            "\"Flags\": 0," +
+            "\"OwnerCount\": 3," +
+            "\"Sequence\": 177}," +
+            "\"LedgerEntryType\": \"AccountRoot\"," +
+            "\"LedgerIndex\": \"D66D0EC951FD5707633BEBE74DB18B6D2DDA6771BA0FBF079AD08BFDE6066056\"," +
+            "\"PreviousFields\": {\"Balance\": \"99249214170\"}," +
+            "\"PreviousTxnID\": \"33562B82489F263F173801272D02178C0018A40ACFDC84B59976CE7C163F41FC\"," +
+            "\"PreviousTxnLgrSeq\": 2681281}}]," +
+            "\"TransactionIndex\": 2," +
             "\"TransactionResult\": \"tesSUCCESS\"}";
 
     @Test
@@ -356,14 +391,14 @@ public class STObjectTest {
 
         // Some helper methods to get enum fields
         assertEquals(TransactionEngineResult.tesSUCCESS,
-                     meta.transactionResult());
+                meta.transactionResult());
 
         STObject firstAffected = nodes.get(0);
         assertEquals(LedgerEntryType.AccountRoot,
-                     firstAffected.get(STObject.ModifiedNode).ledgerEntryType());
+                firstAffected.get(STObject.ModifiedNode).ledgerEntryType());
 
         assertTrue(firstAffected.has(STObject.ModifiedNode));
-        assertEquals(new UInt32(35),  finalSequence(firstAffected));
+        assertEquals(new UInt32(35), finalSequence(firstAffected));
         assertEquals(new UInt32(177), finalSequence(nodes.get(1)));
     }
 
@@ -392,20 +427,20 @@ public class STObjectTest {
     @Test
     public void testSerializedPaymentTransactionFromJSON() throws JSONException {
         String tx_json = "{\"Amount\":{\"issuer\":\"rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh\"," +
-                                      "\"value\":\"12\"," +
-                                      "\"currency\":\"USD\"}," +
-                          "\"Fee\":\"15\"," +
-                          "\"SigningPubKey\":\"0330e7fc9d56bb25d6893ba3f317ae5bcf33b3291bd63db32654a313222f7fd020\"," +
-                          "\"Account\":\"rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh\"," +
-                          "\"TransactionType\":\"Payment\"," +
-                          "\"Sequence\":5," +
-                          "\"Destination\":\"rQfFsw6w4wdymTCSfF2fZQv7SZzfGyzsyB\"}";
+                "\"value\":\"12\"," +
+                "\"currency\":\"USD\"}," +
+                "\"Fee\":\"15\"," +
+                "\"SigningPubKey\":\"0330e7fc9d56bb25d6893ba3f317ae5bcf33b3291bd63db32654a313222f7fd020\"," +
+                "\"Account\":\"rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh\"," +
+                "\"TransactionType\":\"Payment\"," +
+                "\"Sequence\":5," +
+                "\"Destination\":\"rQfFsw6w4wdymTCSfF2fZQv7SZzfGyzsyB\"}";
 
         String expectedSerialization = "120000240000000561D4C44364C5BB000000000000000000000000000055534" +
-                                       "40000000000B5F762798A53D543A014CAF8B297CFF8F2F937E8684000000000" +
-                                       "00000F73210330E7FC9D56BB25D6893BA3F317AE5BCF33B3291BD63DB32654A" +
-                                       "313222F7FD0208114B5F762798A53D543A014CAF8B297CFF8F2F937E88314FD" +
-                                       "94A75318DE40B1D513E6764ECBCB6F1E7056ED";
+                "40000000000B5F762798A53D543A014CAF8B297CFF8F2F937E8684000000000" +
+                "00000F73210330E7FC9D56BB25D6893BA3F317AE5BCF33B3291BD63DB32654A" +
+                "313222F7FD0208114B5F762798A53D543A014CAF8B297CFF8F2F937E88314FD" +
+                "94A75318DE40B1D513E6764ECBCB6F1E7056ED";
 
         STObject fromJSON = STObject.fromJSONObject(new JSONObject(tx_json));
         assertEquals(expectedSerialization, fromJSON.toHex());
@@ -468,7 +503,7 @@ public class STObjectTest {
         rehydrationTest(amt("-0.000001"));
         rehydrationTest(amt("0.0001"));
         rehydrationTest(amt("0.0001/USD/bob"));
-        rehydrationTest(amt( "0.0000000000000001/USD/bob"));
+        rehydrationTest(amt("0.0000000000000001/USD/bob"));
         rehydrationTest(amt("-0.1234567890123456/USD/bob"));
         rehydrationTest(amt("0.1234567890123456/USD/bob"));
         rehydrationTest(amt("-0.0001/USD/bob"));
@@ -501,12 +536,12 @@ public class STObjectTest {
         STObject so = STObject.translate.fromJSONObject(json);
         assertEquals(21, so.get(UInt32.Expiration).longValue());
 
-        byte[] bytes =  UInt8.translate.toWireBytes(new UInt8(1));
+        byte[] bytes = UInt8.translate.toWireBytes(new UInt8(1));
         byte[] bytes2 = UInt16.translate.toWireBytes(new UInt16(1));
         byte[] bytes4 = UInt32.translate.toWireBytes(new UInt32(1));
         byte[] bytes8 = UInt64.translate.toWireBytes(new UInt64(1));
 
-        assertEquals( bytes.length, 1);
+        assertEquals(bytes.length, 1);
         assertEquals(bytes2.length, 2);
         assertEquals(bytes4.length, 4);
         assertEquals(bytes8.length, 8);
@@ -517,8 +552,8 @@ public class STObjectTest {
         assertNotNull(TxFormat.fromString("Payment"));
 
         JSONObject json = new JSONObject("{\"Expiration\"        : 21, " +
-                                          "\"TransactionResult\" : 0,  " +
-                                          "\"TransactionType\"   : 0  }");
+                "\"TransactionResult\" : 0,  " +
+                "\"TransactionType\"   : 0  }");
 
         STObject so = STObject.translate.fromJSONObject(json);
         assertEquals(so.getFormat(), TxFormat.Payment);

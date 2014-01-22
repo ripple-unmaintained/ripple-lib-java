@@ -2,11 +2,11 @@ package com.ripple.client.subscriptions;
 
 import com.ripple.client.ClientLogger;
 import com.ripple.client.pubsub.Publisher;
-import com.ripple.core.types.AccountID;
-import com.ripple.core.types.Amount;
-import com.ripple.core.types.STObject;
-import com.ripple.core.types.hash.Hash256;
-import com.ripple.core.types.uint.UInt32;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Amount;
+import com.ripple.core.coretypes.STObject;
+import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.uint.UInt32;
 import org.json.JSONObject;
 
 /**

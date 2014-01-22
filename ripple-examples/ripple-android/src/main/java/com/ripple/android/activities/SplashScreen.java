@@ -20,7 +20,7 @@ public class SplashScreen extends Activity {
             public void run() {
                 Intent intent;
                 intent = new Intent();
-                intent.setClass(SplashScreen.this, PayOneDrop.class);
+                intent.setClass(SplashScreen.this, PaymentAlternatives.class);
                 startActivity(intent);
                 finish();
             }

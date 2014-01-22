@@ -36,8 +36,8 @@ import com.ripple.client.responses.Response;
 import com.ripple.client.subscriptions.AccountRoot;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transactions.TransactionResult;
-import com.ripple.core.types.AccountID;
-import com.ripple.core.types.Amount;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Amount;
 
 public class PayOneDrop extends Activity {
     AndroidClient client;
@@ -325,21 +325,21 @@ public class PayOneDrop extends Activity {
         tx.put(AccountID.Destination, destination);
         tx.put(Amount.Amount, amt);
 
-        tx.once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
+        tx.publisher().once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
                 threadSafeSetStatus("Transaction submitted "
                         + awaitingTransactionsParenthetical(account));
             }
         });
-        tx.once(ManagedTxn.OnSubmitError.class, new ManagedTxn.OnSubmitError() {
+        tx.publisher().once(ManagedTxn.OnSubmitError.class, new ManagedTxn.OnSubmitError() {
             @Override
             public void called(Response response) {
                 threadSafeSetStatus("Transaction submission failed"
                         + awaitingTransactionsParenthetical(account));
             }
         });
-        tx.once(ManagedTxn.OnTransactionValidated.class,
+        tx.publisher().once(ManagedTxn.OnTransactionValidated.class,
                 new ManagedTxn.OnTransactionValidated() {
                     @Override
                     public void called(TransactionResult result) {

@@ -2,21 +2,35 @@ package com.ripple.client.transactions;
 
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
-import com.ripple.client.pubsub.IPublisher;
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.core.enums.TransactionType;
-import com.ripple.core.known.tx.Transaction;
-import com.ripple.core.types.Amount;
-import com.ripple.core.types.hash.Hash256;
-import com.ripple.core.types.uint.UInt32;
+import com.ripple.core.types.known.tx.Transaction;
+import com.ripple.core.coretypes.Amount;
+import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.crypto.ecdsa.IKeyPair;
 
 import java.util.ArrayList;
 import java.util.TreeSet;
 
-public class ManagedTxn extends Transaction implements IPublisher<ManagedTxn.events> {
+public class ManagedTxn extends Transaction {
+    // events enumeration
+    public Publisher<events> publisher() {
+        return publisher;
+    }
+
+    public static abstract class events<T> extends Publisher.Callback<T> {}
+    public static abstract class OnSubmitSuccess extends events<Response> {}
+    public static abstract class OnSubmitError extends events<Response> {}
+    public static abstract class OnTransactionValidated extends events<TransactionResult> {}
+    public static abstract class OnSumbitRequestError extends events<Exception> {}
+
+    public ManagedTxn(TransactionType type) {
+        super(type);
+    }
     private final Publisher<events> publisher = new Publisher<events>();
+//    private final MyTransaction publisher = new MyTransaction();
     private boolean finalized = false;
 
     public boolean responseWasToLastSubmission(Response res) {
@@ -74,44 +88,7 @@ public class ManagedTxn extends Transaction implements IPublisher<ManagedTxn.eve
         return submittedIDs.contains(hash);
     }
 
-    public <T extends events> void on(Class<T> key, T cb) {
-        publisher.on(key, cb);
-    }
-
-    public <T extends events> void once(final Class<T> key, final T cb) {
-        publisher.once(key, cb);
-    }
-
-    public <T extends events> int emit(Class<T> key, Object... args) {
-        return publisher.emit(key, args);
-    }
-
-    public void removeListener(Class<? extends events> key, ICallback cb) {
-        publisher.removeListener(key, cb);
-    }
-
     public UInt32 sequence() {
         return get(UInt32.Sequence);
     }
-
-    // events enumeration
-    public static abstract class events<T> extends Publisher.Callback<T> {
-    }
-
-    public static abstract class OnSubmitSuccess extends events<Response> {
-    }
-
-    public static abstract class OnSubmitError extends events<Response> {
-    }
-
-    public static abstract class OnTransactionValidated extends events<TransactionResult> {
-    }
-
-    public static abstract class OnSumbitRequestError extends events<Exception> {
-    }
-
-    public ManagedTxn(TransactionType type) {
-        super(type);
-    }
-
 }

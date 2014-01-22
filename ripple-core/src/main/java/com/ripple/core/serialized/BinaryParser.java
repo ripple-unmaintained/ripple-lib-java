@@ -16,8 +16,6 @@ public class BinaryParser {
         this.bytes = bytes;
     }
 
-
-
     public BinaryParser(String hex) {
         this(B16.decode(hex));
     }
@@ -33,7 +31,13 @@ public class BinaryParser {
     }
 
     public Field readField() {
-        return Field.fromCode(readFieldCode());
+        int fieldCode = readFieldCode();
+        Field field = Field.fromCode(fieldCode);
+        if (field == null) {
+            throw new IllegalStateException("Couldn't parse field from " +
+                    Integer.toHexString(fieldCode));
+        }
+        return field;
     }
 
     public int readFieldCode() {
