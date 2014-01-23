@@ -19,30 +19,38 @@ public class BlobVault {
 
     public JSONEncrypt sjcl = new JSONEncrypt();
 
+    /**
+     * @param baseUrl eg. "https://blobvault.payward.com/"
+     */
     public BlobVault(String baseUrl) {
         this.baseUrl = baseUrl;
     }
 
-    class BlobNotFound extends RuntimeException {
-        public BlobNotFound(String ast) {
-            super(ast);
+    public static class BlobNotFound extends RuntimeException {
+        public BlobNotFound(String msg) {
+            super(msg);
         }
     }
 
     public JSONObject getBlob(String user, String pass) throws IOException,
             InvalidCipherTextException {
+        // Everywhere, this is expected to be lower cased.
         user = user.toLowerCase();
+
         String userPassUrl = userPassHash(user, pass);
         URL blobUrl = new URL(baseUrl + userPassUrl);
         HttpURLConnection getRequest = createGETRequestConnection(blobUrl);
+
         int responseCode = getRequest.getResponseCode();
         String data = readAllFromConnection(getRequest);
         if (responseCode == 404 || data.length() == 0) {
             // We won't log the pass
             throw new BlobNotFound("No blob found for user: " + user);
         }
+
         String utf8 = base64decodeUTF8(data);
         String decryptionKey;
+
         try {
             decryptionKey = userPassDerivedDecryptionKey(user, pass);
             System.out.println(decryptionKey);
@@ -54,12 +62,32 @@ public class BlobVault {
         }
     }
 
+    /**
+     * @param user Username already lower cased
+     */
     private String userPassDerivedDecryptionKey(String user, String pass) {
         return user.length() + "|" + user + pass;
     }
 
+    /**
+     * @param user Username already lower cased
+     */
     private String userPassDerivedDecryptionKeyOLD(String user, String pass) {
         return user + pass;
+    }
+
+    /**
+     * @param user Username already lower cased
+     */
+    public String userPassHash(String user, String pass) {
+        String toHash = user + pass;
+        try {
+            byte[] toHashBytes = toHash.getBytes("utf8");
+            byte[] sha256 = MessageDigest.getInstance("SHA-256").digest(toHashBytes);
+            return B16.toString(sha256);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private HttpURLConnection createGETRequestConnection(URL website) throws IOException {
@@ -80,16 +108,5 @@ public class BlobVault {
 
     private String base64decodeUTF8(String data) throws UnsupportedEncodingException {
         return new String(Base64.decode(data), "utf8");
-    }
-
-    public String userPassHash(String user, String pass) {
-        String toHash = user + pass;
-        try {
-            byte[] toHashBytes = toHash.getBytes("utf8");
-            byte[] sha256 = MessageDigest.getInstance("SHA-256").digest(toHashBytes);
-            return B16.toString(sha256);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }
