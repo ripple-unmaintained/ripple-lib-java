@@ -1,11 +1,14 @@
 package com.ripple.core.types.ledger;
 
 import com.ripple.core.binary.BinaryReader;
+import com.ripple.core.coretypes.RippleDate;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
+
+import java.util.Date;
 
 public class Ledger {
     UInt32  version;         // Always 0x4C475200 (LGR) (Secures signed objects)
@@ -18,6 +21,8 @@ public class Ledger {
     UInt32  closeTime;       // UTC minute ledger closed encoded as seconds since 1/1/2000 (or 0 for genesis ledger)
     UInt8   closeResolution; // The resolution (in seconds) of the close time
     UInt8   closeFlags;      // Flags
+
+    Date closeDate;
 
     public static Ledger fromParser(BinaryParser parser) {
         return fromReader(new BinaryReader(parser));
@@ -35,6 +40,8 @@ public class Ledger {
         ledger.closeTime = reader.uInt32();
         ledger.closeResolution = reader.uInt8();
         ledger.closeFlags = reader.uInt8();
+
+        ledger.closeDate = RippleDate.fromSecondsSinceRippleEpoch(ledger.closeTime);
 
         return ledger;
     }

@@ -1,5 +1,6 @@
 package com.ripple.core.serialized;
 
+import java.security.MessageDigest;
 import java.util.ArrayList;
 
 public class BytesList {
@@ -27,6 +28,27 @@ public class BytesList {
         return bytes;
     }
 
+    static public String[] hexLookup = new String[256];
+    static {
+        for (int i = 0; i < 256; i++) {
+            String s = Integer.toHexString(i).toUpperCase();
+            if (s.length() == 1) {
+                s = "0" + s;
+            }
+            hexLookup[i] = s;
+        }
+    }
+
+    public String bytesHex() {
+        StringBuilder builder = new StringBuilder(len * 2);
+        for (byte[] buffer : buffers) {
+            for (byte aBytes : buffer) {
+                builder.append(hexLookup[aBytes & 0xFF]);
+            }
+        }
+        return builder.toString();
+    }
+
     int length() {
         return len;
     }
@@ -37,5 +59,11 @@ public class BytesList {
             destPos += buf.length;
         }
         return destPos;
+    }
+
+    public void updateDigest(MessageDigest digest) {
+        for (byte[] buffer : buffers) {
+            digest.update(buffer);
+        }
     }
 }

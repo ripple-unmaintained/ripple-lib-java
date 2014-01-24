@@ -472,7 +472,8 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     private Amount(BigDecimal value, String currency) {
         isNative = false;
-        this.currency(Currency.normalizeIOUCode(currency));
+//        this.currency(Currency.normalizeIOUCode(currency));
+        this.currency((currency));
         this.setValue(value);
     }
 

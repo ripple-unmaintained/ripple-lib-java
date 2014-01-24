@@ -103,6 +103,8 @@ public class PathSetTest {
         PathSet paths = translator.fromJSONArray(new JSONArray(jsonPathSet));
         String hex = translator.toWireHex(paths);
 
+//        System.out.println(hex);
+
         // This is taken from a certain transaction
         //  "hash": "0CBB429C456ED999CC691DFCC8E62E8C8C7E9522C2BEA967FED0D7E2A9B28D13",
         //  "ledger_index": 448052,

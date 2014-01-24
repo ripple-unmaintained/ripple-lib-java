@@ -111,7 +111,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         // TODO: inside prepare, check if Fee and Sequence are the same and don't resign ;)
         transaction.prepare(keyPair, fee, sequence == null ? getSubmissionSequence() : sequence);
         final Request req = client.newRequest(Command.submit);
-        req.json("tx_blob", B16.toString(transaction.tx_blob));
+        req.json("tx_blob", transaction.tx_blob);
 
         req.once(Request.OnSuccess.class, new Request.OnSuccess() {
             @Override

@@ -9,11 +9,12 @@ import com.ripple.core.coretypes.VariableLength;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt16;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.serialized.BytesList;
 import com.ripple.crypto.ecdsa.IKeyPair;
 
 public class Transaction extends STObject {
     public Hash256    hash;
-    public byte[]     tx_blob;
+    public String     tx_blob;
 
     public Transaction(TransactionType type) {
         setFormat(TxFormat.formats.get(type));
@@ -39,7 +40,14 @@ public class Transaction extends STObject {
         put(VariableLength.TxnSignature, signature);
         put(VariableLength.SigningPubKey, keyPair.pubBytes());
 
-        tx_blob = STObject.translate.toWireBytes(this);
-        hash = Hash256.transactionID(tx_blob);
+        BytesList to = new BytesList();
+        STObject.translate.toBytesList(this, to);
+        tx_blob = to.bytesHex();
+
+        Hash256.HalfSha512 halfSha512 = new Hash256.HalfSha512();
+        halfSha512.update(Hash256.HASH_PREFIX_TRANSACTION_ID);
+        to.updateDigest(halfSha512.digest());
+
+        hash = halfSha512.finish();
     }
 }

@@ -81,6 +81,10 @@ public class Hash256 extends HASH<Hash256> {
             messageDigest.update(hash.bytes());
         }
 
+        public MessageDigest digest() {
+            return messageDigest;
+        }
+
         public Hash256 finish() {
             byte[] digest = messageDigest.digest();
             byte[] half = new byte[32];

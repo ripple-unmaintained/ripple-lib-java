@@ -80,6 +80,10 @@ public class BinaryParser {
         return result;
     }
 
+    public void skip(int n) {
+        cursor += n;
+    }
+
     public byte readOne() {
         return bytes[cursor++];
     }

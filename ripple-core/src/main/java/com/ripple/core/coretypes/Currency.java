@@ -1,15 +1,61 @@
 package com.ripple.core.coretypes;
 
 import com.ripple.core.coretypes.hash.Hash160;
+import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.coretypes.uint.UInt64;
+import com.ripple.core.serialized.BinaryParser;
 import com.ripple.encodings.common.B16;
+
+import java.util.Date;
 
 /**
  * Funnily enough, yes, in rippled a currency is represented by a Hash160 type.
  * For the sake of consistency and convenience, this quirk is repeated here.
+ *
+ * https://gist.github.com/justmoon/8597643
  */
 public class Currency extends Hash160 {
+    public static enum Type {
+        Hash,
+        TLC,      // three letter code
+        Demmurage,
+        Unknown;
+
+        public static Type fromByte(byte typeByte) {
+            if (typeByte == 0x00) {
+                return TLC;
+            } else if (typeByte == 0x01) {
+                return Demmurage;
+            } else if ((typeByte & 0x80) != 0) {
+                return Hash;
+            } else {
+                return Unknown;
+            }
+        }
+    }
+    Type type;
+
+    public static class Demurrage {
+        Date startDate;
+        String code;
+        double rate;
+
+        public Demurrage(byte[] bytes) {
+            BinaryParser parser = new BinaryParser(bytes);
+            parser.skip(1); // The type
+            code = currencyStringFromBytesAndOffset(parser.read(3), 0);// The code
+            startDate = RippleDate.fromParser(parser);
+            long l = UInt64.translate.fromParser(parser).longValue();
+            rate = Double.longBitsToDouble(l);
+        }
+    }
+    public Demurrage demurrage = null;
     public Currency(byte[] bytes) {
         super(bytes);
+        type = Type.fromByte(bytes[0]);
+        if (type == Type.Demmurage) {
+            demurrage = new Demurrage(bytes);
+        }
     }
 
     /**
@@ -53,15 +99,33 @@ public class Currency extends Hash160 {
 
     @Override
     public String toString() {
-        String code = decodeCurrency(bytes());
-        if (code.equals("XRP")) {
-            // HEX of the bytes
-            return super.toString();
-        } else if (code.equals("\0\0\0")) {
-            return "XRP";
+        switch (type) {
+            case TLC:
+                String code = getCurrencyCodeFromTLCBytes(bytes());
+                if (code.equals("XRP")) {
+                    // HEX of the bytes
+                    return super.toString();
+                } else if (code.equals("\0\0\0")) {
+                    return "XRP";
+                } else {
+                    // the 3 letter code
+                    return code;
+                }
+            case Hash:
+            case Demmurage:
+            case Unknown:
+            default:
+                return super.toString();
+        }
+    }
+
+    public String humanCode() {
+        if (type == Type.TLC) {
+            return getCurrencyCodeFromTLCBytes(hash);
+        } else if (type == Type.Demmurage) {
+            return currencyStringFromBytesAndOffset(hash, 1);
         } else {
-            // the 3 letter code
-            return code;
+            throw new IllegalStateException("No human code for currency of type " + type);
         }
     }
 
@@ -72,11 +136,13 @@ public class Currency extends Hash160 {
             byte[] bytes = this.bytes();
             byte[] otherBytes = other.bytes();
 
-            return (bytes[12] == otherBytes[12] &&
-                    bytes[13] == otherBytes[13] &&
-                    bytes[14] == otherBytes[14]);
+            if (type == Type.TLC && other.type == Type.TLC) {
+                return (bytes[12] == otherBytes[12] &&
+                        bytes[13] == otherBytes[13] &&
+                        bytes[14] == otherBytes[14]);
+            }
         }
-        return super.equals(obj);
+        return super.equals(obj); // Full comparison
     }
 
     public static CurrencyTranslator translate = new CurrencyTranslator();
@@ -105,7 +171,7 @@ public class Currency extends Hash160 {
         }
     }
 
-    public static String decodeCurrency(byte[] bytes) {
+    public static String getCurrencyCodeFromTLCBytes(byte[] bytes) {
         int i;
         boolean zeroInNonCurrencyBytes = true;
 
