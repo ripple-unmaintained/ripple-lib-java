@@ -4,6 +4,7 @@ import static com.ripple.cli.log.Log.LOG;
 
 import java.io.IOException;
 
+import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.transactions.ManagedTxn;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -83,13 +84,15 @@ public class MakePayment {
         tx.put(Amount.Amount, amt);
 
         // The ManagedTxn publishes events
-        tx.publisher().once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
+        Publisher<ManagedTxn.events> txEvents = tx.publisher();
+
+        txEvents.once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
                 LOG("Submit response: %s", response.engineResult());
             }
         });
-        tx.publisher().once(ManagedTxn.OnTransactionValidated.class, new ManagedTxn.OnTransactionValidated() {
+        txEvents.once(ManagedTxn.OnTransactionValidated.class, new ManagedTxn.OnTransactionValidated() {
             @Override
             public void called(TransactionResult result) {
                 LOG("Transaction finalized on ledger: %s", result.ledgerIndex);

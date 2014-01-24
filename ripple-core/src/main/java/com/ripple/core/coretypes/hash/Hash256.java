@@ -3,12 +3,44 @@ package com.ripple.core.coretypes.hash;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.serialized.BytesList;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.security.MessageDigest;
 import java.util.TreeMap;
 
 public class Hash256 extends HASH<Hash256> {
 
+
+    @Override
+    public Object toJSON() {
+        return translate.toJSON(this);
+    }
+
+    @Override
+    public JSONArray toJSONArray() {
+        return null;
+    }
+
+    @Override
+    public JSONObject toJSONObject() {
+        return null;
+    }
+
+    @Override
+    public byte[] toWireBytes() {
+        return new byte[0];
+    }
+
+    @Override
+    public String toWireHex() {
+        return null;
+    }
+
+    @Override
+    public void toBytesList(BytesList to) {
+    }
 
     public static class Hash256Map<Value> extends TreeMap<Hash256, Value> {}
 

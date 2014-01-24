@@ -3,10 +3,42 @@ package com.ripple.core.coretypes.hash;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.serialized.BytesList;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class Hash160 extends HASH<Hash160> {
     public Hash160(byte[] bytes) {
         super(bytes, 20);
+    }
+
+    @Override
+    public Object toJSON() {
+        return translate.toJSON(this);
+    }
+
+    @Override
+    public JSONArray toJSONArray() {
+        return null;
+    }
+
+    @Override
+    public JSONObject toJSONObject() {
+        return null;
+    }
+
+    @Override
+    public byte[] toWireBytes() {
+        return new byte[0];
+    }
+
+    @Override
+    public String toWireHex() {
+        return null;
+    }
+
+    @Override
+    public void toBytesList(BytesList to) {
     }
 
     public static class Translator extends HashTranslator<Hash160> {

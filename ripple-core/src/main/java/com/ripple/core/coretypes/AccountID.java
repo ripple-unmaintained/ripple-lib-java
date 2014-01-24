@@ -18,6 +18,8 @@ import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
 import com.ripple.utils.Utils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class AccountID implements SerializedType, Comparable<AccountID> {
     public String masterSeed;
@@ -107,6 +109,36 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
 
     public Issue issue(String code) {
         return new Issue(Currency.fromString(code), this);
+    }
+
+    @Override
+    public Object toJSON() {
+        return translate.toJSON(this);
+    }
+
+    @Override
+    public JSONArray toJSONArray() {
+        return null;
+    }
+
+    @Override
+    public JSONObject toJSONObject() {
+        return null;
+    }
+
+    @Override
+    public byte[] toWireBytes() {
+        return translate.toWireBytes(this);
+    }
+
+    @Override
+    public String toWireHex() {
+        return translate.toWireHex(this);
+    }
+
+    @Override
+    public void toBytesList(BytesList to) {
+//        return translate.toBytesList(this, );
     }
 
     public static class Translator extends TypeTranslator<AccountID> {

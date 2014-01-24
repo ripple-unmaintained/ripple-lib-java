@@ -9,10 +9,40 @@ import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.coretypes.hash.Hash256;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
 public class Vector256 extends ArrayList<Hash256> implements SerializedType {
+
+    @Override
+    public Object toJSON() {
+        return translate.toJSON(this);
+    }
+
+    @Override
+    public JSONArray toJSONArray() {
+        return null;
+    }
+
+    @Override
+    public JSONObject toJSONObject() {
+        return null;
+    }
+
+    @Override
+    public byte[] toWireBytes() {
+        return new byte[0];
+    }
+
+    @Override
+    public String toWireHex() {
+        return null;
+    }
+
+    @Override
+    public void toBytesList(BytesList to) {
+    }
 
     public static class Translator extends TypeTranslator<Vector256> {
         @Override

@@ -2,7 +2,10 @@ package com.ripple.core.coretypes.uint;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
+import com.ripple.core.serialized.BytesList;
 import com.ripple.core.serialized.TypeTranslator;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.math.BigInteger;
 
@@ -64,4 +67,33 @@ public class UInt8 extends UINT<UInt8> {
     static public TypedFields.UInt8Field CloseResolution = int8Field(Field.CloseResolution);
     static public TypedFields.UInt8Field TemplateEntryType = int8Field(Field.TemplateEntryType);
     static public TypedFields.UInt8Field TransactionResult = int8Field(Field.TransactionResult);
+
+    @Override
+    public Object toJSON() {
+        return translate.toJSON(this);
+    }
+
+    @Override
+    public JSONArray toJSONArray() {
+        return null;
+    }
+
+    @Override
+    public JSONObject toJSONObject() {
+        return null;
+    }
+
+    @Override
+    public byte[] toWireBytes() {
+        return new byte[0];
+    }
+
+    @Override
+    public String toWireHex() {
+        return null;
+    }
+
+    @Override
+    public void toBytesList(BytesList to) {
+    }
 }

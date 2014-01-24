@@ -1,10 +1,12 @@
 package com.ripple.core.coretypes;
 
 import com.ripple.core.coretypes.hash.Hash160;
-import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.BytesList;
 import com.ripple.encodings.common.B16;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.Date;
 
@@ -15,6 +17,35 @@ import java.util.Date;
  * https://gist.github.com/justmoon/8597643
  */
 public class Currency extends Hash160 {
+    @Override
+    public Object toJSON() {
+        return translate.toJSON(this);
+    }
+
+    @Override
+    public JSONArray toJSONArray() {
+        return null;
+    }
+
+    @Override
+    public JSONObject toJSONObject() {
+        return null;
+    }
+
+    @Override
+    public byte[] toWireBytes() {
+        return new byte[0];
+    }
+
+    @Override
+    public String toWireHex() {
+        return null;
+    }
+
+    @Override
+    public void toBytesList(BytesList to) {
+    }
+
     public static enum Type {
         Hash,
         TLC,      // three letter code

@@ -18,6 +18,7 @@ import com.ripple.core.coretypes.uint.UInt16;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -174,8 +175,34 @@ public class STObject implements SerializedType, Iterable<Field> {
     public String toHex() {
         return translate.toWireHex(this);
     }
+
+    @Override
+    public Object toJSON() {
+        return translate.toJSON(this);
+    }
+
+    @Override
+    public JSONArray toJSONArray() {
+        return null;
+    }
+
+    @Override
+    public JSONObject toJSONObject() {
+        return translate.toJSONObject(this);
+    }
+
     public byte[] toWireBytes() {
         return translate.toWireBytes(this);
+    }
+
+    @Override
+    public String toWireHex() {
+        return translate.toWireHex(this);
+    }
+
+    @Override
+    public void toBytesList(BytesList to) {
+        translate.toBytesList(this, to);
     }
 
     public static STObject fromJSONObject(JSONObject json) {
@@ -292,12 +319,12 @@ public class STObject implements SerializedType, Iterable<Field> {
             JSONObject json = new JSONObject();
 
             for (Field f : obj) {
-                TypeTranslator<SerializedType> ts = Translators.forField(f);
+//                TypeTranslator<SerializedType> ts = Translators.forField(f);
 
                 try {
                     SerializedType obj1 = obj.get(f);
+                    Object object = obj1.toJSON();
 
-                    Object object = ts.toJSON(obj1);
                     if (FieldSymbolics.isSymbolicField(f) && object instanceof Number) {
                         object = FieldSymbolics.asString(f, (Number) object);
                     }

@@ -7,6 +7,7 @@ import com.ripple.core.serialized.BytesList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.coretypes.uint.UInt64;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -326,6 +327,58 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return isNative;
     }
 
+    @Override
+    public Object toJSON() {
+        return translate.toJSON(this);
+    }
+
+    @Override
+    public JSONArray toJSONArray() {
+        return null;
+    }
+
+    @Override
+    public JSONObject toJSONObject() {
+        return null;
+    }
+
+    @Override
+    public byte[] toWireBytes() {
+        return translate.toWireBytes(this);
+    }
+
+    @Override
+    public String toWireHex() {
+        return translate.toWireHex(this);
+    }
+
+    @Override
+    public void toBytesList(BytesList to) {
+        UInt64 man = mantissa();
+
+        if (isNative()) {
+            if (!isNegative()) {
+                man = man.or(cPosNative);
+            }
+            to.add(man.toByteArray());
+        } else {
+            int offset = getOffset();
+            UInt64 value;
+
+            if (isZero()) {
+                value = cNotNative;
+            } else if (isNegative()) {
+                value = man.or(new UInt64(512 +   0 + 97 + offset).shiftLeft(64 - 10));
+            } else {
+                value = man.or(new UInt64(512 + 256 + 97 + offset).shiftLeft(64 - 10));
+            }
+
+            to.add(value.toByteArray());
+            to.add(currency.bytes());
+            to.add(issuerBytes());
+        }
+    }
+
     public static class Translator extends TypeTranslator<Amount> {
         @Override
         public Amount fromString(String s) {
@@ -386,7 +439,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             }
         }
 
-
         @Override
         public JSONObject toJSONObject(Amount obj) {
             try {
@@ -402,29 +454,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
         @Override
         public void toBytesList(Amount obj, BytesList to) {
-            UInt64 man = obj.mantissa();
-
-            if (obj.isNative()) {
-                if (!obj.isNegative()) {
-                    man = man.or(cPosNative);
-                }
-                to.add(man.toByteArray());
-            } else {
-                int offset = obj.getOffset();
-                UInt64 value;
-
-                if (obj.isZero()) {
-                    value = cNotNative;
-                } else if (obj.isNegative()) {
-                    value = man.or(new UInt64(512 +   0 + 97 + offset).shiftLeft(64 - 10));
-                } else {
-                    value = man.or(new UInt64(512 + 256 + 97 + offset).shiftLeft(64 - 10));
-                }
-
-                to.add(value.toByteArray());
-                to.add(obj.currency.bytes());
-                to.add(obj.issuerBytes());
-            }
+            obj.toBytesList(to);
         }
     }
 

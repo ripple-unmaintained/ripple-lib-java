@@ -11,6 +11,35 @@ import java.util.ArrayList;
 
 public class STArray extends ArrayList<STObject> implements SerializedType {
 
+    @Override
+    public Object toJSON() {
+        return translate.toJSON(this);
+    }
+
+    @Override
+    public JSONArray toJSONArray() {
+        return null;
+    }
+
+    @Override
+    public JSONObject toJSONObject() {
+        return null;
+    }
+
+    @Override
+    public byte[] toWireBytes() {
+        return new byte[0];
+    }
+
+    @Override
+    public String toWireHex() {
+        return null;
+    }
+
+    @Override
+    public void toBytesList(BytesList to) {
+    }
+
     public static class Translator extends TypeTranslator<STArray> {
 
         @Override

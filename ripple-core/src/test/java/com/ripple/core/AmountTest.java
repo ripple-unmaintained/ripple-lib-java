@@ -25,6 +25,18 @@ public class AmountTest {
     }
 
     @Test
+    public void testFunkyCurrencies() throws Exception {
+        String amtJSON = "{\"currency\": \"015841551A748AD23FEFFFFFFFEA028000000000\"," +
+                "\"issuer\": \"rM1oqKtfh1zgjdAgbFmaRm3btfGBX25xVo\"," +
+                "\"value\": \"1000\"}";
+
+        Amount amt = Amount.translate.fromJSONObject(new JSONObject(amtJSON));
+        String expected = "D5438D7EA4C68000015841551A748AD23FEFFFFFFFEA028000000000E4FE687C90257D3D2D694C8531CDEECBE84F3367";
+        String hex = Amount.translate.toWireHex(amt);
+        assertEquals(expected, hex);
+    }
+
+    @Test
     public void testAbs() throws Exception {
         assertEquals(amt("-11").abs(), amt("11"));
     }

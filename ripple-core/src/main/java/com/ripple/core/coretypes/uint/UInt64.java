@@ -2,7 +2,10 @@ package com.ripple.core.coretypes.uint;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
+import com.ripple.core.serialized.BytesList;
 import com.ripple.core.serialized.TypeTranslator;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.math.BigInteger;
 
@@ -69,4 +72,32 @@ public class UInt64 extends UINT<UInt64> {
     static public TypedFields.UInt64Field LowNode = int64Field(Field.LowNode);
     static public TypedFields.UInt64Field HighNode = int64Field(Field.HighNode);
 
+    @Override
+    public Object toJSON() {
+        return translate.toJSON(this);
+    }
+
+    @Override
+    public JSONArray toJSONArray() {
+        return null;
+    }
+
+    @Override
+    public JSONObject toJSONObject() {
+        return null;
+    }
+
+    @Override
+    public byte[] toWireBytes() {
+        return new byte[0];
+    }
+
+    @Override
+    public String toWireHex() {
+        return null;
+    }
+
+    @Override
+    public void toBytesList(BytesList to) {
+    }
 }

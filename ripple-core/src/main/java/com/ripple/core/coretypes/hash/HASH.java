@@ -9,7 +9,7 @@ import com.ripple.encodings.common.B16;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-public class HASH<Subclass extends HASH> implements SerializedType, Comparable<Subclass> {
+abstract public class HASH<Subclass extends HASH> implements SerializedType, Comparable<Subclass> {
     protected final byte[] hash;
     protected int hashCode = -1;
 

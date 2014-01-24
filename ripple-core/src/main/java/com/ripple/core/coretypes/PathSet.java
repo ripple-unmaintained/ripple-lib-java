@@ -14,6 +14,35 @@ import java.util.ArrayList;
 
 public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
+    @Override
+    public Object toJSON() {
+        return translate.toJSON(this);
+    }
+
+    @Override
+    public JSONArray toJSONArray() {
+        return null;
+    }
+
+    @Override
+    public JSONObject toJSONObject() {
+        return null;
+    }
+
+    @Override
+    public byte[] toWireBytes() {
+        return new byte[0];
+    }
+
+    @Override
+    public String toWireHex() {
+        return null;
+    }
+
+    @Override
+    public void toBytesList(BytesList to) {
+    }
+
     public static class Hop{
         public AccountID account;
         public AccountID issuer;
