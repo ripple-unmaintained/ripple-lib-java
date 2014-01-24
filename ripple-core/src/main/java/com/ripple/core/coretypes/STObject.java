@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.TreeMap;
 
 public class STObject implements SerializedType, Iterable<Field> {
+    public final static byte OBJECT_END =(byte) 0xE1;
 
     public static STObject fromJSON(String offerJson) {
         try {
@@ -287,7 +288,7 @@ public class STObject implements SerializedType, Iterable<Field> {
 
         @Override
         public STObject fromParser(BinaryParser parser, Integer hint) {
-            byte objectEnd = Markers.OBJECT_END;
+            byte objectEnd = OBJECT_END;
             STObject so = new STObject();
             TypeTranslator<SerializedType> tr;
             SerializedType st;
@@ -373,7 +374,22 @@ public class STObject implements SerializedType, Iterable<Field> {
             for (Field field : obj) {
                 if (field.isSerialized()) {
                     SerializedType value = obj.fields.get(field);
-                    serializer.add(field, value, Translators.forField(field));
+                    TypeTranslator<SerializedType> tr = Translators.forField(field);
+                    serializer.addFieldHeader(field);
+
+                    if (field.isVLEncoded()) {
+                        BytesList bytes = new BytesList();
+                        tr.toBytesList(value, bytes);
+                        serializer.add(BinarySerializer.encodeVL(bytes.length()));
+                        serializer.add(bytes);
+                    } else {
+                        tr.toBytesList(value, to);
+                        if (field.getType() == Type.OBJECT) {
+                            serializer.add(OBJECT_END);
+                        } else if (field.getType() == Type.ARRAY) {
+                            serializer.add(STArray.ARRAY_END);
+                        }
+                    }
                 }
             }
         }
@@ -384,8 +400,6 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     static public Translator translate = new Translator();
-
-
 
     public static TypedFields.STObjectField stobjectField(final Field f) {
         return new TypedFields.STObjectField() {@Override public Field getField() {return f; } };

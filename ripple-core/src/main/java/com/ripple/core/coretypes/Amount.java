@@ -327,18 +327,36 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return isNative;
     }
 
-    @Override
-    public Object toJSON() {
-        return translate.toJSON(this);
-    }
+//    @Override
+//    public Object toJSON() {
+//        return translate.toJSON(this);
+//    }
+
 
     @Override
-    public JSONArray toJSONArray() {
-        return null;
+    public Object toJSON() {
+        if (isNative()) {
+            return toDropsString();
+        } else {
+            return toJSONObject();
+        }
     }
 
     @Override
     public JSONObject toJSONObject() {
+        try {
+            JSONObject out = new JSONObject();
+            out.put("currency", currencyString());
+            out.put("value", valueText());
+            out.put("issuer", issuerString());
+            return out;
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public JSONArray toJSONArray() {
         return null;
     }
 
@@ -422,39 +440,11 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 String valueString = jsonObject.getString("value");
                 String issuerString = jsonObject.getString("issuer");
                 String currencyString = jsonObject.getString("currency");
-
                 return new Amount(new BigDecimal(valueString), currencyString, issuerString);
 
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
-        }
-
-        @Override
-        public Object toJSON(Amount obj) {
-            if (obj.isNative()) {
-                return obj.toDropsString();
-            } else {
-                return toJSONObject(obj);
-            }
-        }
-
-        @Override
-        public JSONObject toJSONObject(Amount obj) {
-            try {
-                JSONObject out = new JSONObject();
-                out.put("currency", obj.currencyString());
-                out.put("value", obj.valueText());
-                out.put("issuer", obj.issuerString());
-                return out;
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Override
-        public void toBytesList(Amount obj, BytesList to) {
-            obj.toBytesList(to);
         }
     }
 

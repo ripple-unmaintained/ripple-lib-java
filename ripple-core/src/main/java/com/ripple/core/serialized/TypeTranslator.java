@@ -35,14 +35,6 @@ public abstract class TypeTranslator<T extends SerializedType> {
         }
     }
 
-    public JSONObject toJSONObject(T obj) {
-        throw new UnsupportedOperationException();
-    }
-
-    public JSONArray toJSONArray(T obj) {
-        throw new UnsupportedOperationException();
-    }
-
     public boolean toBoolean(T obj) {
         throw new UnsupportedOperationException();
     }
@@ -91,10 +83,6 @@ public abstract class TypeTranslator<T extends SerializedType> {
         throw new UnsupportedOperationException();
     }
 
-    public abstract Object toJSON(T obj);
-
-    public abstract void toBytesList(T obj, BytesList to);
-
     /**
      * @param hint Using a boxed integer, allowing null for no hint
      *             This generic parameter can be used to hint the amount of
@@ -106,23 +94,38 @@ public abstract class TypeTranslator<T extends SerializedType> {
         return fromParser(parser, null);
     }
 
+    public T fromWireBytes(byte[] b) {
+        return fromParser(new BinaryParser(b));
+    }
+
+    public T fromWireHex(String hex) {
+        return fromWireBytes(B16.decode(hex));
+    }
+
+    public Object toJSON(T obj) {
+        return obj.toJSON();
+    }
+
+    public JSONObject toJSONObject(T obj) {
+        return obj.toJSONObject();
+    }
+    public JSONArray toJSONArray(T obj) {
+        return obj.toJSONArray();
+    }
+
+    public void toBytesList(T obj, BytesList to) {
+        obj.toBytesList(to);
+    }
+
     public byte[] toWireBytes(T obj) {
         BytesList to = new BytesList();
         toBytesList(obj, to);
         return to.bytes();
     }
 
-    public T fromWireBytes(byte[] b) {
-        return fromParser(new BinaryParser(b));
-    }
-
     public String toWireHex(T obj) {
         BytesList to = new BytesList();
         toBytesList(obj, to);
         return to.bytesHex();
-    }
-
-    public T fromWireHex(String hex) {
-        return fromWireBytes(B16.decode(hex));
     }
 }

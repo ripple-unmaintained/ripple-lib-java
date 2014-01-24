@@ -49,7 +49,7 @@ public class BytesList {
         return builder.toString();
     }
 
-    int length() {
+    public int length() {
         return len;
     }
 

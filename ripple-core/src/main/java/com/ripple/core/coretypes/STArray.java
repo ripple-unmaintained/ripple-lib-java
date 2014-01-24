@@ -11,6 +11,8 @@ import java.util.ArrayList;
 
 public class STArray extends ArrayList<STObject> implements SerializedType {
 
+    public static final byte ARRAY_END = (byte) 0xF1;
+
     @Override
     public Object toJSON() {
         return translate.toJSON(this);
@@ -44,7 +46,7 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
 
         @Override
         public STArray fromParser(BinaryParser parser, Integer hint) {
-            byte arrayEnd = Markers.ARRAY_END;
+            byte arrayEnd = ARRAY_END;
             STArray stArray = new STArray();
             int nfields = 1; // These top level objects only have one key
                              // and aren't separated by object markers

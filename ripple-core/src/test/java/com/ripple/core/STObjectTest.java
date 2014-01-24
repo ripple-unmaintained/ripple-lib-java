@@ -283,34 +283,34 @@ public class STObjectTest {
         assertEquals(rippledMetaHex, meta.toHex());
     }
 
-    private void debugObject(String patterns, STObject meta, int starting) {
-        for (Field field : meta) {
-            if (!field.isSerialized()) {
-                continue;
-            }
-
-            SerializedType serializedType = meta.get(field);
-            TypeTranslator<SerializedType> tr = STObject.Translators.forField(field);
-
-            BinarySerializer bn = new BinarySerializer();
-            bn.add(field, serializedType, tr);
-            String hex = B16.toString(bn.bytes());
-
-            if (field.getType() == Type.ARRAY) {
-                STArray array = (STArray) serializedType;
-                for (STObject stObject : array) {
-                    debugObject(patterns, stObject, starting);
-                }
-            } else if (field.getType() == Type.OBJECT) {
-                debugObject(patterns, (STObject) serializedType, starting);
-            } else {
-                int ix = patterns.indexOf(hex.toUpperCase(), starting);
-                starting = (ix + hex.length());
-                boolean contains = ix != 1;
-                assertTrue(contains);
-            }
-        }
-    }
+//    private void debugObject(String patterns, STObject meta, int starting) {
+//        for (Field field : meta) {
+//            if (!field.isSerialized()) {
+//                continue;
+//            }
+//
+//            SerializedType serializedType = meta.get(field);
+//            TypeTranslator<SerializedType> tr = STObject.Translators.forField(field);
+//
+//            BinarySerializer bn = new BinarySerializer();
+//            bn.add(field, serializedType, tr);
+//            String hex = B16.toString(bn.bytes());
+//
+//            if (field.getType() == Type.ARRAY) {
+//                STArray array = (STArray) serializedType;
+//                for (STObject stObject : array) {
+//                    debugObject(patterns, stObject, starting);
+//                }
+//            } else if (field.getType() == Type.OBJECT) {
+//                debugObject(patterns, (STObject) serializedType, starting);
+//            } else {
+//                int ix = patterns.indexOf(hex.toUpperCase(), starting);
+//                starting = (ix + hex.length());
+//                boolean contains = ix != 1;
+//                assertTrue(contains);
+//            }
+//        }
+//    }
 
     @Test
     public void testTypeInference() {

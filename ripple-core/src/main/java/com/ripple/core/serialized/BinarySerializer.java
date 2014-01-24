@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class BinarySerializer {
-    private final BytesList buffer;
+    public final BytesList buffer;
 
     public BinarySerializer() {
         this.buffer = new BytesList();
@@ -93,61 +93,11 @@ public class BinarySerializer {
         }
     }
 
-
-    public void add(Field f, SerializedType t, TypeTranslator<SerializedType> ts) {
-        addFieldHeader(f);
-        add(f.getType(), t, ts);
-    }
-
-    // We shouldn't have any dependency on concrete classes, either directly
-    // or transitively, so don't import `com.ripple.core.translators` directly
-    public void add(Type type, SerializedType t, TypeTranslator<SerializedType> ts) {
-        switch (type) {
-            case UNKNOWN:
-            case DONE:
-            case NOTPRESENT:
-            case UINT8:
-            case UINT16:
-            case UINT32:
-            case UINT64:
-            case AMOUNT:
-            case HASH256:
-            case PATHSET:
-            case HASH128:
-            case HASH160:
-                ts.toBytesList(t, buffer);
-                break;
-
-            case ACCOUNT:
-            case VECTOR256:
-            case VL:
-                BytesList inner = new BytesList();
-                ts.toBytesList(t, inner);
-                add(encodeVL(inner.length()));
-                add(inner);
-                break;
-
-            case OBJECT:
-                ts.toBytesList(t, buffer);
-                add(Markers.OBJECT_END);
-                break;
-            case ARRAY:
-                ts.toBytesList(t, buffer);
-                add(Markers.ARRAY_END);
-                break;
-
-            case TRANSACTION:
-            case LEDGERENTRY:
-            case VALIDATION:
-                throw new UnsupportedOperationException("Can't serialize " + type.toString());
-        }
-    }
-
-    private void add(BytesList inner) {
+    public void add(BytesList inner) {
         buffer.add(inner);
     }
 
-    private int addFieldHeader(Field f) {
+    public int addFieldHeader(Field f) {
         byte[] n = fieldHeader(f);
         add(n);
         return n.length;
