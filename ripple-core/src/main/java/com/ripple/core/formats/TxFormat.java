@@ -53,6 +53,8 @@ public class TxFormat extends Format {
         put(Field.PreviousTxnID,       Requirement.OPTIONAL);
         put(Field.OperationLimit,      Requirement.OPTIONAL);
         put(Field.TxnSignature,        Requirement.OPTIONAL);
+        put(Field.AccountTxnID,        Requirement.OPTIONAL);
+        put(Field.LastLedgerSequence,  Requirement.OPTIONAL);
     }
 
     static public TxFormat AccountSet = new TxFormat(

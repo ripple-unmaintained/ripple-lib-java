@@ -32,8 +32,11 @@ public enum Field {
     BondAmount(23, Type.UINT32),
     LoadFee(24, Type.UINT32),
     OfferSequence(25, Type.UINT32),
-    FirstLedgerSequence(26, Type.UINT32),
+    FirstLedgerSequence(26, Type.UINT32), // Deprecated: do not use
+
+    // Added new semantics in 9486fc416ca7c59b8930b734266eed4d5b714c50
     LastLedgerSequence(27, Type.UINT32),
+
     TransactionIndex(28, Type.UINT32),
     OperationLimit(29, Type.UINT32),
     ReferenceFeeUnits(30, Type.UINT32),
@@ -58,6 +61,10 @@ public enum Field {
     LedgerIndex(6, Type.HASH256),
     WalletLocator(7, Type.HASH256),
     RootIndex(8, Type.HASH256),
+
+    // Added in rippled commit: 9486fc416ca7c59b8930b734266eed4d5b714c50
+    AccountTxnID(9, Type.HASH256),
+
     BookDirectory(16, Type.HASH256),
     InvoiceID(17, Type.HASH256),
     Nickname(18, Type.HASH256),
@@ -75,6 +82,9 @@ public enum Field {
     SendMax(9, Type.AMOUNT),
     MinimumOffer(16, Type.AMOUNT),
     RippleEscrow(17, Type.AMOUNT),
+
+    // Added in rippled commit: e7f0b8eca69dd47419eee7b82c8716b3aa5a9e39
+    DeliveredAmount(18, Type.AMOUNT),
 
     // These are auxillary fields
 //    quality(257, Type.AMOUNT),

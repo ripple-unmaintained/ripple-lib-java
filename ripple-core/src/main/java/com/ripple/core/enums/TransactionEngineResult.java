@@ -58,6 +58,10 @@ public enum TransactionEngineResult
     tefPAST_SEQ (-185, "This sequence number has already past."),
     tefWRONG_PRIOR (-184, "tefWRONG_PRIOR"),
     tefMASTER_DISABLED (-183, "tefMASTER_DISABLED"),
+
+    // TODO: check -182
+    tefMAX_LEDGER (-182, "Ledger sequence too high."),
+
     terRETRY (-99, "Retry transaction."),
     terFUNDS_SPENT (-98, "Can't set password, password set funds already spent."),
     terINSUF_FEE_B (-97, "AccountID balance can't pay fee."),
