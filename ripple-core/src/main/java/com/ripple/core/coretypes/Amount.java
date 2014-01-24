@@ -401,7 +401,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
 
         @Override
-        public void toBytesTree(Amount obj, BytesList to) {
+        public void toBytesList(Amount obj, BytesList to) {
             UInt64 man = obj.mantissa();
 
             if (obj.isNative()) {

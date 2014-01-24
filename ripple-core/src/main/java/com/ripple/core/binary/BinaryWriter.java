@@ -18,42 +18,42 @@ public class BinaryWriter {
     }
 
     public void uInt8(UInt8 obj) {
-        UInt8.translate.toBytesTree(obj, tree);
+        UInt8.translate.toBytesList(obj, tree);
     }
     public void uInt16(UInt16 obj) {
-        UInt16.translate.toBytesTree(obj, tree);
+        UInt16.translate.toBytesList(obj, tree);
     }
     public void uInt32(UInt32 obj) {
-        UInt32.translate.toBytesTree(obj, tree);
+        UInt32.translate.toBytesList(obj, tree);
     }
     public void uInt64(UInt64 obj) {
-        UInt64.translate.toBytesTree(obj, tree);
+        UInt64.translate.toBytesList(obj, tree);
     }
     public void hash128(Hash128 obj) {
-        Hash128.translate.toBytesTree(obj, tree);
+        Hash128.translate.toBytesList(obj, tree);
     }
     public void hash160(Hash160 obj) {
-        Hash160.translate.toBytesTree(obj, tree);
+        Hash160.translate.toBytesList(obj, tree);
     }
     public void hash256(Hash256 obj) {
-        Hash256.translate.toBytesTree(obj, tree);
+        Hash256.translate.toBytesList(obj, tree);
     }
     public void currency(Currency obj) {
-        Currency.translate.toBytesTree(obj, tree);
+        Currency.translate.toBytesList(obj, tree);
     }
     public void vector256(Vector256 obj) {
-        Vector256.translate.toBytesTree(obj, tree);
+        Vector256.translate.toBytesList(obj, tree);
     }
     public void accountID(AccountID obj) {
-        AccountID.translate.toBytesTree(obj, tree);
+        AccountID.translate.toBytesList(obj, tree);
     }
     public void pathSet(PathSet obj) {
-        PathSet.translate.toBytesTree(obj, tree);
+        PathSet.translate.toBytesList(obj, tree);
     }
     public void stObject(STObject obj) {
-        STObject.translate.toBytesTree(obj, tree);
+        STObject.translate.toBytesList(obj, tree);
     }
     public void stArray(STArray obj) {
-        STArray.translate.toBytesTree(obj, tree);
+        STArray.translate.toBytesList(obj, tree);
     }
 }

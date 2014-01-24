@@ -135,12 +135,12 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
         }
 
 //        @Override
-//        public byte[] toBytesTree(AccountID obj) {
+//        public byte[] toBytesList(AccountID obj) {
 //            return obj.bytes();
 //        }
 
         @Override
-        public void toBytesTree(AccountID obj, BytesList to) {
+        public void toBytesList(AccountID obj, BytesList to) {
             to.add(obj.bytes());
         }
     }

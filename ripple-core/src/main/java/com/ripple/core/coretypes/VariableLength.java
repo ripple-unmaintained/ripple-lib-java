@@ -43,7 +43,7 @@ public class VariableLength implements SerializedType {
         }
 
         @Override
-        public void toBytesTree(VariableLength obj, BytesList to) {
+        public void toBytesList(VariableLength obj, BytesList to) {
             to.add(obj.buffer);
         }
     }

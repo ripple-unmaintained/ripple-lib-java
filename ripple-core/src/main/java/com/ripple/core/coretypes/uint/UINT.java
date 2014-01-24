@@ -229,7 +229,7 @@ abstract public class UINT<Subclass extends UINT> extends Number implements Seri
         }
 
         @Override
-        public void toBytesTree(T obj, BytesList to) {
+        public void toBytesList(T obj, BytesList to) {
             to.add(obj.toByteArray());
         }
     }

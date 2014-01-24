@@ -118,7 +118,7 @@ public class HASH<Subclass extends HASH> implements SerializedType, Comparable<S
         }
 
         @Override
-        public void toBytesTree(T obj, BytesList to) {
+        public void toBytesList(T obj, BytesList to) {
             to.add(obj.hash);
         }
     }

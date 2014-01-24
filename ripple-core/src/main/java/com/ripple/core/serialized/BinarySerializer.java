@@ -115,24 +115,24 @@ public class BinarySerializer {
             case PATHSET:
             case HASH128:
             case HASH160:
-                ts.toBytesTree(t, buffer);
+                ts.toBytesList(t, buffer);
                 break;
 
             case ACCOUNT:
             case VECTOR256:
             case VL:
                 BytesList inner = new BytesList();
-                ts.toBytesTree(t, inner);
+                ts.toBytesList(t, inner);
                 add(encodeVL(inner.length()));
                 add(inner);
                 break;
 
             case OBJECT:
-                ts.toBytesTree(t, buffer);
+                ts.toBytesList(t, buffer);
                 add(Markers.OBJECT_END);
                 break;
             case ARRAY:
-                ts.toBytesTree(t, buffer);
+                ts.toBytesList(t, buffer);
                 add(Markers.ARRAY_END);
                 break;
 

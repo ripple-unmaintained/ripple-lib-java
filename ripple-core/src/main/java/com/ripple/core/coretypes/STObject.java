@@ -340,7 +340,7 @@ public class STObject implements SerializedType, Iterable<Field> {
         }
 
         @Override
-        public void toBytesTree(STObject obj, BytesList to) {
+        public void toBytesList(STObject obj, BytesList to) {
             BinarySerializer serializer = new BinarySerializer(to);
 
             for (Field field : obj) {

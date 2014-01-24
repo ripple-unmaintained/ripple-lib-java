@@ -15,7 +15,7 @@
     <url>http://maven.apache.org</url>
     <packaging>pom</packaging>
     <modules>
-        <module>ripple-android</module>
+        <!--<module>ripple-android</module>-->
         <module>ripple-cli</module>
     </modules>
 </project>
