@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+
+
+
+
+    <!--<RelativeLayout-->
+            <!--android:orientation="vertical"-->
+            <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="match_parent">-->
+
+        <!--&lt;!&ndash;<RelativeLayout android:layout_width="fill_parent"&ndash;&gt;-->
+                        <!--&lt;!&ndash;android:id="@+id/statusHouse"&ndash;&gt;-->
+                        <!--&lt;!&ndash;android:layout_height="wrap_content">&ndash;&gt;-->
+            <!--&lt;!&ndash;<RelativeLayout&ndash;&gt;-->
+                    <!--&lt;!&ndash;android:orientation="vertical"&ndash;&gt;-->
+                    <!--&lt;!&ndash;android:layout_width="fill_parent"&ndash;&gt;-->
+                    <!--&lt;!&ndash;android:layout_height="fill_parent">&ndash;&gt;-->
+            <!--&lt;!&ndash;</RelativeLayout>&ndash;&gt;-->
+        <!--&lt;!&ndash;</RelativeLayout>&ndash;&gt;-->
+
+
+    <!--</RelativeLayout>-->
+
+
+    <LinearLayout
+            android:layout_height="fill_parent"
+            android:layout_width="fill_parent"
+            >
+        <!--Just a spacer-->
+        <View android:layout_width="0dip"
+              android:layout_height="0dip"
+              android:layout_weight="1.5">
+        </View>
+        <ScrollView android:layout_weight="8" android:layout_width="0dip" android:layout_height="fill_parent">
+            <TextView
+                    android:layout_gravity="center"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:visibility="visible"
+                    android:textColor="@color/receivingRed"
+                    android:id="@+id/messageLog"
+                    >
+
+            </TextView>
+        </ScrollView>
+        <!--Just a spacer-->
+        <View android:layout_width="0dip"
+              android:layout_height="0dip"
+              android:layout_weight="1.5">
+        </View>
+    </LinearLayout>
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:visibility="visible"
+            android:id="@+id/status"
+            >
+    </TextView>
+
+
+    <LinearLayout android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:layout_width="fill_parent"
+                  android:layout_centerInParent="true"
+                  android:id="@+id/loginForm">
+
+        <!--Just a spacer-->
+        <View android:layout_width="0dip"
+              android:layout_height="0dip"
+              android:layout_weight="2">
+        </View>
+
+        <RelativeLayout android:layout_width="0dip"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="6">
+
+            <EditText android:inputType="textPersonName"
+                      android:id="@+id/username"
+                      android:nextFocusDown="@+id/password"
+                      android:layout_width="fill_parent"
+                      android:layout_height="wrap_content">
+            </EditText>
+
+            <EditText android:inputType="textPassword"
+                      android:layout_below="@id/username"
+                      android:layout_width="fill_parent"
+                      android:layout_height="wrap_content"
+                      android:id="@id/password"
+                      android:nextFocusDown="@+id/retrieve_wallet"
+                    >
+            </EditText>
+
+            <Button android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/password"
+                    android:id="@id/retrieve_wallet"
+                    android:text="@string/retrieve_wallet_new">
+
+            </Button>
+
+        </RelativeLayout>
+
+        <!--Just a spacer-->
+        <View android:layout_width="0dip"
+              android:layout_height="0dip"
+              android:layout_weight="2">
+        </View>
+
+    </LinearLayout>
+
+
+    <RelativeLayout
+            android:layout_alignParentTop="true"
+            android:layout_centerInParent="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        <LinearLayout android:id="@+id/alternatives"
+                      android:orientation="vertical"
+                      android:layout_width="fill_parent"
+                      android:layout_height="wrap_content">
+        </LinearLayout>
+    </RelativeLayout>
+
+
+    <RelativeLayout android:layout_width="fill_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_alignParentBottom="true"
+                    android:id="@+id/payment_form"
+                    android:layout_height="wrap_content">
+
+        <Spinner android:id="@+id/contacts"
+                 android:layout_width="fill_parent"
+                 android:layout_height="wrap_content">
+
+        </Spinner>
+
+
+        <LinearLayout android:layout_width="fill_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_below="@id/contacts"
+                      android:id="@+id/amountInputGroup"
+                      android:orientation="horizontal">
+
+            <EditText
+                    android:layout_width="0dp"
+                    android:layout_weight="0.5"
+                    android:id="@+id/amountInput"
+                    android:inputType="numberDecimal"
+                    android:layout_height="fill_parent">
+
+            </EditText>
+
+            <Spinner
+                    android:layout_width="0dp"
+                    android:layout_weight="0.5"
+                    android:id="@+id/currencies"
+                    android:entries="@array/currencies"
+                     android:layout_height="fill_parent">
+
+            </Spinner>
+
+        </LinearLayout>
+
+        <!--<Button android:layout_width="fill_parent"-->
+                <!--android:text="@string/pay_one_drop"-->
+                <!--android:id="@+id/pay_one_drop"-->
+                <!--android:layout_below="@id/currencyValue"-->
+                <!--android:layout_height="wrap_content">-->
+        <!--</Button>-->
+    </RelativeLayout>
+</RelativeLayout>

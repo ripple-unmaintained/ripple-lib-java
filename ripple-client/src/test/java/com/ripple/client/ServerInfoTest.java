@@ -2,7 +2,7 @@ package com.ripple.client;
 
 import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.config.Config;
-import com.ripple.core.types.Amount;
+import com.ripple.core.coretypes.Amount;
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;
@@ -15,7 +15,7 @@ public class ServerInfoTest {
 
     @Test
     public void test_LedgerInfo_can_compute_a_transactionFee() {
-        assertEquals("This was 1.5 at the time of test writing", 1.1, Config.getFeeCushion());
+        assertEquals("This was 1.1 at the time of test writing", 1.1, Config.getFeeCushion());
 
         ServerInfo info = new ServerInfo();
 

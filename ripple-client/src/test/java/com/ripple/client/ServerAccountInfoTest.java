@@ -1,7 +1,7 @@
 package com.ripple.client;
 
 import com.ripple.client.subscriptions.AccountRoot;
-import com.ripple.core.types.Amount;
+import com.ripple.core.coretypes.Amount;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;

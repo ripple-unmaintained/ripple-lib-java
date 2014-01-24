@@ -4,8 +4,8 @@ package com.ripple.cli;
 import com.ripple.client.transactions.TransactionResult;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.enums.TransactionType;
-import com.ripple.core.types.AccountID;
-import com.ripple.core.types.Amount;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Amount;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,32 +52,30 @@ public class AnalyzeDump {
         Counter createdStats = new Counter();
         MinMaxTracker minMaxTracker = new MinMaxTracker();
 
-        while ((line = bufferedReader.readLine()) != null) {
-            if (line.length() > 0) {
-                JSONObject json = new JSONObject(line);
-                JSONArray transactions = json.getJSONArray("transactions");
-                minMaxTracker.record(json.getInt("ledger_index_max"));
-                minMaxTracker.record(json.getJSONObject("marker").getInt("ledger"));
+        while ((line = bufferedReader.readLine()) != null && line.length() > 0) {
+            JSONObject json = new JSONObject(line);
+            JSONArray transactions = json.getJSONArray("transactions");
+            minMaxTracker.record(json.getInt("ledger_index_max"));
+            minMaxTracker.record(json.getJSONObject("marker").getInt("ledger"));
 
-                for (int i = 0; i < transactions.length(); i++) {
-                    total ++;
-                    JSONObject tx = transactions.getJSONObject(i);
-                    TransactionResult tr;
-                    tr = new TransactionResult(tx, TransactionResult.Source.request_account_tx_binary);
+            for (int i = 0; i < transactions.length(); i++) {
+                total ++;
+                JSONObject tx = transactions.getJSONObject(i);
+                TransactionResult tr;
+                tr = new TransactionResult(tx, TransactionResult.Source.request_account_tx_binary);
 
-                    if (tr.engineResult      == TransactionEngineResult.tesSUCCESS &&
-                        tr.transactionType() == TransactionType.Payment            &&
-                        tr.initiatingAccount().equals(giveAwayAccount)) {
-                        Amount amount = tr.transaction.get(Amount.Amount);
+                if (tr.engineResult      == TransactionEngineResult.tesSUCCESS &&
+                    tr.transactionType() == TransactionType.Payment            &&
+                    tr.initiatingAccount().equals(giveAwayAccount)) {
+                    Amount amount = tr.transaction.get(Amount.Amount);
 
-                        if (amount.isNative()) {
-                            successful++;
-                            BigDecimal value = amount.value();
-                            payments.count(value);
-                            if (tr.createdAccount() != null) {
-                                createdStats.count(value);
-                                accountsFunded++;
-                            }
+                    if (amount.isNative()) {
+                        successful++;
+                        BigDecimal value = amount.value();
+                        payments.count(value);
+                        if (tr.createdAccount() != null) {
+                            createdStats.count(value);
+                            accountsFunded++;
                         }
                     }
                 }

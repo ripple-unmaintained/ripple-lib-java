@@ -1,0 +1,82 @@
+package com.ripple.core.coretypes;
+
+import com.ripple.core.fields.Field;
+import com.ripple.core.fields.TypedFields;
+import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.BytesList;
+import com.ripple.core.serialized.SerializedType;
+import com.ripple.core.serialized.TypeTranslator;
+import com.ripple.core.coretypes.hash.Hash256;
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.util.ArrayList;
+
+public class Vector256 extends ArrayList<Hash256> implements SerializedType {
+
+    public static class Translator extends TypeTranslator<Vector256> {
+        @Override
+        public Vector256 fromParser(BinaryParser parser, Integer hint) {
+            Vector256 vector256 = new Vector256();
+            if (hint == null) {
+                hint = parser.getSize();
+            }
+            for (int i = 0; i < hint / 32; i++) {
+                vector256.add(Hash256.translate.fromParser(parser));
+            }
+
+            return vector256;
+        }
+
+        @Override
+        public Object toJSON(Vector256 obj) {
+            return toJSONArray(obj);
+        }
+
+        @Override
+        public JSONArray toJSONArray(Vector256 obj) {
+            JSONArray array = new JSONArray();
+
+            for (Hash256 hash256 : obj) {
+                array.put(hash256.toString());
+            }
+
+            return array;
+        }
+
+        @Override
+        public Vector256 fromJSONArray(JSONArray jsonArray) {
+            Vector256 vector = new Vector256();
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                try {
+                    String hex = jsonArray.getString(i);
+                    vector.add(Hash256.translate.fromString(hex));
+
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            return vector;
+        }
+
+        @Override
+        public void toBytesTree(Vector256 obj, BytesList to) {
+            for (Hash256 hash256 : obj) {
+                to.add(hash256.bytes());
+            }
+        }
+    }
+    static public Translator translate = new Translator();
+
+    private Vector256(){}
+
+    public static TypedFields.Vector256Field vector256Field(final Field f) {
+        return new TypedFields.Vector256Field(){ @Override public Field getField() {return f;}};
+    }
+    
+    static public TypedFields.Vector256Field Indexes = vector256Field(Field.Indexes);
+    static public TypedFields.Vector256Field Hashes = vector256Field(Field.Hashes);
+    static public TypedFields.Vector256Field Features = vector256Field(Field.Features);
+}

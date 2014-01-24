@@ -6,7 +6,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.ripple.bouncycastle.util.encoders.Hex;
 
-import com.ripple.core.types.AccountID;
+import com.ripple.core.coretypes.AccountID;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
 

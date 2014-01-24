@@ -1,8 +1,8 @@
 package com.ripple.client.subscriptions;
 
 import com.ripple.config.Config;
-import com.ripple.core.known.tx.Transaction;
-import com.ripple.core.types.Amount;
+import com.ripple.core.types.known.tx.Transaction;
+import com.ripple.core.coretypes.Amount;
 import org.json.JSONObject;
 
 public class ServerInfo {

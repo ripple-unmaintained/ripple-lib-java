@@ -3,6 +3,7 @@ package com.ripple.client.responses;
 import com.ripple.client.enums.RPCErr;
 import com.ripple.client.requests.Request;
 import com.ripple.core.enums.TransactionEngineResult;
+import com.ripple.core.coretypes.uint.UInt32;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -45,5 +46,9 @@ public class Response {
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public UInt32 getSubmitSequence() {
+        return new UInt32(result.optJSONObject("tx_json").optInt("Sequence"));
     }
 }

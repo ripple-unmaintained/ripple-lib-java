@@ -5,8 +5,8 @@ import com.ripple.client.ClientLogger;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
-import com.ripple.core.known.sle.Offer;
-import com.ripple.core.types.*;
+import com.ripple.core.types.known.sle.Offer;
+import com.ripple.core.coretypes.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 

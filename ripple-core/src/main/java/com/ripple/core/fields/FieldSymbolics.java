@@ -55,8 +55,8 @@ public class FieldSymbolics {
         return lookup.containsKey(field);
     }
 
-    public static String asString(Field f, Integer i) {
-        return lookup.get(f).asString(i);
+    public static String asString(Field f, Number i) {
+        return lookup.get(f).asString(i.intValue());
     }
     public static Integer asInteger(Field f, String s) {
         return lookup.get(f).asInteger(s);

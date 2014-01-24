@@ -7,13 +7,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class BinarySerializer {
-    private final BytesTree buffer;
+    private final BytesList buffer;
 
     public BinarySerializer() {
-        this.buffer = new BytesTree();
+        this.buffer = new BytesList();
     }
 
-    public BinarySerializer(BytesTree buffer) {
+    public BinarySerializer(BytesList buffer) {
         this.buffer = buffer;
     }
 
@@ -121,7 +121,7 @@ public class BinarySerializer {
             case ACCOUNT:
             case VECTOR256:
             case VL:
-                BytesTree inner = new BytesTree();
+                BytesList inner = new BytesList();
                 ts.toBytesTree(t, inner);
                 add(encodeVL(inner.length()));
                 add(inner);
@@ -143,7 +143,7 @@ public class BinarySerializer {
         }
     }
 
-    private void add(BytesTree inner) {
+    private void add(BytesList inner) {
         buffer.add(inner);
     }
 

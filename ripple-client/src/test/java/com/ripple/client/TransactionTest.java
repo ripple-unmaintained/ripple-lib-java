@@ -4,19 +4,16 @@ package com.ripple.client;
 import com.ripple.client.transactions.ManagedTxn;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.fields.Field;
-import com.ripple.core.types.AccountID;
-import com.ripple.core.types.Amount;
-import com.ripple.core.types.STObject;
-import com.ripple.core.types.hash.Hash256;
-import com.ripple.core.types.uint.UInt32;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Amount;
+import com.ripple.core.coretypes.STObject;
+import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.uint.UInt32;
 import org.json.JSONObject;
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;
 
-/**
- * Created with IntelliJ IDEA. User: nick Date: 10/10/13 Time: 6:37 PM
- */
 public class TransactionTest {
 
     @Test
@@ -51,24 +48,15 @@ public class TransactionTest {
 
     @Test
     public void testTransactionIDCreation2() throws Exception {
-        String tx_json = "{"
-                +
-                "    \"Account\": \"rwMyB1diFJ7xqEKYGYgk9tKrforvTr33M5\","
-                +
-                "    \"Amount\": \"1\","
-                +
-                "    \"Destination\": \"rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH\","
-                +
-                "    \"Fee\": \"12\","
-                +
-                "    \"Sequence\": 91,"
-                +
-                "    \"SigningPubKey\": \"02eeaf2c95b668d411fc490746c52071514f6d3a7b742d91d82cb591b5443d1c59\","
-                +
-                "    \"TransactionType\": \"Payment\","
-                +
-                "    \"TxnSignature\": \"3045022100f1b54ed137dc491240b93c4b34a97ca6063490cca784c9c2f5d5b8593f10f0410220338e9e0f6dfacc739172d0473b5023f068c5fbbcbd66e65ed5ec6f4421781194\""
-                +
+        String tx_json = "{" +
+                "    \"Account\": \"rwMyB1diFJ7xqEKYGYgk9tKrforvTr33M5\"," +
+                "    \"Amount\": \"1\"," +
+                "    \"Destination\": \"rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH\"," +
+                "    \"Fee\": \"12\"," +
+                "    \"Sequence\": 91," +
+                "    \"SigningPubKey\": \"02eeaf2c95b668d411fc490746c52071514f6d3a7b742d91d82cb591b5443d1c59\"," +
+                "    \"TransactionType\": \"Payment\"," +
+                "    \"TxnSignature\": \"3045022100f1b54ed137dc491240b93c4b34a97ca6063490cca784c9c2f5d5b8593f10f0410220338e9e0f6dfacc739172d0473b5023f068c5fbbcbd66e65ed5ec6f4421781194\"" +
                 "}";
 
         Hash256 expected = Hash256.translate
@@ -84,7 +72,7 @@ public class TransactionTest {
         final String niqwit1Seed = "snSq7dKr5v39hJ8Enb45RpXFJL25h";
         final AccountID niqwit1 = AccountID.fromSeedString(niqwit1Seed);
 
-        ManagedTxn transaction = new ManagedTxn(TransactionType.Payment, 0);
+        ManagedTxn transaction = new ManagedTxn(TransactionType.Payment);
         transaction.prepare(
                 niqwit1.getKeyPair(),
                 Amount.fromString("15"),

@@ -17,8 +17,8 @@ import com.ripple.client.responses.Response;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transactions.TransactionResult;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
-import com.ripple.core.types.AccountID;
-import com.ripple.core.types.Amount;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Amount;
 
 public class MakePayment {
     /**
@@ -83,13 +83,13 @@ public class MakePayment {
         tx.put(Amount.Amount, amt);
 
         // The ManagedTxn publishes events
-        tx.once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
+        tx.publisher().once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
                 LOG("Submit response: %s", response.engineResult());
             }
         });
-        tx.once(ManagedTxn.OnTransactionValidated.class, new ManagedTxn.OnTransactionValidated() {
+        tx.publisher().once(ManagedTxn.OnTransactionValidated.class, new ManagedTxn.OnTransactionValidated() {
             @Override
             public void called(TransactionResult result) {
                 LOG("Transaction finalized on ledger: %s", result.ledgerIndex);

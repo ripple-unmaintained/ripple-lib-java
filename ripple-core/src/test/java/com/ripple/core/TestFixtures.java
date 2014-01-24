@@ -1,6 +1,6 @@
 package com.ripple.core;
 
-import com.ripple.core.types.AccountID;
+import com.ripple.core.coretypes.AccountID;
 
 /**
  * Created with IntelliJ IDEA.

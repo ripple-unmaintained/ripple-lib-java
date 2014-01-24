@@ -4,12 +4,13 @@ import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.fields.Field;
-import com.ripple.core.types.AccountID;
-import com.ripple.core.types.STArray;
-import com.ripple.core.types.STObject;
-import com.ripple.core.types.hash.Hash256;
-import com.ripple.core.types.uint.UInt32;
-import com.ripple.core.types.uint.UInt8;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.STArray;
+import com.ripple.core.coretypes.STObject;
+import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.coretypes.uint.UInt8;
+import com.ripple.encodings.common.B16;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -28,6 +29,14 @@ public class TransactionResult {
     public STObject meta;
 
     public JSONObject message;
+
+    public boolean isPayment() {
+        return transactionType() == TransactionType.Payment;
+    }
+
+    public AccountID destinationAccount() {
+        return transaction.get(AccountID.Destination);
+    }
 
     public TransactionType transactionType() {
         return transaction.transactionType();
@@ -101,11 +110,13 @@ public class TransactionResult {
                     */
 
                     String tx = json.getString("tx_blob");
+                    byte[] decodedTx = B16.decode(tx);
                     meta = STObject.translate.fromWireHex(json.getString("meta"));
-                    transaction = STObject.translate.fromWireHex(tx);
+                    transaction = STObject.translate.fromWireBytes(decodedTx);
+                    hash = Hash256.transactionID(decodedTx);
 
                     engineResult = TransactionEngineResult.fromNumber(meta.get(UInt8.TransactionResult));
-                    hash = transaction.get(Hash256.hash);
+//                    System.out.println(json);
                     ledgerIndex = new UInt32(json.getLong("ledger_index"));
                     ledgerHash = null;
                 }

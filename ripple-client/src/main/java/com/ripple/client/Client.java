@@ -14,19 +14,65 @@ import com.ripple.client.transactions.TransactionResult;
 import com.ripple.client.transport.TransportEventHandler;
 import com.ripple.client.transport.WebSocketTransport;
 import com.ripple.client.wallet.Wallet;
-import com.ripple.core.types.*;
-import com.ripple.core.types.hash.Hash256;
-import com.ripple.core.types.uint.UInt32;
+import com.ripple.core.coretypes.*;
+import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.uint.UInt32;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class Client extends Publisher<Client.events> implements TransportEventHandler {
+    public static abstract class events<T>      extends Publisher.Callback<T> {}
+    public abstract static class OnLedgerClosed extends events<ServerInfo> {}
+    public abstract static class OnConnected    extends events<Client> {}
+    public abstract static class OnDisconnected extends events<Client> {}
+    public abstract static class OnSubscribed   extends events<ServerInfo> {}
+    public abstract static class OnMessage extends events<JSONObject> {}
+    public abstract static class OnSendMessage extends events<JSONObject> {}
+    public abstract static class OnStateChange extends events<Client> {}
+    public abstract static class OnPathFind extends events<JSONObject> {}
+
     public boolean connected = false;
+    private HashMap<AccountID, Account> accounts = new HashMap<AccountID, Account>();
+    SubscriptionManager subscriptions = new SubscriptionManager();
+
+    public Client(WebSocketTransport ws) {
+        this.ws = ws;
+        ws.setHandler(this);
+
+        on(OnLedgerClosed.class, new OnLedgerClosed() {
+            @Override
+            public void called(ServerInfo serverInfo) {
+                Iterator<LedgerClosedCallback> iterator = ledgerClosedCallbacks.iterator();
+
+                while (iterator.hasNext()) {
+                    LedgerClosedCallback next = iterator.next();
+                    if (serverInfo.ledger_index >= next.anyLedgerGreaterOrEqual) {
+                        iterator.remove();
+                        next.callback.run();
+                    }
+                }
+            }
+        });
+    }
+
+    ArrayList<LedgerClosedCallback> ledgerClosedCallbacks = new ArrayList<LedgerClosedCallback>();
+    public static class LedgerClosedCallback {
+        public long anyLedgerGreaterOrEqual;
+
+        public Runnable callback;
+        public LedgerClosedCallback(long anyLedgerGreaterOrEqual, Runnable callback) {
+            this.anyLedgerGreaterOrEqual = anyLedgerGreaterOrEqual;
+            this.callback = callback;
+        }
+
+    }
+
+    public void onceOnFirstLedgerClosedGreaterThan(long ledgerIndex, Runnable runnable) {
+        ledgerClosedCallbacks.add(new LedgerClosedCallback(ledgerIndex, runnable));
+    }
 
 
     public Request requestBookOffers(Issue get, Issue pay) {
@@ -35,17 +81,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         request.json("taker_gets", get.toJSON());
         return request;
     }
-
-    public static abstract class events<T>      extends Publisher.Callback<T> {}
-
-    public abstract static class OnLedgerClosed extends events<ServerInfo> {}
-    public abstract static class OnConnected    extends events<Client> {}
-    public abstract static class OnDisconnected extends events<Client> {}
-    public abstract static class OnSubscribed   extends events<ServerInfo> {}
-    public abstract static class OnMessage extends events<JSONObject> {}
-
-    private HashMap<AccountID, Account> accounts = new HashMap<AccountID, Account>();
-    SubscriptionManager subscriptions = new SubscriptionManager();
 
     public Account account(final AccountID id) {
         if (accounts.containsKey(id)) {
@@ -69,8 +104,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         return account(AccountID.fromSeedString(masterSeed));
     }
 
-    private AccountRoot accountRoot(final AccountID id) {
-        final AccountRoot accountRoot = new AccountRoot();
+    private AccountRoot accountRoot(AccountID id) {
+        AccountRoot accountRoot = new AccountRoot();
         requestAccountRoot(id, accountRoot, 0);
         return accountRoot;
     }
@@ -79,7 +114,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         Request req = newRequest(Command.ledger_entry);
         req.json("account_root", id);
 
-        req.on(Request.OnResponse.class, new Request.OnResponse() {
+        req.once(Request.OnResponse.class, new Request.OnResponse() {
             @Override
             public void called(Response response) {
 
@@ -92,6 +127,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                     } else {
                         if (attempt < 5) {
                             requestAccountRoot(id, accountRoot, attempt + 1);
+                        } else {
+                            // TODO //
                         }
                     }
                 } catch (JSONException e) {
@@ -108,11 +145,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     WebSocketTransport ws;
     private int cmdIDs;
 
-    public Client(WebSocketTransport ws) {
-        this.ws = ws;
-        ws.setHandler(this);
-    }
 
+    // TODO: reconnect if we go 60s without any message from the server
     public void connect(String uri) {
         // XXX: connect to other uris ... just parameterise connect here ??
         ws.connect(URI.create(uri));
@@ -126,6 +160,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
             switch (Message.valueOf(msg.optString("type", null))) {
                 case serverStatus:
+                    updateServerInfo(msg);
+                    break;
                 case ledgerClosed:
                     updateServerInfo(msg);
                     emit(OnLedgerClosed.class, serverInfo);
@@ -136,6 +172,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 case transaction:
                     onTransaction(msg);
                     break;
+                case path_find:
+                    emit(OnPathFind.class, msg);
+                    break;
                 default:
                     unhandledMessage(msg);
                     break;
@@ -143,7 +182,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         } catch (Exception e) {
             e.printStackTrace();
             // This seems to be swallowed higher up, (at least by the Java-WebSocket transport implementation)
-            throw new RuntimeException(e);
+            throw new RuntimeException(e); // TODO
+        } finally {
+            emit(OnStateChange.class, this);
         }
     }
 
@@ -164,7 +205,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                     Account account = accounts.get(entry.getKey());
                     if (account != null) {
                         STObject rootUpdates = entry.getValue();
-                        account.getAccountRoot().updateFromTransaction(transactionHash, transactionLedgerIndex, rootUpdates);
+                        account.getAccountRoot()
+                               .updateFromTransaction(
+                                       transactionHash, transactionLedgerIndex, rootUpdates);
                     }
                 }
             }
@@ -290,6 +333,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         request.on(Request.OnSuccess.class, new Request.OnSuccess() {
             @Override
             public void called(Response response) {
+                // TODO ... make sure this isn't just an
                 serverInfo.update(response.result);
                 emit(OnSubscribed.class, serverInfo);
             }
@@ -317,6 +361,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     public void sendMessage(JSONObject object) {
         ClientLogger.log("Send: %s", prettyJSON(object));
+        emit(OnSendMessage.class, object);
         ws.sendMessage(object);
     }
 

@@ -14,6 +14,9 @@ import java.io.*;
 
 public class DumpAccountTransactions {
     public static String outputFile = "binary-transactions.json";
+//    private static String theAccount = "rMTzGg7nPPEMJthjgEBfiPZGoAM7MEVa1r";
+//    private static String theAccount = "rwVJd5YWGhvhhDEPaJR3hjN5feGk6bQXmY";
+    private static String theAccount = "rHTLdR8F4v9gJmLoW6Fk6zmBvCM2bqzqLP";
 
     public static void main(String[] args) throws Exception {
         File file = new File(outputFile);
@@ -30,7 +33,7 @@ public class DumpAccountTransactions {
     private static void walkAccountTx(final Client c, final Object marker, final int pages) {
         Request request = c.newRequest(Command.account_tx);
         request.json("binary", true);
-        request.json("account", "rMTzGg7nPPEMJthjgEBfiPZGoAM7MEVa1r");
+        request.json("account", theAccount);
 
         if (marker != null) {
             request.json("marker", marker);
@@ -48,14 +51,18 @@ public class DumpAccountTransactions {
 
                     Object newMarker = result.opt("marker");
                     System.out.printf("Marker %s%n", newMarker);
-                    if (marker != null && marker.toString().equals(newMarker.toString())) {
+                    if (marker != null && newMarker != null && marker.toString().equals(newMarker.toString())) {
                         // This shouldn't happen since Stef's patch but who knows how
                         // pervasively it's been deployed ?
-                        return;
+//                        return;
+                        newMarker = null;
                     }
                     if ((newMarker != null) && (pages - 1 > 0) && transactions.length() > 0) {
                         System.out.printf("Found new marker %s%n", newMarker);
                         walkAccountTx(c, newMarker, pages - 1);
+                    }
+                    else {
+                        System.out.printf("Found all transactions");
                     }
 
                 } catch (Exception e) {

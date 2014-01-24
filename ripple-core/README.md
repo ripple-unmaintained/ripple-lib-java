@@ -174,7 +174,7 @@ com
 
 Merely a tag interface. Doesn't actually require any methods be implemented.
 
-#### com.ripple.core.serialized.BytesTree
+#### com.ripple.core.serialized.BytesList
 
 A dynamic array of byte[] or other BytesTree instances. Used by TypeTranslators
 to avoid needless copying (see fromParser(paser, hint)).
