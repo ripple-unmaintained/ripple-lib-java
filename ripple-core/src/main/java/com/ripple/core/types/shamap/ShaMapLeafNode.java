@@ -4,7 +4,15 @@ import com.ripple.core.coretypes.hash.Hash256;
 
 public class ShaMapLeafNode extends ShaMapNode {
     Hash256 index;
-    Item blob;
+    private Item blob;
+
+    public Item getBlob() {
+        return blob;
+    }
+
+    public void setBlob(Item blob) {
+        this.blob = blob;
+    }
 
     public interface Item {
         public byte[] bytes();
@@ -18,7 +26,7 @@ public class ShaMapLeafNode extends ShaMapNode {
             case tnTRANSACTION_MD:
                 Hash256.HalfSha512 half = new Hash256.HalfSha512();
                 half.update(Hash256.HASH_PREFIX_TX_NODE);
-                half.update(blob.bytes());
+                half.update(getBlob().bytes());
                 half.update(index);
                 return half.finish();
             default:
@@ -29,6 +37,6 @@ public class ShaMapLeafNode extends ShaMapNode {
     public ShaMapLeafNode(Hash256 index, NodeType type, Item blob) {
         this.index = index;
         this.type = type;
-        this.blob = blob;
+        this.setBlob(blob);
     }
 }
