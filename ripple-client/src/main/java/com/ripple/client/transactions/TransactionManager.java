@@ -116,7 +116,8 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
     private void checkAccountTransactions(int ledger_index) {
         if (queued.size() == 0) {
-            lastLedgerEmptyOrChecked = ledger_index;
+            lastLedgerEmptyOrChecked = 0;
+            return;
         }
 
         long ledgersPassed = ledger_index - lastLedgerEmptyOrChecked;
@@ -129,6 +130,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                         lastLedgerEmptyOrChecked = Math.min(lastLedgerEmptyOrChecked, submission.ledgerSequence);
                     }
                 }
+                return; // and wait for next ledger close
             }
             if (txns != null && (ledger_index - lastLedgerPage) >= ACCOUNT_TX_TIMEOUT) {
                 txns.abort();
