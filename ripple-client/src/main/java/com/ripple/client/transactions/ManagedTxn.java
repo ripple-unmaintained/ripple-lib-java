@@ -20,6 +20,17 @@ public class ManagedTxn extends Transaction {
         return publisher;
     }
 
+    public boolean isSequencePlug() {
+        return isSequencePlug;
+    }
+
+    public void setSequencePlug(boolean isNoop) {
+        this.isSequencePlug = isNoop;
+    }
+
+    private boolean isSequencePlug;
+
+
     public static abstract class events<T> extends Publisher.Callback<T> {}
     public static abstract class OnSubmitSuccess extends events<Response> {}
     public static abstract class OnSubmitFailure extends events<Response> {}

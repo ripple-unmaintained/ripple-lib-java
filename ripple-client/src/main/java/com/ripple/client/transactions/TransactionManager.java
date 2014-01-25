@@ -309,6 +309,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
     private void noopTransaction(UInt32 sequence) {
         ManagedTxn plug = transaction(TransactionType.AccountSet);
+        plug.setSequencePlug(true);
         queue(plug, sequence);
     }
 
@@ -326,19 +327,31 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         }
     }
     private void resubmitWithNewSequence(final ManagedTxn txn) {
+        // We only EVER resubmit a txn with a new sequence if we actually seen it
+        // this is the method that handles that,
+        if (txn.isSequencePlug()) {
+            // A sequence plug's sole purpose is to plug a sequence
+            // The sequence has already been plugged.
+            // So:
+            return; // without further ado.
+        }
+
+
         // ONLY ONLY ONLY if we've actually seen the Sequence
         if (seenValidatedSequences.contains(txn.sequence().longValue())) {
             resubmit(txn, getSubmissionSequence());
         } else {
-//            final Submission submission = txn.lastSubmission();
+            // TODO: Should we empty seenValidatedSequences when our queue is empty
+            // TODO: Could this stall out for ages?
+            // We should perhaps look for gaps in n, n+1, n+2 in the seenValidatedSequences
+            // if we see some, it's an indication that we should check account_tx from ledgers
+            // lowest in gap.
+            // TODO: maybe seenValidatedSequences should be a Map<Sequence, Ledger>
             on(OnValidatedSequence.class, new OnValidatedSequence() {
                 @Override
                 public void called(UInt32 uInt32) {
-//                    if (txn.isFinalized() || submission != txn.lastSubmission()) {
-//                        removeListener(OnValidatedSequence.class, this);
-//                    }
-
                     if (seenValidatedSequences.contains(txn.sequence().longValue())) {
+                        // TODO an auto remover ;)
                         removeListener(OnValidatedSequence.class, this);
                         resubmit(txn, getSubmissionSequence());
                     }
