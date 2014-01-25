@@ -28,11 +28,11 @@ public class Vector256Test {
         UInt32 prefix = UInt32.translate.fromParser(parser);
         UInt32 innerNode = UInt32.translate.fromWireBytes(Hash256.HASH_PREFIX_INNER_NODE);
 
-        System.out.println(prefix.equals(innerNode));
+//        System.out.println(prefix.equals(innerNode));
 
         Vector256 hashes = Vector256.translate.fromParser(parser);
         for (Hash256 hash : hashes) {
-            System.out.println("0x" + hash);
+//            System.out.println("0x" + hash);
         }
     }
 }

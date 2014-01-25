@@ -37,37 +37,6 @@ import java.util.Map;
 
 public class STObjectTest {
     @Test
-    public void testDecodeYuahosHex() throws Exception {
-
-        String fields = "[\"Account\", \"BookDirectory\", \"BookNode\", \"Flags\", \"LedgerEntryType\", \"OwnerNode\", \"PreviousTxnID\", \"PreviousTxnLgrSeq\", \"Sequence\", \"TakerGets\", \"TakerPays\"]";
-        JSONArray f = new JSONArray(fields);
-
-        Map<Field, Field> fmap = new EnumMap<Field, Field>(Field.class);
-        for (int i = 0; i < f.length(); i++) {
-            String fn = f.getString(i);
-            Field field = Field.valueOf(fn);
-            fmap.put(field, field);
-        }
-
-        for (Field field : fmap.keySet()) {
-            System.out.println(field);
-        }
-
-//        System.out.println(f);
-
-        String hex = "11006F22000000002400000003250035788533000000000000000034000000000000000055555B93628BF3EC318892BB7C7CDCB6732FF53D12B6EEC4FAF60DD1AEE1C6101F501071633D7DE1B6AEB32F87F1A73258B13FC8CC32942D53A66D4F038D7EA4C6800064D4838D7EA4C68000000000000000000000000000425443000000000035DD7DF146893456296BF4061FBE68735D28F3286540000000000F42408114A4B8F5F7B644AEDC3447F9459C132EEB016A133B000037C6659BB98F8D09F2F4CFEB27DE8EFEAFE54DD9E1C13AECDF5794B0C0F5";
-        hex = hex.substring(0, hex.length() - 64); // the `index` is appended to the leaf node
-
-
-        STObject offer = STObject.translate.fromWireHex(hex);
-        JSONObject jsonObject = STObject.translate.toJSONObject(offer);
-        System.out.println(jsonObject.toString(4));
-
-//        System.out.println(fields);
-
-    }
-
-    @Test
     public void testNestedObjectSerialization() throws Exception {
         String rippleLibHex = "120007220000000024000195F964400000170A53AC2065D5460561EC9DE000000000000000000000000000" +
                 "494C53000000000092D705968936C419CE614BF264B5EEB1CEA47FF468400000000000000A7321028472865" +
