@@ -28,6 +28,9 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
     public long sequence = -1;
     Set<Long> seenValidatedSequences = new TreeSet<Long>();
+    // TODO, maybe this is an instance configurable strategy parameter
+    public static long LEDGERS_BETWEEN_ACCOUNT_TX = 15;
+    public static long ACCOUNT_TX_TIMEOUT = 5;
 
     public void queue(ManagedTxn tx) {
         queue(tx, null);
@@ -54,7 +57,8 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     public static abstract class OnValidatedSequence extends events<UInt32> {}
 
     private ArrayList<ManagedTxn> queued = new ArrayList<ManagedTxn>();
-    private long lastLedgerChecked = 0;
+    private long lastLedgerEmptyOrChecked = 0;
+    private long lastLedgerPage = 0;
 
     public int awaiting() {
         return getQueue().size();
@@ -70,7 +74,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         this.client.on(Client.OnLedgerClosed.class, new Client.OnLedgerClosed() {
             @Override
             public void called(ServerInfo serverInfo) {
-                doAccountTx(serverInfo.ledger_index);
+                checkAccountTransactions(serverInfo.ledger_index);
 
                 if (!canSubmit() || getQueue().isEmpty()) {
                     return;
@@ -88,36 +92,54 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         });
     }
 
-    private void doAccountTx(int ledger_index) {
-        if (queued.size() > 0 && (lastLedgerChecked == 0 || ledger_index - lastLedgerChecked >= 10)) {
-            if (lastLedgerChecked == 0) {
-                lastLedgerChecked = ledger_index;
-                for (ManagedTxn txn : queued) {
-                    for (Submission submission: txn.submissions) {
-                        lastLedgerChecked = Math.min(lastLedgerChecked, submission.ledgerSequence);
-                    }
-                }
-                lastLedgerChecked -= 1; // for good measure
+    AccountTransactionsRequester.OnPage onPage = new AccountTransactionsRequester.OnPage() {
+        @Override
+        public void onPage(AccountTransactionsRequester.Page page) {
+            lastLedgerPage = client.serverInfo.ledger_index;
+
+            if (page.hasNext()) {
+                page.requestNext();
+            } else {
+                // We can only know if we got to here
+                // TODO check what ledgerMax really means
+                lastLedgerEmptyOrChecked = Math.max(lastLedgerEmptyOrChecked, page.ledgerMax());
+                txns = null;
             }
+            // TODO: TODO: check this logic
+            // We are assuming moving `forward` from a ledger_index_min or resume marker
 
-            AccountTransactionsRequester.OnPage onPage = new AccountTransactionsRequester.OnPage() {
-                @Override
-                public void onPage(AccountTransactionsRequester.Page page) {
-                    if (!page.hasNext()) {
-                        // TODO... check this logic
-                        lastLedgerChecked = Math.max(lastLedgerChecked, page.ledgerMax());
-                    } else {
-                        page.requestNext();
-                    }
-                    for (TransactionResult tr : page.transactionResults()) {
-                        notifyTransactionResult(tr);
+            for (TransactionResult tr : page.transactionResults()) {
+                notifyTransactionResult(tr);
+            }
+        }
+    };
+
+    private void checkAccountTransactions(int ledger_index) {
+        if (queued.size() == 0) {
+            lastLedgerEmptyOrChecked = ledger_index;
+        }
+
+        long ledgersPassed = ledger_index - lastLedgerEmptyOrChecked;
+
+        if ((lastLedgerEmptyOrChecked == 0 || ledgersPassed >= LEDGERS_BETWEEN_ACCOUNT_TX)) {
+            if (lastLedgerEmptyOrChecked == 0) {
+                lastLedgerEmptyOrChecked = ledger_index;
+                for (ManagedTxn txn : queued) {
+                    for (Submission submission : txn.submissions) {
+                        lastLedgerEmptyOrChecked = Math.min(lastLedgerEmptyOrChecked, submission.ledgerSequence);
                     }
                 }
-            };
+            }
+            if (txns != null && (ledger_index - lastLedgerPage) >= ACCOUNT_TX_TIMEOUT) {
+                txns.abort();
+            } else {
+                lastLedgerPage = ledger_index;
+                txns = new AccountTransactionsRequester(client, accountID, onPage, lastLedgerEmptyOrChecked - 1 /* for good measure */);
 
-            if (txns != null) txns.abort();
-            txns = new AccountTransactionsRequester(client, accountID, onPage, lastLedgerChecked -1);
-            txns.request();
+                // Very important VVVVV
+                txns.setForward(true);
+                txns.request();
+            }
         }
     }
 
@@ -239,7 +261,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                     case tecCLAIMED:
                         // Sequence was consumed, do nothing
                         finalizeTxnAndRemoveFromQueue(transaction);
-                        transaction.publisher().emit(ManagedTxn.OnSubmitError.class, res);
+                        transaction.publisher().emit(ManagedTxn.OnSubmitFailure.class, res);
                         break;
                     // What about this craziness /??
                     case temMALFORMED:
@@ -256,7 +278,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                             noopTransaction(submitSequence);
                             resubmitGreaterThan(submitSequence);
                         }
-                        transaction.publisher().emit(ManagedTxn.OnSubmitError.class, res);
+                        transaction.publisher().emit(ManagedTxn.OnSubmitFailure.class, res);
                         // look for
 //                        queued.add(transaction);
                         // This is kind of nasty ..

@@ -22,9 +22,10 @@ public class ManagedTxn extends Transaction {
 
     public static abstract class events<T> extends Publisher.Callback<T> {}
     public static abstract class OnSubmitSuccess extends events<Response> {}
+    public static abstract class OnSubmitFailure extends events<Response> {}
     public static abstract class OnSubmitError extends events<Response> {}
     public static abstract class OnTransactionValidated extends events<TransactionResult> {}
-    public static abstract class OnSumbitRequestError extends events<Exception> {}
+//    public static abstract class OnSumbitRequestError extends events<Exception> {}
 
     public ManagedTxn(TransactionType type) {
         super(type);

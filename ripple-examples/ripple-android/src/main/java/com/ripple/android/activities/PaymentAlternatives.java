@@ -538,13 +538,22 @@ public class PaymentAlternatives extends Activity {
             }
         });
 
-        tx.publisher().once(ManagedTxn.OnSubmitError.class, new ManagedTxn.OnSubmitError() {
+        tx.publisher().once(ManagedTxn.OnSubmitFailure.class, new ManagedTxn.OnSubmitFailure() {
             @Override
             public void called(Response response) {
                 threadSafeSetStatus("Transaction submission failed (" + response.engineResult() + ")"
                         + awaitingTransactionsParenthetical(account));
             }
         });
+
+        tx.publisher().once(ManagedTxn.OnSubmitError.class, new ManagedTxn.OnSubmitError() {
+            @Override
+            public void called(Response response) {
+                threadSafeSetStatus("Transaction submission error (" + response.rpcerr + ")"
+                        + awaitingTransactionsParenthetical(account));
+            }
+        });
+
         tx.publisher().once(ManagedTxn.OnTransactionValidated.class,
                 new ManagedTxn.OnTransactionValidated() {
                     @Override

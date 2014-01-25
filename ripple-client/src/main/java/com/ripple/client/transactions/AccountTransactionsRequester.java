@@ -35,6 +35,7 @@ public class AccountTransactionsRequester {
     private long ledgerMin;
 
     private boolean aborted = false;
+    private boolean forward = false;
 
     public void abort() {
         aborted = true;
@@ -57,6 +58,10 @@ public class AccountTransactionsRequester {
     Client client;
     OnPage onPage;
 
+    public void setForward(boolean fwd) {
+        forward = fwd;
+    }
+
     private void walkAccountTx(final Object marker) {
         Request request = client.newRequest(Command.account_tx);
         request.json("binary", true);
@@ -67,6 +72,9 @@ public class AccountTransactionsRequester {
         }
         request.json("ledger_index_max", ledgerMax);
         request.json("ledger_index_min", ledgerMin);
+        if (forward) {
+            request.json("forward", true);
+        }
 
         request.once(Request.OnSuccess.class, new Request.OnSuccess() {
             @Override
@@ -84,6 +92,7 @@ public class AccountTransactionsRequester {
                     if (marker != null && newMarker != null && marker.toString().equals(newMarker.toString())) {
                         newMarker = null;
                     }
+
                     final Object finalNewMarker = newMarker;
                     onPage.onPage(new Page() {
                         ArrayList<TransactionResult> txns = null;

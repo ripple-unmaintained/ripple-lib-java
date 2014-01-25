@@ -146,9 +146,11 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     private int cmdIDs;
 
 
+    String previousUri;
     // TODO: reconnect if we go 60s without any message from the server
     public void connect(String uri) {
         // XXX: connect to other uris ... just parameterise connect here ??
+        previousUri = uri;
         ws.connect(URI.create(uri));
     }
 
@@ -308,6 +310,14 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         connected = false;
         ClientLogger.log("onDisconnected");
         emit(OnDisconnected.class, this);
+        // TODO: scheduled reconnect ;)
+        // Client abstract (Runable run, int ms) badboy
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        connect(previousUri);
     }
 
     @Override

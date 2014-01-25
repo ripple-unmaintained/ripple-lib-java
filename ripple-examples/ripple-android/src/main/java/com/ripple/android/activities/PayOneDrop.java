@@ -343,7 +343,7 @@ public class PayOneDrop extends Activity {
                         + awaitingTransactionsParenthetical(account));
             }
         });
-        tx.publisher().once(ManagedTxn.OnSubmitError.class, new ManagedTxn.OnSubmitError() {
+        tx.publisher().once(ManagedTxn.OnSubmitFailure.class, new ManagedTxn.OnSubmitFailure() {
             @Override
             public void called(Response response) {
                 threadSafeSetStatus("Transaction submission failed"
