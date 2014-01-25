@@ -3,6 +3,9 @@ package com.ripple.core.coretypes;
 import com.ripple.core.coretypes.hash.Hash160;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+import java.util.concurrent.TimeUnit;
+
 import static junit.framework.TestCase.assertEquals;
 
 public class CurrencyTest {
@@ -19,7 +22,25 @@ public class CurrencyTest {
         Currency currency = Currency.fromString(wtfDemure);
         Currency.Demurrage demurrage = currency.demurrage;
         assertEquals("XAU", demurrage.code);
-        assertEquals(0.99999999984D, demurrage.rate);
+        assertEquals(0.99999999984D, demurrage._rate);
         assertEquals("23 Jan 2014 02:22:10 GMT", demurrage.startDate.toGMTString());
+    }
+
+    @Test
+    public void testDemurragingRate() throws Exception {
+        BigDecimal amount = new BigDecimal("100");
+        BigDecimal factor = new BigDecimal("0.995");
+        BigDecimal rate = Currency.Demurrage.calculateRatePerSecond(factor, TimeUnit.DAYS, 365);
+
+        System.out.println("The starting amount is: " + amount);
+        System.out.println("The demurrage factor:   " + factor);
+        System.out.println("The rate:               " + rate);
+        System.out.println();
+
+        for (int days = 1; days < 366 ; days++) {
+            BigDecimal reduced = Currency.Demurrage.applyRate(amount, rate, TimeUnit.DAYS, days);
+            System.out.printf("After %3d days is %s%n",  days, reduced);
+        }
+
     }
 }

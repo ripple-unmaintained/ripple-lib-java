@@ -52,7 +52,7 @@ public abstract class TypeTranslator<T extends SerializedType> {
     }
 
     public String toString(T obj) {
-        throw new UnsupportedOperationException();
+        return obj.toString();
     }
 
     public T fromJSONObject(JSONObject jsonObject) {

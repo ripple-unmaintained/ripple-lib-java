@@ -17,31 +17,40 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
 
     @Override
     public Object toJSON() {
-        return translate.toJSON(this);
+        return toJSONArray();
     }
 
     @Override
     public JSONArray toJSONArray() {
-        return null;
+        JSONArray array = new JSONArray();
+
+        for (Hash256 hash256 : this) {
+            array.put(hash256.toString());
+        }
+
+        return array;
     }
 
     @Override
     public JSONObject toJSONObject() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public byte[] toWireBytes() {
-        return new byte[0];
+        return translate.toWireBytes(this);
     }
 
     @Override
     public String toWireHex() {
-        return null;
+        return translate.toWireHex(this);
     }
 
     @Override
     public void toBytesList(BytesList to) {
+        for (Hash256 hash256 : this) {
+            to.add(hash256.bytes());
+        }
     }
 
     public static class Translator extends TypeTranslator<Vector256> {
@@ -59,22 +68,6 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
         }
 
         @Override
-        public Object toJSON(Vector256 obj) {
-            return toJSONArray(obj);
-        }
-
-        @Override
-        public JSONArray toJSONArray(Vector256 obj) {
-            JSONArray array = new JSONArray();
-
-            for (Hash256 hash256 : obj) {
-                array.put(hash256.toString());
-            }
-
-            return array;
-        }
-
-        @Override
         public Vector256 fromJSONArray(JSONArray jsonArray) {
             Vector256 vector = new Vector256();
 
@@ -89,13 +82,6 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
             }
 
             return vector;
-        }
-
-        @Override
-        public void toBytesList(Vector256 obj, BytesList to) {
-            for (Hash256 hash256 : obj) {
-                to.add(hash256.bytes());
-            }
         }
     }
     static public Translator translate = new Translator();

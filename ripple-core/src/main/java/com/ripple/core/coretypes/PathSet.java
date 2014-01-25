@@ -14,35 +14,77 @@ import java.util.ArrayList;
 
 public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
+    // @Override
+    // public Object toJSON() {
+    //     return translate.toJSON(this);
+    // }
+
+    // @Override
+    // public JSONArray toJSONArray() {
+    //     return translate.toJSONArray(this);
+    // }
+    // @Override
+    // public byte[] toWireBytes() {
+    //     return translate.toWireBytes(this);
+    // }
+  
     @Override
     public Object toJSON() {
-        return translate.toJSON(this);
+        return toJSONArray();
     }
 
     @Override
     public JSONArray toJSONArray() {
-        return null;
+        JSONArray array = new JSONArray();
+        for (Path path : this) {
+            array.put(path.toJSONArray());
+        }
+        return array;
+    }
+
+    @Override
+    public void toBytesList(BytesList buffer) {
+        // TODO, move these to fields to share with fromParser()
+        byte typeBoundary = (byte) 0xff,
+                  typeEnd = (byte) 0x00;
+
+        int n = 0;
+        for (Path path : this) {
+            if (n++ != 0) {
+                buffer.add(typeBoundary);
+            }
+            for (Hop hop : path) {
+                int type = hop.getType();
+                buffer.add((byte) type);
+                if (hop.account != null) {
+                    buffer.add(hop.account.bytes());
+                }
+                // TODO, need to create a Currency class!!
+                if (hop.currencyString() != null) {
+                    buffer.add(hop.currencyBytes.bytes());
+                }
+                if (hop.issuer != null) {
+                    buffer.add(hop.issuer.bytes());
+                }
+            }
+        }
+        buffer.add(typeEnd);
     }
 
     @Override
     public JSONObject toJSONObject() {
-        return null;
-    }
-
-    @Override
-    public byte[] toWireBytes() {
-        return new byte[0];
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String toWireHex() {
-        return null;
+        return translate.toWireHex(this);
     }
 
     @Override
-    public void toBytesList(BytesList to) {
+    public byte[] toWireBytes() {
+        return translate.toWireBytes(this);
     }
-
     public static class Hop{
         public AccountID account;
         public AccountID issuer;
@@ -181,21 +223,6 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
             return pathSet;
         }
 
-
-        @Override
-        public Object toJSON(PathSet obj) {
-            return toJSONArray(obj);
-        }
-
-        @Override
-        public JSONArray toJSONArray(PathSet pathSet) {
-            JSONArray array = new JSONArray();
-            for (Path path : pathSet) {
-                array.put(path.toJSONArray());
-            }
-            return array;
-        }
-
         @Override
         public PathSet fromJSONArray(JSONArray array) {
             PathSet paths = new PathSet();
@@ -212,35 +239,6 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
             }
 
             return paths;
-        }
-
-        @Override
-        public void toBytesList(PathSet obj, BytesList buffer) {
-            // TODO, move these to fields to share with fromParser()
-            byte typeBoundary = (byte) 0xff,
-                    typeEnd = (byte) 0x00;
-
-            int n = 0;
-            for (Path path : obj) {
-                if (n++ != 0) {
-                    buffer.add(typeBoundary);
-                }
-                for (Hop hop : path) {
-                    int type = hop.getType();
-                    buffer.add((byte) type);
-                    if (hop.account != null) {
-                        buffer.add(hop.account.bytes());
-                    }
-                    // TODO, need to create a Currency class!!
-                    if (hop.currencyString() != null) {
-                        buffer.add(hop.currencyBytes.bytes());
-                    }
-                    if (hop.issuer != null) {
-                        buffer.add(hop.issuer.bytes());
-                    }
-                }
-            }
-            buffer.add(typeEnd);
         }
     }
     static public Translator translate = new Translator();

@@ -113,17 +113,17 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
 
     @Override
     public Object toJSON() {
-        return translate.toJSON(this);
+        return toString();
     }
 
     @Override
     public JSONArray toJSONArray() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public JSONObject toJSONObject() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -138,22 +138,16 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
 
     @Override
     public void toBytesList(BytesList to) {
-//        return translate.toBytesList(this, );
+        to.add(bytes());
     }
 
     public static class Translator extends TypeTranslator<AccountID> {
-
         @Override
         public AccountID fromParser(BinaryParser parser, Integer hint) {
             if (hint == null) {
                 hint = 20;
             }
             return AccountID.fromAddressBytes(parser.read(hint));
-        }
-
-        @Override
-        public Object toJSON(AccountID obj) {
-            return toString(obj);
         }
 
         @Override
@@ -164,16 +158,6 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
         @Override
         public AccountID fromString(String value) {
             return AccountID.fromString(value);
-        }
-
-//        @Override
-//        public byte[] toBytesList(AccountID obj) {
-//            return obj.bytes();
-//        }
-
-        @Override
-        public void toBytesList(AccountID obj, BytesList to) {
-            to.add(obj.bytes());
         }
     }
 

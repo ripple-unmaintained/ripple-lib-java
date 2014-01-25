@@ -75,22 +75,22 @@ public class UInt8 extends UINT<UInt8> {
 
     @Override
     public JSONArray toJSONArray() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public JSONObject toJSONObject() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public byte[] toWireBytes() {
-        return new byte[0];
+        return translate.toWireBytes(this);
     }
 
     @Override
     public String toWireHex() {
-        return null;
+        return translate.toWireHex(this);
     }
 
     @Override

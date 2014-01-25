@@ -184,7 +184,7 @@ public class STObject implements SerializedType, Iterable<Field> {
 
     @Override
     public JSONArray toJSONArray() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -203,7 +203,30 @@ public class STObject implements SerializedType, Iterable<Field> {
 
     @Override
     public void toBytesList(BytesList to) {
-        translate.toBytesList(this, to);
+        BinarySerializer serializer = new BinarySerializer(to);
+
+        for (Field field : this) {
+            if (field.isSerialized()) {
+                SerializedType value = fields.get(field);
+                TypeTranslator<SerializedType> tr = Translators.forField(field);
+                serializer.addFieldHeader(field);
+
+                if (field.isVLEncoded()) {
+                    BytesList bytes = new BytesList();
+                    tr.toBytesList(value, bytes);
+                    serializer.add(BinarySerializer.encodeVL(bytes.length()));
+                    serializer.add(bytes);
+                } else {
+                    tr.toBytesList(value, to);
+                    if (field.getType() == Type.OBJECT) {
+                        serializer.add(OBJECT_END);
+                    } else if (field.getType() == Type.ARRAY) {
+                        serializer.add(STArray.ARRAY_END);
+                    }
+                }
+            }
+        }
+
     }
 
     public static STObject fromJSONObject(JSONObject json) {
@@ -367,32 +390,9 @@ public class STObject implements SerializedType, Iterable<Field> {
             return STObject.formatted(so);
         }
 
-        @Override
-        public void toBytesList(STObject obj, BytesList to) {
-            BinarySerializer serializer = new BinarySerializer(to);
-
-            for (Field field : obj) {
-                if (field.isSerialized()) {
-                    SerializedType value = obj.fields.get(field);
-                    TypeTranslator<SerializedType> tr = Translators.forField(field);
-                    serializer.addFieldHeader(field);
-
-                    if (field.isVLEncoded()) {
-                        BytesList bytes = new BytesList();
-                        tr.toBytesList(value, bytes);
-                        serializer.add(BinarySerializer.encodeVL(bytes.length()));
-                        serializer.add(bytes);
-                    } else {
-                        tr.toBytesList(value, to);
-                        if (field.getType() == Type.OBJECT) {
-                            serializer.add(OBJECT_END);
-                        } else if (field.getType() == Type.ARRAY) {
-                            serializer.add(STArray.ARRAY_END);
-                        }
-                    }
-                }
-            }
-        }
+//        @Override
+//        public void toBytesList(STObject obj, BytesList to) {
+//        }
     }
 
     public int size() {

@@ -327,12 +327,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return isNative;
     }
 
-//    @Override
-//    public Object toJSON() {
-//        return translate.toJSON(this);
-//    }
-
-
     @Override
     public Object toJSON() {
         if (isNative()) {
@@ -357,7 +351,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     @Override
     public JSONArray toJSONArray() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override

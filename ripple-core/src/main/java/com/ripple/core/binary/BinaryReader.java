@@ -10,13 +10,13 @@ import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
 
+import java.util.Date;
+
 public class BinaryReader {
     BinaryParser parser;
-
     public BinaryReader(BinaryParser parser) {
         this.parser = parser;
     }
-
     public UInt8 uInt8() {
         return UInt8.translate.fromParser(parser);
     }
@@ -62,5 +62,8 @@ public class BinaryReader {
     }
     public STArray stArray() {
         return STArray.translate.fromParser(parser);
+    }
+    public Date rippleDate() {
+        return RippleDate.fromParser(parser);
     }
 }

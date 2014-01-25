@@ -8,7 +8,10 @@ import com.ripple.encodings.common.B16;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Funnily enough, yes, in rippled a currency is represented by a Hash160 type.
@@ -24,26 +27,27 @@ public class Currency extends Hash160 {
 
     @Override
     public JSONArray toJSONArray() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public JSONObject toJSONObject() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public byte[] toWireBytes() {
-        return new byte[0];
+        return translate.toWireBytes(this);
     }
 
     @Override
     public String toWireHex() {
-        return null;
+        return translate.toWireHex(this);
     }
 
     @Override
     public void toBytesList(BytesList to) {
+        translate.toBytesList(this, to);
     }
 
     public static enum Type {
@@ -69,7 +73,27 @@ public class Currency extends Hash160 {
     public static class Demurrage {
         Date startDate;
         String code;
-        double rate;
+        double _rate;
+
+        static public BigDecimal applyRate(BigDecimal amount, BigDecimal rate, TimeUnit time, long units) {
+            BigDecimal appliedRate = getSeconds(time, units).divide(rate, MathContext.DECIMAL64);
+            BigDecimal factor = BigDecimal.valueOf(Math.pow(Math.E, appliedRate.doubleValue()));
+            return amount.multiply(factor, MathContext.DECIMAL64);
+        }
+
+        static public BigDecimal calculateRatePerSecond(BigDecimal rate, TimeUnit time, long units) {
+            BigDecimal seconds = getSeconds(time, units);
+            BigDecimal log = ln(rate);
+            return seconds.divide(log, MathContext.DECIMAL64);
+        }
+
+        private static BigDecimal ln(BigDecimal bd) {
+            return BigDecimal.valueOf(Math.log(bd.doubleValue()));
+        }
+
+        private static BigDecimal getSeconds(TimeUnit time, long units) {
+            return BigDecimal.valueOf(time.toSeconds(units));
+        }
 
         public Demurrage(byte[] bytes) {
             BinaryParser parser = new BinaryParser(bytes);
@@ -77,7 +101,7 @@ public class Currency extends Hash160 {
             code = currencyStringFromBytesAndOffset(parser.read(3), 0);// The code
             startDate = RippleDate.fromParser(parser);
             long l = UInt64.translate.fromParser(parser).longValue();
-            rate = Double.longBitsToDouble(l);
+            _rate = Double.longBitsToDouble(l);
         }
     }
     public Demurrage demurrage = null;
@@ -116,11 +140,6 @@ public class Currency extends Hash160 {
                 }
                 return newInstance(encodeCurrency(value));
             }
-        }
-
-        @Override
-        public String toString(Currency obj) {
-            return obj.toString();
         }
     }
 
@@ -192,14 +211,6 @@ public class Currency extends Hash160 {
         currencyBytes[13] = (byte) currencyCode.codePointAt(1);
         currencyBytes[14] = (byte) currencyCode.codePointAt(2);
         return currencyBytes;
-    }
-
-    public static String normalizeIOUCode(String code) {
-        if (code.equals("XRP")) {
-            return "0000000000000000000000005852500000000000";
-        } else {
-            return code;
-        }
     }
 
     public static String getCurrencyCodeFromTLCBytes(byte[] bytes) {
