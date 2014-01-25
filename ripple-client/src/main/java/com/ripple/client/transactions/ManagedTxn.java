@@ -23,13 +23,23 @@ public class ManagedTxn extends Transaction {
     public boolean isSequencePlug() {
         return isSequencePlug;
     }
-
     public void setSequencePlug(boolean isNoop) {
         this.isSequencePlug = isNoop;
     }
-
     private boolean isSequencePlug;
 
+    public String getDescription() {
+        if (description == null) {
+            return transactionType().toString();
+        }
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    private String description;
 
     public static abstract class events<T> extends Publisher.Callback<T> {}
     public static abstract class OnSubmitSuccess extends events<Response> {}

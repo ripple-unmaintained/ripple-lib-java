@@ -27,6 +27,7 @@ public class TransactionResult {
 
     public STObject transaction;
     public STObject meta;
+    public ManagedTxn submittedTransaction;
 
     public JSONObject message;
 

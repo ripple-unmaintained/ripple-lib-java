@@ -140,7 +140,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 // else keep waiting ;)
             } else {
                 lastLedgerPage = ledger_index;
-                txns = new AccountTransactionsRequester(client, accountID, onPage, lastLedgerEmptyOrChecked - 1 /* for good measure */);
+                txns = new AccountTransactionsRequester(client, accountID, onPage, lastLedgerEmptyOrChecked - 5 /* for good measure */);
 
                 // Very important VVVVV
                 txns.setForward(true);
@@ -392,6 +392,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
         ManagedTxn tx = submittedTransaction(tm.hash);
         if (tx != null) {
+            tm.submittedTransaction = tx;
             finalizeTxnAndRemoveFromQueue(tx);
             tx.publisher().emit(ManagedTxn.OnTransactionValidated.class, tm);
         } else {

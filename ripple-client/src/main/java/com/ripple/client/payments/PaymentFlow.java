@@ -106,8 +106,14 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
             makePathFindRequestIfCan();
         }
     }
+    public void makePathFindRequestIfNoneAlready() {
+        if (pathFind == null) {
+            makePathFindRequestIfCan();
+        }
+    }
 
     public void makePathFindRequestIfCan() {
+        // TODO: ...
         cancelPendingRequest();
 
         if (tooLittleInfoForPathFindRequest()) {
@@ -180,7 +186,9 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         ManagedTxn payment = client.account(src).transactionManager().payment();
         payment.put(AccountID.Destination, dest);
 
-        payment.put(PathSet.Paths, alternative.paths);
+        if (alternative.paths.size() > 0) {
+            payment.put(PathSet.Paths, alternative.paths);
+        }
         payment.put(Amount.SendMax, alternative.sourceAmount.multiply(sendMaxMultiplier));
         payment.put(Amount.Amount, destinationAmount);
 

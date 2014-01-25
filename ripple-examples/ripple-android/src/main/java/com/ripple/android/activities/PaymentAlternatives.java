@@ -27,6 +27,7 @@ import com.ripple.client.subscriptions.AccountRoot;
 import com.ripple.client.transactions.ManagedTxn;
 import com.ripple.client.transactions.TransactionResult;
 import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.Currency;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -108,7 +109,7 @@ public class PaymentAlternatives extends Activity {
     private void showAlternatives(Alternatives alternatives) {
 
         // We only want to update alternatives that have changed
-
+        // This is a whole lot of work to make sure that it's not so glitchy
         HashMap<Alternative, Button> same = new HashMap<Alternative, Button>();
         for (Alternative alternative : alternatives) {
             // Alternatives of a given equality are recycled ;)
@@ -134,6 +135,8 @@ public class PaymentAlternatives extends Activity {
                 button = new Button(this);
                 button.setText(alternative.sourceAmount.toText());
                 button.setTag(alternative.hash.toString());
+                final String contactName = contactsAdapter.getItem(contacts.getSelectedItemPosition());
+
                 button.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -141,7 +144,10 @@ public class PaymentAlternatives extends Activity {
                         client.run(new Runnable() {
                             @Override
                             public void run() {
-                                ManagedTxn payment = flow.createPayment(alternative, new BigDecimal("1.01"));
+                                BigDecimal sendMax = new BigDecimal("1.01");
+                                // TODO, doing a send max here is retarded ;)
+                                ManagedTxn payment = flow.createPayment(alternative, sendMax);
+                                payment.setDescription(payment.get(Amount.SendMax).divide(sendMax).toText() +"<~" + contactName);
                                 setTransactionStatusHandlers(account, payment);
                                 account.transactionManager().queue(payment);
                                 threadSafeSetStatus("Transaction queued " + awaitingTransactionsParenthetical(account));
@@ -532,7 +538,7 @@ public class PaymentAlternatives extends Activity {
         tx.publisher().once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
-                flow.makePathFindRequestIfCan();
+                flow.makePathFindRequestIfNoneAlready();
                 threadSafeSetStatus("Transaction submitted "
                         + awaitingTransactionsParenthetical(account));
             }
@@ -541,6 +547,7 @@ public class PaymentAlternatives extends Activity {
         tx.publisher().once(ManagedTxn.OnSubmitFailure.class, new ManagedTxn.OnSubmitFailure() {
             @Override
             public void called(Response response) {
+                flow.makePathFindRequestIfNoneAlready();
                 threadSafeSetStatus("Transaction submission failed (" + response.engineResult() + ")"
                         + awaitingTransactionsParenthetical(account));
             }
@@ -549,6 +556,7 @@ public class PaymentAlternatives extends Activity {
         tx.publisher().once(ManagedTxn.OnSubmitError.class, new ManagedTxn.OnSubmitError() {
             @Override
             public void called(Response response) {
+                flow.makePathFindRequestIfNoneAlready();
                 threadSafeSetStatus("Transaction submission error (" + response.rpcerr + ")"
                         + awaitingTransactionsParenthetical(account));
             }
@@ -558,6 +566,7 @@ public class PaymentAlternatives extends Activity {
                 new ManagedTxn.OnTransactionValidated() {
                     @Override
                     public void called(TransactionResult result) {
+                        flow.makePathFindRequestIfNoneAlready();
                         threadSafeSetStatus("Transaction finalized "
                                 + awaitingTransactionsParenthetical(account));
                     }
@@ -576,9 +585,9 @@ public class PaymentAlternatives extends Activity {
             String s = "";
 
             int n = queued.size();
-            for (ManagedTxn fields : queued) {
-                s += fields.transactionType();
-                if (--n != 0) s += ",";
+            for (ManagedTxn txn : queued) {
+                s += txn.getDescription();
+                if (--n != 0) s += ", ";
             }
 
             return String.format("(awaiting %s)", s);
