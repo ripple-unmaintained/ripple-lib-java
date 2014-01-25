@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class PaymentAlternatives extends Activity {
     AndroidClient client;
@@ -105,33 +106,50 @@ public class PaymentAlternatives extends Activity {
      * Thread: ui thread
      */
     private void showAlternatives(Alternatives alternatives) {
-        alternativesGroup.setVisibility(View.VISIBLE);
-        alternativesGroup.removeAllViews();
 
-        if (alternatives.size() == 0) {
-            threadSafeSetStatus("No payment paths found! (yet)");
-        } else {
-            threadSafeSetStatus(String.format("Found %d alternatives", alternatives.size()));
+        // We only want to update alternatives that have changed
+
+        HashMap<Alternative, Button> same = new HashMap<Alternative, Button>();
+        for (Alternative alternative : alternatives) {
+            // Alternatives of a given equality are recycled ;)
+            same.put(alternative, (Button) alternativesGroup.findViewWithTag(alternative));
+        }
+        alternativesGroup.removeAllViews();
+        alternativesGroup.setVisibility(View.VISIBLE);
+
+        // This can be noisy, TODO: pulsing status
+        if (account.transactionManager().awaiting() == 0) {
+            if (alternatives.size() == 0) {
+                threadSafeSetStatus("No payment paths found! (yet)");
+            } else {
+                threadSafeSetStatus(String.format("Found %d alternatives", alternatives.size()));
+            }
         }
 
         for (final Alternative alternative : alternatives) {
-            Button button = new Button(this);
-            button.setText(alternative.sourceAmount.toText());
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    hideKeyBoard();
-                    client.run(new Runnable() {
-                        @Override
-                        public void run() {
-                            ManagedTxn payment = flow.createPayment(alternative, new BigDecimal("1.01"));
-                            setTransactionStatusHandlers(account, payment);
-                            account.transactionManager().queue(payment);
-                            threadSafeSetStatus("Transaction queued " + awaitingTransactionsParenthetical(account));
-                        }
-                    });
-                }
-            });
+            Button button = same.get(alternative);
+
+            if (button == null) {
+                // We can't recycle, so we'll create a new one
+                button = new Button(this);
+                button.setText(alternative.sourceAmount.toText());
+                button.setTag(alternative.hash.toString());
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        hideKeyBoard();
+                        client.run(new Runnable() {
+                            @Override
+                            public void run() {
+                                ManagedTxn payment = flow.createPayment(alternative, new BigDecimal("1.01"));
+                                setTransactionStatusHandlers(account, payment);
+                                account.transactionManager().queue(payment);
+                                threadSafeSetStatus("Transaction queued " + awaitingTransactionsParenthetical(account));
+                            }
+                        });
+                    }
+                });
+            }
             alternativesGroup.addView(button);
         }
     }
@@ -312,6 +330,7 @@ public class PaymentAlternatives extends Activity {
 
 
         // TODO, perhaps we should use a broadcast receiver?
+        // or just unbind
         client.on(Client.OnMessage.class, new Client.OnMessage() {
             @Override
             public void called(JSONObject jsonObject) {
@@ -375,7 +394,9 @@ public class PaymentAlternatives extends Activity {
     public void setSelectedCurrency() {
         String selectedCurrency = (String) currencySpinner.getSelectedItem();
         destinationCurrency = Currency.fromString(selectedCurrency);
-        client.run(setFlowCurrency);
+        if (flow != null) {
+            client.run(setFlowCurrency);
+        }
     }
 
     /**
@@ -510,10 +531,12 @@ public class PaymentAlternatives extends Activity {
         tx.publisher().once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
+                flow.makePathFindRequestIfCan();
                 threadSafeSetStatus("Transaction submitted "
                         + awaitingTransactionsParenthetical(account));
             }
         });
+
         tx.publisher().once(ManagedTxn.OnSubmitError.class, new ManagedTxn.OnSubmitError() {
             @Override
             public void called(Response response) {
@@ -542,11 +565,13 @@ public class PaymentAlternatives extends Activity {
             ArrayList<ManagedTxn> queued = account.transactionManager().sequenceSortedQueue();
             String s = "";
 
+            int n = queued.size();
             for (ManagedTxn fields : queued) {
-                s = s + fields.transactionType() + ",";
+                s += fields.transactionType();
+                if (--n != 0) s += ",";
             }
 
-            return String.format("(awaiting %s %d)", s, awaiting);
+            return String.format("(awaiting %s)", s);
         }
     }
 
@@ -616,7 +641,9 @@ public class PaymentAlternatives extends Activity {
 
     private void setSelectedDestination() {
         destination = selectedContact();
-        client.run(setFlowDestination);
+        if (flow != null) {
+            client.run(setFlowDestination);
+        }
     }
 
     /**

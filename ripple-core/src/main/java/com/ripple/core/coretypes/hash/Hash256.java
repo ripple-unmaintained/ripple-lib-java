@@ -1,8 +1,8 @@
 package com.ripple.core.coretypes.hash;
 
+import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
-import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.serialized.BytesList;
 import org.json.JSONArray;
 import org.json.JSONObject;

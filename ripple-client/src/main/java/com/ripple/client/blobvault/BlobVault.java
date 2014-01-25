@@ -93,6 +93,8 @@ public class BlobVault {
     private HttpURLConnection createGETRequestConnection(URL website) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) website.openConnection();
         connection.setRequestMethod("GET");
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(5000);
         connection.connect();
         return connection;
     }

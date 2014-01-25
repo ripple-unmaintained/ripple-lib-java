@@ -13,7 +13,6 @@ import com.ripple.core.coretypes.uint.UInt8;
 import java.util.Date;
 
 public class BinaryReader {
-    // TODO: maybe this EXTENDS or delegates ??
     BinaryParser parser;
     public BinaryReader(BinaryParser parser) {
         this.parser = parser;

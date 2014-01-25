@@ -19,6 +19,8 @@ import com.ripple.encodings.common.B16;
 import java.util.*;
 
 public class TransactionManager extends Publisher<TransactionManager.events> {
+    // TODO, every n transactions request tx and
+
     Client client;
     AccountRoot accountRoot;
     AccountID accountID;
@@ -40,7 +42,8 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         Collections.sort(queued, new Comparator<ManagedTxn>() {
             @Override
             public int compare(ManagedTxn lhs, ManagedTxn rhs) {
-                return lhs.get(UInt32.Sequence).subtract(rhs.get(UInt32.Sequence)).intValue();
+                int i = lhs.get(UInt32.Sequence).subtract(rhs.get(UInt32.Sequence)).intValue();
+                return i > 0 ? 1 : i == 0 ? 0 : -1;
             }
         });
         return queued;
@@ -245,7 +248,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
     public void finalizeTxnAndRemoveFromQueue(ManagedTxn transaction) {
         transaction.setFinalized();
-        getQueue().remove(transaction.publisher());
+        getQueue().remove(transaction);
     }
 
     private void resubmitFirstTransactionWithTakenSequence(UInt32 sequence) {
@@ -261,10 +264,16 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         if (seenValidatedSequences.contains(txn.sequence().longValue())) {
             resubmit(txn, getSubmissionSequence());
         } else {
+//            final Submission submission = txn.lastSubmission();
             on(OnValidatedSequence.class, new OnValidatedSequence() {
                 @Override
                 public void called(UInt32 uInt32) {
+//                    if (txn.isFinalized() || submission != txn.lastSubmission()) {
+//                        removeListener(OnValidatedSequence.class, this);
+//                    }
+
                     if (seenValidatedSequences.contains(txn.sequence().longValue())) {
+                        removeListener(OnValidatedSequence.class, this);
                         resubmit(txn, getSubmissionSequence());
                     }
                 }

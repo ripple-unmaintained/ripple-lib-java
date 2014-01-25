@@ -33,7 +33,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
                 try {
                     int id = jsonObject.getInt("id");
                     if (pathFind != null && id == pathFind.id) {
-                        emit(OnAlternatives.class, new Alternatives(jsonObject.getJSONArray("alternatives")));
+                        emit(OnAlternatives.class, new Alternatives(jsonObject.getJSONArray("alternatives"), null));
                     }
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
@@ -135,7 +135,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
                 if (response.succeeded && response.request == pathFind) {
                     try {
                         JSONArray alternatives = response.result.getJSONArray("alternatives");
-                        emit(OnAlternatives.class, new Alternatives(alternatives));
+                        emit(OnAlternatives.class, new Alternatives(alternatives, PaymentFlow.this.alternatives));
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }

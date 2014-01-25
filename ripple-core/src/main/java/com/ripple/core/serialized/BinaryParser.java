@@ -7,7 +7,7 @@ import com.ripple.encodings.common.B16;
  * This class should parse headers and object markers
  */
 public class BinaryParser {
-    byte[] bytes;
+    protected byte[] bytes;
     private int cursor = 0;
     private final int size;
 
