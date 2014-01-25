@@ -114,6 +114,7 @@ public class TransactionResult {
                     meta = STObject.translate.fromWireHex(json.getString("meta"));
                     transaction = STObject.translate.fromWireBytes(decodedTx);
                     hash = Hash256.transactionID(decodedTx);
+                    transaction.put(Field.hash, hash);
 
                     engineResult = TransactionEngineResult.fromNumber(meta.get(UInt8.TransactionResult));
 //                    System.out.println(json);

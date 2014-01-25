@@ -221,6 +221,7 @@ public class PaymentAlternatives extends Activity {
      */
     private void setupClient() {
         client = ((RippleApplication) getApplication()).getClient();
+        flow = new PaymentFlow(client);
         account = null;
     }
 
@@ -605,7 +606,6 @@ public class PaymentAlternatives extends Activity {
                         handleUnfundedAccount();
                     }
                     else {
-                        flow = new PaymentFlow(client);
                         flow.setSource(account.id());
 
                         flow.on(PaymentFlow.OnAlternatives.class, onAlternatives);
@@ -656,12 +656,19 @@ public class PaymentAlternatives extends Activity {
         }
     };
 
+    /**
+     * Thread: client thread
+     */
     Runnable setFlowCurrency = new Runnable() {
         @Override
         public void run() {
             flow.setDestinationAmountCurrency(destinationCurrency);
         }
     };
+
+    /**
+     * Thread: client thread
+     */
     Runnable setFlowAmount = new Runnable() {
         @Override
         public void run() {

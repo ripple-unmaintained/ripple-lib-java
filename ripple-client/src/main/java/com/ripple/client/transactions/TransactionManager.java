@@ -14,7 +14,6 @@ import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.crypto.ecdsa.IKeyPair;
-import com.ripple.encodings.common.B16;
 
 import java.util.*;
 
@@ -25,8 +24,9 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     AccountRoot accountRoot;
     AccountID accountID;
     IKeyPair keyPair;
-    public long sequence = -1;
+    AccountTransactionsRequester txns;
 
+    public long sequence = -1;
     Set<Long> seenValidatedSequences = new TreeSet<Long>();
 
     public void queue(ManagedTxn tx) {
@@ -54,6 +54,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     public static abstract class OnValidatedSequence extends events<UInt32> {}
 
     private ArrayList<ManagedTxn> queued = new ArrayList<ManagedTxn>();
+    private long lastLedgerChecked = 0;
 
     public int awaiting() {
         return getQueue().size();
@@ -65,9 +66,12 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         this.accountID = accountID;
         this.keyPair = keyPair;
 
+        // We'd be subscribed yeah ;)
         this.client.on(Client.OnLedgerClosed.class, new Client.OnLedgerClosed() {
             @Override
             public void called(ServerInfo serverInfo) {
+                doAccountTx(serverInfo.ledger_index);
+
                 if (!canSubmit() || getQueue().isEmpty()) {
                     return;
                 }
@@ -82,6 +86,39 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 }
             }
         });
+    }
+
+    private void doAccountTx(int ledger_index) {
+        if (queued.size() > 0 && (lastLedgerChecked == 0 || ledger_index - lastLedgerChecked >= 10)) {
+            if (lastLedgerChecked == 0) {
+                lastLedgerChecked = ledger_index;
+                for (ManagedTxn txn : queued) {
+                    for (Submission submission: txn.submissions) {
+                        lastLedgerChecked = Math.min(lastLedgerChecked, submission.ledgerSequence);
+                    }
+                }
+                lastLedgerChecked -= 1; // for good measure
+            }
+
+            AccountTransactionsRequester.OnPage onPage = new AccountTransactionsRequester.OnPage() {
+                @Override
+                public void onPage(AccountTransactionsRequester.Page page) {
+                    if (!page.hasNext()) {
+                        // TODO... check this logic
+                        lastLedgerChecked = Math.max(lastLedgerChecked, page.ledgerMax());
+                    } else {
+                        page.requestNext();
+                    }
+                    for (TransactionResult tr : page.transactionResults()) {
+                        notifyTransactionResult(tr);
+                    }
+                }
+            };
+
+            if (txns != null) txns.abort();
+            txns = new AccountTransactionsRequester(client, accountID, onPage, lastLedgerChecked -1);
+            txns.request();
+        }
     }
 
     public void queue(final ManagedTxn transaction, final UInt32 sequence) {
@@ -106,6 +143,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     private boolean canSubmit() {
         return client.serverInfo.primed() &&
                client.serverInfo.load_factor < 512 &&
+               client.connected &&
                accountRoot.primed();
     }
 
@@ -304,7 +342,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         return tx;
     }
 
-    public void onTransactionResultMessage(TransactionResult tm) {
+    public void notifyTransactionResult(TransactionResult tm) {
         if (!tm.validated) {
             return;
         }
