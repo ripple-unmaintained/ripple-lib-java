@@ -25,6 +25,7 @@ public class ManagedTxn extends Transaction {
     }
     public void setSequencePlug(boolean isNoop) {
         this.isSequencePlug = isNoop;
+        setDescription("SequencePlug");
     }
     private boolean isSequencePlug;
 

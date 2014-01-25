@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -59,7 +60,6 @@ public class PaymentAlternatives extends Activity {
     EditText username;
     EditText password;
     Button retrieveWallet;
-//    Button payOneDrop;
 
     Spinner currencySpinner;
     EditText destinationAmountInput;
@@ -75,8 +75,6 @@ public class PaymentAlternatives extends Activity {
     DownloadBlobTask blobDownloadTask;
     String masterSeed;
 
-
-//    Alternatives alternatives;
     LinearLayout alternativesGroup;
 
     PaymentFlow.OnAlternatives onAlternatives = new PaymentFlow.OnAlternatives() {
@@ -234,6 +232,7 @@ public class PaymentAlternatives extends Activity {
     public void setDestinationAmount() {
         try {
             destinationAmount = new BigDecimal(destinationAmountInput.getText().toString());
+            normalizeDestinationAmount();
         } catch (Exception e) {
             destinationAmount = null;
         }
@@ -255,7 +254,6 @@ public class PaymentAlternatives extends Activity {
         alternativesGroup = (LinearLayout) findViewById(R.id.alternatives);
 
         retrieveWallet = (Button) findViewById(R.id.retrieve_wallet);
-//        payOneDrop = (Button) findViewById(R.id.pay_one_drop);
 
         contacts = (Spinner) findViewById(R.id.contacts);
         contactsAdapter = new ArrayAdapter<String>(this, R.layout.contacts_text_view);
@@ -266,31 +264,6 @@ public class PaymentAlternatives extends Activity {
 
         currencySpinner = (Spinner) findViewById(R.id.currencies);
         destinationAmountInput = (EditText) findViewById(R.id.amountInput);
-
-
-//        destinationAmountInputClicked = false;
-//        destinationAmountInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-//            @Override
-//            public void onFocusChange(View v, boolean hasFocus) {
-//                if (!hasFocus) {
-//                    destinationAmountInputClicked = false;
-//                }
-//            }
-//        });
-//        destinationAmountInput.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                client.run(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        if (!destinationAmountInputClicked) {
-//                            flow.makePathFindRequestIfCan();
-//                            destinationAmountInputClicked = true;
-//                        }
-//                    }
-//                });
-//            }
-//        });
         destinationAmountInput.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -333,11 +306,7 @@ public class PaymentAlternatives extends Activity {
             }
         });
 
-//        currencySpinner.onSele
-
-
         // TODO, perhaps we should use a broadcast receiver?
-        // or just unbind
         client.on(Client.OnMessage.class, new Client.OnMessage() {
             @Override
             public void called(JSONObject jsonObject) {
@@ -350,17 +319,6 @@ public class PaymentAlternatives extends Activity {
                 logMessage(jsonObject, true);
             }
         });
-
-//        payOneDrop.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (!account.getAccountRoot().primed()) {
-//                    threadSafeSetStatus("Awaiting account_info");
-//                } else {
-//                    payOneDrop(account);
-//                }
-//            }
-//        });
 
         retrieveWallet.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -401,8 +359,24 @@ public class PaymentAlternatives extends Activity {
     public void setSelectedCurrency() {
         String selectedCurrency = (String) currencySpinner.getSelectedItem();
         destinationCurrency = Currency.fromString(selectedCurrency);
+        normalizeDestinationAmount();
+
         if (flow != null) {
             client.run(setFlowCurrency);
+        }
+    }
+
+    private void normalizeDestinationAmount() {
+        // TODO: automatically round to nearest bounds
+        // TODO: create Amount static helpers for this
+//        destinationAmountInput.setMax
+        if (destinationCurrency.equals(Currency.XRP)) {
+            if (destinationAmount.scale() > 6) {
+                BigDecimal bigDecimal = destinationAmount.setScale(6, RoundingMode.UP);
+                String text = bigDecimal.stripTrailingZeros().toPlainString();
+                destinationAmountInput.setText(text);
+                destinationAmountInput.setSelection(text.length());
+            }
         }
     }
 
@@ -481,9 +455,6 @@ public class PaymentAlternatives extends Activity {
     private void showPaymentForm() {
         statusLayoutParams.addRule(RelativeLayout.ABOVE, 0);
         paymentForm.setVisibility(View.VISIBLE);
-        // retrieveWallet.setVisibility(View.VISIBLE);
-        // contacts.setVisibility(View.VISIBLE);
-        // retrieveWallet.setText(getString(R.string.pay_one_drop));
     }
 
     /**
@@ -512,20 +483,6 @@ public class PaymentAlternatives extends Activity {
         setViewsVisibility(View.GONE, loginForm);
         setViewsVisibility(View.GONE, paymentForm);
     }
-
-//    /**
-//     * Thread: ui thread
-//     */
-//    private void payOneDrop(final Account account) {
-//        final AccountID destination = selectedContact();
-//
-//        client.run(new Runnable() {
-//            @Override
-//            public void run() {
-//                makePayment(account, destination, "1");
-//            }
-//        });
-//    }
 
     /**
      * Thread: ui thread
@@ -641,6 +598,9 @@ public class PaymentAlternatives extends Activity {
                                 setSelectedCurrency();
                                 setSelectedDestination();
                                 destinationAmountInput.requestFocus();
+                                String intitialValue = "0.0001"; // TODO
+                                destinationAmountInput.setText(intitialValue);
+                                destinationAmountInput.setSelection(intitialValue.length());
 
                                 destinationAmountInput.postDelayed(new Runnable() {
                                     @Override

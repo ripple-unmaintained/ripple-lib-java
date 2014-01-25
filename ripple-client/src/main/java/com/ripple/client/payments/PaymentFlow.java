@@ -121,6 +121,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         }
 
         if (destAmountCurrency.equals(Currency.XRP)) {
+            // TODO: some way of ...
             destinationAmount = Issue.XRP.amount(destAmountValue);
         } else {
             destinationAmount = new Amount(destAmountValue, destAmountCurrency, dest, false);
@@ -132,7 +133,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         pathFind.json("destination_account", dest);
 
         // toJSON will give us what we want ;) drops string if native, else an {} if IOU
-        pathFind.json("destination_amount", Amount.translate.toJSON(destinationAmount));
+        pathFind.json("destination_amount", destinationAmount.toJSON());
 
 
         pathFind.once(Request.OnResponse.class, new Request.OnResponse() {
