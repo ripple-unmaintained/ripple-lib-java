@@ -132,8 +132,12 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 }
                 return; // and wait for next ledger close
             }
-            if (txns != null && (ledger_index - lastLedgerPage) >= ACCOUNT_TX_TIMEOUT) {
-                txns.abort();
+            if (txns != null) {
+                if ((ledger_index - lastLedgerPage) >= ACCOUNT_TX_TIMEOUT) {
+                    txns.abort(); // no more OnPage
+                    txns = null; // and wait for next ledger close
+                }
+                // else keep waiting ;)
             } else {
                 lastLedgerPage = ledger_index;
                 txns = new AccountTransactionsRequester(client, accountID, onPage, lastLedgerEmptyOrChecked - 1 /* for good measure */);
