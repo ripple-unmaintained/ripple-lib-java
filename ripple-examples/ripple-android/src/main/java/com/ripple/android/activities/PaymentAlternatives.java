@@ -130,7 +130,7 @@ public class PaymentAlternatives extends Activity {
         alternativesGroup.setVisibility(View.VISIBLE);
 
         // This can be noisy, TODO: pulsing status
-        if (account.transactionManager().awaiting() == 0) {
+        if (account.transactionManager().txnsPending() == 0) {
             if (alternatives.size() == 0) {
                 threadSafeSetStatus("No payment paths found! (yet)");
             } else {
@@ -586,7 +586,7 @@ public class PaymentAlternatives extends Activity {
      * Thread: client thread
      */
     private String awaitingTransactionsParenthetical(Account account) {
-        int awaiting = account.transactionManager().awaiting();
+        int awaiting = account.transactionManager().txnsPending();
         if (awaiting == 0) {
             return "";
         } else {

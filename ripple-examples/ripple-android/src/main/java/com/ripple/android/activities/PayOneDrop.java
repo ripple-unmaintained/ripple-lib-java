@@ -366,7 +366,7 @@ public class PayOneDrop extends Activity {
      * Thread: client thread
      */
     private String awaitingTransactionsParenthetical(Account account) {
-        int awaiting = account.transactionManager().awaiting();
+        int awaiting = account.transactionManager().txnsPending();
         if (awaiting == 0) {
             return "";
         } else {

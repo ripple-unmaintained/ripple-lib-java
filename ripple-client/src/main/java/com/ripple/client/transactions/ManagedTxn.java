@@ -14,6 +14,7 @@ import com.ripple.crypto.ecdsa.IKeyPair;
 import java.util.ArrayList;
 import java.util.TreeSet;
 
+// TODO: Should OfferCreate/Payment & co extend Transaction or ManagedTxn?
 public class ManagedTxn extends Transaction {
     // events enumeration
     public Publisher<events> publisher() {
@@ -74,7 +75,7 @@ public class ManagedTxn extends Transaction {
         }
     }
 
-    public boolean finalizedOrHandlerForPriorSubmission(Response res) {
+    public boolean finalizedOrResponseIsToPriorSubmission(Response res) {
         return isFinalized() || !responseWasToLastSubmission(res);
     }
 
