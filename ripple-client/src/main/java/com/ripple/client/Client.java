@@ -366,6 +366,15 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     @Override
     public void onDisconnected(boolean willReconnect) {
+        run(new Runnable() {
+            @Override
+            public void run() {
+                doOnDisconnected();
+            }
+        });
+    }
+
+    private void doOnDisconnected() {
         connected = false;
         ClientLogger.log("onDisconnected");
         emit(OnDisconnected.class, this);
@@ -382,6 +391,14 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     @Override
     public void
     onConnected() {
+        run(new Runnable() {
+            public void run() {
+                doOnConnected();
+            }
+        });
+    }
+
+    private void doOnConnected() {
         connected = true;
         ClientLogger.log("onConnected");
         emit(OnConnected.class, this);
