@@ -131,7 +131,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
 
     public void makePathFindRequestIfCan() {
         // TODO: ...
-        ignoreCurrentRequestPublishingStaleState();
+        ignoreCurrentRequestAndPublishStaleState();
 
         if (tooLittleInfoForPathFindRequest()) {
             return;
@@ -212,7 +212,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
                dest == null;
     }
 
-    private void ignoreCurrentRequestPublishingStaleState() {
+    private void ignoreCurrentRequestAndPublishStaleState() {
         pathFind = null;
         if (alternatives != null) {
             emit(OnAlternativesStale.class, alternatives);
@@ -229,14 +229,14 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
 
     public void abort() {
         requestPathFindClose();
-        ignoreCurrentRequestPublishingStaleState();
+        ignoreCurrentRequestAndPublishStaleState();
     }
 
     public ManagedTxn createPayment(Alternative alternative, BigDecimal sendMaxMultiplier) {
         Amount sourceAmount = alternative.sourceAmount;
         boolean hasPaths = alternative.hasPaths();
 
-        ignoreCurrentRequestPublishingStaleState();
+        ignoreCurrentRequestAndPublishStaleState();
 
         // Cancel the path finding request.
         requestPathFindClose();

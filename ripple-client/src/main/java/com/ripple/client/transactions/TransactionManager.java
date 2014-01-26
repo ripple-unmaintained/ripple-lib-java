@@ -34,7 +34,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     public static long ACCOUNT_TX_TIMEOUT = 5;
 
     public void queue(ManagedTxn tx) {
-        queue(tx, null);
+        queue(tx, locallyPreemptedSubmissionSequence());
     }
 
     public ArrayList<ManagedTxn> getQueue() {
@@ -169,6 +169,8 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             doSubmitRequest(transaction, sequence);
         }
         else {
+            // If we have submitted again, before this gets to execute
+            // we should just bail out early, and not submit again.
             final int n = transaction.submissions.size();
             client.on(Client.OnStateChange.class, new CallbackContext() {
                 @Override
@@ -191,10 +193,14 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     private Request doSubmitRequest(final ManagedTxn transaction, UInt32 sequence) {
+        // Comput the fee for the current load_factor
         Amount fee = client.serverInfo.transactionFee(transaction);
-        // TODO: inside prepare, check if Fee and Sequence are the same and don't resign ;)
-        transaction.prepare(keyPair, fee, sequence == null ? getSubmissionSequence() : sequence);
+        // Inside prepare we check if Fee and Sequence are the same, and if so
+        // we don't recreated tx_blob, or resign ;)
+        transaction.prepare(keyPair, fee, sequence);
+
         final Request req = client.newRequest(Command.submit);
+        // tx_blob is a hex string, right o' the bat
         req.json("tx_blob", transaction.tx_blob);
 
         req.once(Request.OnSuccess.class, new Request.OnSuccess() {
@@ -211,12 +217,14 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             }
         });
 
+        // Keep track of the submission, including the hash submitted
+        // to the network, and the ledger_index at that point in time.
         transaction.trackSubmitRequest(req, client.serverInfo);
         req.request();
         return req;
     }
 
-    private UInt32 getSubmissionSequence() {
+    private UInt32 locallyPreemptedSubmissionSequence() {
         long server = accountRoot.Sequence.longValue();
         if (sequence == -1 || server > sequence) {
             sequence = server;
@@ -351,28 +359,37 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             return; // without further ado.
         }
 
-
         // ONLY ONLY ONLY if we've actually seen the Sequence
-        if (seenValidatedSequences.contains(txn.sequence().longValue())) {
-            resubmit(txn, getSubmissionSequence());
+        if (transactionNotFinalizedAndSeenValidatedSequence(txn)) {
+            resubmit(txn, locallyPreemptedSubmissionSequence());
         } else {
-            // TODO: Should we empty seenValidatedSequences when our queue is empty
-            // TODO: Could this stall out for ages?
-            // We should perhaps look for gaps in n, n+1, n+2 in the seenValidatedSequences
-            // if we see some, it's an indication that we should check account_tx from ledgers
-            // lowest in gap.
-            // TODO: maybe seenValidatedSequences should be a Map<Sequence, Ledger>
-            on(OnValidatedSequence.class, new OnValidatedSequence() {
-                @Override
-                public void called(UInt32 uInt32) {
-                    if (seenValidatedSequences.contains(txn.sequence().longValue())) {
-                        // TODO an auto remover ;)
-                        removeListener(OnValidatedSequence.class, this);
-                        resubmit(txn, getSubmissionSequence());
+            // requesting account_tx now and then should take care of this
+            on(OnValidatedSequence.class,
+                new CallbackContext() {
+                    @Override
+                    public boolean shouldExecute() {
+                        return !txn.isFinalized();
                     }
-                }
+
+                    @Override
+                    public boolean shouldRemove() {
+                        return txn.isFinalized();
+                    }
+                },
+                new OnValidatedSequence() {
+                    @Override
+                    public void called(UInt32 uInt32) {
+                        // Again, just to be safe.
+                        if (transactionNotFinalizedAndSeenValidatedSequence(txn)) {
+                            resubmit(txn, locallyPreemptedSubmissionSequence());
+                        }
+                    }
             });
         }
+    }
+
+    private boolean transactionNotFinalizedAndSeenValidatedSequence(ManagedTxn txn) {
+        return !txn.isFinalized() && seenValidatedSequences.contains(txn.sequence().longValue());
     }
 
     private void resubmit(ManagedTxn txn, UInt32 sequence) {
@@ -381,10 +398,6 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
     private void resubmitWithSameSequence(ManagedTxn txn) {
         UInt32 previouslySubmitted = txn.sequence();
-        if (previouslySubmitted == null) {
-            throw new IllegalStateException("We don't want to pass null " +
-                    "further else it would increment");
-        }
         makeSubmitRequest(txn, previouslySubmitted);
     }
 
