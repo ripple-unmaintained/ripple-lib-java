@@ -24,22 +24,33 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
 
     Client client;
 
+    private final Client.OnPathFind onPathFind = new Client.OnPathFind() {
+        @Override
+        public void called(JSONObject jsonObject) {
+            try {
+                int id = jsonObject.getInt("id");
+                if (pathFind != null && id == pathFind.id) {
+                    emit(OnAlternatives.class, new Alternatives(jsonObject.getJSONArray("alternatives"), null));
+                }
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    };
+    private final Client.OnConnected onConnected = new Client.OnConnected() {
+        @Override
+        public void called(Client client) {
+            if (pathFind != null) {
+                makePathFindRequestIfCan();
+            }
+        }
+    };
+
     public PaymentFlow(Client client) {
         this.client = client;
 
-        client.on(Client.OnPathFind.class, new Client.OnPathFind() {
-            @Override
-            public void called(JSONObject jsonObject) {
-                try {
-                    int id = jsonObject.getInt("id");
-                    if (pathFind != null && id == pathFind.id) {
-                        emit(OnAlternatives.class, new Alternatives(jsonObject.getJSONArray("alternatives"), null));
-                    }
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
+        client.on(Client.OnConnected.class, onConnected);
+        client.on(Client.OnPathFind.class,  onPathFind);
 
         on(OnAlternatives.class, new OnAlternatives() {
             @Override
@@ -47,6 +58,11 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
                 alternatives = alts;
             }
         });
+    }
+
+    public void unsubscribeFromClientEvents() {
+        client.removeListener(Client.OnConnected.class, onConnected);
+        client.removeListener(Client.OnPathFind.class, onPathFind);
     }
 
     AccountID src, dest;

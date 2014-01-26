@@ -22,9 +22,7 @@ import org.json.JSONObject;
 
 import java.net.URI;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class Client extends Publisher<Client.events> implements TransportEventHandler {
     public static abstract class events<T>      extends Publisher.Callback<T> {}
@@ -38,6 +36,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public abstract static class OnPathFind extends events<JSONObject> {}
 
     protected ScheduledExecutorService service;
+    public Thread clientThread;
+
     public static abstract class ThrowingRunnable implements Runnable {
         public abstract void throwingRun() throws Exception;
         @Override
@@ -49,8 +49,26 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             }
         }
     }
+    public boolean runningOnClientThread() {
+        return clientThread != null && Thread.currentThread().getId() == clientThread.getId();
+    }
+
+    protected void prepareExecutor() {
+        service = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                clientThread = new Thread(r);
+                return clientThread;
+            }
+        });
+    }
     public void run(Runnable runnable) {
-        service.submit(runnable);
+        // What if we are already in the client thread?? What happens then ?
+        if (runningOnClientThread()) {
+            runnable.run();
+        } else {
+            service.submit(runnable);
+        }
     }
     public void schedule(int ms, Runnable runnable) {
         service.schedule(runnable, ms, TimeUnit.MILLISECONDS);
@@ -80,10 +98,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 }
             }
         });
-    }
-
-    protected void prepareExecutor() {
-        service = Executors.newSingleThreadScheduledExecutor();
     }
 
     ArrayList<LedgerClosedCallback> ledgerClosedCallbacks = new ArrayList<LedgerClosedCallback>();

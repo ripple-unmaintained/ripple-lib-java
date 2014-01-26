@@ -36,7 +36,6 @@ public class Publisher<EventClass extends Publisher.ICallback> {
 
     public <T extends EventClass> void once(final Class<T> key, ClientExecutor executor, final T cb) {
         add(key, executor, new ICallback() {
-
             public void call(Object... args) {
                 removeListener(key, this);
                 cb.call(args);
@@ -50,11 +49,13 @@ public class Publisher<EventClass extends Publisher.ICallback> {
         CallbackList iCallbacks = listFor(key);
         ExecutorCallbackPair[] callbacks = new ExecutorCallbackPair[iCallbacks.size()];
         callbacks = iCallbacks.toArray(callbacks);
+
         for (ExecutorCallbackPair callback : callbacks) {
             if (callback.executor == null) {
                 callback.callback.call(args);
             } else {
-                callback.executor.run(callback.getRunnable());
+//                ClientLogger.log("Using executor to execute for " + key.getSimpleName());
+                callback.executor.execute(callback.getRunnable(args));
             }
         }
         return callbacks.length;

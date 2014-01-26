@@ -18,6 +18,7 @@ import com.ripple.android.client.AndroidClient;
 import com.ripple.client.Account;
 import com.ripple.client.Client;
 import com.ripple.client.blobvault.BlobVault;
+import com.ripple.client.executors.ClientExecutor;
 import com.ripple.client.payments.Alternative;
 import com.ripple.client.payments.Alternatives;
 import com.ripple.client.payments.PaymentFlow;
@@ -43,6 +44,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class PaymentAlternatives extends Activity {
+    private final Client.OnSendMessage onClientSendMessage = new Client.OnSendMessage() {
+        @Override
+        public void called(JSONObject jsonObject) {
+            logMessage(jsonObject, true);
+        }
+    };
     AndroidClient client;
     Account account;
 
@@ -98,6 +105,12 @@ public class PaymentAlternatives extends Activity {
                     tearDownAlternatives(alternatives);
                 }
             });
+        }
+    };
+    private Client.OnMessage onClientMessage = new Client.OnMessage() {
+        @Override
+        public void called(JSONObject jsonObject) {
+            logMessage(jsonObject, false);
         }
     };
 
@@ -168,6 +181,7 @@ public class PaymentAlternatives extends Activity {
     }
 
 
+    private boolean activityDestroyed = false;
     /**
      * Thread: ui thread
      */
@@ -307,18 +321,8 @@ public class PaymentAlternatives extends Activity {
         });
 
         // TODO, perhaps we should use a broadcast receiver?
-        client.on(Client.OnMessage.class, new Client.OnMessage() {
-            @Override
-            public void called(JSONObject jsonObject) {
-                logMessage(jsonObject, false);
-            }
-        });
-        client.on(Client.OnSendMessage.class, new Client.OnSendMessage() {
-            @Override
-            public void called(JSONObject jsonObject) {
-                logMessage(jsonObject, true);
-            }
-        });
+        client.on(Client.OnMessage.class,     onClientMessage);
+        client.on(Client.OnSendMessage.class, onClientSendMessage);
 
         retrieveWallet.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -442,6 +446,26 @@ public class PaymentAlternatives extends Activity {
         });
     }
 
+    @Override
+    protected void onDestroy() {
+        unsubscribeFromClientEvents();
+        activityDestroyed = true;
+        super.onDestroy();
+
+    }
+
+    // TODO really need a way of creating Publisher contexts to automatically
+    // clean up
+    // What about the transaction handling methods ??
+    private void unsubscribeFromClientEvents() {
+        client.removeListener(Client.OnMessage.class, onClientMessage);
+        client.removeListener(Client.OnSendMessage.class, onClientSendMessage);
+        if (flow != null) {
+            flow.abort();
+            flow.unsubscribeFromClientEvents();
+        }
+    }
+
     /**
      * Thread: ui thread
      */
@@ -491,43 +515,58 @@ public class PaymentAlternatives extends Activity {
         return contactsAddresses.get(contacts.getSelectedItemPosition());
     }
 
+    // Need a way of ignoring these upon Activity destruction
+    // TODO Make Publisher less le SUCK
+    // TODO This is an abuse of ClientExecutor
+    private ClientExecutor lifeCycled = new ClientExecutor() {
+        @Override
+        public void execute(Runnable runnable) {
+            if (!activityDestroyed) {
+                runnable.run();
+            }
+        }
+    };
+
     private void setTransactionStatusHandlers(final Account account, ManagedTxn tx) {
-        tx.publisher().once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
-            @Override
-            public void called(Response response) {
-                flow.makePathFindRequestIfNoneAlready();
-                threadSafeSetStatus("Transaction submitted "
-                        + awaitingTransactionsParenthetical(account));
-            }
+        tx.publisher().once(ManagedTxn.OnSubmitSuccess.class, lifeCycled,
+            new ManagedTxn.OnSubmitSuccess() {
+                @Override
+                public void called(Response response) {
+                    flow.makePathFindRequestIfNoneAlready();
+                    threadSafeSetStatus("Transaction submitted "
+                            + awaitingTransactionsParenthetical(account));
+                }
         });
 
-        tx.publisher().once(ManagedTxn.OnSubmitFailure.class, new ManagedTxn.OnSubmitFailure() {
-            @Override
-            public void called(Response response) {
-                flow.makePathFindRequestIfNoneAlready();
-                threadSafeSetStatus("Transaction submission failed (" + response.engineResult() + ")"
-                        + awaitingTransactionsParenthetical(account));
-            }
+        tx.publisher().once(ManagedTxn.OnSubmitFailure.class, lifeCycled,
+            new ManagedTxn.OnSubmitFailure() {
+                @Override
+                public void called(Response response) {
+                    flow.makePathFindRequestIfNoneAlready();
+                    threadSafeSetStatus("Transaction submission failed (" + response.engineResult() + ")"
+                            + awaitingTransactionsParenthetical(account));
+                }
         });
 
-        tx.publisher().once(ManagedTxn.OnSubmitError.class, new ManagedTxn.OnSubmitError() {
-            @Override
-            public void called(Response response) {
-                flow.makePathFindRequestIfNoneAlready();
-                threadSafeSetStatus("Transaction submission error (" + response.rpcerr + ")"
-                        + awaitingTransactionsParenthetical(account));
-            }
+        tx.publisher().once(ManagedTxn.OnSubmitError.class, lifeCycled,
+            new ManagedTxn.OnSubmitError() {
+                @Override
+                public void called(Response response) {
+                    flow.makePathFindRequestIfNoneAlready();
+                    threadSafeSetStatus("Transaction submission error (" + response.rpcerr + ")"
+                            + awaitingTransactionsParenthetical(account));
+                }
         });
 
-        tx.publisher().once(ManagedTxn.OnTransactionValidated.class,
-                new ManagedTxn.OnTransactionValidated() {
-                    @Override
-                    public void called(TransactionResult result) {
-                        flow.makePathFindRequestIfNoneAlready();
-                        threadSafeSetStatus("Transaction finalized "
-                                + awaitingTransactionsParenthetical(account));
-                    }
-                });
+        tx.publisher().once(ManagedTxn.OnTransactionValidated.class, lifeCycled,
+            new ManagedTxn.OnTransactionValidated() {
+                @Override
+                public void called(TransactionResult result) {
+                    flow.makePathFindRequestIfNoneAlready();
+                    threadSafeSetStatus("Transaction finalized "
+                            + awaitingTransactionsParenthetical(account));
+                }
+            });
     }
 
     /**
@@ -583,9 +622,9 @@ public class PaymentAlternatives extends Activity {
                     else {
                         flow.setSource(account.id());
 
-                        flow.on(PaymentFlow.OnAlternatives.class, onAlternatives);
-                        flow.on(PaymentFlow.OnAlternativesStale.class, onAlternativesStale);
-                        flow.on(PaymentFlow.OnPathFind.class, new PaymentFlow.OnPathFind() {
+                        flow.on(PaymentFlow.OnAlternatives.class, lifeCycled, onAlternatives);
+                        flow.on(PaymentFlow.OnAlternativesStale.class, lifeCycled, onAlternativesStale);
+                        flow.on(PaymentFlow.OnPathFind.class, lifeCycled, new PaymentFlow.OnPathFind() {
                             @Override
                             public void called(Request request) {
                                 threadSafeSetStatus("Searching for alternatives");

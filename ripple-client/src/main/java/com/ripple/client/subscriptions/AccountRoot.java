@@ -23,6 +23,7 @@ public class AccountRoot extends Publisher<AccountRoot.events> {
     }
 
     public void updateFromTransaction(Hash256 transactionHash, UInt32 transactionLedgerIndex, STObject rootUpdates) {
+        // TODO
         if (!updated  || PreviousTxnID.equals(rootUpdates.get(Hash256.PreviousTxnID))) {
             setFromSTObject(rootUpdates.get(STObject.FinalFields));
             PreviousTxnID = transactionHash;
