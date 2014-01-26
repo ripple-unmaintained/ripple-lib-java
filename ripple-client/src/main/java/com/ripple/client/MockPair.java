@@ -11,7 +11,34 @@ import java.util.ArrayList;
 
 public class MockPair {
     RippledMock server = new RippledMock();
-    Client client = new Client(server.ws);
+
+    // TODO a mock ScheduledExecutorService?
+    // TODO make client abstract?
+    public class MockClient extends Client {
+        public MockClient(WebSocketTransport ws) {
+            super(ws);
+        }
+        @Override
+        protected void prepareExecutor() {
+            service = null;
+        }
+        @Override
+        public void run(Runnable runnable) {
+            runnable.run();
+        }
+        @Override
+        public void onMessage(JSONObject msg) {
+            onMessageInClientThread(msg);
+        }
+
+        @Override
+        public void schedule(int ms, Runnable runnable) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    Client client = new MockClient(server.ws);
+
 
     public MockPair connect() {
         client.connect("wss://this.doesnt.matter.com");

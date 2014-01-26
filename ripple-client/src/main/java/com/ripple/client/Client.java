@@ -37,7 +37,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public abstract static class OnStateChange extends events<Client> {}
     public abstract static class OnPathFind extends events<JSONObject> {}
 
-    ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+    protected ScheduledExecutorService service;
     public static abstract class ThrowingRunnable implements Runnable {
         public abstract void throwingRun() throws Exception;
         @Override
@@ -61,6 +61,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     SubscriptionManager subscriptions = new SubscriptionManager();
 
     public Client(WebSocketTransport ws) {
+        prepareExecutor();
+
         this.ws = ws;
         ws.setHandler(this);
 
@@ -78,6 +80,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 }
             }
         });
+    }
+
+    protected void prepareExecutor() {
+        service = Executors.newSingleThreadScheduledExecutor();
     }
 
     ArrayList<LedgerClosedCallback> ledgerClosedCallbacks = new ArrayList<LedgerClosedCallback>();

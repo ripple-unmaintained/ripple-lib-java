@@ -7,7 +7,6 @@ import android.app.Application;
 
 public class RippleApplication extends Application {
     public AndroidClient client;
-
     public AndroidClient getClient() {
         return client;
     }
