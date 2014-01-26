@@ -2,6 +2,7 @@ package com.ripple.client.transactions;
 
 import com.ripple.client.Client;
 import com.ripple.client.enums.Command;
+import com.ripple.client.pubsub.CallbackContext;
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
@@ -153,31 +154,43 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
     public void queue(final ManagedTxn transaction, final UInt32 sequence) {
         getQueue().add(transaction);
+        makeSubmitRequest(transaction, sequence);
+    }
 
+    private boolean canSubmit() {
+        return client.connected  &&
+               client.serverInfo.primed() &&
+               client.serverInfo.load_factor < 768 &&
+               accountRoot.primed();
+    }
+
+    private void makeSubmitRequest(final ManagedTxn transaction, final UInt32 sequence) {
         if (canSubmit()) {
-            makeSubmitRequest(transaction, sequence);
-        } else {
-            // We wait for basically any old event n see if we are primed after each, angular styles
-            client.on(Client.OnStateChange.class, new Client.OnStateChange() {
+            doSubmitRequest(transaction, sequence);
+        }
+        else {
+            final int n = transaction.submissions.size();
+            client.on(Client.OnStateChange.class, new CallbackContext() {
+                @Override
+                public boolean shouldExecute() {
+                    return canSubmit() && !shouldRemove();
+                }
+
+                @Override
+                public boolean shouldRemove() {
+                    // The next state change should cause this to remove
+                    return transaction.isFinalized() || n != transaction.submissions.size();
+                }
+            }, new Client.OnStateChange() {
                 @Override
                 public void called(Client client) {
-                    if (canSubmit()) {
-                        client.removeListener(Client.OnStateChange.class, this);
-                        makeSubmitRequest(transaction, sequence);
-                    }
+                    doSubmitRequest(transaction, sequence);
                 }
             });
         }
     }
 
-    private boolean canSubmit() {
-        return client.serverInfo.primed() &&
-               client.serverInfo.load_factor < 512 &&
-               client.connected &&
-               accountRoot.primed();
-    }
-
-    private Request makeSubmitRequest(final ManagedTxn transaction, UInt32 sequence) {
+    private Request doSubmitRequest(final ManagedTxn transaction, UInt32 sequence) {
         Amount fee = client.serverInfo.transactionFee(transaction);
         // TODO: inside prepare, check if Fee and Sequence are the same and don't resign ;)
         transaction.prepare(keyPair, fee, sequence == null ? getSubmissionSequence() : sequence);

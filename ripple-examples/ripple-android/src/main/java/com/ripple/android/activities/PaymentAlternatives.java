@@ -520,6 +520,11 @@ public class PaymentAlternatives extends Activity {
         public boolean shouldExecute() {
             return !activityDestroyed;
         }
+
+        @Override
+        public boolean shouldRemove() {
+            return activityDestroyed;
+        }
     };
     private void setTransactionStatusHandlers(final Account account, ManagedTxn tx) {
         tx.publisher().once(ManagedTxn.OnSubmitSuccess.class, activityLifeCycled,

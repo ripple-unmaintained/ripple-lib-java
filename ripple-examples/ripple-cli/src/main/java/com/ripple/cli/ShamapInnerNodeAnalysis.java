@@ -135,7 +135,7 @@ public class ShamapInnerNodeAnalysis {
     int MODIFIED_NODES_PER_LEDGER = 100;
     // Emulating a book base, which has a 192 bit common prefix
     public int NUM_PREFIXES = 25;
-    public boolean CREATE_PREFIXED = false;
+    public boolean CREATE_PREFIXED = true;
     public int PREFIXED_EVERY = 5;
 
     Random randomer = new Random();
