@@ -24,8 +24,8 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
     //     return translate.toJSONArray(this);
     // }
     // @Override
-    // public byte[] toWireBytes() {
-    //     return translate.toWireBytes(this);
+    // public byte[] toBytes() {
+    //     return translate.toBytes(this);
     // }
   
     @Override
@@ -33,7 +33,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         return toJSONArray();
     }
 
-    @Override
+//    @Override
     public JSONArray toJSONArray() {
         JSONArray array = new JSONArray();
         for (Path path : this) {
@@ -71,19 +71,19 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         buffer.add(typeEnd);
     }
 
+//    @Override
+//    public JSONObject toJSONObject() {
+//        throw new UnsupportedOperationException();
+//    }
+
     @Override
-    public JSONObject toJSONObject() {
-        throw new UnsupportedOperationException();
+    public String toHex() {
+        return translate.toHex(this);
     }
 
     @Override
-    public String toWireHex() {
-        return translate.toWireHex(this);
-    }
-
-    @Override
-    public byte[] toWireBytes() {
-        return translate.toWireBytes(this);
+    public byte[] toBytes() {
+        return translate.toBytes(this);
     }
     public static class Hop{
         public AccountID account;

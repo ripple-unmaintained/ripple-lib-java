@@ -4,8 +4,6 @@ import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BytesList;
 import com.ripple.core.serialized.TypeTranslator;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.math.BigInteger;
 
@@ -73,24 +71,24 @@ public class UInt8 extends UINT<UInt8> {
         return translate.toJSON(this);
     }
 
+//    @Override
+//    public JSONArray toJSONArray() {
+//        throw new UnsupportedOperationException();
+//    }
+//
+//    @Override
+//    public JSONObject toJSONObject() {
+//        throw new UnsupportedOperationException();
+//    }
+
     @Override
-    public JSONArray toJSONArray() {
-        throw new UnsupportedOperationException();
+    public byte[] toBytes() {
+        return translate.toBytes(this);
     }
 
     @Override
-    public JSONObject toJSONObject() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public byte[] toWireBytes() {
-        return translate.toWireBytes(this);
-    }
-
-    @Override
-    public String toWireHex() {
-        return translate.toWireHex(this);
+    public String toHex() {
+        return translate.toHex(this);
     }
 
     @Override

@@ -5,8 +5,6 @@ import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesList;
 import com.ripple.encodings.common.B16;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -25,24 +23,24 @@ public class Currency extends Hash160 {
         return translate.toJSON(this);
     }
 
+//    @Override
+//    public JSONArray toJSONArray() {
+//        throw new UnsupportedOperationException();
+//    }
+//
+//    @Override
+//    public JSONObject toJSONObject() {
+//        throw new UnsupportedOperationException();
+//    }
+
     @Override
-    public JSONArray toJSONArray() {
-        throw new UnsupportedOperationException();
+    public byte[] toBytes() {
+        return translate.toBytes(this);
     }
 
     @Override
-    public JSONObject toJSONObject() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public byte[] toWireBytes() {
-        return translate.toWireBytes(this);
-    }
-
-    @Override
-    public String toWireHex() {
-        return translate.toWireHex(this);
+    public String toHex() {
+        return translate.toHex(this);
     }
 
     @Override

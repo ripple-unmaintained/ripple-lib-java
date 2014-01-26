@@ -102,28 +102,28 @@ public abstract class TypeTranslator<T extends SerializedType> {
         return fromWireBytes(B16.decode(hex));
     }
 
-    public Object toJSON(T obj) {
-        return obj.toJSON();
+    public JSONObject toJSONObject(T obj) {
+        throw new UnsupportedOperationException();
     }
 
-    public JSONObject toJSONObject(T obj) {
-        return obj.toJSONObject();
-    }
     public JSONArray toJSONArray(T obj) {
-        return obj.toJSONArray();
+        throw new UnsupportedOperationException();
+    }
+    public Object toJSON(T obj) {
+        return obj.toJSON();
     }
 
     public void toBytesList(T obj, BytesList to) {
         obj.toBytesList(to);
     }
 
-    public byte[] toWireBytes(T obj) {
+    public byte[] toBytes(T obj) {
         BytesList to = new BytesList();
         toBytesList(obj, to);
         return to.bytes();
     }
 
-    public String toWireHex(T obj) {
+    public String toHex(T obj) {
         BytesList to = new BytesList();
         toBytesList(obj, to);
         return to.bytesHex();

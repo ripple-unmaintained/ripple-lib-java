@@ -19,7 +19,7 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
     }
 
 
-    @Override
+//    @Override
     public JSONArray toJSONArray() {
         JSONArray array = new JSONArray();
 
@@ -30,19 +30,19 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
         return array;
     }
 
+//    @Override
+//    public JSONObject toJSONObject() {
+//        throw new UnsupportedOperationException();
+//    }
+
     @Override
-    public JSONObject toJSONObject() {
-        throw new UnsupportedOperationException();
+    public byte[] toBytes() {
+        return translate.toBytes(this);
     }
 
     @Override
-    public byte[] toWireBytes() {
-        return translate.toWireBytes(this);
-    }
-
-    @Override
-    public String toWireHex() {
-        return translate.toWireHex(this);
+    public String toHex() {
+        return translate.toHex(this);
     }
 
     @Override
@@ -69,6 +69,11 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
 
             parser.safelyAdvancePast(arrayEnd);
             return stArray;
+        }
+
+        @Override
+        public JSONArray toJSONArray(STArray obj) {
+            return obj.toJSONArray();
         }
 
         @Override

@@ -18,8 +18,8 @@ public class Alternative implements Comparable<Alternative> {
 
     private Hash256 calculateHash(PathSet paths, Amount sourceAmount) {
         Hash256.HalfSha512 half = new Hash256.HalfSha512();
-        half.update(paths.toWireBytes());
-        half.update(sourceAmount.toWireBytes());
+        half.update(paths.toBytes());
+        half.update(sourceAmount.toBytes());
         return half.finish();
     }
 

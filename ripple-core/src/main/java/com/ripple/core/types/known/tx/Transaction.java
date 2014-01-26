@@ -32,7 +32,7 @@ public class Transaction extends STObject {
         put(Amount.Fee, fee);
         put(VariableLength.SigningPubKey, keyPair.pubBytes());
 
-        byte[] signingBlob = STObject.translate.toWireBytes(this);
+        byte[] signingBlob = STObject.translate.toBytes(this);
         Hash256 signingHash = Hash256.signingHash(signingBlob);
         byte[] signature = keyPair.sign(signingHash.bytes());
 

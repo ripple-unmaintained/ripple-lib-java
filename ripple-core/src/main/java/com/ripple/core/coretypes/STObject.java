@@ -18,7 +18,6 @@ import com.ripple.core.coretypes.uint.UInt16;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -173,32 +172,28 @@ public class STObject implements SerializedType, Iterable<Field> {
         }
     }
 
-    public String toHex() {
-        return translate.toWireHex(this);
-    }
-
     @Override
     public Object toJSON() {
         return translate.toJSON(this);
     }
 
-    @Override
-    public JSONArray toJSONArray() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
+//    @Override
+//    public JSONArray toJSONArray() {
+//        throw new UnsupportedOperationException();
+//    }
+//
+//    @Override
     public JSONObject toJSONObject() {
         return translate.toJSONObject(this);
     }
 
-    public byte[] toWireBytes() {
-        return translate.toWireBytes(this);
+    public byte[] toBytes() {
+        return translate.toBytes(this);
     }
 
     @Override
-    public String toWireHex() {
-        return translate.toWireHex(this);
+    public String toHex() {
+        return translate.toHex(this);
     }
 
     @Override

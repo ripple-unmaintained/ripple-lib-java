@@ -101,7 +101,7 @@ public class PathSetTest {
 
         PathSet.Translator translator = PathSet.translate;
         PathSet paths = translator.fromJSONArray(new JSONArray(jsonPathSet));
-        String hex = translator.toWireHex(paths);
+        String hex = paths.toHex();
 
 //        System.out.println(hex);
 
@@ -113,6 +113,6 @@ public class PathSetTest {
         assertTrue(rippleDHex.contains(hex));
 
         PathSet parsed = translator.fromWireHex(hex);
-        assertEquals(hex, translator.toWireHex(parsed));
+        assertEquals(hex, parsed.toHex());
     }
 }

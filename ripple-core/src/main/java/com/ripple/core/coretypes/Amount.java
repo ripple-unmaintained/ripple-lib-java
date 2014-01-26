@@ -7,7 +7,6 @@ import com.ripple.core.serialized.BytesList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.coretypes.uint.UInt64;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -336,7 +335,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
-    @Override
+//    @Override
     public JSONObject toJSONObject() {
         try {
             JSONObject out = new JSONObject();
@@ -349,19 +348,19 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
+//    @Override
+//    public JSONArray toJSONArray() {
+//        throw new UnsupportedOperationException();
+//    }
+
     @Override
-    public JSONArray toJSONArray() {
-        throw new UnsupportedOperationException();
+    public byte[] toBytes() {
+        return translate.toBytes(this);
     }
 
     @Override
-    public byte[] toWireBytes() {
-        return translate.toWireBytes(this);
-    }
-
-    @Override
-    public String toWireHex() {
-        return translate.toWireHex(this);
+    public String toHex() {
+        return translate.toHex(this);
     }
 
     @Override
@@ -426,6 +425,11 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         @Override
         public String toString(com.ripple.core.coretypes.Amount obj) {
             return obj.stringRepr();
+        }
+
+        @Override
+        public JSONObject toJSONObject(Amount obj) {
+            return obj.toJSONObject();
         }
 
         @Override

@@ -18,8 +18,6 @@ import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
 import com.ripple.utils.Utils;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 public class AccountID implements SerializedType, Comparable<AccountID> {
     public String masterSeed;
@@ -116,24 +114,24 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
         return toString();
     }
 
+//    @Override
+//    public JSONArray toJSONArray() {
+//        throw new UnsupportedOperationException();
+//    }
+//
+//    @Override
+//    public JSONObject toJSONObject() {
+//        throw new UnsupportedOperationException();
+//    }
+
     @Override
-    public JSONArray toJSONArray() {
-        throw new UnsupportedOperationException();
+    public byte[] toBytes() {
+        return translate.toBytes(this);
     }
 
     @Override
-    public JSONObject toJSONObject() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public byte[] toWireBytes() {
-        return translate.toWireBytes(this);
-    }
-
-    @Override
-    public String toWireHex() {
-        return translate.toWireHex(this);
+    public String toHex() {
+        return translate.toHex(this);
     }
 
     @Override

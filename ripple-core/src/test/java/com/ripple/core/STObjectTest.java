@@ -7,7 +7,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.ripple.core.types.known.sle.Offer;
 import junit.framework.TestCase;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -15,12 +14,8 @@ import org.junit.Test;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.Type;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.BinarySerializer;
-import com.ripple.core.serialized.SerializedType;
-import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.STArray;
@@ -30,10 +25,6 @@ import com.ripple.core.coretypes.uint.UInt16;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
-import com.ripple.encodings.common.B16;
-
-import java.util.EnumMap;
-import java.util.Map;
 
 public class STObjectTest {
     @Test
@@ -490,7 +481,7 @@ public class STObjectTest {
 
     private Amount wetDried(Amount amt) {
         Amount.Translator tran = Amount.translate;
-        String hex = tran.toWireHex(amt);
+        String hex = tran.toHex(amt);
         return tran.fromParser(new BinaryParser(hex));
     }
 
@@ -505,10 +496,10 @@ public class STObjectTest {
         STObject so = STObject.translate.fromJSONObject(json);
         assertEquals(21, so.get(UInt32.Expiration).longValue());
 
-        byte[] bytes = UInt8.translate.toWireBytes(new UInt8(1));
-        byte[] bytes2 = UInt16.translate.toWireBytes(new UInt16(1));
-        byte[] bytes4 = UInt32.translate.toWireBytes(new UInt32(1));
-        byte[] bytes8 = UInt64.translate.toWireBytes(new UInt64(1));
+        byte[] bytes =  (new UInt8 (1)).toBytes();
+        byte[] bytes2 = (new UInt16(1)).toBytes();
+        byte[] bytes4 = (new UInt32(1)).toBytes();
+        byte[] bytes8 = (new UInt64(1)).toBytes();
 
         assertEquals(bytes.length, 1);
         assertEquals(bytes2.length, 2);

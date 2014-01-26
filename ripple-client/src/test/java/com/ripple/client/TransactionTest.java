@@ -41,7 +41,7 @@ public class TransactionTest {
                 "}";
         STObject tx = STObject.fromJSONObject(new JSONObject(tx_json));
         Hash256 hash = (Hash256) tx.remove(Field.hash);
-        Hash256 rehashed = Hash256.transactionID(STObject.translate.toWireBytes(tx));
+        Hash256 rehashed = Hash256.transactionID(tx.toBytes());
 //        System.out.printf("hash: %s rehashed: %s \n", hash, rehashed);
         assertEquals(hash, rehashed);
     }
@@ -62,7 +62,7 @@ public class TransactionTest {
         Hash256 expected = Hash256.translate
                 .fromString("78794CD91D01F144FBEBE3ECB0690B159E04829CE576B75B7E8ABF8B8FA7DD97");
         STObject tx = STObject.fromJSONObject(new JSONObject(tx_json));
-        Hash256 rehashed = Hash256.transactionID(STObject.translate.toWireBytes(tx));
+        Hash256 rehashed = Hash256.transactionID(tx.toBytes());
         assertEquals(expected, rehashed);
 
     }
@@ -105,7 +105,7 @@ public class TransactionTest {
         String txnSignature = (String) j.remove("TxnSignature");
         String hashString = (String) j.remove("hash");
         STObject so = STObject.fromJSONObject(j);
-        byte[] blob = STObject.translate.toWireBytes(so);
+        byte[] blob = so.toBytes();
 
         String expected = "1200002200000000240000002361400000000000000168400000000000000F732102EEAF2C95B668D411FC490746C52071514F6D3A7B742D91D82CB591B5443D1C59811466B05AAE728123957EF8411C44B787650C27231D8314FAE571D0D376CC2BFBB7D5C4E21374FA45BB3639";
         assertEquals(expected, so.toHex());
