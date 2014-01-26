@@ -55,16 +55,18 @@ public class MakePayment {
             LOG("Must configure PAYWARD_USER && PAYWARD_PASS");
         }
         else {
-            makeAPayment();
+            final Client client = new Client(new JavaWebSocketTransportImpl());
+            client.run(new Client.ThrowingRunnable() {
+                @Override
+                public void throwingRun() throws Exception {
+                    client.connect("wss://s1.ripple.com");
+                    makePayment(client);
+                }
+            });
         }
     }
 
-    private static void makeAPayment() throws IOException, InvalidCipherTextException, JSONException, InterruptedException {
-        // Create a client instance using the Java WebSocket Transport
-        Client client = new Client(new JavaWebSocketTransportImpl());
-        // Connect to s1
-        client.connect("wss://s1.ripple.com");
-        // We want to access a blob from payward
+    private static void makePayment(Client client) throws IOException, InvalidCipherTextException, JSONException {
         BlobVault payward = new BlobVault("https://blobvault.payward.com/");
         JSONObject blob = payward.getBlob(PAYWARD_USER, PAYWARD_PASS);
         // The blob has the master seed (the secret is deterministically derived
@@ -73,6 +75,7 @@ public class MakePayment {
         // Make the actual payment
         makePayment(account, DESTINATION_ACCOUNT, SEND_AMOUNT);
     }
+
 
     private static void makePayment(Account account, Object destination, Object amt) {
         TransactionManager tm = account.transactionManager();

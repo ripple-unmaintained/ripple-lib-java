@@ -22,6 +22,9 @@ import org.json.JSONObject;
 
 import java.net.URI;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Client extends Publisher<Client.events> implements TransportEventHandler {
     public static abstract class events<T>      extends Publisher.Callback<T> {}
@@ -33,6 +36,25 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public abstract static class OnSendMessage extends events<JSONObject> {}
     public abstract static class OnStateChange extends events<Client> {}
     public abstract static class OnPathFind extends events<JSONObject> {}
+
+    ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+    public static abstract class ThrowingRunnable implements Runnable {
+        public abstract void throwingRun() throws Exception;
+        @Override
+        public void run() {
+            try {
+                throwingRun();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    public void run(Runnable runnable) {
+        service.submit(runnable);
+    }
+    public void schedule(int ms, Runnable runnable) {
+        service.schedule(runnable, ms, TimeUnit.MILLISECONDS);
+    }
 
     public boolean connected = false;
     private HashMap<AccountID, Account> accounts = new HashMap<AccountID, Account>();
@@ -148,14 +170,45 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     String previousUri;
     // TODO: reconnect if we go 60s without any message from the server
-    public void connect(String uri) {
+
+    public void doConnect(String uri) {
         // XXX: connect to other uris ... just parameterise connect here ??
         previousUri = uri;
         ws.connect(URI.create(uri));
     }
 
+    /**
+     * After calling this method, all subsequent interaction with the api
+     * should be called via posting Runnable() run blocks to the Executor
+     * Essentially, all ripple-lib-java api interaction should happen on
+     * the one thread.
+     *
+     * @see #onMessage(org.json.JSONObject)
+     */
+    public void connect(final String uri) {
+        run(new Runnable() {
+            @Override
+            public void run() {
+                doConnect(uri);
+            }
+        });
+    }
+    /**
+     * This is to ensure we run everything on the one HandlerThread
+     */
     @Override
-    public void onMessage(JSONObject msg) {
+    public void onMessage(final JSONObject msg) {
+        run(new Runnable() {
+            @Override
+            public void run() {
+                onMessageInClientThread(msg);
+            }
+        });
+    }
+
+
+//    @Override
+    public void onMessageInClientThread(JSONObject msg) {
         try {
             emit(OnMessage.class, msg);
             ClientLogger.log("Receive: %s", prettyJSON(msg));

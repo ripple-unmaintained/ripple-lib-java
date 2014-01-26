@@ -433,7 +433,7 @@ public class PayOneDrop extends Activity {
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
-            client.runPrioritized(getAccount);
+            client.run(getAccount);
             showPaymentForm();
         }
 
