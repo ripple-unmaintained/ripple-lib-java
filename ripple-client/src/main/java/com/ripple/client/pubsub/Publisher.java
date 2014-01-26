@@ -1,7 +1,6 @@
 package com.ripple.client.pubsub;
 
 import com.ripple.client.ClientLogger;
-import com.ripple.client.executors.ClientExecutor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,7 +25,7 @@ public class Publisher<EventClass extends Publisher.ICallback> {
         add(key, cb);
     }
 
-    public <T extends EventClass> void on(Class<T> key, ClientExecutor executor, T cb) {
+    public <T extends EventClass> void on(Class<T> key, CallbackContext executor, T cb) {
         add(key, executor, cb);
     }
 
@@ -34,43 +33,55 @@ public class Publisher<EventClass extends Publisher.ICallback> {
         once(key, null, cb);
     }
 
-    public <T extends EventClass> void once(final Class<T> key, ClientExecutor executor, final T cb) {
-        add(key, executor, new ICallback() {
-            public void call(Object... args) {
-                removeListener(key, this);
-                cb.call(args);
-            }
-        });
+    public <T extends EventClass> void once(final Class<T> key, CallbackContext executor, final T cb) {
+        add(key, executor, cb, true);
     }
 
     public <T extends EventClass> int emit(Class<T> key, Object... args) {
         ClientLogger.log("Emitting %s from thread: %s", key.getSimpleName(), Thread.currentThread());
-        // Make a copy of the array at the time of emission
-        CallbackList iCallbacks = listFor(key);
-        ExecutorCallbackPair[] callbacks = new ExecutorCallbackPair[iCallbacks.size()];
-        callbacks = iCallbacks.toArray(callbacks);
+        CallbackList callbacks = cbs.get(key);
+        if (callbacks == null) {
+            return 0;
+        }
 
-        for (ExecutorCallbackPair callback : callbacks) {
-            if (callback.executor == null) {
-                callback.callback.call(args);
+        Iterator<ContextedCallback> iterator = callbacks.iterator();
+        int executed = 0;
+
+        while (iterator.hasNext()) {
+            ContextedCallback pair = iterator.next();
+            CallbackContext context = pair.context;
+            if (context == null) {
+                pair.callback.call(args);
+                executed++;
+                // explicitly repeated
+                if (pair.oneShot) {
+                    iterator.remove();
+                }
             } else {
-//                ClientLogger.log("Using executor to execute for " + key.getSimpleName());
-                callback.executor.execute(callback.getRunnable(args));
+                if (context.shouldExecute()) {
+                    context.execute(pair.runnableWrappedCallback(args));
+                    executed++;
+                }
+                else if (context.shouldRemove() || pair.oneShot) {
+                    iterator.remove();
+                }
             }
         }
-        return callbacks.length;
+        return executed;
     }
 
-    private static class ExecutorCallbackPair {
-        ClientExecutor executor;
+    private static class ContextedCallback {
+        CallbackContext context;
         ICallback callback;
+        boolean oneShot;
 
-        public ExecutorCallbackPair(ICallback callback, ClientExecutor executor) {
-            this.executor = executor;
+        public ContextedCallback(ICallback callback, CallbackContext context, boolean oneShot) {
+            this.context = context;
             this.callback = callback;
+            this.oneShot = oneShot;
         }
 
-        public Runnable getRunnable(final Object... args) {
+        public Runnable runnableWrappedCallback(final Object... args) {
             return new Runnable() {
                 @Override
                 public void run() {
@@ -79,11 +90,11 @@ public class Publisher<EventClass extends Publisher.ICallback> {
             };
         }
     }
-    private static class CallbackList extends ArrayList<ExecutorCallbackPair> {
+    private static class CallbackList extends ArrayList<ContextedCallback> {
         public boolean remove(ICallback t) {
-            Iterator<ExecutorCallbackPair> iter = iterator();
+            Iterator<ContextedCallback> iter = iterator();
             while (iter.hasNext()) {
-                ExecutorCallbackPair next = iter.next();
+                ContextedCallback next = iter.next();
                 if (next.callback == t) {
                     iter.remove();
                     return true;
@@ -92,12 +103,8 @@ public class Publisher<EventClass extends Publisher.ICallback> {
             return false;
         }
 
-        public void add(ICallback cb) {
-            add(new ExecutorCallbackPair(cb, null));
-        }
-
-        public void add(ClientExecutor exec, ICallback cb) {
-            add(new ExecutorCallbackPair(cb, exec));
+        public void add(CallbackContext exec, ICallback cb, boolean oneShot) {
+            add(new ContextedCallback(cb, exec, oneShot));
         }
     }
 
@@ -121,14 +128,18 @@ public class Publisher<EventClass extends Publisher.ICallback> {
     }
 
     private <T extends EventClass> void add(Class<T> key, ICallback cb) {
-        listFor(key).add(cb);
+        add(key, null, cb, false);
     }
 
-    private <T extends EventClass> void add(Class<T> key, ClientExecutor executor, ICallback cb) {
-        listFor(key).add(executor, cb);
+    private <T extends EventClass> void add(Class<T> key, CallbackContext executor, ICallback cb) {
+        add(key, executor, cb, false);
     }
 
-    public boolean removeListener(Class<? extends EventClass> key, ICallback cb) {
+    private <T extends EventClass> void add(Class<T> key, CallbackContext executor, ICallback cb, boolean b) {
+        listFor(key).add(executor, cb, b);
+    }
+
+    public <T extends EventClass> boolean removeListener(Class<T> key, ICallback cb) {
         return listFor(key).remove(cb);
     }
 }

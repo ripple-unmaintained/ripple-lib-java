@@ -18,7 +18,7 @@ import com.ripple.android.client.AndroidClient;
 import com.ripple.client.Account;
 import com.ripple.client.Client;
 import com.ripple.client.blobvault.BlobVault;
-import com.ripple.client.executors.ClientExecutor;
+import com.ripple.client.pubsub.CallbackContext;
 import com.ripple.client.payments.Alternative;
 import com.ripple.client.payments.Alternatives;
 import com.ripple.client.payments.PaymentFlow;
@@ -515,20 +515,14 @@ public class PaymentAlternatives extends Activity {
         return contactsAddresses.get(contacts.getSelectedItemPosition());
     }
 
-    // Need a way of ignoring these upon Activity destruction
-    // TODO Make Publisher less le SUCK
-    // TODO This is an abuse of ClientExecutor
-    private ClientExecutor lifeCycled = new ClientExecutor() {
+    private CallbackContext activityLifeCycled = new CallbackContext() {
         @Override
-        public void execute(Runnable runnable) {
-            if (!activityDestroyed) {
-                runnable.run();
-            }
+        public boolean shouldExecute() {
+            return !activityDestroyed;
         }
     };
-
     private void setTransactionStatusHandlers(final Account account, ManagedTxn tx) {
-        tx.publisher().once(ManagedTxn.OnSubmitSuccess.class, lifeCycled,
+        tx.publisher().once(ManagedTxn.OnSubmitSuccess.class, activityLifeCycled,
             new ManagedTxn.OnSubmitSuccess() {
                 @Override
                 public void called(Response response) {
@@ -538,7 +532,7 @@ public class PaymentAlternatives extends Activity {
                 }
         });
 
-        tx.publisher().once(ManagedTxn.OnSubmitFailure.class, lifeCycled,
+        tx.publisher().once(ManagedTxn.OnSubmitFailure.class, activityLifeCycled,
             new ManagedTxn.OnSubmitFailure() {
                 @Override
                 public void called(Response response) {
@@ -548,7 +542,7 @@ public class PaymentAlternatives extends Activity {
                 }
         });
 
-        tx.publisher().once(ManagedTxn.OnSubmitError.class, lifeCycled,
+        tx.publisher().once(ManagedTxn.OnSubmitError.class, activityLifeCycled,
             new ManagedTxn.OnSubmitError() {
                 @Override
                 public void called(Response response) {
@@ -558,7 +552,7 @@ public class PaymentAlternatives extends Activity {
                 }
         });
 
-        tx.publisher().once(ManagedTxn.OnTransactionValidated.class, lifeCycled,
+        tx.publisher().once(ManagedTxn.OnTransactionValidated.class, activityLifeCycled,
             new ManagedTxn.OnTransactionValidated() {
                 @Override
                 public void called(TransactionResult result) {
@@ -622,9 +616,9 @@ public class PaymentAlternatives extends Activity {
                     else {
                         flow.setSource(account.id());
 
-                        flow.on(PaymentFlow.OnAlternatives.class, lifeCycled, onAlternatives);
-                        flow.on(PaymentFlow.OnAlternativesStale.class, lifeCycled, onAlternativesStale);
-                        flow.on(PaymentFlow.OnPathFind.class, lifeCycled, new PaymentFlow.OnPathFind() {
+                        flow.on(PaymentFlow.OnAlternatives.class, activityLifeCycled, onAlternatives);
+                        flow.on(PaymentFlow.OnAlternativesStale.class, activityLifeCycled, onAlternativesStale);
+                        flow.on(PaymentFlow.OnPathFind.class, activityLifeCycled, new PaymentFlow.OnPathFind() {
                             @Override
                             public void called(Request request) {
                                 threadSafeSetStatus("Searching for alternatives");

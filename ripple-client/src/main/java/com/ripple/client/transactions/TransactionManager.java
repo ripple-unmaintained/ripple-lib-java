@@ -83,10 +83,12 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
                 ManagedTxn first = sorted.get(0);
                 Submission previous = first.lastSubmission();
-                long ledgersClosed = serverInfo.ledger_index - previous.ledgerSequence;
 
-                if (ledgersClosed > 5) {
-                    resubmitWithSameSequence(first);
+                if (previous != null) {
+                    long ledgersClosed = serverInfo.ledger_index - previous.ledgerSequence;
+                    if (ledgersClosed > 5) {
+                        resubmitWithSameSequence(first);
+                    }
                 }
             }
         });
