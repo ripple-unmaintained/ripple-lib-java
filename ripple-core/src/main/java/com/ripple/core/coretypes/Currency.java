@@ -51,29 +51,29 @@ public class Currency extends Hash160 {
     }
 
     public static enum Type {
-        Hash,
-        TLC,      // three letter code
-        Demmurage,
-        Unknown;
+        HASH,
+        ISO,      // three letter isoCode
+        DEMURRAGE,
+        UNKNOWN;
 
         public static Type fromByte(byte typeByte) {
             if (typeByte == 0x00) {
-                return TLC;
+                return ISO;
             } else if (typeByte == 0x01) {
-                return Demmurage;
+                return DEMURRAGE;
             } else if ((typeByte & 0x80) != 0) {
-                return Hash;
+                return HASH;
             } else {
-                return Unknown;
+                return UNKNOWN;
             }
         }
     }
     Type type;
 
     public static class Demurrage {
-        Date startDate;
-        String code;
-        double _rate;
+        Date interestStart;
+        String isoCode;
+        double interestRate;
 
         static public BigDecimal applyRate(BigDecimal amount, BigDecimal rate, TimeUnit time, long units) {
             BigDecimal appliedRate = getSeconds(time, units).divide(rate, MathContext.DECIMAL64);
@@ -98,17 +98,17 @@ public class Currency extends Hash160 {
         public Demurrage(byte[] bytes) {
             BinaryParser parser = new BinaryParser(bytes);
             parser.skip(1); // The type
-            code = currencyStringFromBytesAndOffset(parser.read(3), 0);// The code
-            startDate = RippleDate.fromParser(parser);
+            isoCode = isoCodeFromBytesAndOffset(parser.read(3), 0);// The isoCode
+            interestStart = RippleDate.fromParser(parser);
             long l = UInt64.translate.fromParser(parser).longValue();
-            _rate = Double.longBitsToDouble(l);
+            interestRate = Double.longBitsToDouble(l);
         }
     }
     public Demurrage demurrage = null;
     public Currency(byte[] bytes) {
         super(bytes);
         type = Type.fromByte(bytes[0]);
-        if (type == Type.Demmurage) {
+        if (type == Type.DEMURRAGE) {
             demurrage = new Demurrage(bytes);
         }
     }
@@ -150,7 +150,7 @@ public class Currency extends Hash160 {
     @Override
     public String toString() {
         switch (type) {
-            case TLC:
+            case ISO:
                 String code = getCurrencyCodeFromTLCBytes(bytes());
                 if (code.equals("XRP")) {
                     // HEX of the bytes
@@ -158,22 +158,22 @@ public class Currency extends Hash160 {
                 } else if (code.equals("\0\0\0")) {
                     return "XRP";
                 } else {
-                    // the 3 letter code
+                    // the 3 letter isoCode
                     return code;
                 }
-            case Hash:
-            case Demmurage:
-            case Unknown:
+            case HASH:
+            case DEMURRAGE:
+            case UNKNOWN:
             default:
                 return super.toString();
         }
     }
 
     public String humanCode() {
-        if (type == Type.TLC) {
+        if (type == Type.ISO) {
             return getCurrencyCodeFromTLCBytes(hash);
-        } else if (type == Type.Demmurage) {
-            return currencyStringFromBytesAndOffset(hash, 1);
+        } else if (type == Type.DEMURRAGE) {
+            return isoCodeFromBytesAndOffset(hash, 1);
         } else {
             throw new IllegalStateException("No human code for currency of type " + type);
         }
@@ -186,7 +186,7 @@ public class Currency extends Hash160 {
             byte[] bytes = this.bytes();
             byte[] otherBytes = other.bytes();
 
-            if (type == Type.TLC && other.type == Type.TLC) {
+            if (type == Type.ISO && other.type == Type.ISO) {
                 return (bytes[12] == otherBytes[12] &&
                         bytes[13] == otherBytes[13] &&
                         bytes[14] == otherBytes[14]);
@@ -224,7 +224,7 @@ public class Currency extends Hash160 {
         }
 
         if (zeroInNonCurrencyBytes) {
-            return currencyStringFromBytesAndOffset(bytes, 12);
+            return isoCodeFromBytesAndOffset(bytes, 12);
         } else {
             throw new IllegalStateException("Currency is invalid");
         }
@@ -234,7 +234,7 @@ public class Currency extends Hash160 {
         return (char) bytes[i];
     }
 
-    private static String currencyStringFromBytesAndOffset(byte[] bytes, int offset) {
+    private static String isoCodeFromBytesAndOffset(byte[] bytes, int offset) {
         char a = charFrom(bytes, offset);
         char b = charFrom(bytes, offset + 1);
         char c = charFrom(bytes, offset + 2);

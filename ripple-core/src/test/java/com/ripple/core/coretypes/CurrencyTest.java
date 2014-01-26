@@ -13,9 +13,9 @@ public class CurrencyTest {
         String wtfDemure = "015841551A748AD23FEFFFFFFFEA028000000000";
         Currency currency = Currency.fromString(wtfDemure);
         Currency.Demurrage demurrage = currency.demurrage;
-        assertEquals("XAU", demurrage.code);
-        assertEquals(0.99999999984D, demurrage._rate);
-        assertEquals("23 Jan 2014 02:22:10 GMT", demurrage.startDate.toGMTString());
+        assertEquals("XAU", demurrage.isoCode);
+        assertEquals(0.99999999984D, demurrage.interestRate);
+        assertEquals("24 Jan 2014 02:22:10 GMT", demurrage.interestStart.toGMTString());
     }
 
 //    @Test

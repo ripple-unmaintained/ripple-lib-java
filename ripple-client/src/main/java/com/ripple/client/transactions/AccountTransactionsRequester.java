@@ -6,7 +6,6 @@ import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.core.coretypes.AccountID;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -93,6 +92,9 @@ public class AccountTransactionsRequester {
                         newMarker = null;
                     }
 
+                    final int ledger_index_max = result.optInt("ledger_index_max");
+                    final int ledger_index_min = result.optInt("ledger_index_min");
+
                     final Object finalNewMarker = newMarker;
                     onPage.onPage(new Page() {
                         ArrayList<TransactionResult> txns = null;
@@ -108,25 +110,15 @@ public class AccountTransactionsRequester {
                                 walkAccountTx(finalNewMarker);
                             }
                         }
-
                         @Override
                         public long ledgerMax() {
-                            try {
-                                return result.getInt("ledger_index_max");
-                            } catch (JSONException e) {
-                                throw new RuntimeException(e);
-                            }
+                            return ledger_index_max;
                         }
 
                         @Override
                         public long ledgerMin() {
-                            try {
-                                return result.getInt("ledger_index_min");
-                            } catch (JSONException e) {
-                                throw new RuntimeException(e);
-                            }
+                            return ledger_index_min;
                         }
-
                         @Override
                         public ArrayList<TransactionResult> transactionResults() {
                             if (txns == null) {

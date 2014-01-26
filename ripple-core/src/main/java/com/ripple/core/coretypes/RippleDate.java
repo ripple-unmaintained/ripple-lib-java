@@ -8,28 +8,40 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 public class RippleDate extends Date {
-    public static TimeZone EPOCH_TIMEZONE = TimeZone.getTimeZone("GMT");
-    public static long SECONDS_SINCE_RIPPLE_EPOCH_UTC;
-
+    public static long RIPPLE_EPOCH_SECONDS_OFFSET = 0x386D4380;
     static {
-        GregorianCalendar cal = new GregorianCalendar(EPOCH_TIMEZONE);
-        cal.set(2000, 0, 0, 0, 0, 0);
-        SECONDS_SINCE_RIPPLE_EPOCH_UTC = cal.getTimeInMillis();
+        /**
+         * Magic constant tested and documented.
+         *
+         * Seconds since the unix epoch from unix time (accounting leap years etc)
+         * at 1/January/2000 GMT
+         */
+        GregorianCalendar cal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        cal.set(2000, 0, 1, 0, 0, 0);
+        long computed = cal.getTimeInMillis() / 1000;
+        assertEquals("1 Jan 2000 00:00:00 GMT", cal.getTime().toGMTString()); // TODO
+        assertEquals(RippleDate.RIPPLE_EPOCH_SECONDS_OFFSET, computed);
     }
+
+    private static void assertEquals(String s, String s1) {
+        if (!s.equals(s1)) throw new AssertionError(String.format("%s != %s", s, s1));
+    }
+    private static void assertEquals(long a, long b) {
+        if (a != b) throw new AssertionError(String.format("%s != %s", a, b));
+    }
+
     private RippleDate() {
         super();
     }
     private RippleDate(long milliseconds) {
-        super(SECONDS_SINCE_RIPPLE_EPOCH_UTC + milliseconds);
+        super(milliseconds);
     }
 
     public long secondsSinceRippleEpoch() {
-        GregorianCalendar cal = new GregorianCalendar();
-        cal.setTime(this);
-        return ((cal.getTimeInMillis() - SECONDS_SINCE_RIPPLE_EPOCH_UTC) / 1000);
+        return ((this.getTime() / 1000) - RIPPLE_EPOCH_SECONDS_OFFSET);
     }
     public static RippleDate fromSecondsSinceRippleEpoch(Number seconds) {
-        return new RippleDate((seconds.longValue() * 1000));
+        return new RippleDate((seconds.longValue() + RIPPLE_EPOCH_SECONDS_OFFSET) * 1000);
     }
     public static RippleDate fromParser(BinaryParser parser) {
         UInt32 uInt32 = UInt32.translate.fromParser(parser);

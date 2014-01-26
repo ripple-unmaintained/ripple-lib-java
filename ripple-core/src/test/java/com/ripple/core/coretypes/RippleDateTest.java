@@ -5,17 +5,19 @@ import org.junit.Test;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 public class RippleDateTest extends TestCase {
     @Test
     public void testDateParsing() throws Exception {
-        GregorianCalendar cal = new GregorianCalendar(RippleDate.EPOCH_TIMEZONE);
+        GregorianCalendar cal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
         int seconds = 442939950;
         RippleDate d = RippleDate.fromSecondsSinceRippleEpoch(seconds);
         cal.setTime(d);
 
         // 13/2/2014
-        assertEquals(12,   cal.get(Calendar.DAY_OF_MONTH));
+        assertEquals(13,   cal.get(Calendar.DAY_OF_MONTH));
         assertEquals(0,    cal.get(Calendar.MONTH));
         assertEquals(2014, cal.get(Calendar.YEAR));
 
