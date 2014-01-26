@@ -418,24 +418,21 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         UInt32 txnSequence = tm.transaction.get(UInt32.Sequence);
         seenValidatedSequences.add(txnSequence.longValue());
 
-        ManagedTxn tx = submittedTransaction(tm.hash);
+        ManagedTxn tx = submittedTransactionForHash(tm.hash);
         if (tx != null) {
             tm.submittedTransaction = tx;
             finalizeTxnAndRemoveFromQueue(tx);
             tx.publisher().emit(ManagedTxn.OnTransactionValidated.class, tm);
         } else {
+            // preempt the terPRE_SEQ
             resubmitFirstTransactionWithTakenSequence(txnSequence);
             emit(OnValidatedSequence.class, txnSequence.add(new UInt32(1)));
         }
     }
 
-    private ManagedTxn submittedTransaction(Hash256 hash) {
-        Iterator<ManagedTxn> iterator = getQueue().iterator();
-
-        while (iterator.hasNext()) {
-            ManagedTxn transaction = iterator.next();
+    private ManagedTxn submittedTransactionForHash(Hash256 hash) {
+        for (ManagedTxn transaction : getQueue()) {
             if (transaction.wasSubmittedWith(hash)) {
-                iterator.remove();
                 return transaction;
             }
         }
