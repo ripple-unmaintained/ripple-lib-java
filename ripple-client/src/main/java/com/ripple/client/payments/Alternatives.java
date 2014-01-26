@@ -12,6 +12,7 @@ import java.util.TreeMap;
 
 public class Alternatives extends ArrayList<Alternative> {
     TreeMap<Hash256, Alternative> altMap = new TreeMap<Hash256, Alternative>();
+
     public Alternatives(JSONArray array, Alternatives prior) {
         for (int i = 0; i < array.length(); i++) {
             try {
@@ -24,14 +25,36 @@ public class Alternatives extends ArrayList<Alternative> {
             }
         }
     }
-    public void addRecyclingPrior(Alternative object, Alternatives prior) {
+
+    public Alternatives() {
+
+    }
+
+    public void addRecyclingPrior(Integer index, Alternative object, Alternatives prior) {
         if (prior != null) {
             Alternative priorAlternative = altMap.get(object.hash);
             if (priorAlternative != null) {
                 object = priorAlternative;
             }
         }
-        super.add(object);
+        if (index != null) {
+            super.add(index, object);
+        }  else {
+            super.add(object);
+        }
         altMap.put(object.hash, object);
+    }
+
+    public boolean hasNativeSource() {
+        for (Alternative alt : this) {
+            if (alt.sourceAmount.isNative()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void addRecyclingPrior(Alternative alt, Alternatives prior) {
+        addRecyclingPrior(null, alt, prior);
     }
 }

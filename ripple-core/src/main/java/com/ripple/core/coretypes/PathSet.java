@@ -243,7 +243,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
     }
     static public Translator translate = new Translator();
 
-    private PathSet(){}
+    public PathSet(){}
 
     public static TypedFields.PathSetField pathsetField(final Field f) {
         return new TypedFields.PathSetField(){ @Override public Field getField() {return f;}};

@@ -30,7 +30,8 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
             try {
                 int id = jsonObject.getInt("id");
                 if (pathFind != null && id == pathFind.id) {
-                    emit(OnAlternatives.class, new Alternatives(jsonObject.getJSONArray("alternatives"), null));
+                    emit(OnAlternatives.class, constructAlternatives(jsonObject.getJSONArray("alternatives"),
+                                                                     alternatives));
                 }
             } catch (JSONException e) {
                 throw new RuntimeException(e);
@@ -130,18 +131,26 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
 
     public void makePathFindRequestIfCan() {
         // TODO: ...
-        cancelPendingRequest();
+        ignoreCurrentRequestPublishingStaleState();
 
         if (tooLittleInfoForPathFindRequest()) {
             return;
         }
-
         if (destAmountCurrency.equals(Currency.XRP)) {
             // TODO: some way of ...
             destinationAmount = Issue.XRP.amount(destAmountValue);
         } else {
             destinationAmount = new Amount(destAmountValue, destAmountCurrency, dest, false);
         }
+
+        if (destinationAmount.isNative()) {
+            // TODO, check if destination has no XRP flag set ;)
+            Alternatives alts = constructInitialAlternatives();
+            if (!alts.isEmpty()) {
+                emit(OnAlternatives.class, alts);
+            }
+        }
+
 
         pathFind = client.newRequest(Command.path_find);
         pathFind.json("subcommand", "create");
@@ -158,7 +167,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
                 if (response.succeeded && response.request == pathFind) {
                     try {
                         JSONArray alternatives = response.result.getJSONArray("alternatives");
-                        emit(OnAlternatives.class, new Alternatives(alternatives, PaymentFlow.this.alternatives));
+                        emit(OnAlternatives.class, constructAlternatives(alternatives, null));
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }
@@ -170,11 +179,40 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         emit(OnPathFind.class, pathFind);
     }
 
-    private boolean tooLittleInfoForPathFindRequest() {
-        return destAmountValue == null || destAmountCurrency == null || src == null || dest == null;
+    private Alternatives constructInitialAlternatives() {
+        return constructAlternatives(null, null);
     }
 
-    private void cancelPendingRequest() {
+    private Alternatives constructAlternatives(JSONArray alternatives, Alternatives prior) {
+        Alternatives alts;
+
+        if (alternatives == null) {
+            alts = new Alternatives();
+        } else {
+            alts = new Alternatives(alternatives, prior);
+        }
+
+        if (destinationAmount.isNative()) {
+            injectNativeAlternative(alts, prior);
+        }
+
+        return alts;
+    }
+
+    private void injectNativeAlternative(Alternatives alts, Alternatives prior) {
+        Alternative directXRP = new Alternative(new PathSet(), destinationAmount);
+        alts.addRecyclingPrior(0, directXRP, prior);
+    }
+
+    private boolean tooLittleInfoForPathFindRequest() {
+        return destAmountValue == null  ||
+               destAmountValue.compareTo(BigDecimal.ZERO) == 0  ||
+               destAmountCurrency == null ||
+               src == null ||
+               dest == null;
+    }
+
+    private void ignoreCurrentRequestPublishingStaleState() {
         pathFind = null;
         if (alternatives != null) {
             emit(OnAlternativesStale.class, alternatives);
@@ -190,29 +228,38 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
     }
 
     public void abort() {
-        abortPathFind();
-        cancelPendingRequest();
+        requestPathFindClose();
+        ignoreCurrentRequestPublishingStaleState();
     }
 
     public ManagedTxn createPayment(Alternative alternative, BigDecimal sendMaxMultiplier) {
-        cancelPendingRequest();
+        Amount sourceAmount = alternative.sourceAmount;
+        boolean hasPaths = alternative.hasPaths();
+
+        ignoreCurrentRequestPublishingStaleState();
 
         // Cancel the path finding request.
-        abortPathFind();
+        requestPathFindClose();
 
         ManagedTxn payment = client.account(src).transactionManager().payment();
         payment.put(AccountID.Destination, dest);
 
-        if (alternative.paths.size() > 0) {
+        if (hasPaths) {
+            // A payment with an empty, but specified paths is invalid
+            // TODO: maybe it's just the serialization code?
             payment.put(PathSet.Paths, alternative.paths);
         }
-        payment.put(Amount.SendMax, alternative.sourceAmount.multiply(sendMaxMultiplier));
-        payment.put(Amount.Amount, destinationAmount);
+        // If we are sending XRP and we have no paths, it's pointless?? to specify SendMax
+        // TODO: on surface it seems pointless, yet ??
+        if (!alternative.directXRP()) {
+            payment.put(Amount.SendMax, sourceAmount.multiply(sendMaxMultiplier));
+        }
 
+        payment.put(Amount.Amount, destinationAmount);
         return payment;
     }
 
-    public void abortPathFind() {
+    public void requestPathFindClose() {
         Request request = client.newRequest(Command.path_find);
         request.json("subcommand", "close");
         request.request();

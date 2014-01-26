@@ -155,10 +155,24 @@ public class PaymentAlternatives extends Activity {
                         client.run(new Runnable() {
                             @Override
                             public void run() {
-                                BigDecimal sendMax = new BigDecimal("1.01");
                                 // TODO, doing a send max here is retarded ;)
-                                ManagedTxn payment = flow.createPayment(alternative, sendMax);
-                                payment.setDescription(payment.get(Amount.SendMax).divide(sendMax).toText() +"<~" + contactName);
+                                BigDecimal sendMaxMultiplier = new BigDecimal("1.01");
+                                ManagedTxn payment = flow.createPayment(alternative, sendMaxMultiplier);
+                                Amount destAmount = payment.get(Amount.Amount);
+
+                                String path;
+                                if (!alternative.directXRP()) {
+                                    path = String.format("%s>%s",
+                                            alternative.sourceAmount.toText(),
+                                            destAmount.currencyString());
+                                } else {
+                                    path = destAmount.toText();
+                                }
+
+                                payment.setDescription(String.format("%s>%s",
+                                                       path,
+                                                       contactName));
+
                                 setTransactionStatusHandlers(account, payment);
                                 account.transactionManager().queue(payment);
                                 threadSafeSetStatus("Transaction queued " + awaitingTransactionsParenthetical(account));
@@ -582,10 +596,10 @@ public class PaymentAlternatives extends Activity {
             int n = queued.size();
             for (ManagedTxn txn : queued) {
                 s += txn.getDescription();
-                if (--n != 0) s += ", ";
+                if (--n != 0) s += "\n";
             }
 
-            return String.format("(awaiting %s)", s);
+            return String.format("(awaiting:\n %s)", s);
         }
     }
 

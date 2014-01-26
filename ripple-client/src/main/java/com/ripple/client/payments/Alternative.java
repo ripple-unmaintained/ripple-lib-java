@@ -27,4 +27,12 @@ public class Alternative implements Comparable<Alternative> {
     public int compareTo(Alternative another) {
         return hash.compareTo(another.hash);
     }
+
+    public boolean directXRP() {
+        return !hasPaths() && sourceAmount.isNative();
+    }
+
+    boolean hasPaths() {
+        return paths.size() > 0;
+    }
 }
