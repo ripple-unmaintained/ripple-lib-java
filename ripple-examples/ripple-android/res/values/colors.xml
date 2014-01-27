@@ -2,4 +2,5 @@
 <resources>
     <color name="receivingRed">#322</color>
     <color name="sendingBlue">#233</color>
+    <color name="pausedMessageLogYellow">#ff3dffc0</color>
 </resources>

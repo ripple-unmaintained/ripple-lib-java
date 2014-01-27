@@ -46,7 +46,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 if (!canSubmit() || getPending().isEmpty()) {
                     return;
                 }
-                ArrayList<ManagedTxn> sorted = sequenceSortedQueue();
+                ArrayList<ManagedTxn> sorted = pendingSequenceSorted();
 
                 ManagedTxn first = sorted.get(0);
                 Submission previous = first.lastSubmission();
@@ -87,7 +87,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         return pending;
     }
 
-    public ArrayList<ManagedTxn> sequenceSortedQueue() {
+    public ArrayList<ManagedTxn> pendingSequenceSorted() {
         ArrayList<ManagedTxn> queued = new ArrayList<ManagedTxn>(getPending());
         Collections.sort(queued, new Comparator<ManagedTxn>() {
             @Override

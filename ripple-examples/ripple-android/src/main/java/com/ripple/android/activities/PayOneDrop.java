@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+import android.text.method.ScrollingMovementMethod;
 import com.ripple.client.transactions.ManagedTxn;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -141,6 +142,8 @@ public class PayOneDrop extends Activity {
     private void setupViews() {
         status = (TextView) findViewById(R.id.status);
         messageLog = (TextView) findViewById(R.id.messageLog);
+        messageLog.setMovementMethod(new ScrollingMovementMethod());
+
         statusLayoutParams = (RelativeLayout.LayoutParams) status.getLayoutParams();
 
         username = (EditText) findViewById(R.id.username);
@@ -370,7 +373,7 @@ public class PayOneDrop extends Activity {
         if (awaiting == 0) {
             return "";
         } else {
-            ArrayList<ManagedTxn> queued = account.transactionManager().sequenceSortedQueue();
+            ArrayList<ManagedTxn> queued = account.transactionManager().pendingSequenceSorted();
             String s = "";
 
             for (ManagedTxn fields : queued) {

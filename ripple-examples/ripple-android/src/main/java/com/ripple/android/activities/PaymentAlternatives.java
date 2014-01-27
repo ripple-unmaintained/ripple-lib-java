@@ -7,6 +7,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.GestureDetector;
+import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
@@ -17,6 +20,7 @@ import com.ripple.android.RippleApplication;
 import com.ripple.android.client.AndroidClient;
 import com.ripple.client.Account;
 import com.ripple.client.Client;
+import com.ripple.client.ClientLogger;
 import com.ripple.client.blobvault.BlobVault;
 import com.ripple.client.pubsub.CallbackContext;
 import com.ripple.client.payments.Alternative;
@@ -70,7 +74,7 @@ public class PaymentAlternatives extends Activity {
 
     Spinner currencySpinner;
     EditText destinationAmountInput;
-    BigDecimal destinationAmount;
+    BigDecimal destinationAmountValue;
     Currency destinationCurrency;
 
     Spinner contacts;
@@ -126,8 +130,8 @@ public class PaymentAlternatives extends Activity {
             // Alternatives of a given equality are recycled ;)
             same.put(alternative, (Button) alternativesGroup.findViewWithTag(alternative));
         }
+        // Hrmm ???
         alternativesGroup.removeAllViews();
-        alternativesGroup.setVisibility(View.VISIBLE);
 
         // This can be noisy, TODO: pulsing status
         if (account.transactionManager().txnsPending() == 0) {
@@ -141,11 +145,15 @@ public class PaymentAlternatives extends Activity {
         for (final Alternative alternative : alternatives) {
             Button button = same.get(alternative);
 
+            if (button != null) {
+                ClientLogger.log("Reusing existing button for alternative");
+            }
+
             if (button == null) {
                 // We can't recycle, so we'll create a new one
                 button = new Button(this);
                 button.setText(alternative.sourceAmount.toText());
-                button.setTag(alternative.hash.toString());
+                button.setTag(alternative);
                 final String contactName = contactsAdapter.getItem(contacts.getSelectedItemPosition());
 
                 button.setOnClickListener(new View.OnClickListener() {
@@ -170,8 +178,8 @@ public class PaymentAlternatives extends Activity {
                                 }
 
                                 payment.setDescription(String.format("%s>%s",
-                                                       path,
-                                                       contactName));
+                                        path,
+                                        contactName));
 
                                 setTransactionStatusHandlers(account, payment);
                                 account.transactionManager().queue(payment);
@@ -183,6 +191,7 @@ public class PaymentAlternatives extends Activity {
             }
             alternativesGroup.addView(button);
         }
+        alternativesGroup.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -190,7 +199,6 @@ public class PaymentAlternatives extends Activity {
      */
     private void tearDownAlternatives(Alternatives alternatives) {
         alternativesGroup.setVisibility(View.GONE);
-        alternativesGroup.removeAllViews();
         threadSafeSetStatus("Path find canceled");
     }
 
@@ -259,10 +267,10 @@ public class PaymentAlternatives extends Activity {
 
     public void setDestinationAmount() {
         try {
-            destinationAmount = new BigDecimal(destinationAmountInput.getText().toString());
+            destinationAmountValue = new BigDecimal(getInputText(destinationAmountInput));
             normalizeDestinationAmount();
         } catch (Exception e) {
-            destinationAmount = null;
+            destinationAmountValue = null;
         }
         client.run(setFlowAmount);
     }
@@ -334,26 +342,37 @@ public class PaymentAlternatives extends Activity {
             }
         });
 
-        // TODO, perhaps we should use a broadcast receiver?
-        client.on(Client.OnMessage.class,     onClientMessage);
-        client.on(Client.OnSendMessage.class, onClientSendMessage);
+        client.on(Client.OnMessage.class,  activityLifeCycled, onClientMessage);
+        client.on(Client.OnSendMessage.class, activityLifeCycled, onClientSendMessage);
 
         retrieveWallet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!loginFieldsValid()) {
                     threadSafeSetStatus("Must enter username and password");
-                } else if (blobDownloadTask == null) {
-                    blobDownloadTask = new DownloadBlobTask();
-                    blobDownloadTask.execute(username.getText().toString(), password.getText()
-                            .toString());
-                    threadSafeSetStatus("Retrieving blob!");
-                    hideKeyBoard();
-                } else {
+                } else if (activeBlobRequest()) {
                     threadSafeSetStatus("Waiting for blob to be retrieved!");
+                } else {
+                    initiateBlobRequest(getInputText(username), getInputText(password));
                 }
             }
+
         });
+    }
+
+    private void initiateBlobRequest(String username, String password) {
+        blobDownloadTask = new DownloadBlobTask();
+        blobDownloadTask.execute(username, password);
+        threadSafeSetStatus("Retrieving blob!");
+        hideKeyBoard();
+    }
+
+    private String getInputText(EditText username1) {
+        return username1.getText().toString();
+    }
+
+    private boolean activeBlobRequest() {
+        return blobDownloadTask != null;
     }
 
     public void logMessage(JSONObject jsonObject, final boolean sending) {
@@ -389,8 +408,8 @@ public class PaymentAlternatives extends Activity {
         // TODO: create Amount static helpers for this
 //        destinationAmountInput.setMax
         if (destinationCurrency.equals(Currency.XRP)) {
-            if (destinationAmount.scale() > 6) {
-                BigDecimal bigDecimal = destinationAmount.setScale(6, RoundingMode.UP);
+            if (destinationAmountValue.scale() > 6) {
+                BigDecimal bigDecimal = destinationAmountValue.setScale(6, RoundingMode.UP);
                 String text = bigDecimal.stripTrailingZeros().toPlainString();
                 destinationAmountInput.setText(text);
                 destinationAmountInput.setSelection(text.length());
@@ -472,8 +491,8 @@ public class PaymentAlternatives extends Activity {
     // clean up
     // What about the transaction handling methods ??
     private void unsubscribeFromClientEvents() {
-        client.removeListener(Client.OnMessage.class, onClientMessage);
-        client.removeListener(Client.OnSendMessage.class, onClientSendMessage);
+//        client.removeListener(Client.OnMessage.class, onClientMessage);
+//        client.removeListener(Client.OnSendMessage.class, onClientSendMessage);
         if (flow != null) {
             flow.abort();
             flow.unsubscribeFromClientEvents();
@@ -590,7 +609,7 @@ public class PaymentAlternatives extends Activity {
         if (awaiting == 0) {
             return "";
         } else {
-            ArrayList<ManagedTxn> queued = account.transactionManager().sequenceSortedQueue();
+            ArrayList<ManagedTxn> queued = account.transactionManager().pendingSequenceSorted();
             String s = "";
 
             int n = queued.size();
@@ -635,9 +654,9 @@ public class PaymentAlternatives extends Activity {
                     else {
                         flow.setSource(account.id());
 
-                        flow.on(PaymentFlow.OnAlternatives.class, activityLifeCycled, onAlternatives);
+                        flow.on(PaymentFlow.OnAlternatives.class,      activityLifeCycled, onAlternatives);
                         flow.on(PaymentFlow.OnAlternativesStale.class, activityLifeCycled, onAlternativesStale);
-                        flow.on(PaymentFlow.OnPathFind.class, activityLifeCycled, new PaymentFlow.OnPathFind() {
+                        flow.on(PaymentFlow.OnPathFind.class,          activityLifeCycled, new PaymentFlow.OnPathFind() {
                             @Override
                             public void called(Request request) {
                                 threadSafeSetStatus("Searching for alternatives");
@@ -702,7 +721,7 @@ public class PaymentAlternatives extends Activity {
     Runnable setFlowAmount = new Runnable() {
         @Override
         public void run() {
-            flow.setDestinationAmountValue(destinationAmount);
+            flow.setDestinationAmountValue(destinationAmountValue);
         }
     };
 
@@ -715,6 +734,7 @@ public class PaymentAlternatives extends Activity {
          */
         @Override
         protected void onPostExecute(final JSONObject blob) {
+            // null means there's no download active
             blobDownloadTask = null;
             if (blob == null) {
                 threadSafeSetStatus("Failed to retrieve blob!");
@@ -763,6 +783,9 @@ public class PaymentAlternatives extends Activity {
         contactsAdapter.clear();
 
         try {
+            // There's hard coded assumptions that there will be at least one contact
+            // In fact this demo has no way of adding contacts so it's not completely
+            // unreasonable.
             addContact("Niq", "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH");
             for (int i = 0; i < rawContacts.length(); i++) {
                 JSONObject contact = rawContacts.getJSONObject(i);
@@ -777,6 +800,7 @@ public class PaymentAlternatives extends Activity {
      * Thread: ui thread
      */
     private void addContact(String niq, String address) {
+        // parallel arrays for key/value
         contactsAdapter.add(niq);
         contactsAddresses.add(AccountID.fromString(address));
     }

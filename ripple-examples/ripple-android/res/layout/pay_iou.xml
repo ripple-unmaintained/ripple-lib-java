@@ -37,9 +37,12 @@
               android:layout_height="0dip"
               android:layout_weight="1.5">
         </View>
-        <ScrollView android:layout_weight="8" android:layout_width="0dip" android:layout_height="fill_parent">
+        <RelativeLayout android:layout_weight="8" android:layout_width="0dip" android:layout_height="fill_parent">
             <TextView
                     android:layout_gravity="center"
+                    android:layout_centerInParent="true"
+                    android:scrollbars = "vertical"
+                    android:maxLines="20"
                     android:layout_height="wrap_content"
                     android:layout_width="wrap_content"
                     android:visibility="visible"
@@ -48,7 +51,7 @@
                     >
 
             </TextView>
-        </ScrollView>
+        </RelativeLayout>
         <!--Just a spacer-->
         <View android:layout_width="0dip"
               android:layout_height="0dip"
