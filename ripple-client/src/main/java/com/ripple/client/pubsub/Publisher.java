@@ -45,26 +45,31 @@ public class Publisher<EventClass extends Publisher.ICallback> {
         }
 
         Iterator<ContextedCallback> iterator = callbacks.iterator();
+        boolean removed;
         int executed = 0;
 
         while (iterator.hasNext()) {
+            removed = false;
+
             ContextedCallback pair = iterator.next();
             CallbackContext context = pair.context;
             if (context == null) {
                 pair.callback.call(args);
                 executed++;
                 // explicitly repeated
-                if (pair.oneShot) {
-                    iterator.remove();
-                }
             } else {
                 if (context.shouldExecute()) {
                     context.execute(pair.runnableWrappedCallback(args));
                     executed++;
                 }
-                else if (context.shouldRemove() || pair.oneShot) {
+                // we only want to call remove once
+                else if (context.shouldRemove()) {
                     iterator.remove();
+                    removed = true;
                 }
+            }
+            if (pair.oneShot && !removed) {
+                iterator.remove();
             }
         }
         return executed;

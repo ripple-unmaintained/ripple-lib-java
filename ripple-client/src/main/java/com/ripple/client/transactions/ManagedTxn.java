@@ -15,12 +15,14 @@ import java.util.ArrayList;
 import java.util.TreeSet;
 
 // TODO: Should OfferCreate/Payment & co extend Transaction or ManagedTxn?
+// TODO: Should ManagedTxn instead HAVE instead of be?
 public class ManagedTxn extends Transaction {
     // events enumeration
     public Publisher<events> publisher() {
         return publisher;
     }
 
+    private boolean isSequencePlug;
     public boolean isSequencePlug() {
         return isSequencePlug;
     }
@@ -28,20 +30,17 @@ public class ManagedTxn extends Transaction {
         this.isSequencePlug = isNoop;
         setDescription("SequencePlug");
     }
-    private boolean isSequencePlug;
 
-    public String getDescription() {
+    private String description;
+    public String description() {
         if (description == null) {
             return transactionType().toString();
         }
         return description;
     }
-
     public void setDescription(String description) {
         this.description = description;
     }
-
-    private String description;
 
     public static abstract class events<T> extends Publisher.Callback<T> {}
     public static abstract class OnSubmitSuccess extends events<Response> {}

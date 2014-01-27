@@ -595,7 +595,7 @@ public class PaymentAlternatives extends Activity {
 
             int n = queued.size();
             for (ManagedTxn txn : queued) {
-                s += txn.getDescription();
+                s += txn.description();
                 if (--n != 0) s += "\n";
             }
 

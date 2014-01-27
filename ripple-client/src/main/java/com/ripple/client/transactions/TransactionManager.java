@@ -426,6 +426,8 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         ManagedTxn txn = submittedTransactionForHash(tr.hash);
         if (txn != null) {
             // TODO: icky
+            // A result doesn't have a ManagedTxn
+            // a ManagedTxn has a result
             tr.submittedTransaction = txn;
             finalizeTxnAndRemoveFromQueue(txn);
             txn.publisher().emit(ManagedTxn.OnTransactionValidated.class, tr);
