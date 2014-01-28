@@ -27,11 +27,11 @@ The `TransactionManager` is in charge of submitting transactions to the network
 in such a way that it's resilient to poor network conditions (busy, dropouts).
 
 There is, in fact, a non 100% success rate for every transaction submission.
-This can be due to conditions at the tranport layer, the node submitted to could
-be busy, completely dropping a request, or reject due to an insufficient fee,
-for the current load.
+This can be due to conditions at the transport layer, the node submitted to could
+be busy, completely dropping a submission, or outright reject it, due to an
+insufficient fee for the current load.
 
-Therefore client libraries will present an API that in the background
+Therefore, client libraries will present an API that in the background
 automatically handles resubmitting transactions (where it makes sense to do so)
 
 There are 3 phases to submitting a transaction and verifying it has succeeded.
@@ -72,12 +72,12 @@ Each `Transaction` submitted to the network, in binary form, has the following:
   - A transaction signature `TxnSignature` field
     - what is signed is a hash of the transaction contents in binary form
     - this is ecdsa, which has a random component
-      - Signing the EXACT same content multiple times will result in multiple
+      - signing the EXACT same content multiple times will result in multiple
         unique signatures.
 
   - a `hash` (sometimes referred to as a transactionID)
-    - dubbed a `hash`, due to it being a hash of the signed contents
-      of the transaction
+    - dubbed a `hash`, due to it being a hash of the binary representation
+      of the transactions.
 
       - IMPORTANT: the contents include the RANDOM TxnSignature
 
@@ -101,7 +101,7 @@ binary representation content changes, due to a Fee change, it becomes necessary
 to look out for ALL submitted transactionIDs to map incoming transaction
 notifications to a given Transaction.
 
-To understand why the `Sequence` field must also be considered.
+To understand why, the `Sequence` field must also be considered:
 
   - Sequence
 
@@ -124,13 +124,13 @@ How can this be detected? As transaction notifications come in, the hash of each
 transaction is compared against that of all the pending transactions. If a hash
 matches, the transaction is cleared, otherwise if the Sequence matches any of
 the pending transactions, it's assumed that the Sequence has been consumed by
-another account.
+another client.
 
   >>> the hash of each transaction is compared against that of all the pending
   >>> transactions
 
-Actually it must be compared against **all hashes of any transactions that
-entered the transport layer**, not just the most recent one submitted, otherwise
+Actually. it must be compared against **all hashes of any transaction serializations
+that entered the transport layer**, not just the most recent one submitted, otherwise
 there runs the risk of submitting the same transaction more than once. (The
 Sequence will be incremented, as it's assumed that a transaction submitted by
 another client consumed the Sequence)
@@ -147,14 +147,14 @@ be missed.
   - Simply stalled nodes
 
 Therefore, periodically, when there are pending transactions, the transaction
-manger will request a list of transactions from the server, from transaction $n
+manger will request a list of transactions from the server, from ledger $n
 and forward. $n is determined by looking at the ledger index of the oldest
 submission in the pending queue of transactions.
 
 The same logic that handles clearing transactions from the live stream is
 applied to each transaction in the transaction list.
 
-The `account_tx` command is used for this purpose.
+The rpc command  `account_tx` is used to get the list of transactions.
 
  */
 public class TransactionManager extends Publisher<TransactionManager.events> {
@@ -349,7 +349,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     private Request doSubmitRequest(final ManagedTxn txn, UInt32 sequence) {
-        // Comput the fee for the current load_factor
+        // Compute the fee for the current load_factor
         Amount fee = client.serverInfo.transactionFee(txn);
         // Inside prepare we check if Fee and Sequence are the same, and if so
         // we don't recreated tx_blob, or resign ;)
@@ -397,6 +397,10 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         }
     }
 
+    /**
+     * We handle various transaction engine results specifically
+     * and then by class of result.
+     */
     public void handleSubmitSuccess(final ManagedTxn txn, final Response res) {
         if (txn.finalizedOrResponseIsToPriorSubmission(res)) {
             return;
@@ -407,7 +411,6 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             case tesSUCCESS:
                 txn.publisher().emit(ManagedTxn.OnSubmitSuccess.class, res);
                 return;
-
             case tefPAST_SEQ:
                 resubmitWithNewSequence(txn);
                 break;
@@ -429,11 +432,10 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 resubmit(txn, submitSequence);
                 break;
             case tefALREADY:
-                // We only get this if we are submitting with the correct transactionID
+                // We only get this if we are submitting with exact same transactionID
                 // Do nothing, the transaction has already been submitted
                 break;
             default:
-                // In which cases do we patch ?
                 switch (ter.resultClass()) {
                     case tecCLAIMED:
                         // Sequence was consumed, do nothing
@@ -449,16 +451,13 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                         if (getPending().isEmpty()) {
                             sequence--;
                         } else {
-                            // Plug a Sequence gap and pre-emptively resubmit some
+                            // Plug a Sequence gap and preemptively resubmit some
                             // rather than waiting for `OnValidatedSequence` which will take
-                            // quite some ledgers
+                            // quite some ledgers.
                             queueSequencePlugTxn(submitSequence);
                             resubmitGreaterThan(submitSequence);
                         }
                         txn.publisher().emit(ManagedTxn.OnSubmitFailure.class, res);
-                        // look for
-//                        pending.add(transaction);
-                        // This is kind of nasty ..
                         break;
 
                 }
