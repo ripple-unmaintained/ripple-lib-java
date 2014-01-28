@@ -18,6 +18,142 @@ import com.ripple.crypto.ecdsa.IKeyPair;
 
 import java.util.*;
 
+/**
+
+TransactionManager
+------------------
+
+The `TransactionManager` is in charge of submitting transactions to the network
+in such a way that it's resilient to poor network conditions (busy, dropouts).
+
+There is, in fact, a non 100% success rate for every transaction submission.
+This can be due to conditions at the tranport layer, the node submitted to could
+be busy, completely dropping a request, or reject due to an insufficient fee,
+for the current load.
+
+Therefore client libraries will present an API that in the background
+automatically handles resubmitting transactions (where it makes sense to do so)
+
+There are 3 phases to submitting a transaction and verifying it has succeeded.
+
+  1. Submission to a ripple node
+
+    Important to note:
+
+      Transaction has entered the transport layer, and could be resubmitted  by
+      3rd parties (helpfully or maliciously)
+
+  2. Response to (stage 1) submission from a ripple node
+
+    At this point the transaction has succeeded in being applied to the local
+    node's ledger. It is then distributed amongst the network. It may take more
+    than one ledger close before it's finalized.
+
+  3. Transaction finalized notification from ripple node
+
+    The local node will send out to subscribers of a given account, any
+    transactions that affect it.
+
+    Recipients will receive notification of transactions as they are validated
+    by the network.
+
+Locally, from the client perspective it's only possible to really know that the
+first step has failed.
+
+It's possible (and has been observed), that at times there will be no response
+or notifications from the node the client is connected to, for a transaction
+that will ultimately be successful and distributed to the network.
+
+It's very important to realize that `no response` isn't necessarily an
+indication of failure.
+
+Each `Transaction` submitted to the network, in binary form, has the following:
+
+  - A transaction signature `TxnSignature` field
+    - what is signed is a hash of the transaction contents in binary form
+    - this is ecdsa, which has a random component
+      - Signing the EXACT same content multiple times will result in multiple
+        unique signatures.
+
+  - a `hash` (sometimes referred to as a transactionID)
+    - dubbed a `hash`, due to it being a hash of the signed contents
+      of the transaction
+
+      - IMPORTANT: the contents include the RANDOM TxnSignature
+
+      - The notifications that are sent
+
+    - `Fee`
+
+      This is the amount of drops (1e-6 XRP) destroyed.
+
+      There is a minimum Fee, which scales with the current load on the node
+      submitted to.
+
+So:
+  - Validated transactions are identified by hash of contents inluding sig
+  - May not get response of successful submission/validation
+  - May need to change a `Fee` and resubmit for a transaction to be supplied
+
+Therefore, as a transaction gets submitted multiple times, if the transaction
+binary representation content changes, due to a Fee change, it becomes necessary
+to look out for ALL submitted transactionIDs to map incoming transaction
+notifications to a given Transaction.
+
+To understand why the `Sequence` field must also be considered.
+
+  - Sequence
+
+    In a new Account, there is an integer field `Sequence`, which is initialized
+    with the value `1`.
+
+    Each transaction submitted by the account, must declare a `Sequence` too.
+    The transaction sequence must exactly match that stored in the account node.
+
+    Any transaction that is successful increments the Sequence in the account
+    node.
+
+    This is to stop replay attacks. Each transaction can be applied only once.
+
+It's possible when multiple clients are submitting transactions for the same
+account that there will be contention for Sequence numbers. One client will need
+to increment the sequence on a transaction for it to succeed.
+
+How can this be detected? As transation notifications come in, the hash of each
+transaction is compared against that of all the pending transactions. If a hash
+matches, the transaction is cleared, otherwise if the Sequence matches any of
+the pending transactions, it's assumed that the Sequence has been consumed by
+another account.
+
+  >>> the hash of each transaction is compared against that of all the pending
+  >>> transactions
+
+Actually it must be compared against **all hashes of any transactions that
+entered the transport layer**, not just the most recent one submitted, otherwise
+there runs the risk of submitting the same transaction more than once.
+
+Robust transaction validation
+-----------------------------
+
+For various reasons the live transaction validation notification messages could
+be missed.
+
+  - Transport layer issues
+    - messages missed
+
+  - Simply stalled nodes
+
+Therefore, periodically, when there are pending transactions, the transaction
+manger will request a list of transactions from the server, from transaction $n
+and forward. $n is determined by looking at the ledger index of the oldest
+submission in the pending queue of transactions.
+
+The same logic that handles clearing transactions from the live stream is
+applied to each transaction in the transaction list.
+
+The `account_tx` command is used.
+
+ */
 public class TransactionManager extends Publisher<TransactionManager.events> {
     public static abstract class events<T> extends Publisher.Callback<T> {}
     // This event is emitted with the Sequence of the AccountRoot

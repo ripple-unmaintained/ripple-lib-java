@@ -32,6 +32,19 @@ class InstrumentedInnerNode extends ShaMapInnerNode {
         hashes.put(hash, fullBranches);
     }
 
+    public int depth() {
+        int depth = this.depth;
+
+        for (ShaMapNode branch : branches) {
+            if (branch instanceof InstrumentedInnerNode) {
+                InstrumentedInnerNode inner = (InstrumentedInnerNode) branch;
+                depth = Math.max(depth, inner.depth());
+            }
+        }
+
+        return depth;
+    }
+
     public Counter<Integer> slotHistogramOverTime(Counter<Integer> counter) {
         if (counter == null) {
             counter = new Counter<Integer>();
@@ -282,6 +295,7 @@ public class ShamapInnerNodeAnalysis {
                 System.out.println("Total leaf nodes in latest ledger: " + totalLeavesAdded);
                 System.out.println("Leaf nodes added per ledger: " + NEW_NODES_PER_LEDGER);
                 System.out.println("Leaf nodes updated per ledger: " + MODIFIED_NODES_PER_LEDGER);
+                System.out.println("Ledger depth: " + ledger.depth());
                 System.out.println("Ms to add " + NEW_NODES_PER_LEDGER + " nodes to ledger: " + nsForAdding / 1e6);
                 System.out.println("Ms to update " + MODIFIED_NODES_PER_LEDGER + " nodes to ledger: " + nsForModding / 1e6);
                 System.out.println("Ms to hash ledger: " + nsForHashing / 1e6);
