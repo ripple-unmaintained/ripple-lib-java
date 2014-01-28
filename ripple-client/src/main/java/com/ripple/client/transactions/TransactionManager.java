@@ -85,17 +85,17 @@ Each `Transaction` submitted to the network, in binary form, has the following:
       - The hash is used to map transaction notification messages
         to submitted transactions in the pending queue.
 
-    - `Fee`
+  - `Fee`
 
-      This is the amount of drops (1e-6 XRP) destroyed.
+    - This is the amount of drops (1e-6 XRP) destroyed.
 
-      There is a minimum Fee, which scales with the current load on the node
+    - There is a minimum Fee, which scales with the current load on the node
       submitted to.
 
 So:
-  - May not get response of successful submission/validation
-  - May need to change a `Fee` and resubmit for a transaction to be applied
-  - Validated transactions are identified by hash of contents (including sig)
+  - May not get response/notification of successful submission/validation
+  - May need to change the `Fee` and resubmit for a transaction to be applied
+  - Transactions are identified by hash of binary repr (incl. Fee and random sig)
 
 Therefore, as a transaction gets submitted multiple times, if the transaction
 binary representation content changes, eg. due to a Fee change, it becomes
@@ -421,10 +421,12 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                     public void called(UInt32 sequence) {
                         if (txn.finalizedOrResponseIsToPriorSubmission(res)) {
                             removeListener(OnValidatedSequence.class, this);
-                        }
-                        if (sequence.equals(submitSequence)) {
-                            // resubmit:
-                            resubmit(txn, submitSequence);
+                        } else {
+                            if (sequence.equals(submitSequence)) {
+                                // resubmit:
+                                resubmit(txn, submitSequence);
+                                removeListener(OnValidatedSequence.class, this);
+                            }
                         }
                     }
                 });
@@ -452,7 +454,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                         if (getPending().isEmpty()) {
                             sequence--;
                         } else {
-                            // Plug a Sequence gap and preemptively resubmit some
+                            // Plug a Sequence gap and preemptively resubmit some txns
                             // rather than waiting for `OnValidatedSequence` which will take
                             // quite some ledgers.
                             queueSequencePlugTxn(submitSequence);
