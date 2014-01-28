@@ -81,7 +81,8 @@ Each `Transaction` submitted to the network, in binary form, has the following:
 
       - IMPORTANT: the contents include the RANDOM TxnSignature
 
-      - The notifications that are sent
+      - The hash is used to map transaction notification messages
+        to submitted transactions in the pending queue.
 
     - `Fee`
 
@@ -91,9 +92,9 @@ Each `Transaction` submitted to the network, in binary form, has the following:
       submitted to.
 
 So:
-  - Validated transactions are identified by hash of contents inluding sig
+  - Validated transactions are identified by hash of contents (including sig)
   - May not get response of successful submission/validation
-  - May need to change a `Fee` and resubmit for a transaction to be supplied
+  - May need to change a `Fee` and resubmit for a transaction to be applied
 
 Therefore, as a transaction gets submitted multiple times, if the transaction
 binary representation content changes, due to a Fee change, it becomes necessary
@@ -119,7 +120,7 @@ It's possible when multiple clients are submitting transactions for the same
 account that there will be contention for Sequence numbers. One client will need
 to increment the sequence on a transaction for it to succeed.
 
-How can this be detected? As transation notifications come in, the hash of each
+How can this be detected? As transaction notifications come in, the hash of each
 transaction is compared against that of all the pending transactions. If a hash
 matches, the transaction is cleared, otherwise if the Sequence matches any of
 the pending transactions, it's assumed that the Sequence has been consumed by
@@ -130,7 +131,9 @@ another account.
 
 Actually it must be compared against **all hashes of any transactions that
 entered the transport layer**, not just the most recent one submitted, otherwise
-there runs the risk of submitting the same transaction more than once.
+there runs the risk of submitting the same transaction more than once. (The
+Sequence will be incremented, as it's assumed that a transaction submitted by
+another client consumed the Sequence)
 
 Robust transaction validation
 -----------------------------
@@ -151,7 +154,7 @@ submission in the pending queue of transactions.
 The same logic that handles clearing transactions from the live stream is
 applied to each transaction in the transaction list.
 
-The `account_tx` command is used.
+The `account_tx` command is used for this purpose.
 
  */
 public class TransactionManager extends Publisher<TransactionManager.events> {
