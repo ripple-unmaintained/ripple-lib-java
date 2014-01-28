@@ -24,48 +24,49 @@ TransactionManager
 ------------------
 
 The `TransactionManager` is in charge of submitting transactions to the network
-in such a way that it's resilient to poor network conditions (busy, dropouts).
+in such a way that is resilient to poor network conditions (busy, dropouts).
 
 There is, in fact, a non 100% success rate for every transaction submission.
-This can be due to conditions at the transport layer, the node submitted to could
-be busy, completely dropping a submission, or outright reject it, due to an
-insufficient fee for the current load.
+This can be due to conditions at the transport layer, or the node submitted to
+could be busy, completely dropping a submission, or even outright rejecting it,
+due to an insufficient fee for the current load.
 
 Therefore, client libraries will present an API that in the background
 automatically handles resubmitting transactions (where it makes sense to do so)
 
-There are 3 phases to submitting a transaction and verifying it has succeeded.
+There are 3 phases to submitting a transaction and verifying it has succeeded:
 
   1. Submission to a ripple node
 
-    Important to note:
+    This is done by making a `submit` RPC request.
 
-      Transaction has entered the transport layer, and could be resubmitted  by
-      3rd parties (helpfully or maliciously)
+    The transaction has entered the transport layer, and could be resubmitted  by
+    3rd parties (helpfully or maliciously)
 
-  2. Response to (stage 1) submission from a ripple node
+  2. Transaction provisionally successful
 
     At this point the transaction has succeeded in being applied to the local
     node's ledger. It is then distributed amongst the network. It may take more
     than one ledger close before it's finalized.
 
-  3. Transaction finalized notification from ripple node
+    The rippled node will respond to the (stage 1) `submit` request.
 
-    The local node will send out to subscribers of a given account, any
-    transactions that affect it.
+  3. Transaction validated
 
-    Recipients will receive notification of transactions as they are validated
-    by the network.
+    The transaction has made it into a validated ledger.
+
+    The local node will send out to subscribers of a given account, notification
+    of any transactions that affect it as they are validated by the network.
 
 Locally, from the client perspective it's only possible to really know that the
 first step has failed.
 
 It's possible (and has been observed), that at times there will be no response
 or notifications from the node the client is connected to, for a transaction
-that will ultimately be successful and distributed to the network.
+that will ultimately find its way into a validated ledger.
 
-It's very important to realize that `no response` isn't necessarily an
-indication of failure.
+It's very important to realize that `no response` isn't necessarily an indication
+of failure.
 
 Each `Transaction` submitted to the network, in binary form, has the following:
 
@@ -92,13 +93,13 @@ Each `Transaction` submitted to the network, in binary form, has the following:
       submitted to.
 
 So:
-  - Validated transactions are identified by hash of contents (including sig)
   - May not get response of successful submission/validation
   - May need to change a `Fee` and resubmit for a transaction to be applied
+  - Validated transactions are identified by hash of contents (including sig)
 
 Therefore, as a transaction gets submitted multiple times, if the transaction
-binary representation content changes, due to a Fee change, it becomes necessary
-to look out for ALL submitted transactionIDs to map incoming transaction
+binary representation content changes, eg. due to a Fee change, it becomes
+necessary to look out for ALL submitted transactionIDs to map incoming transaction
 notifications to a given Transaction.
 
 To understand why, the `Sequence` field must also be considered:
@@ -118,7 +119,7 @@ To understand why, the `Sequence` field must also be considered:
 
 It's possible when multiple clients are submitting transactions for the same
 account that there will be contention for Sequence numbers. One client will need
-to increment the sequence on a transaction for it to succeed.
+to increment the sequence on a transaction before resubmission for it to succeed.
 
 How can this be detected? As transaction notifications come in, the hash of each
 transaction is compared against that of all the pending transactions. If a hash
@@ -133,12 +134,12 @@ Actually. it must be compared against **all hashes of any transaction serializat
 that entered the transport layer**, not just the most recent one submitted, otherwise
 there runs the risk of submitting the same transaction more than once. (The
 Sequence will be incremented, as it's assumed that a transaction submitted by
-another client consumed the Sequence)
+another client consumed the Sequence, when actually it's just a prior submission)
 
 Robust transaction validation
 -----------------------------
 
-For various reasons the live transaction validation notification messages could
+For various reasons the validated transaction subscription messages could
 be missed.
 
   - Transport layer issues
@@ -148,13 +149,13 @@ be missed.
 
 Therefore, periodically, when there are pending transactions, the transaction
 manger will request a list of transactions from the server, from ledger $n
-and forward. $n is determined by looking at the ledger index of the oldest
+and forward. $n is determined by looking at the ledger_index of the oldest
 submission in the pending queue of transactions.
 
-The same logic that handles clearing transactions from the live stream is
-applied to each transaction in the transaction list.
+The same logic that handles clearing transactions from the account subscription
+transaction stream is applied to each transaction in the transaction list.
 
-The rpc command  `account_tx` is used to get the list of transactions.
+The rpc command `account_tx` is used to get the list of transactions.
 
  */
 public class TransactionManager extends Publisher<TransactionManager.events> {
@@ -496,12 +497,15 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             }
         }
     }
-    // We only EVER resubmit a txn with a new sequence if we actually seen it
-    // this is the method that handles that,
+    // We only EVER resubmit a txn with a new Sequence if we have actually
+    // seen that the Sequence has been consumed by a transaction we didn't
+    // submit ourselves.
+    // This is the method that handles that,
     private void resubmitWithNewSequence(final ManagedTxn txn) {
+        // A sequence plug's sole purpose is to plug a Sequence
+        // so that transactions may clear.
         if (txn.isSequencePlug()) {
-            // A sequence plug's sole purpose is to plug a sequence
-            // The sequence has already been plugged.
+            // The sequence has already been plugged (somehow)
             // So:
             return; // without further ado.
         }
@@ -510,7 +514,9 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         if (txnNotFinalizedAndSeenValidatedSequence(txn)) {
             resubmit(txn, locallyPreemptedSubmissionSequence());
         } else {
-            // requesting account_tx now and then (as we do) should take care of this
+            // requesting account_tx now and then (as we do) should ensure that
+            // this doesn't stall forever. We'll either finalize the transaction
+            // or Sequence will be seen to have been consumed by another txn.
             on(OnValidatedSequence.class,
                 new CallbackContext() {
                     @Override
@@ -572,6 +578,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         } else {
             // preempt the terPRE_SEQ
             resubmitFirstTransactionWithTakenSequence(txnSequence);
+            // Some transactions are waiting on this event before resubmission
             emit(OnValidatedSequence.class, txnSequence.add(new UInt32(1)));
         }
     }
