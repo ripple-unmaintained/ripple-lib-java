@@ -560,7 +560,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     public void notifyTransactionResult(TransactionResult tr) {
-        if (!tr.validated) {
+        if (!tr.validated || !(tr.initiatingAccount().equals(accountID))) {
             return;
         }
         UInt32 txnSequence = tr.transaction.get(UInt32.Sequence);
