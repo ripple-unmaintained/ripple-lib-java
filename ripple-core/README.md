@@ -2,13 +2,13 @@
 
 Ripple uses a node store, where objects are keyed by a 32byte hash value.
 
-These indexes are created by hashing a binary representation of the whole object
+These keys are created by hashing a binary representation of the whole object
 prefixed with a name-spacing sequence of bytes, unique to each class of object.
 As such, a method of consistently producing a binary sequence from a given
 object was required.
 
-Objects have fields, which are a pairing of a name and a type. Names are simply
-ordinals used to look up preassigned names in a table. The type ordinal,
+Objects have fields, which are a pairing of a type and a name. Names are simply
+ordinals used to look up preassigned names in a per type table. The type ordinal,
 similarly, is used to lookup a given class.
 
 In ripple-lib-java the type equates to a `SerializedType`, with types such as 32
@@ -176,8 +176,8 @@ Merely a tag interface. Doesn't actually require any methods be implemented.
 
 #### com.ripple.core.serialized.BytesList
 
-A dynamic array of byte[] or other BytesTree instances. Used by TypeTranslators
-to avoid needless copying (see fromParser(paser, hint)).
+A dynamic array of byte[]. Used by TypeTranslators to avoid needless 
+copying (see fromParser(paser, hint)).
 
 #### com.ripple.core.serialized.Markers
 
@@ -185,9 +185,7 @@ Definitions of STObject and STArray, binary stream, end markers.
 
 #### com.ripple.core.serialized.BinaryParser
 
-Responsible for decoding Fields and VL encoded structures. Delegates the work of
-actually decoding SerializedTypes to TypeTranslators, passing along any VL size
-hints.
+Responsible for decoding Fields and VL encoded structures.
 
 #### com.ripple.core.serialized.TypeTranslator
 
