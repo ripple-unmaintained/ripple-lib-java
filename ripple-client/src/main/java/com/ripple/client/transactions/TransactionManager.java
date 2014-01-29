@@ -256,16 +256,13 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             if (page.hasNext()) {
                 page.requestNext();
             } else {
-                // We can only know if we got to here
-                // TODO check what ledgerMax really means
                 lastLedgerCheckedAccountTxns = Math.max(lastLedgerCheckedAccountTxns, page.ledgerMax());
                 txnRequester = null;
             }
-            // TODO: TODO: check this logic
-            // We are assuming moving `forward` from a ledger_index_min or resume marker
-
             for (TransactionResult tr : page.transactionResults()) {
-                notifyTransactionResult(tr);
+                if (tr.initiatingAccount().equals(accountID)) {
+                    notifyTransactionResult(tr);
+                }
             }
         }
     };
@@ -563,7 +560,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     public void notifyTransactionResult(TransactionResult tr) {
-        if (!tr.validated) {
+        if (!tr.validated || !(tr.initiatingAccount().equals(accountID))) {
             return;
         }
         UInt32 txnSequence = tr.transaction.get(UInt32.Sequence);
