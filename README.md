@@ -14,8 +14,8 @@ the basis for various clients/wallets.
 
 ### Docs
 
-  - [Serialized Types](ripple-core/README.md)
   - [Shamap](ripple-core/src/main/java/com/ripple/core/types/shamap/README.md)
+  - [Serialized Types](ripple-core/README.md)
 
 ### Current status
 

@@ -47,21 +47,29 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     public static final Amount ONE_XRP = fromString("1.0");
 
     // The quantity of XRP or Issue(currency/issuer pairing)
+    // When native, the value unit is XRP, not drops.
     private BigDecimal value;
     private Currency currency;
     // If the currency is XRP
     private boolean isNative;
     // Normally, in the constructor of an Amount the value is checked
     // that it's scale/precision and quantity are correctly bounded.
-    // If
+    // If unbounded is true, these checks are skipped.
+    // This is there for historical ledgers that contain amounts that
+    // would now be considered malformed (in the sense of the transaction 
+    // engine result class temMALFORMED)
     private boolean unbounded = false;
-    // The ZERO account is used for specifying the issuer
+    // The ZERO account is used for specifying the issuer for native 
+    // amounts. In practice the issuer is never used when an
+    // amount is native.
     private AccountID issuer;
 
     // While internally the value is stored as a BigDecimal
-    // the offset and mantissa equivalent, as per the binary
-    // format are computed lazily if needed.
+    // the mantissa and offset, as per the binary
+    // format can be computed.
+    // The mantissa is computed lazily, then cached
     private UInt64 mantissa = null;
+    // The offset is always calculated.
     private int offset;
 
     public Amount(BigDecimal value, Currency currency, AccountID issuer) {
@@ -113,7 +121,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 checkXRPBounds(value);
             }
             // Offset is unused for native amounts
-            offset = -6;
+            offset = -6; // compared to drops.
         } else {
             if (value.precision() > MAXIMUM_IOU_PRECISION && !unbounded) {
                 throw new PrecisionError("Overflow Error!");
@@ -134,7 +142,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return new Amount(newValue, currency, issuer, isNative, unbounded);
     }
 
-    private Amount roundedNewValue(BigDecimal val, boolean round) {
+    private Amount newValue(BigDecimal val, boolean round) {
         return newValue(val, round, false);
     }
 
@@ -255,8 +263,29 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return value.signum() == 1;
     }
 
-    /* Arithimetic Operations */
+    /**
 
+    Arithimetic Operations
+
+    There's no checking if an amount is of a different currency/issuer.
+    
+    All operations return amounts of the same currency/issuer as the
+    first operand.
+
+    eg.
+
+        amountOne.add(amountTwo)
+        amountOne.multiply(amountTwo)
+        amountOne.divide(amountTwo)
+        amountOne.subtract(amountTwo)
+        
+        For all of these operations, the currency/issuer of the resultant
+        amount, is that of `amountOne`
+    
+    Divide and multiply are equivalent to the javascript ripple-lib
+    ratio_human and product_huam.
+
+    */
     public Amount add(BigDecimal augend) {
         return newValue(value.add(augend));
     }
@@ -282,7 +311,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public Amount multiply(BigDecimal divisor) {
-        return roundedNewValue(value.multiply(divisor, MATH_CONTEXT), true);
+        return newValue(value.multiply(divisor, MATH_CONTEXT), true);
     }
 
     public Amount multiply(Amount multiplicand) {
@@ -294,7 +323,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public Amount divide(BigDecimal divisor) {
-        return roundedNewValue(value.divide(divisor, MATH_CONTEXT), true);
+        return newValue(value.divide(divisor, MATH_CONTEXT), true);
     }
 
     public Amount divide(Amount divisor) {
