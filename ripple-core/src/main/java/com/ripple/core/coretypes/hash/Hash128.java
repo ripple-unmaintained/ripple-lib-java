@@ -36,8 +36,8 @@ public class Hash128 extends HASH<Hash128> {
 
     @Override
     public void toBytesList(BytesList to) {
+        translate.toBytesList(this, to);
     }
-
     public static class Translator extends HashTranslator<Hash128> {
         @Override
         public Hash128 newInstance(byte[] b) {

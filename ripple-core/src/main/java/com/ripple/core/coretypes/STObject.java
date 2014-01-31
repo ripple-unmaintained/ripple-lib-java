@@ -20,6 +20,7 @@ import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ripple.bouncycastle.util.Arrays;
 
 import java.util.Iterator;
 import java.util.TreeMap;
@@ -195,16 +196,19 @@ public class STObject implements SerializedType, Iterable<Field> {
         for (Field field : this) {
             if (field.isSerialized()) {
                 SerializedType value = fields.get(field);
-                TypeTranslator<SerializedType> tr = Translators.forField(field);
                 serializer.addFieldHeader(field);
+                TypeTranslator<SerializedType> tr = Translators.forField(field);
 
                 if (field.isVLEncoded()) {
                     BytesList bytes = new BytesList();
                     tr.toBytesList(value, bytes);
-                    serializer.add(BinarySerializer.encodeVL(bytes.length()));
-                    serializer.add(bytes);
+                    serializer.addLengthEncoded(bytes);
                 } else {
-                    tr.toBytesList(value, to);
+//                    if (!Arrays.areEqual(value.toBytes(), tr.toBytes(value))) {
+//                        System.out.println(field);
+//                    }
+                    value.toBytesList(to);
+//                    tr.toBytesList(value, to);
                     if (field.getType() == Type.OBJECT) {
                         serializer.addFieldHeader(Field.ObjectEndMarker);
                     } else if (field.getType() == Type.ARRAY) {

@@ -37,6 +37,7 @@ public class Hash160 extends HASH<Hash160> {
 
     @Override
     public void toBytesList(BytesList to) {
+        translate.toBytesList(this, to);
     }
 
     public static class Translator extends HashTranslator<Hash160> {

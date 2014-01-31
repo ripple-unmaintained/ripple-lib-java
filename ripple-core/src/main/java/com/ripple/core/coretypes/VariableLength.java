@@ -45,8 +45,8 @@ public class VariableLength implements SerializedType {
 
     @Override
     public void toBytesList(BytesList to) {
+        translate.toBytesList(this, to);
     }
-
     public static class Translator extends TypeTranslator<VariableLength> {
         @Override
         public VariableLength fromParser(BinaryParser parser, Integer hint) {

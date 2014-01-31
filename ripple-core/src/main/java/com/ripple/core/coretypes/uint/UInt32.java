@@ -120,5 +120,6 @@ public class UInt32 extends UINT<UInt32> {
 
     @Override
     public void toBytesList(BytesList to) {
+        translate.toBytesList(this, to);
     }
 }

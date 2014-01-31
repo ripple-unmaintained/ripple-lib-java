@@ -38,6 +38,7 @@ public class Hash256 extends HASH<Hash256> {
 
     @Override
     public void toBytesList(BytesList to) {
+        translate.toBytesList(this, to);
     }
 
     public static class Hash256Map<Value> extends TreeMap<Hash256, Value> {}

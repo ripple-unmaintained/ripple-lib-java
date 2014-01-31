@@ -91,5 +91,6 @@ public class UInt16 extends UINT<UInt16> {
 
     @Override
     public void toBytesList(BytesList to) {
+        translate.toBytesList(this, to);
     }
 }

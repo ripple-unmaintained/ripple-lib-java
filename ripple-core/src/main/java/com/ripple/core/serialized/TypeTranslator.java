@@ -94,12 +94,12 @@ public abstract class TypeTranslator<T extends SerializedType> {
         return fromParser(parser, null);
     }
 
-    public T fromWireBytes(byte[] b) {
+    public T fromBytes(byte[] b) {
         return fromParser(new BinaryParser(b));
     }
 
-    public T fromWireHex(String hex) {
-        return fromWireBytes(B16.decode(hex));
+    public T fromHex(String hex) {
+        return fromBytes(B16.decode(hex));
     }
 
     public JSONObject toJSONObject(T obj) {

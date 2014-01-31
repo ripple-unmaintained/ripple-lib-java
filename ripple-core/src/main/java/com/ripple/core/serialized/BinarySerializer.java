@@ -1,9 +1,7 @@
 package com.ripple.core.serialized;
 
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.Type;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class BinarySerializer {
@@ -15,47 +13,6 @@ public class BinarySerializer {
 
     public BinarySerializer(BytesList buffer) {
         this.buffer = buffer;
-    }
-
-    public static byte[] fieldHeader(Field field) {
-        int name = field.getId(), type = field.getType().getId();
-        if (!((type > 0) && (type < 256) && (name > 0) && (name < 256))) {
-            throw new RuntimeException("Field is invalid: " + field.toString());
-        }
-
-        ArrayList<Byte> header = new ArrayList<Byte>(3);
-        
-        if (type < 16)
-        {
-            if (name < 16) // common type, common name
-                header.add((byte)((type << 4) | name));
-            else
-            {
-                // common type, uncommon name
-                header.add((byte)(type << 4));
-                header.add((byte)(name));
-            }
-        }
-        else if (name < 16)
-        {
-            // uncommon type, common name
-            header.add((byte)(name));
-            header.add((byte)(type));
-        }
-        else
-        {
-            // uncommon type, uncommon name
-            header.add((byte)(0));
-            header.add((byte)(type));
-            header.add((byte)(name));
-        }
-
-        byte[] headerBytes = new byte[header.size()];
-        for (int i = 0; i < header.size(); i++) {
-            headerBytes[i] = header.get(i);
-        }
-
-        return headerBytes;
     }
 
     public void add(byte[] n) {
@@ -98,7 +55,10 @@ public class BinarySerializer {
     }
 
     public int addFieldHeader(Field f) {
-        byte[] n = fieldHeader(f);
+        if (!f.isSerialized()) {
+            throw new IllegalStateException(String.format("Field %s is not a signing field", f));
+        }
+        byte[] n = f.getBytes();
         add(n);
         return n.length;
     }
@@ -109,5 +69,10 @@ public class BinarySerializer {
 
     public void add(byte type) {
         buffer.add(type);
+    }
+
+    public void addLengthEncoded(BytesList bytes) {
+        add(BinarySerializer.encodeVL(bytes.length()));
+        add(bytes);
     }
 }

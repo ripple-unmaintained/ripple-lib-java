@@ -93,5 +93,6 @@ public class UInt8 extends UINT<UInt8> {
 
     @Override
     public void toBytesList(BytesList to) {
+        translate.toBytesList(this, to);
     }
 }

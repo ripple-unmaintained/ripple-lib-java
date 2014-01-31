@@ -112,8 +112,8 @@ public class TransactionResult {
 
                     String tx = json.getString("tx_blob");
                     byte[] decodedTx = B16.decode(tx);
-                    meta = STObject.translate.fromWireHex(json.getString("meta"));
-                    transaction = STObject.translate.fromWireBytes(decodedTx);
+                    meta = STObject.translate.fromHex(json.getString("meta"));
+                    transaction = STObject.translate.fromBytes(decodedTx);
                     hash = Hash256.transactionID(decodedTx);
                     transaction.put(Field.hash, hash);
 

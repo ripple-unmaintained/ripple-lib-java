@@ -152,18 +152,62 @@ public enum Field {
         return f;
     }
 
+    public static byte[] asBytes(Field field) {
+        int name = field.getId(), type = field.getType().getId();
+        ArrayList<Byte> header = new ArrayList<Byte>(3);
+
+        if (type < 16)
+        {
+            if (name < 16) // common type, common name
+                header.add((byte)((type << 4) | name));
+            else
+            {
+                // common type, uncommon name
+                header.add((byte)(type << 4));
+                header.add((byte)(name));
+            }
+        }
+        else if (name < 16)
+        {
+            // uncommon type, common name
+            header.add((byte)(name));
+            header.add((byte)(type));
+        }
+        else
+        {
+            // uncommon type, uncommon name
+            header.add((byte)(0));
+            header.add((byte)(type));
+            header.add((byte)(name));
+        }
+
+        byte[] headerBytes = new byte[header.size()];
+        for (int i = 0; i < header.size(); i++) {
+            headerBytes[i] = header.get(i);
+        }
+
+        return headerBytes;
+    }
+
     public int getId() {
         return id;
     }
 
     final int code;
     final Type type;
+    private final byte[] bytes;
     public Object tag = null;
     
     Field(int fid, Type tid) {
         id = fid;
         type = tid;
         code = (type.id << 16) | fid;
+        if (isSerialized()) {
+            bytes = asBytes(this);
+        } else {
+            bytes = null;
+        }
+
     }
     
     static private Map<Integer, Field> byCode = new TreeMap<Integer, Field>();
@@ -192,9 +236,8 @@ public enum Field {
         return type == Type.VL || type == Type.ACCOUNT || type == Type.VECTOR256;
     }
 
-    //
     public boolean isSigningField() {
-        return isSerialized() && this != TxnSignature;
+        return isSerialized() && this != TxnSignature && this != SigningPubKey;
     }
 
     static public Comparator<Field> comparator = new Comparator<Field>() {
@@ -223,4 +266,7 @@ public enum Field {
         }
     }
 
+    public byte[] getBytes() {
+        return bytes;
+    }
 }
