@@ -143,7 +143,7 @@ something in the form shown earlier, with 16 256 bit hashes.
 From the nodestore we retrieve:
  
   ```
-  534D494E
+  40494E00
   DA0E8E7247BD8F35D53D3CB9308A1F63F2A1FFC9C6F92F5BC4F8F2AE227CE5B3
   685CDDA83DB325FFF2CB72A3D70BD63E65F77B2811E95A18A49906439D360424
   6450A66258D9CD3FD51D49E4F636F1FA7FA5D7CB8594605DA4539377CFD1366C
@@ -162,10 +162,10 @@ From the nodestore we retrieve:
   838777ADAF945A4CB481644B6D0923C807375CF3D7B3DED87268D144D7C09768
   ```
   
-    We see the hashes for 16 nodes clear as day, but what is this `534D494E`
+    We see the hashes for 16 nodes clear as day, but what is this `40494E00`
     prefixed to the front?
  
-    Converted to `ascii` letters the hex `534D494E` is `SMIN`, meaning s)ham)ap
+    Converted to `ascii` letters the hex `40494E00` is `MIN\x00`, meaning sham)ap
     i)nner n)ode.
     
     The prefix `namespaces` the content, so different classes of objects which
@@ -204,7 +204,7 @@ We select the 14th hash
 From the nodestore we retrieve:
  
   ```
-  534D494E
+  40494E00
   25CCD7BE2CB8BC77C832BDB55659E4C5CF9FD9C062164BEE6EB8A92BE93F19FE
   98998C886894A87A4D4E0553D629804086526B8AA4D0856861060843ACAF38A8
   BF2B532A44CC3373283AB9EA499CF7C313488DCF068310868C4F49847041E3EE
@@ -223,7 +223,7 @@ From the nodestore we retrieve:
   272D03DC4D1A559FF23DADA65FFFB652E7A727F5D857BEC83C029BC662F79034
   ```
  
-    There's that 'SMIN` hash prefix again.
+    There's that 'MIN\x00` hash prefix again.
  
     In fact, this prefix is how we can deterministically say that this is an
     `inner node` and that we can interpret the following bytes as 16 more
@@ -250,7 +250,7 @@ We select the 16th hash:
 From the nodestore we retrieve:
  
   ```
-  534D4C4E
+  4D4C4E00
   201C00000000F8E311006F563596CE72C902BAFAAB56CC486ACAF9B
   4AFC67CF7CADBB81A4AA9CBDC8C5CB1AAE824000195F93400000000
   0000000E501062A3338CAF2E1BEE510FC33DE1863C56948E962CCE1
@@ -262,7 +262,7 @@ From the nodestore we retrieve:
   ```
   
     Well, here's something new. The `hash prefix` is different. This time the
-    hex decodes as `SMLN`, meaning s)ham)ap l)eaf n)ode.
+    hex decodes as `MLN\x00`, meaning sham)ap l)eaf n)ode.
  
     And what's that at the end? Is that our index? It is!!
  
