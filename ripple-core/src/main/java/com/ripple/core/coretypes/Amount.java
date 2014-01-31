@@ -84,7 +84,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     // Private constructors
-    private Amount(BigDecimal newValue, Currency currency, AccountID issuer, boolean isNative) {
+    Amount(BigDecimal newValue, Currency currency, AccountID issuer, boolean isNative) {
         this(newValue, currency, issuer, isNative, false);
     }
 
