@@ -4,20 +4,24 @@ Rippled NodeStore
 To understand a ShaMap first you must know about the NodeStore.
 
 ```java
-
 /**
- * In ripple, all data is stored in a simple binary key/value database.
- * The keys are 256 bit binary strings and the values are binary strings of
- * arbitrary length.
- *
+
  * This is a toy implementation for illustrative purposes.
  */
 public class NodeStore {
-    // There are various backends available
-    Map<Hash256, byte[]> backend;
+    /**
+    * In ripple, all data is stored in a simple binary key/value database.
+    * The keys are 256 bit binary strings and the values are binary strings of
+    * arbitrary length.
+    */
+    public static interface KeyValueBackend {
+        void   put(Hash256 key, byte[] content);
+        byte[] get(Hash256 key);
+    }
 
-    public NodeStore() {
-        backend = new TreeMap<Hash256, byte[]>();
+    KeyValueBackend backend;
+    public NodeStore(KeyValueBackend backend) {
+        this.backend = backend;
     }
     /**
      * All data stored is keyed by the hash of it's contents.
@@ -26,11 +30,11 @@ public class NodeStore {
      *
      * @return `key` used to store the content
      */
-    private Hash256 store_content(byte[] content) {
+    private Hash256 storeContent(byte[] content) {
         Hash256.HalfSha512 hasher = new Hash256.HalfSha512();
         hasher.update(content);
         Hash256 key = hasher.finish();
-        store_hash_keyed_content(key, content);
+        storeHashKeyedContent(key, content);
         return key;
     }
 
@@ -39,7 +43,7 @@ public class NodeStore {
      *             NodeStore key, `hash` is pervasively used in lieu of
      *             the term `key`.
      */
-    private void store_hash_keyed_content(Hash256 hash, byte[] content) {
+    private void storeHashKeyedContent(Hash256 hash, byte[] content) {
         // Note: The real nodestore actually prepends some metadata, which doesn't
         // contribute to the hash.
         backend.put(hash, content); // metadata + content
@@ -56,7 +60,7 @@ public class NodeStore {
      * The complement to `get` api, which together form a simple public interface.
      */
     public Hash256 set(byte[] content) {
-        return store_content(content);
+        return storeContent(content);
     }
 }
 ```
