@@ -1,6 +1,8 @@
 Rippled NodeStore
 -----------------
 
+To understand a ShaMap first you must know about the NodeStore.
+
 ```java
 
 /**
@@ -270,6 +272,13 @@ From the nodestore we retrieve:
     node. Without storing the `index` identifier in the leaf node contents,
     there would be no way to be certain that this leaf held the item you wanted.
  
+
+Links
+-----
+
+* [ShamapInnerNodeAnalyis](../../../../../../../../../ripple-examples/ripple-cli/src/main/java/com/ripple/cli/ShamapInnerNodeAnalysis.java)
+* [Rippled Hash Prefixe declarations](https://github.com/ripple/rippled/blob/develop/src/ripple_data/protocol/HashPrefix.h#L54-L58)
+
 Annoyingly verbose ascii art
 ----------------------------
 
