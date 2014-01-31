@@ -105,7 +105,8 @@ the NodeStore.
 An example of an inner node's `contents`
  
   Empty slots are represented as 32 0 bytes
- 
+  
+  ```
   022CC592F5D4ABC3A63DA2A036CDDC0825B30717C78EF287BEF200056133FDA2
   0000000000000000000000000000000000000000000000000000000000000000
   BEE626551799DDFE65BD2D9A0F0EA24D72C93CFD8E083176718D2B079EC60214
@@ -122,15 +123,16 @@ An example of an inner node's `contents`
   0000000000000000000000000000000000000000000000000000000000000000
   15B98934D22B5CB7233C42CE8DC8DD0D2328AB91CC574332C45D7160BD31D4AD
   1894E389AE4A63BA99C2D0546A58A976ECDAB14C09B98F532999B464696E29E5
+  ```
  
 What about those `index` thingies again? Remeber, the `index` can't be used to
 query something directly in the NodeStore.
  
 First you need a known point in time, which we learned could be defined by a
 `hash` of a ShaMap.
- 
-shamap hash: E4984329FFD3D06C882706C190503412B0AF49A37499BE2DF82251F94D5CC3E6
-value index: DF68EE71EE9141E24B87E630976C1F9071F74AD073BD03578083FDD9098B4BD9
+
+* shamap hash: E4984329FFD3D06C882706C190503412B0AF49A37499BE2DF82251F94D5CC3E6
+* value index: DF68EE71EE9141E24B87E630976C1F9071F74AD073BD03578083FDD9098B4BD9
  
 Imagine we have those above. First we query the nodestore with `E49843...`
  
@@ -140,6 +142,7 @@ something in the form shown earlier, with 16 256 bit hashes.
  
 From the nodestore we retrieve:
  
+  ```
   534D494E
   DA0E8E7247BD8F35D53D3CB9308A1F63F2A1FFC9C6F92F5BC4F8F2AE227CE5B3
   685CDDA83DB325FFF2CB72A3D70BD63E65F77B2811E95A18A49906439D360424
@@ -157,7 +160,8 @@ From the nodestore we retrieve:
   7C0B1C90CD3AE3446F65A1F59B36E5C990A7386C1D513E224A59BA404B6ED58C
   5C8BD6B57668FBBAE9BD683F2184EB494B9657A711C9B86D67F14FA3D84023B9
   838777ADAF945A4CB481644B6D0923C807375CF3D7B3DED87268D144D7C09768
- 
+  ```
+  
     We see the hashes for 16 nodes clear as day, but what is this `534D494E`
     prefixed to the front?
  
@@ -184,7 +188,7 @@ an index into the 16 slots in each inner node.
  
 Consider again the value `index`:
  
-  DF68EE71EE9141E24B87E630976C1F9071F74AD073BD03578083FDD9098B4BD9
+  `DF68EE71EE9141E24B87E630976C1F9071F74AD073BD03578083FDD9098B4BD9`
  
 To use the `index` we take the first nibble, `D` (yes, we go left to right)
  
@@ -195,10 +199,11 @@ based indexing)
  
 We select the 14th hash
  
-  7C0B1C90CD3AE3446F65A1F59B36E5C990A7386C1D513E224A59BA404B6ED58C
+  `7C0B1C90CD3AE3446F65A1F59B36E5C990A7386C1D513E224A59BA404B6ED58C`
  
 From the nodestore we retrieve:
  
+  ```
   534D494E
   25CCD7BE2CB8BC77C832BDB55659E4C5CF9FD9C062164BEE6EB8A92BE93F19FE
   98998C886894A87A4D4E0553D629804086526B8AA4D0856861060843ACAF38A8
@@ -216,6 +221,7 @@ From the nodestore we retrieve:
   15CAD3899E675402F19546016570252778A61D900D9E54D5A217A348DB245557
   34257698B5A753495A416D0EC8E1B45E438563D12AF66210B8F40A3CD69E84F2
   272D03DC4D1A559FF23DADA65FFFB652E7A727F5D857BEC83C029BC662F79034
+  ```
  
     There's that 'SMIN` hash prefix again.
  
@@ -226,20 +232,24 @@ From the nodestore we retrieve:
 We have descended deeper into the tree, but it seems we need to go deeper. We
 are currently at a depth of 2, so to go deeper we need the 2nd nibble.
  
-value index: DF68EE71EE9141E24B87E630976C1F9071F74AD073BD03578083FDD9098B4BD9
-              |
-              \
-               2nd nibble
+value index: 
+  ```
+  DF68EE71EE9141E24B87E630976C1F9071F74AD073BD03578083FDD9098B4BD9`
+   |
+    \
+     2nd nibble
+  ```
  
 The letter `F` in hex has the ordinal value 15, so we take the 16th branch (0
 based indexing)
  
 We select the 16th hash:
  
-  272D03DC4D1A559FF23DADA65FFFB652E7A727F5D857BEC83C029BC662F79034
+  `272D03DC4D1A559FF23DADA65FFFB652E7A727F5D857BEC83C029BC662F79034`
  
 From the nodestore we retrieve:
  
+  ```
   534D4C4E
   201C00000000F8E311006F563596CE72C902BAFAAB56CC486ACAF9B
   4AFC67CF7CADBB81A4AA9CBDC8C5CB1AAE824000195F93400000000
@@ -249,6 +259,7 @@ From the nodestore we retrieve:
   419CE614BF264B5EEB1CEA47FF4811439408A69F0895E62149CFCC0
   06FB89FA7
   DF68EE71EE9141E24B87E630976C1F9071F74AD073BD03578083FDD9098B4BD9
+  ```
   
     Well, here's something new. The `hash prefix` is different. This time the
     hex decodes as `SMLN`, meaning s)ham)ap l)eaf n)ode.
@@ -261,7 +272,8 @@ From the nodestore we retrieve:
  
 Annoyingly verbose ascii art
 ----------------------------
- 
+
+``` 
   DF68EE71EE9141E24B87E630976C1F9071F74AD073BD03578083FDD9098B4BD9
   || \_____
   \ \____  \
@@ -291,3 +303,4 @@ e  12  |  |  |  |   |  |  |  |   |  |  |  |   |  |  |  |   |  |  |  |   |  |
    13 [D] |  |  |   |  |  |  |   |  |  |  |   |  |  |  |   |  |  |  |   |  |     
 |  14  |  |  |  |   E  E  |  |   E  E  |  |   |  |  *  |   |  |  |  |   E  |     
 V  15  |  F  |  |   |  |  |  |   |  |  |  |   |  |  |  |   |  |  |  |   |  |    
+```
