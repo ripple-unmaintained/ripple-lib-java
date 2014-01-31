@@ -32,16 +32,17 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     // For rounding/multiplying/dividing
     public static final MathContext MATH_CONTEXT = MathContext.DECIMAL64;
-    // The maximum amount of significant digits
+    // The maximum amount of digits in mantissa of an IOU amount
     public static final int MAXIMUM_IOU_PRECISION = 16;
     // The smallest quantity of an XRP is a drop, 1 millionth of an XRP
     public static final int MAXIMUM_NATIVE_SCALE = 6;
+    // Defines bounds for native amounts
     public static final BigDecimal MAX_NATIVE_VALUE = parseDecimal("100,000,000,000.0");
     public static final BigDecimal MIN_NATIVE_VALUE = parseDecimal("0.000,001");
 
     // These are flags used when serializing to binary form
     public static final UInt64 BINARY_FLAG_IS_IOU = new UInt64("8000000000000000", 16);
-    public static final UInt64 BINARY_FLAG_IS_POSITIVE_NATIVE = new UInt64("4000000000000000", 16);
+    public static final UInt64 BINARY_FLAG_IS_NON_NEGATIVE_NATIVE = new UInt64("4000000000000000", 16);
 
     public static final Amount ONE_XRP = fromString("1.0");
 
@@ -63,44 +64,44 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     private UInt64 mantissa = null;
     private int offset;
 
-    public Amount(BigDecimal value, Currency currency, AccountID issuer, boolean isNative, boolean unbounded) {
-        this.isNative = isNative;
-        this.currency = currency;
-        this.unbounded = unbounded;
-        this.setValue(value);
-        // done AFTER set value which sets some default values
-        this.issuer = issuer;
-    }
-
-    public Amount(BigDecimal newValue, String currency, AccountID issuer, boolean isNative) {
-        this(newValue, Currency.fromString(currency), issuer, isNative);
-    }
-
-    public Amount(BigDecimal newValue, Currency currency, AccountID issuer, boolean isNative) {
-        this(newValue, currency, issuer, isNative, false);
+    public Amount(BigDecimal value, Currency currency, AccountID issuer) {
+        this(value, currency, issuer, false);
     }
 
     public Amount(BigDecimal value) {
         isNative = true;
         currency = Currency.XRP;
-        this.setValue(value);
+        this.setAndCheckValue(value);
+    }
+
+    public Amount(BigDecimal value, Currency currency, AccountID issuer, boolean isNative, boolean unbounded) {
+        this.isNative = isNative;
+        this.currency = currency;
+        this.unbounded = unbounded;
+        this.setAndCheckValue(value);
+        // done AFTER set value which sets some default values
+        this.issuer = issuer;
     }
 
     // Private constructors
+    private Amount(BigDecimal newValue, Currency currency, AccountID issuer, boolean isNative) {
+        this(newValue, currency, issuer, isNative, false);
+    }
+
     private Amount(BigDecimal value, String currency, String issuer) {
         this(value, currency);
         if (issuer != null) {
-            this.setIssuer(issuer);
+            this.issuer = AccountID.fromString(issuer);
         }
     }
 
     private Amount(BigDecimal value, String currency) {
         isNative = false;
-        this.setCurrency(currency);
-        this.setValue(value);
+        this.currency = Currency.fromString(currency);
+        this.setAndCheckValue(value);
     }
 
-    private void setValue(BigDecimal value) {
+    private void setAndCheckValue(BigDecimal value) {
         this.value = value.stripTrailingZeros();
         initialize();
     }
@@ -111,7 +112,8 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             if (!unbounded) {
                 checkXRPBounds(value);
             }
-            offset = 0;
+            // Offset is unused for native amounts
+            offset = -6;
         } else {
             if (value.precision() > MAXIMUM_IOU_PRECISION && !unbounded) {
                 throw new PrecisionError("Overflow Error!");
@@ -138,9 +140,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     /* Getters and Setters */
 
-    /**
-     * @return A BigDecimal containing the value (in XRP scale)
-     */
     public BigDecimal value() {
         return value;
     }
@@ -182,17 +181,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             return "";
         }
         return issuer.toString();
-    }
-
-    private void setCurrency(String currency) {
-        this.currency = Currency.fromString(currency);
-    }
-
-    private void setIssuer(String issuer) {
-        if (issuer != null) {
-            // blows up if issuer is shitty
-            this.issuer = AccountID.fromString(issuer);
-        }
     }
 
     /* Offset & Mantissa Helpers */
@@ -317,7 +305,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return divide(BigDecimal.valueOf(divisor.doubleValue()));
     }
 
-    /* Arithimetic Operations */
     public Amount negate() {
         return newValue(value.negate());
     }
@@ -333,8 +320,8 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     /* Offer related helpers */
-    public BigDecimal computeQuality(Amount other) {
-        return value.divide(other.value, MathContext.DECIMAL128);
+    public BigDecimal computeQuality(Amount toExchangeThisWith) {
+        return value.divide(toExchangeThisWith.value, MathContext.DECIMAL128);
     }
     /**
      * @return Amount
@@ -389,22 +376,22 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
         if (isNative()) {
             if (!isNegative()) {
-                man = man.or(BINARY_FLAG_IS_POSITIVE_NATIVE);
+                man = man.or(BINARY_FLAG_IS_NON_NEGATIVE_NATIVE);
             }
             to.add(man.toByteArray());
         } else {
             int offset = offset();
-            UInt64 value;
+            UInt64 packed;
 
             if (isZero()) {
-                value = BINARY_FLAG_IS_IOU;
+                packed = BINARY_FLAG_IS_IOU;
             } else if (isNegative()) {
-                value = man.or(new UInt64(512 + 0 + 97 + offset).shiftLeft(64 - 10));
+                packed = man.or(new UInt64(512 + 0 + 97 + offset).shiftLeft(64 - 10));
             } else {
-                value = man.or(new UInt64(512 + 256 + 97 + offset).shiftLeft(64 - 10));
+                packed = man.or(new UInt64(512 + 256 + 97 + offset).shiftLeft(64 - 10));
             }
 
-            to.add(value.toByteArray());
+            to.add(packed.toByteArray());
             to.add(currency.bytes());
             to.add(issuer.bytes());
         }
@@ -459,7 +446,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 String issuerString = jsonObject.getString("issuer");
                 String currencyString = jsonObject.getString("currency");
                 return new Amount(new BigDecimal(valueString), currencyString, issuerString);
-
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }

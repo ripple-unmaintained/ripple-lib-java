@@ -140,7 +140,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
             // TODO: some way of ...
             destinationAmount = Issue.XRP.amount(destAmountValue);
         } else {
-            destinationAmount = new Amount(destAmountValue, destAmountCurrency, dest, false);
+            destinationAmount = new Amount(destAmountValue, destAmountCurrency, dest);
         }
 
         if (destinationAmount.isNative()) {

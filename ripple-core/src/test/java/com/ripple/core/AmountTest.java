@@ -53,7 +53,7 @@ public class AmountTest {
         Amount amt = Amount.fromDropString("0");
         String s = amounts.toHex(amt);
         assertEquals("4000000000000000", s);
-        assertEquals(Amount.BINARY_FLAG_IS_POSITIVE_NATIVE.toString(16), s);
+        assertEquals(Amount.BINARY_FLAG_IS_NON_NEGATIVE_NATIVE.toString(16), s);
     }
 
     @Test
