@@ -14,46 +14,57 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 
+/**
+ * In ripple, amounts are either XRP, the native currency, or an IOU of
+ * a given currency as issued by a designated account.
+ */
 public class Amount extends Number implements SerializedType, Comparable<Amount>
 
 {
-    public static final MathContext MATH_CONTEXT = MathContext.DECIMAL64;
-    protected BigDecimal value; // When native the value is in `drops`
-
-    UInt64 mantissa = null;
-    /*
-    TODO: Consider deleting these;
-    static public UInt64 cMinValue = new UInt64("1000000000000000");
-    static public UInt64 cMaxValue = new UInt64("9999999999999999");
-    static public UInt64 cMaxNative = new UInt64("9000000000000000000");
-    static public UInt64 cMaxNativeN = new UInt64("100000000000000000");
-    */
-    static public UInt64 cNotNative = new UInt64("8000000000000000", 16);
-    static public UInt64 cPosNative = new UInt64("4000000000000000", 16);
-
-    public boolean unbounded = false;
-
-    private static BigDecimal parseXRP(String s) {
-        return new BigDecimal(s.replace(",", "")); //# .scaleByPowerOfTen(6);
+    /**
+     * Thrown when an Amount is constructed with an invalid value
+     */
+    public static class PrecisionError extends RuntimeException {
+        public PrecisionError(String s) {
+            super(s);
+        }
     }
 
-    public static final BigDecimal MAX_DROPS = parseXRP("100,000,000,000.0");
-    public static final BigDecimal MIN_DROPS = parseXRP("0.000,001");
-    private static final Amount ONE_XRP = fromString("1.0");
+    // For rounding/multiplying/dividing
+    public static final MathContext MATH_CONTEXT = MathContext.DECIMAL64;
+    // The maximum amount of significant digits
+    public static final int MAXIMUM_IOU_PRECISION = 16;
+    // The smallest quantity of an XRP is a drop, 1 millionth of an XRP
+    public static final int MAXIMUM_NATIVE_SCALE = 6;
+    public static final BigDecimal MAX_NATIVE_VALUE = parseDecimal("100,000,000,000.0");
+    public static final BigDecimal MIN_NATIVE_VALUE = parseDecimal("0.000,001");
 
+    // These are flags used when serializing to binary form
+    public static final UInt64 BINARY_FLAG_IS_IOU = new UInt64("8000000000000000", 16);
+    public static final UInt64 BINARY_FLAG_IS_POSITIVE_NATIVE = new UInt64("4000000000000000", 16);
+
+    public static final Amount ONE_XRP = fromString("1.0");
+
+    // The quantity of XRP or Issue(currency/issuer pairing)
+    private BigDecimal value;
     private Currency currency;
+    // If the currency is XRP
+    private boolean isNative;
+    // Normally, in the constructor of an Amount the value is checked
+    // that it's scale/precision and quantity are correctly bounded.
+    // If
+    private boolean unbounded = false;
+    // The ZERO account is used for specifying the issuer
     private AccountID issuer;
 
-    public Amount(BigDecimal newValue, String currency, AccountID issuer, boolean nativeSource) {
-        this(newValue, Currency.fromString(currency), issuer, nativeSource);
-    }
+    // While internally the value is stored as a BigDecimal
+    // the offset and mantissa equivalent, as per the binary
+    // format are computed lazily if needed.
+    private UInt64 mantissa = null;
+    private int offset;
 
-    public Amount(BigDecimal newValue, Currency currency, AccountID issuer, boolean isNative) {
-        this(newValue, currency, issuer, isNative, false);
-    }
-
-    public Amount(BigDecimal value, Currency currency, AccountID issuer, boolean nativeSource, boolean unbounded) {
-        isNative = nativeSource;
+    public Amount(BigDecimal value, Currency currency, AccountID issuer, boolean isNative, boolean unbounded) {
+        this.isNative = isNative;
         this.currency = currency;
         this.unbounded = unbounded;
         this.setValue(value);
@@ -61,78 +72,35 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         this.issuer = issuer;
     }
 
-    public Currency currency() {
-        return currency;
+    public Amount(BigDecimal newValue, String currency, AccountID issuer, boolean isNative) {
+        this(newValue, Currency.fromString(currency), issuer, isNative);
     }
 
-    public Issue issue() {
-        return new Issue(currency, issuer);
+    public Amount(BigDecimal newValue, Currency currency, AccountID issuer, boolean isNative) {
+        this(newValue, currency, issuer, isNative, false);
     }
 
-    public int getOffset() {
-        return offset;
+    public Amount(BigDecimal value) {
+        isNative = true;
+        currency = Currency.XRP;
+        this.setValue(value);
     }
 
-    private int offset;
-
-    public String currencyString() {
-        return currency.toString();
-    }
-
-    public void currency(String currency) {
-        this.currency = Currency.fromString(currency);
-    }
-
-    public String issuerString() {
-        if (issuer == null) {
-            return "";
-        }
-        return issuer.toString();
-    }
-
-    public byte[] issuerBytes() {
-        return issuer.bytes();
-    }
-
-    public void issuer(String issuer) {
+    // Private constructors
+    private Amount(BigDecimal value, String currency, String issuer) {
+        this(value, currency);
         if (issuer != null) {
-            // blows up if issuer is shitty
-            this.issuer = AccountID.fromString(issuer);
+            this.setIssuer(issuer);
         }
     }
 
-    public UInt64 mantissa() {
-        if (mantissa == null) {
-            mantissa = calculateMantissa();
-        }
-        return mantissa;
+    private Amount(BigDecimal value, String currency) {
+        isNative = false;
+        this.setCurrency(currency);
+        this.setValue(value);
     }
 
-    /**
-     *
-     * @return a postive value for the mantissa
-     */
-    private UInt64 calculateMantissa() {
-        if (isNative()) {
-            return new UInt64(scaledExact(6).abs());
-        } else {
-            return new UInt64(bigIntegerIOUMantissa());
-        }
-    }
-
-    private BigInteger bigIntegerIOUMantissa() {
-        return scaledExact(-offset).abs();
-    }
-
-    private BigInteger bigIntegerDrops() {
-        return scaledExact(6);
-    }
-
-    private BigInteger scaledExact(int n) {
-        return value.scaleByPowerOfTen(n).toBigIntegerExact();
-    }
-
-    public void setValue(BigDecimal value) {
+    private void setValue(BigDecimal value) {
         this.value = value.stripTrailingZeros();
         initialize();
     }
@@ -145,7 +113,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             }
             offset = 0;
         } else {
-            if (value.precision() > 16 && !unbounded) {
+            if (value.precision() > MAXIMUM_IOU_PRECISION && !unbounded) {
                 throw new PrecisionError("Overflow Error!");
             }
             issuer = AccountID.ONE;
@@ -153,35 +121,114 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
-    int calculateOffset() {
-        return -16 + value.precision() - value.scale();
+    private Amount newValue(BigDecimal newValue) {
+        return newValue(newValue, false, false);
     }
 
-    public boolean isZero() {
-        return value.signum() == 0;
+    private Amount newValue(BigDecimal newValue, boolean round, boolean unbounded) {
+        if (round) {
+            newValue = roundValue(isNative, newValue);
+        }
+        return new Amount(newValue, currency, issuer, isNative, unbounded);
     }
 
-    public Amount add(Amount augend) {
-        return newValue(value.add(augend.value));
+    private Amount roundedNewValue(BigDecimal val, boolean round) {
+        return newValue(val, round, false);
     }
 
-    public Amount subtract(Amount subtrahend) {
-        return newValue(value.subtract(subtrahend.value));
+    /* Getters and Setters */
+
+    /**
+     * @return A BigDecimal containing the value (in XRP scale)
+     */
+    public BigDecimal value() {
+        return value;
     }
 
-    public Amount multiply(Amount multiplicand) {
-        return newValue(value.multiply(multiplicand.value, MATH_CONTEXT), true);
+    public Currency currency() {
+        return currency;
     }
 
-    public Amount divide(Amount divisor) {
-        return newValue(value.divide(divisor.value, MATH_CONTEXT), true);
+    public AccountID issuer() {
+        return issuer;
     }
 
-    private static BigDecimal round(boolean nativeSrc, BigDecimal value) {
-        int i = value.precision() - value.scale();
-        return value.setScale(nativeSrc ? 6 : 16 - i, MATH_CONTEXT.getRoundingMode());
+    public Issue issue() {
+        // TODO: store the currency and issuer as an Issue
+        return new Issue(currency, issuer);
     }
 
+    public UInt64 mantissa() {
+        if (mantissa == null) {
+            mantissa = calculateMantissa();
+        }
+        return mantissa;
+    }
+
+    public int offset() {
+        return offset;
+    }
+
+    public boolean isNative() {
+        return isNative;
+    }
+
+    public String currencyString() {
+        return currency.toString();
+    }
+
+    public String issuerString() {
+        if (issuer == null) {
+            return "";
+        }
+        return issuer.toString();
+    }
+
+    private void setCurrency(String currency) {
+        this.currency = Currency.fromString(currency);
+    }
+
+    private void setIssuer(String issuer) {
+        if (issuer != null) {
+            // blows up if issuer is shitty
+            this.issuer = AccountID.fromString(issuer);
+        }
+    }
+
+    /* Offset & Mantissa Helpers */
+
+    /**
+     * @return a positive value for the mantissa
+     */
+    private UInt64 calculateMantissa() {
+        if (isNative()) {
+            return new UInt64(bigIntegerDrops().abs());
+        } else {
+            return new UInt64(bigIntegerIOUMantissa());
+        }
+    }
+
+    protected int calculateOffset() {
+        return -MAXIMUM_IOU_PRECISION + value.precision() - value.scale();
+    }
+
+    private BigInteger bigIntegerIOUMantissa() {
+        return exactBigIntegerScaledByPowerOfTen(-offset).abs();
+    }
+
+    private BigInteger bigIntegerDrops() {
+        return exactBigIntegerScaledByPowerOfTen(MAXIMUM_NATIVE_SCALE);
+    }
+
+    private BigInteger exactBigIntegerScaledByPowerOfTen(int n) {
+        return value.scaleByPowerOfTen(n).toBigIntegerExact();
+    }
+
+    /* Equality testing */
+
+    private boolean equalValue(Amount amt) {
+        return compareTo(amt) == 0;
+    }
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Amount) {
@@ -193,79 +240,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     public boolean equals(Amount amt) {
         return equalValue(amt) &&
                 currency.equals(amt.currency) &&
-                issuer.equals(amt.issuer);
-    }
-
-    public Amount add(Number augend) {
-        return newValue(value.add(BigDecimal.valueOf(augend.longValue())));
-    }
-
-    public Amount subtract(Number subtrahend) {
-        return newValue(value.subtract(BigDecimal.valueOf(subtrahend.longValue())));
-    }
-
-    public Amount add(BigDecimal augend) {
-        return newValue(value.add(augend));
-    }
-
-    public Amount subtract(BigDecimal subtrahend) {
-        return newValue(value.subtract(subtrahend));
-    }
-
-    public Amount multiply(Number multiplicand) {
-        return newValue(value.multiply(BigDecimal.valueOf(multiplicand.longValue()), MATH_CONTEXT), true);
-    }
-
-    public Amount divide(Number divisor) {
-        return newValue(value.divide(BigDecimal.valueOf(divisor.longValue()), MATH_CONTEXT), true);
-    }
-
-    public Amount divide(BigDecimal divisor) {
-        return newValue(value.divide(divisor, MATH_CONTEXT), true);
-    }
-
-    public Amount multiply(BigDecimal divisor) {
-        return newValue(value.multiply(divisor, MATH_CONTEXT), true);
-    }
-
-    private Amount newValue(BigDecimal val, boolean round) {
-
-        return newValue(val, round, false);
-    }
-
-    public Amount negate() {
-        return newValue(value.negate());
-    }
-
-    public Amount abs() {
-        return newValue(value.abs());
-    }
-
-    public Amount min(Amount val) {
-        return (compareTo(val) <= 0 ? this : val);
-    }
-
-    public Amount max(Amount val) {
-        return (compareTo(val) >= 0 ? this : val);
-    }
-
-    private Amount newValue(BigDecimal newValue) {
-        return newValue(newValue, false, false);
-    }
-
-    private Amount newValue(BigDecimal newValue, boolean round, boolean unbounded) {
-        if (round) {
-            newValue = round(isNative(), newValue);
-        }
-        return new Amount(newValue, currency, issuer, isNative(), unbounded);
-    }
-
-    public BigInteger toBigInteger() {
-        return value.toBigIntegerExact();
-    }
-
-    public AccountID issuer() {
-        return issuer;
+                (isNative() || issuer.equals(amt.issuer));
     }
 
     public boolean equalsExceptIssuer(Amount amt) {
@@ -273,46 +248,99 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 currencyString().equals(amt.currencyString());
     }
 
-    private boolean equalValue(Amount amt) {
-        return compareTo(amt) == 0;
+    public int compareTo(Amount amount) {
+        return value.compareTo(amount.value);
     }
 
-
-    public static TypedFields.AmountField amountField(final Field f) {
-        return new TypedFields.AmountField() {
-            @Override
-            public Field getField() {
-                return f;
-            }
-        };
+    public boolean isZero() {
+        return value.signum() == 0;
     }
 
-    static public TypedFields.AmountField Amount = amountField(Field.Amount);
-    static public TypedFields.AmountField Balance = amountField(Field.Balance);
-    static public TypedFields.AmountField LimitAmount = amountField(Field.LimitAmount);
-    static public TypedFields.AmountField TakerPays = amountField(Field.TakerPays);
-    static public TypedFields.AmountField TakerGets = amountField(Field.TakerGets);
-    static public TypedFields.AmountField LowLimit = amountField(Field.LowLimit);
-    static public TypedFields.AmountField HighLimit = amountField(Field.HighLimit);
-    static public TypedFields.AmountField Fee = amountField(Field.Fee);
-    static public TypedFields.AmountField SendMax = amountField(Field.SendMax);
-    static public TypedFields.AmountField MinimumOffer = amountField(Field.MinimumOffer);
-    static public TypedFields.AmountField RippleEscrow = amountField(Field.RippleEscrow);
-
-    // TODO: create a Quality extends BigDecimal type
-//    static public TypedFields.AmountField quality = amountField(Field.quality);
-    static public TypedFields.AmountField taker_gets_funded = amountField(Field.taker_gets_funded);
-    static public TypedFields.AmountField taker_pays_funded = amountField(Field.taker_pays_funded);
-
-    public BigDecimal computeQuality(Amount takerGets) {
-        return value().divide(takerGets.value(), MathContext.DECIMAL128);
+    public boolean isNegative() {
+        return value.signum() == -1;
     }
 
+    // Maybe you want !isNegative()
+    // Any amount that !isNegative() isn't necessarily positive
+    // Is a zero amount strictly positive? no
+    private boolean isPositive() {
+        return value.signum() == 1;
+    }
+
+    /* Arithimetic Operations */
+
+    public Amount add(BigDecimal augend) {
+        return newValue(value.add(augend));
+    }
+
+    public Amount add(Amount augend) {
+        return add(augend.value);
+    }
+
+    public Amount add(Number augend) {
+        return add(BigDecimal.valueOf(augend.doubleValue()));
+    }
+
+    public Amount subtract(BigDecimal subtrahend) {
+        return newValue(value.subtract(subtrahend));
+    }
+
+    public Amount subtract(Amount subtrahend) {
+        return subtract(subtrahend.value);
+    }
+
+    public Amount subtract(Number subtrahend) {
+        return subtract(BigDecimal.valueOf(subtrahend.doubleValue()));
+    }
+
+    public Amount multiply(BigDecimal divisor) {
+        return roundedNewValue(value.multiply(divisor, MATH_CONTEXT), true);
+    }
+
+    public Amount multiply(Amount multiplicand) {
+        return multiply(multiplicand.value);
+    }
+
+    public Amount multiply(Number multiplicand) {
+        return multiply(BigDecimal.valueOf(multiplicand.doubleValue()));
+    }
+
+    public Amount divide(BigDecimal divisor) {
+        return roundedNewValue(value.divide(divisor, MATH_CONTEXT), true);
+    }
+
+    public Amount divide(Amount divisor) {
+        return divide(divisor.value);
+    }
+
+    public Amount divide(Number divisor) {
+        return divide(BigDecimal.valueOf(divisor.doubleValue()));
+    }
+
+    /* Arithimetic Operations */
+    public Amount negate() {
+        return newValue(value.negate());
+    }
+
+    public Amount abs() {
+        return newValue(value.abs());
+    }
+    public Amount min(Amount val) {
+        return (compareTo(val) <= 0 ? this : val);
+    }
+    public Amount max(Amount val) {
+        return (compareTo(val) >= 0 ? this : val);
+    }
+
+    /* Offer related helpers */
+    public BigDecimal computeQuality(Amount other) {
+        return value.divide(other.value, MathContext.DECIMAL128);
+    }
     /**
-     * @return one Amount
-     *  The real native unit is a drop, one million of which are an XRP.
-     *  We want `one` unit at XRP scale (1e6 drops), or if it's an IOU,
-     *  just `one`.
+     * @return Amount
+     * The real native unit is a drop, one million of which are an XRP.
+     * We want `one` unit at XRP scale (1e6 drops), or if it's an IOU,
+     * just `one`.
      */
     public Amount one() {
         if (isNative()) {
@@ -322,9 +350,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
-    public boolean isNative() {
-        return isNative;
-    }
+    /* Serialized Type implementation */
 
     @Override
     public Object toJSON() {
@@ -335,7 +361,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
-//    @Override
     public JSONObject toJSONObject() {
         try {
             JSONObject out = new JSONObject();
@@ -347,11 +372,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             throw new RuntimeException(e);
         }
     }
-
-//    @Override
-//    public JSONArray toJSONArray() {
-//        throw new UnsupportedOperationException();
-//    }
 
     @Override
     public byte[] toBytes() {
@@ -369,24 +389,24 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
         if (isNative()) {
             if (!isNegative()) {
-                man = man.or(cPosNative);
+                man = man.or(BINARY_FLAG_IS_POSITIVE_NATIVE);
             }
             to.add(man.toByteArray());
         } else {
-            int offset = getOffset();
+            int offset = offset();
             UInt64 value;
 
             if (isZero()) {
-                value = cNotNative;
+                value = BINARY_FLAG_IS_IOU;
             } else if (isNegative()) {
-                value = man.or(new UInt64(512 +   0 + 97 + offset).shiftLeft(64 - 10));
+                value = man.or(new UInt64(512 + 0 + 97 + offset).shiftLeft(64 - 10));
             } else {
                 value = man.or(new UInt64(512 + 256 + 97 + offset).shiftLeft(64 - 10));
             }
 
             to.add(value.toByteArray());
             to.add(currency.bytes());
-            to.add(issuerBytes());
+            to.add(issuer.bytes());
         }
     }
 
@@ -402,23 +422,23 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             byte[] mantissa = parser.read(8);
             byte b1 = mantissa[0], b2 = mantissa[1];
 
-            boolean     isIOU         = (b1 & 0x80) != 0;
-            boolean     isPositive    = (b1 & 0x40) != 0;
-            int         sign          = isPositive ? 1 : -1;
+            boolean isIOU = (b1 & 0x80) != 0;
+            boolean isPositive = (b1 & 0x40) != 0;
+            int sign = isPositive ? 1 : -1;
 
             if (isIOU) {
-                mantissa[0]      =  0;
-                Currency curr    =  Currency.translate.fromParser(parser);
-                AccountID issuer =  AccountID.translate.fromParser(parser);
-                int offset       =  ((b1 & 0x3F) << 2) + ((b2 & 0xff) >> 6) - 97;
-                mantissa[1]     &=  0x3F;
+                mantissa[0] = 0;
+                Currency curr = Currency.translate.fromParser(parser);
+                AccountID issuer = AccountID.translate.fromParser(parser);
+                int offset = ((b1 & 0x3F) << 2) + ((b2 & 0xff) >> 6) - 97;
+                mantissa[1] &= 0x3F;
 
                 value = new BigDecimal(new BigInteger(sign, mantissa), -offset);
-                return  new Amount(value, curr, issuer, false);
+                return new Amount(value, curr, issuer, false);
             } else {
                 mantissa[0] &= 0x3F;
                 value = xrpFromDropsMantissa(mantissa, sign);
-                return  new Amount(value);
+                return new Amount(value);
             }
         }
 
@@ -445,21 +465,13 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             }
         }
     }
+    static public Translator translate = new Translator();
 
     public static BigDecimal xrpFromDropsMantissa(byte[] mantissa, int sign) {
         return new BigDecimal(new BigInteger(sign, mantissa), 6);
     }
 
-    private boolean isPositive() {
-        return value.signum() == 1;
-    }
-
-    public boolean isNegative() {
-        return value.signum() == -1;
-    }
-
-    static public Translator translate = new Translator();
-
+    /* Number overides */
     @Override
     public int intValue() {
         return value.intValueExact();
@@ -480,29 +492,11 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return value.doubleValue();
     }
 
-    // Private constructors
-    private Amount(BigDecimal value, String currency, String issuer) {
-        this(value, currency);
-        if (issuer != null) {
-            this.issuer(issuer);
-        }
+    public BigInteger bigIntegerValue() {
+        return value.toBigIntegerExact();
     }
 
-    private Amount(BigDecimal value, String currency) {
-        isNative = false;
-//        this.currency(Currency.normalizeIOUCode(currency));
-        this.currency((currency));
-        this.setValue(value);
-    }
-
-    private boolean isNative;
-
-    private Amount(BigDecimal value) {
-        isNative = true;
-        currency = Currency.XRP;
-        this.setValue(value);
-    }
-
+    // Static constructors
     public static Amount fromString(String val) {
         if (val.contains("/")) {
             return fromIOUString(val);
@@ -513,23 +507,30 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
+    public static Amount fromDropString(String val) {
+        BigDecimal drops = new BigDecimal(val).scaleByPowerOfTen(-6);
+        checkDropsValueWhole(val);
+        return new Amount(drops);
+    }
+
+    public static Amount fromIOUString(String val) {
+        String[] split = val.split("/");
+        if (split.length == 1) {
+            throw new RuntimeException("IOU string must be in the form number/currencyString or number/currencyString/issuerString");
+        } else if (split.length == 2) {
+            return new Amount(new BigDecimal(split[0]), split[1]);
+        } else {
+            return new Amount(new BigDecimal(split[0]), split[1], split[2]);
+        }
+    }
+
     @Deprecated
     private static Amount fromXrpString(String valueString) {
         BigDecimal val = new BigDecimal(valueString);
-
         return new Amount(val);
-//        return new Amount(val.scaleByPowerOfTen(6));
-    }
-
-    public String toDropsString() {
-        if (!isNative()) {
-            throw new RuntimeException("Amount is not native");
-        }
-        return bigIntegerDrops().toString();
     }
 
     /**
-     *
      * @return A String representation as used by ripple json format
      */
     public String stringRepr() {
@@ -540,11 +541,18 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
+    public String toDropsString() {
+        if (!isNative()) {
+            throw new RuntimeException("Amount is not native");
+        }
+        return bigIntegerDrops().toString();
+    }
+
     private String iouText() {
         return String.format("%s/%s", valueText(), currencyString());
     }
 
-    private String iouTextFull() {
+    public String iouTextFull() {
         return String.format("%s/%s/%s", valueText(), currencyString(), issuerString());
     }
 
@@ -556,13 +564,12 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
-    private String nativeText() {
+    public String nativeText() {
         return String.format("%s/XRP", valueText());
     }
 
     @Override
     public String toString() {
-        // TODO toText() ???
         return toTextFull();
     }
 
@@ -581,16 +588,15 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return value.signum() == 0 ? "0" : value().toPlainString();
     }
 
-    /**
-     * @return A BigDecimal containing the value (in XRP scale)
-     */
-    public BigDecimal value() {
-        return value;
+    public static void checkLowerDropBound(BigDecimal val) {
+        if (val.scale() > 6) {
+            throw getIllegalArgumentException(val, "bigger", MIN_NATIVE_VALUE);
+        }
     }
 
-    private static void checkLowerDropBound(BigDecimal val) {
-        if (val.scale() > 6) {
-            throw getIllegalArgumentException(val, "bigger", MIN_DROPS);
+    public static void checkUpperBound(BigDecimal val) {
+        if (val.compareTo(MAX_NATIVE_VALUE) == 1) {
+            throw getIllegalArgumentException(val, "bigger", MAX_NATIVE_VALUE);
         }
     }
 
@@ -598,19 +604,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return new IllegalArgumentException(abs.toPlainString() + " is " + sized + " than bound " + bound);
     }
 
-    private static void checkUpperBound(BigDecimal val) {
-        if (val.compareTo(MAX_DROPS) == 1) {
-            throw getIllegalArgumentException(val, "bigger", MAX_DROPS);
-        }
-    }
-
-    public static Amount fromDropString(String val) {
-        BigDecimal drops = new BigDecimal(val).scaleByPowerOfTen(-6);
-        checkDropsValueWhole(val);
-        return new Amount(drops);
-    }
-
-    static void checkXRPBounds(BigDecimal value) {
+    public static void checkXRPBounds(BigDecimal value) {
         value = value.abs();
         checkLowerDropBound(value);
         checkUpperBound(value);
@@ -623,24 +617,41 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
-    private static Amount fromIOUString(String val) {
-        String[] split = val.split("/");
-        if (split.length == 1) {
-            throw new RuntimeException("IOU string must be in the form number/currencyString or number/currencyString/issuerString");
-        } else if (split.length == 2) {
-            return new Amount(new BigDecimal(split[0]), split[1]);
-        } else {
-            return new Amount(new BigDecimal(split[0]), split[1], split[2]);
-        }
+    public static BigDecimal roundValue(boolean nativeSrc, BigDecimal value) {
+        int i = value.precision() - value.scale();
+        return value.setScale(nativeSrc ? MAXIMUM_NATIVE_SCALE :
+                MAXIMUM_IOU_PRECISION - i,
+                MATH_CONTEXT.getRoundingMode());
     }
 
-    public int compareTo(Amount amount) {
-        return value.compareTo(amount.value);
+    private static BigDecimal parseDecimal(String s) {
+        return new BigDecimal(s.replace(",", "")); //# .scaleByPowerOfTen(6);
     }
 
-    public static class PrecisionError extends RuntimeException {
-        public PrecisionError(String s) {
-            super(s);
-        }
+    public static TypedFields.AmountField amountField(final Field f) {
+        return new TypedFields.AmountField() {
+            @Override
+            public Field getField() {
+                return f;
+            }
+        };
     }
+
+    static public TypedFields.AmountField Amount = amountField(Field.Amount);
+    static public TypedFields.AmountField Balance = amountField(Field.Balance);
+    static public TypedFields.AmountField LimitAmount = amountField(Field.LimitAmount);
+    static public TypedFields.AmountField TakerPays = amountField(Field.TakerPays);
+    static public TypedFields.AmountField TakerGets = amountField(Field.TakerGets);
+    static public TypedFields.AmountField LowLimit = amountField(Field.LowLimit);
+    static public TypedFields.AmountField HighLimit = amountField(Field.HighLimit);
+    static public TypedFields.AmountField Fee = amountField(Field.Fee);
+    static public TypedFields.AmountField SendMax = amountField(Field.SendMax);
+    static public TypedFields.AmountField MinimumOffer = amountField(Field.MinimumOffer);
+    static public TypedFields.AmountField RippleEscrow = amountField(Field.RippleEscrow);
+
+    // TODO: create a Quality extends BigDecimal type
+    // static public TypedFields.AmountField quality = amountField(Field.quality);
+    static public TypedFields.AmountField taker_gets_funded = amountField(Field.taker_gets_funded);
+    static public TypedFields.AmountField taker_pays_funded = amountField(Field.taker_pays_funded);
+
 }

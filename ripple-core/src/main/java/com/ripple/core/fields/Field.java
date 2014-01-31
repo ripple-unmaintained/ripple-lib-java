@@ -108,6 +108,7 @@ public enum Field {
     Issuer(4, Type.ACCOUNT),
     Target(7, Type.ACCOUNT),
     RegularKey(8, Type.ACCOUNT),
+    ObjectEndMarker(1, Type.OBJECT),
     TransactionMetaData(2, Type.OBJECT),
     CreatedNode(3, Type.OBJECT),
     DeletedNode(4, Type.OBJECT),
@@ -116,6 +117,7 @@ public enum Field {
     FinalFields(7, Type.OBJECT),
     NewFields(8, Type.OBJECT),
     TemplateEntry(9, Type.OBJECT),
+    ArrayEndMarker(1, Type.ARRAY),
     SigningAccounts(2, Type.ARRAY),
     TxnSignatures(3, Type.ARRAY),
     Signatures(4, Type.ARRAY),
@@ -139,6 +141,16 @@ public enum Field {
     Validation(1, Type.VALIDATION);
 
     final int id;
+
+    public static Field fromString(String key) {
+        Field f;
+        try {
+            f = valueOf(key);
+        } catch (IllegalArgumentException e) {
+            f = null;
+        }
+        return f;
+    }
 
     public int getId() {
         return id;

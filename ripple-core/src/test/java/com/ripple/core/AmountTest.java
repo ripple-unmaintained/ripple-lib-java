@@ -53,7 +53,7 @@ public class AmountTest {
         Amount amt = Amount.fromDropString("0");
         String s = amounts.toHex(amt);
         assertEquals("4000000000000000", s);
-        assertEquals(Amount.cPosNative.toString(16), s);
+        assertEquals(Amount.BINARY_FLAG_IS_POSITIVE_NATIVE.toString(16), s);
     }
 
     @Test
@@ -63,7 +63,7 @@ public class AmountTest {
         Amount amount = amounts.fromJSONObject(new JSONObject(json));
         String hex = amounts.toHex(amount);
 
-        int offset = amount.getOffset();
+        int offset = amount.offset();
         assertEquals(-14, offset);
         assertTrue(amount.isNegative());
         assertFalse(amount.isNative());
@@ -196,7 +196,7 @@ public class AmountTest {
 
     private void assertOffset(String s, int i) {
         Amount amt = Amount.fromString(s + "/USD/" + TestFixtures.bob_account.address);
-        assertEquals(String.format("Offset for %s should be %d", s, i),  i, amt.getOffset());
+        assertEquals(String.format("Offset for %s should be %d", s, i),  i, amt.offset());
     }
 
     public Amount a50 = amt("50/USD/root"); // on the fly, cached, `passphrase to address`

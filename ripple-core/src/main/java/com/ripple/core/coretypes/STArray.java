@@ -10,9 +10,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class STArray extends ArrayList<STObject> implements SerializedType {
-
-    public static final byte ARRAY_END = (byte) 0xF1;
-
     @Override
     public Object toJSON() {
         return toJSONArray();
@@ -53,21 +50,16 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
 
         @Override
         public STArray fromParser(BinaryParser parser, Integer hint) {
-            byte arrayEnd = ARRAY_END;
             STArray stArray = new STArray();
-            int nfields = 1; // These top level objects only have one key
-                             // and aren't separated by object markers
-
-            while (parser.notConsumedOrAtMarker(arrayEnd)) {
-                // We can't really
-                STObject outer = new STObject();
+            while (!parser.end()) {
                 Field field = parser.readField();
+                if (field == Field.ArrayEndMarker) {
+                    break;
+                }
+                STObject outer = new STObject();
                 outer.put(field, STObject.translate.fromParser(parser));
                 stArray.add(outer);
             }
-
-
-            parser.safelyAdvancePast(arrayEnd);
             return stArray;
         }
 

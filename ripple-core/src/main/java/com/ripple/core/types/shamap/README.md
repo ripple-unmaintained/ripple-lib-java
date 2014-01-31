@@ -271,7 +271,15 @@ From the nodestore we retrieve:
     Why does it need to be stored? We have only used `DF` to traverse to this
     node. Without storing the `index` identifier in the leaf node contents,
     there would be no way to be certain that this leaf held the item you wanted.
- 
+
+Takeaways
+---------
+
+* A `hash` keys the nodestore
+* An `index` is a path to an item in a ShaMap
+* For communication purposes
+  - Always use `hash` when referring to a key for the nodestore
+  - Always use `index` when referring to a key for a ShaMap
 
 Links
 -----

@@ -203,11 +203,11 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
 
     Set<Long> seenValidatedSequences = new TreeSet<Long>();
-    public long sequence = -1;
+    public long sequence = 0;
 
     private UInt32 locallyPreemptedSubmissionSequence() {
         long server = accountRoot.Sequence.longValue();
-        if (sequence == -1 || server > sequence) {
+        if (server > sequence) {
             sequence = server;
         }
         return new UInt32(sequence++);
@@ -232,8 +232,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         Collections.sort(queued, new Comparator<ManagedTxn>() {
             @Override
             public int compare(ManagedTxn lhs, ManagedTxn rhs) {
-                int i = lhs.get(UInt32.Sequence).subtract(rhs.get(UInt32.Sequence)).intValue();
-                return i > 0 ? 1 : i == 0 ? 0 : -1;
+                return lhs.sequence().compareTo(rhs.sequence());
             }
         });
         return queued;
@@ -295,7 +294,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 lastTxnRequesterUpdate = currentLedgerIndex;
                 txnRequester = new AccountTransactionsRequester(client,
                                                                 accountID,
-                        onTxnsPage,
+                                                                onTxnsPage,
                                                                 /* for good measure */
                                                                 lastLedgerCheckedAccountTxns - 5);
 
@@ -350,7 +349,8 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         // Compute the fee for the current load_factor
         Amount fee = client.serverInfo.transactionFee(txn);
         // Inside prepare we check if Fee and Sequence are the same, and if so
-        // we don't recreated tx_blob, or resign ;)
+        // we don't recreate tx_blob, or resign ;)
+        // TODO, we should actually recreate the signing hash as this
         txn.prepare(keyPair, fee, sequence);
 
         final Request req = client.newRequest(Command.submit);

@@ -25,8 +25,6 @@ import java.util.Iterator;
 import java.util.TreeMap;
 
 public class STObject implements SerializedType, Iterable<Field> {
-    public final static byte OBJECT_END =(byte) 0xE1;
-
     public static STObject fromJSON(String offerJson) {
         try {
             return fromJSONObject(new JSONObject(offerJson));
@@ -177,12 +175,6 @@ public class STObject implements SerializedType, Iterable<Field> {
         return translate.toJSON(this);
     }
 
-//    @Override
-//    public JSONArray toJSONArray() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
     public JSONObject toJSONObject() {
         return translate.toJSONObject(this);
     }
@@ -214,9 +206,9 @@ public class STObject implements SerializedType, Iterable<Field> {
                 } else {
                     tr.toBytesList(value, to);
                     if (field.getType() == Type.OBJECT) {
-                        serializer.add(OBJECT_END);
+                        serializer.addFieldHeader(Field.ObjectEndMarker);
                     } else if (field.getType() == Type.ARRAY) {
-                        serializer.add(STArray.ARRAY_END);
+                        serializer.addFieldHeader(Field.ArrayEndMarker);
                     }
                 }
             }
@@ -306,15 +298,17 @@ public class STObject implements SerializedType, Iterable<Field> {
 
         @Override
         public STObject fromParser(BinaryParser parser, Integer hint) {
-            byte objectEnd = OBJECT_END;
             STObject so = new STObject();
             TypeTranslator<SerializedType> tr;
             SerializedType st;
             Field field;
             Integer sizeHint;
 
-            while (parser.notConsumedOrAtMarker(objectEnd)) {
+            while (!parser.end()) {
                 field = parser.readField();
+                if (field == Field.ObjectEndMarker) {
+                    break;
+                }
                 tr = Translators.forField(field);
                 sizeHint = field.isVLEncoded() ? parser.readVLLength() : null;
                 st = tr.fromParser(parser, sizeHint);
@@ -324,7 +318,6 @@ public class STObject implements SerializedType, Iterable<Field> {
                 so.put(field, st);
             }
 
-            parser.safelyAdvancePast(objectEnd);
             return STObject.formatted(so);
         }
 
@@ -338,8 +331,6 @@ public class STObject implements SerializedType, Iterable<Field> {
             JSONObject json = new JSONObject();
 
             for (Field f : obj) {
-//                TypeTranslator<SerializedType> ts = Translators.forField(f);
-
                 try {
                     SerializedType obj1 = obj.get(f);
                     Object object = obj1.toJSON();
@@ -358,19 +349,14 @@ public class STObject implements SerializedType, Iterable<Field> {
 
         @Override
         public STObject fromJSONObject(JSONObject jsonObject) {
-            STObject so = STObject.newInstance();
+            STObject so = new STObject();
 
             Iterator keys = jsonObject.keys();
             while (keys.hasNext()) {
                 String key = (String) keys.next();
                 try {
                     Object value = jsonObject.get(key);
-                    Field fieldKey = null;
-                    try {
-                        fieldKey = Field.valueOf(key);
-                    } catch (IllegalArgumentException e) {
-                        fieldKey = null;
-                    }
+                    Field fieldKey = Field.fromString(key);
                     if (fieldKey == null) {
                         continue;
                     }
@@ -384,10 +370,6 @@ public class STObject implements SerializedType, Iterable<Field> {
             }
             return STObject.formatted(so);
         }
-
-//        @Override
-//        public void toBytesList(STObject obj, BytesList to) {
-//        }
     }
 
     public int size() {
