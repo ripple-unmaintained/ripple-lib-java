@@ -197,18 +197,13 @@ public class STObject implements SerializedType, Iterable<Field> {
             if (field.isSerialized()) {
                 SerializedType value = fields.get(field);
                 serializer.addFieldHeader(field);
-                TypeTranslator<SerializedType> tr = Translators.forField(field);
 
                 if (field.isVLEncoded()) {
                     BytesList bytes = new BytesList();
-                    tr.toBytesList(value, bytes);
+                    value.toBytesList(bytes);
                     serializer.addLengthEncoded(bytes);
                 } else {
-//                    if (!Arrays.areEqual(value.toBytes(), tr.toBytes(value))) {
-//                        System.out.println(field);
-//                    }
                     value.toBytesList(to);
-//                    tr.toBytesList(value, to);
                     if (field.getType() == Type.OBJECT) {
                         serializer.addFieldHeader(Field.ObjectEndMarker);
                     } else if (field.getType() == Type.ARRAY) {

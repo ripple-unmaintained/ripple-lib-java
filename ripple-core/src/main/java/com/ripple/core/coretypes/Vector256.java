@@ -48,7 +48,7 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
     @Override
     public void toBytesList(BytesList to) {
         for (Hash256 hash256 : this) {
-            to.add(hash256.bytes());
+            hash256.toBytesList(to);
         }
     }
 

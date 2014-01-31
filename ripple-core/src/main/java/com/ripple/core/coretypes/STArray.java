@@ -44,6 +44,9 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
 
     @Override
     public void toBytesList(BytesList to) {
+        for (STObject stObject : this) {
+            stObject.toBytesList(to);
+        }
     }
 
     public static class Translator extends TypeTranslator<STArray> {
@@ -83,13 +86,6 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
             }
 
             return arr;
-        }
-
-        @Override
-        public void toBytesList(STArray obj, BytesList bytes) {
-            for (STObject stObject : obj) {
-                STObject.translate.toBytesList(stObject, bytes);
-            }
         }
     }
     static public Translator translate = new Translator();
