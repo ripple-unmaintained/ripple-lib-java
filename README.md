@@ -12,30 +12,40 @@ serialization, with a websocket library agnostic implementation of a client,
 which will track changes to accounts balances/offers/trusts, that can be used as
 the basis for various clients/wallets.
 
-### Docs
-
-  - [Shamap](ripple-core/src/main/java/com/ripple/core/types/shamap/README.md)
-  - [Serialized Types](ripple-core/README.md)
-
 ### Current status
-
+  
   - sjcl.json aes/ccm for (wallet) blob decrytion
-  - binary serialization/parsing/shamap
+  - Binary serialization/parsing/shamap
   - Crude implementation of a high level client
+    - Single threaded
+    - High level helper classes
+      - AccountTransactionsRequester (wraps account_tx)
+      - PaymentFlow (wraps path_find)
+    - Automatic transaction resubmission
+      - Resubmits transactions in manner resilient to poor network conditions
   - Api client choice of websocket transport
   - Test suite for core types
   - Signing / Verification
   - KeyPair creation
   - Android example
+    - Multi threaded
+    - Send XRP and IOUs
   - Inlined version of BouncyCastle 1.49
     - Provider name: "RBC"
     - Package name: org.ripple.bouncycastle
   - CLI example
 
+### Docs
+
+  - [ShaMap](ripple-core/src/main/java/com/ripple/core/types/shamap/README.md)
+  - [Serialized Types](ripple-core/README.md)
+  - [Transaction Manager](ripple-client/src/main/java/com/ripple/client/transactions/README.md)
+
 ### TODO
-  - Complete test coverage
+  - More helper classes
   - General cleanup/stabilisation of code / api surface
   - Documentation
+  - Complete test coverage
   - Generate keypair for particular account_id from a master_seed
 
 ### Examples
