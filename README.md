@@ -12,6 +12,11 @@ serialization, with a websocket library agnostic implementation of a client,
 which will track changes to accounts balances/offers/trusts, that can be used as
 the basis for various clients/wallets.
 
+### Docs
+
+  - [Serialized Types](ripple-core/README.md)
+  - [Shamap](ripple-core/src/main/java/com/ripple/core/types/shamap/README.md)
+
 ### Current status
 
   - sjcl.json aes/ccm for (wallet) blob decrytion
@@ -28,18 +33,9 @@ the basis for various clients/wallets.
   - CLI example
 
 ### TODO
-
-  - TESTS TESTS TESTS
-    - walk ledger history verifying ShaMap hashes
-      - use json from rippled
-         - json -> STObject -> json -> STObject -> hex verification
-  - Publisher contexts
-    - thread execution context
-      - runOnUiThread 
-    - easily unbind handlers in onDestroy/onSemanticallyEtc
-  - Class path patcher for android needs testing on 2.x
-  - Documentation
+  - Complete test coverage
   - General cleanup/stabilisation of code / api surface
+  - Documentation
   - Generate keypair for particular account_id from a master_seed
 
 ### Examples
