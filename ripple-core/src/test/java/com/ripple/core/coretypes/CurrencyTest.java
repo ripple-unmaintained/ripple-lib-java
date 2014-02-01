@@ -22,7 +22,7 @@ public class CurrencyTest {
     public void testDemurragingRate() throws Exception {
         BigDecimal amount = new BigDecimal("100");
         BigDecimal factor = new BigDecimal("0.995");
-        BigDecimal rate = Currency.Demurrage.calculateRatePerSecond(factor, TimeUnit.DAYS, 365);
+        BigDecimal rate = Currency.Demurrage.calculateRate(factor, TimeUnit.DAYS, 365);
 
         System.out.println("The starting amount is: " + amount);
         System.out.println("The demurrage factor:   " + factor);

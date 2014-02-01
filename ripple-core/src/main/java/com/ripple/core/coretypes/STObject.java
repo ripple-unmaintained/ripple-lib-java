@@ -1,16 +1,5 @@
 package com.ripple.core.coretypes;
 
-import com.ripple.core.enums.LedgerEntryType;
-import com.ripple.core.enums.TransactionEngineResult;
-import com.ripple.core.enums.TransactionType;
-import com.ripple.core.fields.*;
-import com.ripple.core.formats.Format;
-import com.ripple.core.formats.SLEFormat;
-import com.ripple.core.formats.TxFormat;
-import com.ripple.core.types.known.sle.AccountRoot;
-import com.ripple.core.types.known.sle.Offer;
-import com.ripple.core.types.known.sle.RippleState;
-import com.ripple.core.serialized.*;
 import com.ripple.core.coretypes.hash.Hash128;
 import com.ripple.core.coretypes.hash.Hash160;
 import com.ripple.core.coretypes.hash.Hash256;
@@ -18,9 +7,19 @@ import com.ripple.core.coretypes.uint.UInt16;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
+import com.ripple.core.enums.LedgerEntryType;
+import com.ripple.core.enums.TransactionEngineResult;
+import com.ripple.core.enums.TransactionType;
+import com.ripple.core.fields.*;
+import com.ripple.core.formats.Format;
+import com.ripple.core.formats.SLEFormat;
+import com.ripple.core.formats.TxFormat;
+import com.ripple.core.serialized.*;
+import com.ripple.core.types.known.sle.AccountRoot;
+import com.ripple.core.types.known.sle.Offer;
+import com.ripple.core.types.known.sle.RippleState;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ripple.bouncycastle.util.Arrays;
 
 import java.util.Iterator;
 import java.util.TreeMap;
@@ -354,9 +353,11 @@ public class STObject implements SerializedType, Iterable<Field> {
             while (keys.hasNext()) {
                 String key = (String) keys.next();
                 try {
-                    Object value = jsonObject.get(key);
+                    Object value   = jsonObject.get(key);
                     Field fieldKey = Field.fromString(key);
                     if (fieldKey == null) {
+                        // TODO test for UpperCase key name
+                        // warn about possibly unknown field
                         continue;
                     }
                     if (FieldSymbolics.isSymbolicField(fieldKey) && value instanceof String) {
@@ -365,8 +366,7 @@ public class STObject implements SerializedType, Iterable<Field> {
                     so.put(fieldKey, value);
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
-                }
-            }
+                }            }
             return STObject.formatted(so);
         }
     }

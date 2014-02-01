@@ -1,11 +1,12 @@
 package com.ripple.core.coretypes;
 
-import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.serialized.BinaryParser;
 import org.junit.Test;
 
 public class Vector256Test {
+
     @Test
     public void testFromHex() throws Exception {
         String hex;

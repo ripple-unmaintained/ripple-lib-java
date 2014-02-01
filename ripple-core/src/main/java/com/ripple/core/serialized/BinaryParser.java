@@ -60,18 +60,22 @@ public class BinaryParser {
         return cursor;
     }
 
+    public int readOneInt() {
+        return readOne() & 0xFF;
+    }
+
     public int readVLLength() {
-        byte b1 = readOne();
+        int b1 = readOneInt();
         int result;
 
         if (b1 <= 192) {
             result = b1;
         } else if (b1 <= 240) {
-            int b2 = readOne();
+            int b2 = readOneInt();
             result = 193 + (b1 - 193) * 256 + b2;
         } else if (b1 <= 254) {
-            int b2 = readOne();
-            int b3 = readOne();
+            int b2 = readOneInt();
+            int b3 = readOneInt();
             result = 12481 + (b1 - 241) * 65536 + b2 * 256 + b3;
         } else {
             throw new RuntimeException("Invalid varint length indicator");
@@ -96,21 +100,13 @@ public class BinaryParser {
         return ret;
     }
 
-    public void read(int n, byte[] to, int offset) {
+/*    public void read(int n, byte[] to, int offset) {
         System.arraycopy(bytes, cursor, to, offset, n);
         cursor += n;
-    }
+    }*/
 
     public int getSize() {
         return size;
     }
 
-    public void safelyAdvancePast(byte marker) {
-        if (!end() && peekOne() == marker) {
-            readOne();}
-    }
-
-    public boolean notConsumedOrAtMarker(byte marker) {
-        return !end() && peekOne() != marker;
-    }
 }

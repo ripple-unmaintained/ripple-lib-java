@@ -7,8 +7,10 @@ import static org.junit.Assert.assertTrue;
 
 import com.ripple.core.types.known.sle.Offer;
 import junit.framework.TestCase;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.junit.Test;
 
 import com.ripple.core.enums.LedgerEntryType;
@@ -26,7 +28,49 @@ import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
 
+import java.io.*;
+import java.util.Iterator;
+
 public class STObjectTest {
+    @Test
+    public void binaryParsingSerializingSanityTest() throws FileNotFoundException, JSONException {
+        File f = new File("ripple-core/src/test/java/com/ripple/resources/ledgers-full.json");
+        if (!f.exists()) {
+            return;
+        }
+
+        JSONTokener tok = new JSONTokener(new FileReader(f));
+        JSONObject parsed = new JSONObject(tok);
+        Iterator iterator = parsed.sortedKeys();
+
+        while (iterator.hasNext()) {
+            String next = (String) iterator.next();
+            JSONObject ledgerJSON = parsed.getJSONObject(next).getJSONObject("ledger");
+            JSONArray accountState = ledgerJSON.getJSONArray("accountState");
+            int i = 0;
+            while (i < accountState.length()) {
+                try {
+                    STObject fromJSON;
+                    JSONObject stateObject;
+                    stateObject = accountState.getJSONObject(i);
+                    fromJSON = STObject.fromJSONObject(stateObject);
+                    String hexFromJSON = fromJSON.toHex();
+                    STObject rebuiltFromHex = STObject.translate.fromHex(hexFromJSON);
+                    assertEquals(hexFromJSON, rebuiltFromHex.toHex());
+                } catch (RuntimeException e) {
+                    // There's one annoying value, that we'll need to find a way to accomodate
+                    if (!e.getMessage().split("\n")[0].equals(
+                            "Couldn't put `1000000000000000100` into field `TakerPays`")) {
+                        throw e;
+                    }
+                } finally {
+                    i++;
+                }
+            }
+        }
+
+    }
+
     @Test
     public void testNestedObjectSerialization() throws Exception {
         String rippleLibHex = "120007220000000024000195F964400000170A53AC2065D5460561EC9DE000000000000000000000000000" +
@@ -331,6 +375,16 @@ public class STObjectTest {
         String actual = meta.toHex();
         assertEquals(jsonHexed.length(), actual.length());
         assertEquals(jsonHexed, actual);
+    }
+
+    @Test
+    public void testParsingVector256() throws Exception {
+        // This was a test case for a bug found in ripple-lib js
+        String jsonHexed = "110064220000000058000360186E008422E06B72D5B275E29EE3BE9D87A370F424E0E7BF613C4659098214289D19799C892637306AAAF03805EDFCDF6C28B8011320081342A0AB45459A54D8E4FA1842339A102680216CF9A152BCE4F4CE467D8246";
+        STObject meta = STObject.translate.fromHex(jsonHexed);
+        String expectedJSON;
+        expectedJSON = ("{\"LedgerEntryType\":\"DirectoryNode\",\"Indexes\":[\"081342A0AB45459A54D8E4FA1842339A102680216CF9A152BCE4F4CE467D8246\"],\"Owner\":\"rh6kN9s7spSb3vdv6H8ZGYzsddSLeEUGmc\",\"RootIndex\":\"000360186E008422E06B72D5B275E29EE3BE9D87A370F424E0E7BF613C465909\",\"Flags\":0}");
+        assertEquals(expectedJSON, meta.toJSONObject().toString());
     }
 
     @Test

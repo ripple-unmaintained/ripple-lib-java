@@ -1,5 +1,7 @@
 package com.ripple.core.serialized;
 
+import com.ripple.encodings.common.B16;
+
 import java.security.MessageDigest;
 import java.util.ArrayList;
 

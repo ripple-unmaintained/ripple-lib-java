@@ -7,6 +7,7 @@ import com.ripple.core.serialized.BytesList;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.encodings.common.B16;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -19,7 +20,6 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
         return toJSONArray();
     }
 
-//    @Override
     public JSONArray toJSONArray() {
         JSONArray array = new JSONArray();
 
@@ -29,11 +29,6 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
 
         return array;
     }
-
-//    @Override
-//    public JSONObject toJSONObject() {
-//        throw new UnsupportedOperationException();
-//    }
 
     @Override
     public byte[] toBytes() {
@@ -78,7 +73,7 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
             for (int i = 0; i < jsonArray.length(); i++) {
                 try {
                     String hex = jsonArray.getString(i);
-                    vector.add(Hash256.translate.fromString(hex));
+                    vector.add(new Hash256(B16.decode(hex)));
 
                 } catch (JSONException e) {
                     throw new RuntimeException(e);

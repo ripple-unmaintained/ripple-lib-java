@@ -56,7 +56,7 @@ public class BinarySerializer {
 
     public int addFieldHeader(Field f) {
         if (!f.isSerialized()) {
-            throw new IllegalStateException(String.format("Field %s is not a signing field", f));
+            throw new IllegalStateException(String.format("Field %s is a discardable field", f));
         }
         byte[] n = f.getBytes();
         add(n);

@@ -605,18 +605,18 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     public static void checkLowerDropBound(BigDecimal val) {
         if (val.scale() > 6) {
-            throw getIllegalArgumentException(val, "bigger", MIN_NATIVE_VALUE);
+            throw getOutOfBoundsError(val, "bigger", MIN_NATIVE_VALUE);
         }
     }
 
     public static void checkUpperBound(BigDecimal val) {
         if (val.compareTo(MAX_NATIVE_VALUE) == 1) {
-            throw getIllegalArgumentException(val, "bigger", MAX_NATIVE_VALUE);
+            throw getOutOfBoundsError(val, "bigger", MAX_NATIVE_VALUE);
         }
     }
 
-    private static IllegalArgumentException getIllegalArgumentException(BigDecimal abs, String sized, BigDecimal bound) {
-        return new IllegalArgumentException(abs.toPlainString() + " is " + sized + " than bound " + bound);
+    private static PrecisionError getOutOfBoundsError(BigDecimal abs, String sized, BigDecimal bound) {
+        return new PrecisionError(abs.toPlainString() + " is " + sized + " than bound " + bound);
     }
 
     public static void checkXRPBounds(BigDecimal value) {

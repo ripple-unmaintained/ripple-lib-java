@@ -23,16 +23,6 @@ public class Currency extends Hash160 {
         return translate.toJSON(this);
     }
 
-//    @Override
-//    public JSONArray toJSONArray() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    public JSONObject toJSONObject() {
-//        throw new UnsupportedOperationException();
-//    }
-
     @Override
     public byte[] toBytes() {
         return translate.toBytes(this);
@@ -75,11 +65,11 @@ public class Currency extends Hash160 {
 
         static public BigDecimal applyRate(BigDecimal amount, BigDecimal rate, TimeUnit time, long units) {
             BigDecimal appliedRate = getSeconds(time, units).divide(rate, MathContext.DECIMAL64);
-            BigDecimal factor = BigDecimal.valueOf(Math.pow(Math.E, appliedRate.doubleValue()));
+            BigDecimal factor = BigDecimal.valueOf(Math.exp(appliedRate.doubleValue()));
             return amount.multiply(factor, MathContext.DECIMAL64);
         }
 
-        static public BigDecimal calculateRatePerSecond(BigDecimal rate, TimeUnit time, long units) {
+        static public BigDecimal calculateRate(BigDecimal rate, TimeUnit time, long units) {
             BigDecimal seconds = getSeconds(time, units);
             BigDecimal log = ln(rate);
             return seconds.divide(log, MathContext.DECIMAL64);
