@@ -17,6 +17,8 @@ public class AmountTest {
 
     Amount.Translator amounts = Amount.translate;
 
+
+
     @Test
     public void testXRPFromMantissaBytes() throws Exception {
         byte[] mantissa = new UInt32(99000001).toByteArray();

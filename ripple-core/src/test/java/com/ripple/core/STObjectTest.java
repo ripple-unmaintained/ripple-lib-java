@@ -53,10 +53,16 @@ public class STObjectTest {
                     STObject fromJSON;
                     JSONObject stateObject;
                     stateObject = accountState.getJSONObject(i);
+                    stateObject.remove("index");
                     fromJSON = STObject.fromJSONObject(stateObject);
                     String hexFromJSON = fromJSON.toHex();
+                    JSONObject fromJsonToJson = fromJSON.toJSONObject();
+                    STObject fromJsonToJsonAndBack = STObject.fromJSONObject(fromJsonToJson);
+                    String hexFromJsonToToJsonToHex = fromJsonToJsonAndBack.toHex();
                     STObject rebuiltFromHex = STObject.translate.fromHex(hexFromJSON);
                     assertEquals(hexFromJSON, rebuiltFromHex.toHex());
+                    assertEquals(hexFromJSON, hexFromJsonToToJsonToHex);
+                    assertEquals(fromJsonToJsonAndBack.toJSONObject().toString(), fromJsonToJson.toString());
                 } catch (RuntimeException e) {
                     // There's one annoying value, that we'll need to find a way to accomodate
                     if (!e.getMessage().split("\n")[0].equals(
@@ -530,13 +536,13 @@ public class STObjectTest {
     }
 
     private void rehydrationTest(Amount positiveIOU) {
-        assertEquals(positiveIOU, wetDried(positiveIOU));
+        assertEquals(positiveIOU, driedWet(positiveIOU));
     }
 
-    private Amount wetDried(Amount amt) {
+    private Amount driedWet(Amount amt) {
         Amount.Translator tran = Amount.translate;
         String hex = tran.toHex(amt);
-        return tran.fromParser(new BinaryParser(hex));
+        return tran.fromHex(hex);
     }
 
     private Amount amt(String val) {

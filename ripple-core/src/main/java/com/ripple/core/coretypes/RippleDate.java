@@ -3,6 +3,7 @@ package com.ripple.core.coretypes;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.serialized.BinaryParser;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
@@ -17,7 +18,7 @@ public class RippleDate extends Date {
          * at 1/January/2000 GMT
          */
         GregorianCalendar cal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-        cal.set(2000, 0, 1, 0, 0, 0);
+        cal.set(2000, Calendar.JANUARY, 1, 0, 0, 0);
         long computed = cal.getTimeInMillis() / 1000;
         assertEquals("1 Jan 2000 00:00:00 GMT", cal.getTime().toGMTString()); // TODO
         assertEquals(RippleDate.RIPPLE_EPOCH_SECONDS_OFFSET, computed);

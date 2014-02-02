@@ -65,7 +65,19 @@ public class NodeStore {
 }
 ```
 
-See also: [serialized types](../../README.md)
+See also: 
+* [serialized types](../../README.md)
+* [BinaryFormats.txt (historical)](https://github.com/ripple/rippled/blob/07df5f1f81b0ee1ab641d134ba8e940a90f5297e/BinaryFormats.txt#L2-L6)
+
+Excerpt from BinaryFormats.txt (historical):
+  
+  All signed or hashed objects must have well-defined binary formats at the
+  byte level. These formats do not have to be the same as the network wire
+  formats or the forms used for efficient storage or human display. However,
+  it must always be possible to precisely re-create, byte for byte, any signed
+  or hashed object. Otherwise, the signatures or hashes cannot be validated.
+
+Note that currently (2/Feb/2014) the NodeStore stores it in the hashing form.
 
 What is a ShaMap?
 -----------------
@@ -288,7 +300,7 @@ Takeaways
 Links
 -----
 
-* [ShamapInnerNodeAnalyis](../../../../../../../../../ripple-examples/ripple-cli/src/main/java/com/ripple/cli/ShamapInnerNodeAnalysis.java)
+* [ShamapInnerNodeAnalyis](../../../../../../../../../ripple-examples/ripple-cli/src/main/java/com/ripple/cli/shamapanalysis/ShamapInnerNodeAnalysis.java)
 * [Rippled Hash Prefixe declarations](https://github.com/ripple/rippled/blob/develop/src/ripple_data/protocol/HashPrefix.h#L54-L58)
 
 Annoyingly verbose ascii art
