@@ -330,9 +330,6 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                     // These are, according to the wiki, all of a final disposition
                     case temMALFORMED:
                     case tefFAILURE:
-                        finalizeTxnAndRemoveFromQueue(txn);
-                        txn.publisher().emit(ManagedTxn.OnSubmitFailure.class, res);
-                        break;
                     // TODO: Handle these with more panache
                     case telLOCAL_ERROR:
                     case terRETRY:
