@@ -29,18 +29,18 @@ public class JSEscape {
         return sb.toString();
     }
 
-    public static String escape(String adata) {
-        int length = adata.length();
+    public static String escape(String raw) {
+        int length = raw.length();
         int i = 0;
-        StringBuilder sb = new StringBuilder(adata.length() / 2);
+        StringBuilder sb = new StringBuilder(raw.length() / 2);
 
         while (i < length) {
-            char c = adata.charAt(i++);
+            char c = raw.charAt(i++);
 
             if (isLetterOrDigit(c) || isEscapeExempt(c)) {
                 sb.append(c);
             } else {
-                int i1 = adata.codePointAt(i-1);
+                int i1 = raw.codePointAt(i-1);
                 String escape = Integer.toHexString(i1);
 
                 sb.append('%');

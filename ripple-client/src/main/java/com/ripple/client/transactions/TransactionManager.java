@@ -260,6 +260,8 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 break;
             default:
                 // TODO, what other cases should this retry?
+                // TODO, what if this actually eventually clears?
+                // TOOD, need to use LastLedgerSequence
                 finalizeTxnAndRemoveFromQueue(txn);
                 txn.publisher().emit(ManagedTxn.OnSubmitError.class, res);
                 break;

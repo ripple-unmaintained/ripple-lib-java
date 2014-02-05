@@ -38,7 +38,7 @@ public class ShamapInnerNodeAnalysis {
     }
 
     // Basic configuration for
-    int NUM_LEDGERS = 10000;
+    int NUM_LEDGERS = (int) 1e3;
     int NEW_NODES_PER_LEDGER = 10;
     int MODIFIED_NODES_PER_LEDGER = 30;
 
@@ -69,8 +69,8 @@ public class ShamapInnerNodeAnalysis {
         ledger_inner_node_ratio_unused_used_branches("Ratio of unused/used branches in ledger"),
         nodestore_inner_node_to_nodestore_leaf_ratio("Unique inner nodes per total leaf instances in node store"),
         nodestore_inner_node_to_ledger_leaf_ratio("Unique inner nodes per total leaf nodes in ledger");
-        String description;
 
+        String description;
         LedgerStat(String description) {
             this.description = description;
         }
@@ -250,6 +250,7 @@ public class ShamapInnerNodeAnalysis {
             }
         }
 
+
         System.out.println();
         System.out.println("Unique inner node, branch usage histogram");
         Counter<Integer> integerCounter = ledger.slotHistogramOverTime(null);
@@ -274,6 +275,14 @@ public class ShamapInnerNodeAnalysis {
             throw new RuntimeException(e);
         }
         appendTo(ANALYSIS_LOG_FILE, statsLog.toString());
+        InstrumentedInnerNode.ChuckNorris walker = new InstrumentedInnerNode.ChuckNorris();
+        ledger.walkTree(walker);
+        System.out.println(walker.height());
+        try {
+            System.out.println(walker.histogram().toString(4));
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -337,26 +346,29 @@ public class ShamapInnerNodeAnalysis {
 
         LedgerStats ledgerStats = new LedgerStats();
 
-        ledgerStats.put(LedgerStat.ledgers_passed,                                   ledgersDone);
+        ledgerStats.put(LedgerStat.ledgers_passed,                                    ledgersDone);
         ledgerStats.put(LedgerStat.leaf_nodes_in_ledger,                              totalLeavesAdded);
-        ledgerStats.put(LedgerStat.ledger_maximum_depth,                             ledger.depth());
-        ledgerStats.put(LedgerStat.ms_to_add_leaves,                                 nsForAdding / 1e6);
-        ledgerStats.put(LedgerStat.ms_to_add_leaves,                                 nsForModding / 1e6);
-        ledgerStats.put(LedgerStat.ms_to_hash_ledger,                                nsForHashing / 1e6);
-        ledgerStats.put(LedgerStat.ledger_inner_nodes,                               totalInnerNodes);
+        ledgerStats.put(LedgerStat.ledger_maximum_depth,                              ledger.depth());
+        ledgerStats.put(LedgerStat.ms_to_add_leaves,                                  nsForAdding / 1e6);
+        ledgerStats.put(LedgerStat.ms_to_update_leaves,                               nsForModding / 1e6);
+        ledgerStats.put(LedgerStat.ms_to_hash_ledger,                                 nsForHashing / 1e6);
+        ledgerStats.put(LedgerStat.ledger_inner_nodes,                                totalInnerNodes);
         ledgerStats.put(LedgerStat.ledger_dirty_vs_clean_inner_nodes_before_hashing,  dirtyVsClean);
-        ledgerStats.put(LedgerStat.nodestore_inner_node_instances,                   uniqueInnerNodes);
-        ledgerStats.put(LedgerStat.ledger_total_branches,                            totalSlots);
-        ledgerStats.put(LedgerStat.ledger_unused_branches,                           unusedSlots);
-        ledgerStats.put(LedgerStat.nodestore_leaf_instances,                         totalLeavesAddedOrModified);
-        ledgerStats.put(LedgerStat.nodestore_inner_node_ratio_unused_used_branches,  ratioUnusedToUsedInInnerNodesOverTime);
-        ledgerStats.put(LedgerStat.ledger_inner_node_ratio_unused_used_branches,     ((double) unusedSlots) / usedSlots);
-        ledgerStats.put(LedgerStat.nodestore_inner_node_to_nodestore_leaf_ratio,     uniqueInnerNodes / totalLeavesAddedOrModified);
-        ledgerStats.put(LedgerStat.nodestore_inner_node_to_ledger_leaf_ratio,        uniqueInnerNodes / totalLeavesAdded);
+        ledgerStats.put(LedgerStat.nodestore_inner_node_instances,                    uniqueInnerNodes);
+        ledgerStats.put(LedgerStat.ledger_total_branches,                             totalSlots);
+        ledgerStats.put(LedgerStat.ledger_unused_branches,                            unusedSlots);
+        ledgerStats.put(LedgerStat.nodestore_leaf_instances,                          totalLeavesAddedOrModified);
+        ledgerStats.put(LedgerStat.nodestore_inner_node_ratio_unused_used_branches,   ratioUnusedToUsedInInnerNodesOverTime);
+        ledgerStats.put(LedgerStat.ledger_inner_node_ratio_unused_used_branches,      ((double) unusedSlots) / usedSlots);
+        ledgerStats.put(LedgerStat.nodestore_inner_node_to_nodestore_leaf_ratio,      uniqueInnerNodes / totalLeavesAddedOrModified);
+        ledgerStats.put(LedgerStat.nodestore_inner_node_to_ledger_leaf_ratio,         uniqueInnerNodes / totalLeavesAdded);
 
 //        ledgersStats.put(ledgersDone, ledgerStats);
 
         appendTo(ANALYSIS_LOG_FILE, ledgerStats.json().toString());
+
+        //
+
     }
 
     private static void appendTo(String outputFile, String result) {
@@ -374,7 +386,7 @@ public class ShamapInnerNodeAnalysis {
     public static class Counter<KeyType> extends TreeMap<KeyType, Integer> {
         public void count(KeyType value) {
             Integer existing = get(value);
-            if (existing == null) existing = 1;
+            if (existing == null) existing = 0;
             put(value, existing  + 1);
         }
         public JSONArray histogram() {
@@ -398,6 +410,39 @@ class InstrumentedInnerNode extends ShaMapInnerNode {
     // Annoyingly we need to init this
     static {
         Config.initBouncy();
+    }
+
+
+    public interface TreeWalker {
+        public void onInnerNode(ShaMapInnerNode node);
+    }
+
+    public static class ChuckNorris implements InstrumentedInnerNode.TreeWalker {
+        ShamapInnerNodeAnalysis.Counter<Integer> depthHistoGram = new ShamapInnerNodeAnalysis.Counter<Integer>();
+
+        @Override
+        public void onInnerNode(ShaMapInnerNode node) {
+            depthHistoGram.count(node.depth);
+        }
+
+        public int height() {
+            return Collections.max(depthHistoGram.values());
+        }
+
+        public JSONArray histogram() {
+            return depthHistoGram.histogram();
+        }
+    }
+
+    public void walkTree(TreeWalker walker) {
+        walker.onInnerNode(this);
+
+        for (ShaMapNode branch : branches) {
+            if (branch instanceof InstrumentedInnerNode) {
+                InstrumentedInnerNode inner = (InstrumentedInnerNode) branch;
+                inner.walkTree(walker);
+            }
+        }
     }
 
     public TreeMap<Hash256, Integer> hashes = new TreeMap<Hash256, Integer>();

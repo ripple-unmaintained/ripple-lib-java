@@ -6,8 +6,7 @@ public class ShaMapInnerNode extends ShaMapNode {
     public static final Hash256 ZERO_256 = new Hash256(new byte[32]);
     public ShaMapNode[] branches;
     protected int slotBits = 0;
-    protected int depth;
-
+    public int depth;
     public Hash256 hash;
 
     protected ShaMapInnerNode(int node_depth) {
@@ -45,8 +44,7 @@ public class ShaMapInnerNode extends ShaMapNode {
     }
 
     public void onHash(Hash256 hash, int fullBranches) {
-        //TODO: clean configurable instrumentation
-//        hashes.put(hash, fullBranches);
+
     }
 
     protected boolean needsHashing() {
@@ -92,7 +90,7 @@ public class ShaMapInnerNode extends ShaMapNode {
         return getLeaf(id, true);
     }
 
-    public ShaMapLeafNode getLeafFor(Hash256 id) {
+    public ShaMapLeafNode getLeaf(Hash256 id) {
         return getLeaf(id, false);
     }
 

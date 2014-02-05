@@ -23,16 +23,6 @@ public class VariableLength implements SerializedType {
         return translate.toJSON(this);
     }
 
-//    @Override
-//    public JSONArray toJSONArray() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    public JSONObject toJSONObject() {
-//        throw new UnsupportedOperationException();
-//    }
-
     @Override
     public byte[] toBytes() {
         return translate.toBytes(this);
@@ -78,9 +68,6 @@ public class VariableLength implements SerializedType {
     }
 
     static public Translator translate = new Translator();
-
-    private VariableLength() {
-    }
 
     public static TypedFields.VariableLengthField variablelengthField(final Field f) {
         return new TypedFields.VariableLengthField() {

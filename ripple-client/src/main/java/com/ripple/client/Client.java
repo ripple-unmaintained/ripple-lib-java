@@ -20,6 +20,9 @@ import com.ripple.core.coretypes.uint.UInt32;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.*;
@@ -67,11 +70,38 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         if (runningOnClientThread()) {
             runnable.run();
         } else {
-            service.submit(runnable);
+            service.submit(errorHandling(runnable));
         }
     }
+
+    private Runnable errorHandling(final Runnable runnable) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    runnable.run();
+                } catch (Exception e) {
+                    onException(e);
+                }
+            }
+        };
+    }
+
+    protected void onException(Exception e) {
+        String stackTrace = getStackTrace(e);
+        ClientLogger.log(stackTrace);
+        // TODO: exit on exceptions ?
+        System.out.println(stackTrace);
+    }
+
+    private String getStackTrace(Exception e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
+    }
+
     public void schedule(int ms, Runnable runnable) {
-        service.schedule(runnable, ms, TimeUnit.MILLISECONDS);
+        service.schedule(errorHandling(runnable), ms, TimeUnit.MILLISECONDS);
     }
 
     public boolean connected = false;
@@ -206,9 +236,11 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
      * @see #onMessage(org.json.JSONObject)
      */
     public void connect(final String uri) {
+
         run(new Runnable() {
             @Override
             public void run() {
+                System.out.println("connecting");
                 doConnect(uri);
             }
         });

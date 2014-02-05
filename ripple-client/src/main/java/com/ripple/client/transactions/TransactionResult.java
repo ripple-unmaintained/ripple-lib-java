@@ -117,8 +117,7 @@ public class TransactionResult {
                     hash = Hash256.transactionID(decodedTx);
                     transaction.put(Field.hash, hash);
 
-                    engineResult = TransactionEngineResult.fromNumber(meta.get(UInt8.TransactionResult));
-//                    System.out.println(json);
+                    engineResult = meta.transactionResult();
                     ledgerIndex = new UInt32(json.getLong("ledger_index"));
                     ledgerHash = null;
                 }

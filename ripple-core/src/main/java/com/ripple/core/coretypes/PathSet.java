@@ -13,27 +13,16 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
+    public static byte PATH_SEPARATOR_BYTE = (byte) 0xFF;
+    public static byte PATHSET_END_BYTE = (byte) 0x00;
 
-    // @Override
-    // public Object toJSON() {
-    //     return translate.toJSON(this);
-    // }
+    public PathSet(){}
 
-    // @Override
-    // public JSONArray toJSONArray() {
-    //     return translate.toJSONArray(this);
-    // }
-    // @Override
-    // public byte[] toBytes() {
-    //     return translate.toBytes(this);
-    // }
-  
     @Override
     public Object toJSON() {
         return toJSONArray();
     }
 
-//    @Override
     public JSONArray toJSONArray() {
         JSONArray array = new JSONArray();
         for (Path path : this) {
@@ -44,14 +33,10 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
     @Override
     public void toBytesList(BytesList buffer) {
-        // TODO, move these to fields to share with fromParser()
-        byte typeBoundary = (byte) 0xff,
-                  typeEnd = (byte) 0x00;
-
         int n = 0;
         for (Path path : this) {
             if (n++ != 0) {
-                buffer.add(typeBoundary);
+                buffer.add(PATH_SEPARATOR_BYTE);
             }
             for (Hop hop : path) {
                 int type = hop.getType();
@@ -59,22 +44,16 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
                 if (hop.account != null) {
                     buffer.add(hop.account.bytes());
                 }
-                // TODO, need to create a Currency class!!
-                if (hop.currencyString() != null) {
-                    buffer.add(hop.currencyBytes.bytes());
+                if (hop.currency != null) {
+                    buffer.add(hop.currency.bytes());
                 }
                 if (hop.issuer != null) {
                     buffer.add(hop.issuer.bytes());
                 }
             }
         }
-        buffer.add(typeEnd);
+        buffer.add(PATHSET_END_BYTE);
     }
-
-//    @Override
-//    public JSONObject toJSONObject() {
-//        throw new UnsupportedOperationException();
-//    }
 
     @Override
     public String toHex() {
@@ -85,12 +64,11 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
     public byte[] toBytes() {
         return translate.toBytes(this);
     }
-    public static class Hop{
+    public static class Hop {
         public AccountID account;
         public AccountID issuer;
-        public Currency currencyBytes;
-
-        int type;
+        public Currency  currency;
+        public int type;
 
         public static byte TYPE_ACCOUNT  = (byte) 0x01;
         public static byte TYPE_CURRENCY = (byte) 0x10;
@@ -150,18 +128,18 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         }
 
         public void currency(String currency) {
-            this.currencyBytes = Currency.translate.fromString(currency);
+            this.currency = Currency.translate.fromString(currency);
         }
 
         public String currencyString() {
-            if (currencyBytes == null) {
+            if (currency == null) {
                 return null;
             }
-            return currencyBytes.toString();
+            return currency.toString();
         }
 
-        public void currency(byte[] read) {
-            currencyBytes = new Currency(read);
+        public void setCurrency(byte[] read) {
+            currency = new Currency(read);
         }
     }
     public static class Path extends ArrayList<Hop> {
@@ -195,27 +173,27 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
             PathSet.Path path = null;
             while (!parser.end()) {
                 byte type = parser.readOne();
-                if (type == 0x00) {
+                if (type == PATHSET_END_BYTE) {
                     break;
                 }
                 if (path == null) {
                     path = new PathSet.Path();
                     pathSet.add(path);
                 }
-                if (type == (byte) 0xFF) {
+                if (type == PATH_SEPARATOR_BYTE) {
                     path = null;
                     continue;
                 }
 
                 PathSet.Hop hop = new PathSet.Hop();
                 path.add(hop);
-                if ((type & 0x01) != 0) {
+                if ((type & Hop.TYPE_ACCOUNT) != 0) {
                     hop.account = AccountID.translate.fromParser(parser);
                 }
-                if ((type & 0x10) != 0) {
-                    hop.currencyBytes = Currency.translate.fromParser(parser);
+                if ((type & Hop.TYPE_CURRENCY) != 0) {
+                    hop.currency = Currency.translate.fromParser(parser);
                 }
-                if ((type & 0x20) != 0) {
+                if ((type & Hop.TYPE_ISSUER) != 0) {
                     hop.issuer = AccountID.translate.fromParser(parser);
                 }
             }
@@ -242,8 +220,6 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         }
     }
     static public Translator translate = new Translator();
-
-    public PathSet(){}
 
     public static TypedFields.PathSetField pathsetField(final Field f) {
         return new TypedFields.PathSetField(){ @Override public Field getField() {return f;}};

@@ -44,7 +44,7 @@ public class MakePayment {
 
         if (envUser != null) PAYWARD_USER = envUser;
         if (envPass != null) PAYWARD_PASS = envPass;
-        ClientLogger.quiet = false;
+        ClientLogger.quiet = true;
 
         // Uncomment to send a non native SEND_AMOUNT
         // SEND_AMOUNT = Amount.fromString("0.00001/USD/" + DESTINATION_ACCOUNT);
@@ -56,6 +56,12 @@ public class MakePayment {
         }
         else {
             final Client client = new Client(new JavaWebSocketTransportImpl());
+            client.run(new Runnable() {
+                @Override
+                public void run() {
+                    throw new RuntimeException("fuck this");
+                }
+            });
             client.run(new Client.ThrowingRunnable() {
                 @Override
                 public void throwingRun() throws Exception {
@@ -81,8 +87,9 @@ public class MakePayment {
         TransactionManager tm = account.transactionManager();
         ManagedTxn tx = tm.payment();
 
-        // tx is an STObject subclass, an associative container of Field to
+        // Tx is an STObject subclass, an associative container of Field to
         // SerializedType. Here conversion from Object is done automatically.
+        // TODO: rename translate
         tx.put(AccountID.Destination, destination);
         tx.put(Amount.Amount, amt);
 
@@ -92,24 +99,37 @@ public class MakePayment {
         txEvents.once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
-                LOG("Submit response: %s", response.engineResult());
+                LOG("Submit success response: %s", response.engineResult());
+            }
+        });
+        txEvents.once(ManagedTxn.OnSubmitFailure.class, new ManagedTxn.OnSubmitFailure() {
+            @Override
+            public void called(Response response) {
+                LOG("Submit failure response: %s", response.engineResult());
+            }
+        });
+        txEvents.once(ManagedTxn.OnSubmitError.class, new ManagedTxn.OnSubmitError() {
+            @Override
+            public void called(Response response) {
+                LOG("Submit error response: %s", response.rpcerr);
             }
         });
         txEvents.once(ManagedTxn.OnTransactionValidated.class, new ManagedTxn.OnTransactionValidated() {
             @Override
             public void called(TransactionResult result) {
                 LOG("Transaction finalized on ledger: %s", result.ledgerIndex);
-                try {
-                    LOG("Transaction message:\n%s", result.message.toString(4));
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
+                LOG("Transaction message:\n%s", prettyJSON(result.message));
 
             }
         });
-
-        // This doesn't necessarily immediately submit, it may need to wait until the AccountRoot
-        // information has been retrieved from the server, to get the Sequence.
         tm.queue(tx);
+
+    }
+    private static String prettyJSON(JSONObject message) {
+        try {
+            return message.toString(4);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

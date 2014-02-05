@@ -23,7 +23,7 @@ public class Issue {
         return getIssue(split);
     }
 
-    public static Issue getIssue(String[] split) {
+    private static Issue getIssue(String[] split) {
         if (split.length == 2) {
             return new Issue(Currency.fromString(split[0]), AccountID.fromString(split[1]));
         }
