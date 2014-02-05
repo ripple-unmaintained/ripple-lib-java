@@ -176,7 +176,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         }
     }
 
-    public void queue(final ManagedTxn txn, final UInt32 sequence) {
+    private void queue(final ManagedTxn txn, final UInt32 sequence) {
         getPending().add(txn);
         makeSubmitRequest(txn, sequence);
     }
@@ -221,8 +221,18 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         Amount fee = client.serverInfo.transactionFee(txn);
         // Inside prepare we check if Fee and Sequence are the same, and if so
         // we don't recreate tx_blob, or resign ;)
-        // TODO, we should actually recreate the signing hash as this
-        txn.prepare(keyPair, fee, sequence);
+
+
+        long currentLedgerIndex = client.serverInfo.ledger_index;
+        UInt32 lastLedgerSequence = new UInt32(currentLedgerIndex + 8);
+        Submission submission = txn.lastSubmission();
+        if (submission != null) {
+            if (currentLedgerIndex - submission.lastLedgerSequence.longValue() < 8) {
+                lastLedgerSequence = submission.lastLedgerSequence;
+            }
+        }
+
+        txn.prepare(keyPair, fee, sequence, lastLedgerSequence);
 
         final Request req = client.newRequest(Command.submit);
         // tx_blob is a hex string, right o' the bat
@@ -250,7 +260,6 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     public void handleSubmitError(ManagedTxn txn, Response res) {
-//        resubmitFirstTransactionWithTakenSequence(transaction.sequence());
         if (txn.finalizedOrResponseIsToPriorSubmission(res)) {
             return;
         }
@@ -285,6 +294,9 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             case tefPAST_SEQ:
                 resubmitWithNewSequence(txn);
                 break;
+            case tefMAX_LEDGER:
+                resubmit(txn, submitSequence);
+                break;
             case terPRE_SEQ:
                 on(OnValidatedSequence.class, new OnValidatedSequence() {
                     @Override
@@ -315,11 +327,16 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                         finalizeTxnAndRemoveFromQueue(txn);
                         txn.publisher().emit(ManagedTxn.OnSubmitFailure.class, res);
                         break;
-                    // What about this craziness /??
+                    // These are, according to the wiki, all of a final disposition
                     case temMALFORMED:
                     case tefFAILURE:
+                        finalizeTxnAndRemoveFromQueue(txn);
+                        txn.publisher().emit(ManagedTxn.OnSubmitFailure.class, res);
+                        break;
+                    // TODO: Handle these with more panache
                     case telLOCAL_ERROR:
                     case terRETRY:
+                        // TODO: txn.setAbortedAwaitingFinal();
                         finalizeTxnAndRemoveFromQueue(txn);
                         if (getPending().isEmpty()) {
                             sequence--;
@@ -334,10 +351,6 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                         break;
 
                 }
-                // TODO: Disposition not final ??!?!? ... ????
-//                if (tr.resultClass() == TransactionEngineResult.Class.telLOCAL_ERROR) {
-//                    pending.add(transaction);
-//                }
                 break;
         }
     }
@@ -414,19 +427,22 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     private void resubmit(ManagedTxn txn, UInt32 sequence) {
+        if (txn.abortedAwaitingFinal()) {
+            return;
+        }
         makeSubmitRequest(txn, sequence);
     }
 
     private void resubmitWithSameSequence(ManagedTxn txn) {
         UInt32 previouslySubmitted = txn.sequence();
-        makeSubmitRequest(txn, previouslySubmitted);
+        resubmit(txn, previouslySubmitted);
     }
 
     public ManagedTxn payment() {
         return transaction(TransactionType.Payment);
     }
 
-    private ManagedTxn transaction(TransactionType tt) {
+    public ManagedTxn transaction(TransactionType tt) {
         ManagedTxn txn = new ManagedTxn(tt);
         txn.put(AccountID.Account, accountID);
         return txn;

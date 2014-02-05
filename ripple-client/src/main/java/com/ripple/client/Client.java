@@ -222,6 +222,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     // TODO: reconnect if we go 60s without any message from the server
 
     public void doConnect(String uri) {
+        ClientLogger.log("Connecting to " + uri);
         // XXX: connect to other uris ... just parameterise connect here ??
         previousUri = uri;
         ws.connect(URI.create(uri));
@@ -240,7 +241,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         run(new Runnable() {
             @Override
             public void run() {
-                System.out.println("connecting");
                 doConnect(uri);
             }
         });

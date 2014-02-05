@@ -25,9 +25,13 @@ public class Transaction extends STObject {
         return get(UInt32.Sequence);
     }
 
-    public void prepare(IKeyPair keyPair, Amount fee, UInt32 Sequence) {
+    public void prepare(IKeyPair keyPair, Amount fee, UInt32 Sequence, UInt32 lastLedgerSequence) {
         remove(Field.TxnSignature);
 
+        // This won't always be specified
+        if (lastLedgerSequence != null) {
+            put(UInt32.LastLedgerSequence, lastLedgerSequence);
+        }
         put(UInt32.Sequence, Sequence);
         put(Amount.Fee, fee);
         put(VariableLength.SigningPubKey, keyPair.pubBytes());

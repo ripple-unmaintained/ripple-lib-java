@@ -42,12 +42,19 @@ public class ManagedTxn extends Transaction {
         this.description = description;
     }
 
+    private boolean erredAwaitingFinal = false;
+    public boolean abortedAwaitingFinal() {
+        return erredAwaitingFinal;
+    }
+    public void setAbortedAwaitingFinal() {
+        erredAwaitingFinal = true;
+    }
+
     public static abstract class events<T> extends Publisher.Callback<T> {}
     public static abstract class OnSubmitSuccess extends events<Response> {}
     public static abstract class OnSubmitFailure extends events<Response> {}
     public static abstract class OnSubmitError extends events<Response> {}
     public static abstract class OnTransactionValidated extends events<TransactionResult> {}
-//    public static abstract class OnSumbitRequestError extends events<Exception> {}
 
     public ManagedTxn(TransactionType type) {
         super(type);
@@ -62,16 +69,22 @@ public class ManagedTxn extends Transaction {
     }
 
     @Override
-    public void prepare(IKeyPair keyPair, Amount fee, UInt32 Sequence) {
+    public void prepare(IKeyPair keyPair, Amount fee, UInt32 Sequence, UInt32 lastLedgerSequence) {
+        if (needsSigning(fee, Sequence, lastLedgerSequence)) {
+            super.prepare(keyPair, fee, Sequence, lastLedgerSequence);
+        }
+    }
+
+    public boolean needsSigning(Amount fee, UInt32 Sequence, UInt32 lastLedgerSequence) {
         Amount previousFee = get(Amount.Fee);
         UInt32 previousSequence = get(UInt32.Sequence);
+        UInt32 previousLastLedgerSequence = get(UInt32.LastLedgerSequence);
 
-        if ( (previousFee == null) ||
-             (previousSequence == null) ||
-             !previousFee.equals(fee) ||
-             !previousSequence.equals(Sequence) ) {
-            super.prepare(keyPair, fee, Sequence);
-        }
+        return  (previousFee == null) ||
+                (previousSequence == null) ||
+                previousLastLedgerSequence != null && !previousLastLedgerSequence.equals(lastLedgerSequence) ||
+                !previousFee.equals(fee) ||
+                !previousSequence.equals(Sequence);
     }
 
     public boolean finalizedOrResponseIsToPriorSubmission(Response res) {
@@ -98,7 +111,12 @@ public class ManagedTxn extends Transaction {
     }
 
     public void trackSubmitRequest(Request submitRequest, ServerInfo serverInfo) {
-        Submission submission = new Submission(submitRequest, sequence(), hash, serverInfo.ledger_index, get(Amount.Fee));
+        Submission submission = new Submission(submitRequest,
+                                               sequence(),
+                                               hash,
+                                               serverInfo.ledger_index,
+                                               get(Amount.Fee),
+                                               get(UInt32.LastLedgerSequence));
         submissions.add(submission);
         trackSubmittedID();
     }

@@ -76,7 +76,7 @@ public class TransactionTest {
         transaction.prepare(
                 niqwit1.getKeyPair(),
                 Amount.fromString("15"),
-                new UInt32(1));
+                new UInt32(1), null );
     }
 
     @Test

@@ -44,7 +44,7 @@ public class MakePayment {
 
         if (envUser != null) PAYWARD_USER = envUser;
         if (envPass != null) PAYWARD_PASS = envPass;
-        ClientLogger.quiet = true;
+        ClientLogger.quiet = false;
 
         // Uncomment to send a non native SEND_AMOUNT
         // SEND_AMOUNT = Amount.fromString("0.00001/USD/" + DESTINATION_ACCOUNT);
@@ -56,12 +56,6 @@ public class MakePayment {
         }
         else {
             final Client client = new Client(new JavaWebSocketTransportImpl());
-            client.run(new Runnable() {
-                @Override
-                public void run() {
-                    throw new RuntimeException("fuck this");
-                }
-            });
             client.run(new Client.ThrowingRunnable() {
                 @Override
                 public void throwingRun() throws Exception {

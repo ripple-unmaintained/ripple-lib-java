@@ -190,10 +190,18 @@ public class STObject implements SerializedType, Iterable<Field> {
 
     @Override
     public void toBytesList(BytesList to) {
+        toBytesList(to, false);
+    }
+
+    public void toBytesList(BytesList to, boolean signingOnly) {
         BinarySerializer serializer = new BinarySerializer(to);
 
         for (Field field : this) {
             if (field.isSerialized()) {
+                if (signingOnly && !field.isSigningField()) {
+                    continue;
+                }
+
                 SerializedType value = fields.get(field);
                 serializer.addFieldHeader(field);
 
@@ -211,7 +219,6 @@ public class STObject implements SerializedType, Iterable<Field> {
                 }
             }
         }
-
     }
 
     public static STObject fromJSONObject(JSONObject json) {
