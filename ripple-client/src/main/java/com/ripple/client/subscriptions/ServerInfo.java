@@ -46,8 +46,8 @@ public class ServerInfo {
         reserve_inc       = json.optInt(     "reserve_inc",       reserve_inc);
         load_base         = json.optInt(     "load_base",         load_base);
         load_factor       = json.optInt(     "load_factor",       load_factor);
-        ledger_time       = json.optInt(     "ledger_time",       ledger_time);
-        ledger_index      = json.optInt(     "ledger_index",      ledger_index);
+        ledger_time       = json.optLong(     "ledger_time",       ledger_time);
+        ledger_index      = json.optLong(    "ledger_index",      ledger_index);
         ledger_hash       = json.optString(  "ledger_hash",       ledger_hash);
         validated_ledgers = json.optString(  "validated_ledgers", validated_ledgers);
 

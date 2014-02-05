@@ -137,7 +137,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         }
     };
 
-    private void checkAccountTransactions(int currentLedgerIndex) {
+    private void checkAccountTransactions(long currentLedgerIndex) {
         if (pending.size() == 0) {
             lastLedgerCheckedAccountTxns = 0;
             return;
