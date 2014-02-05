@@ -254,7 +254,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
         // Keep track of the submission, including the hash submitted
         // to the network, and the ledger_index at that point in time.
-        txn.trackSubmitRequest(req, client.serverInfo);
+        txn.trackSubmitRequest(req, client.serverInfo.ledger_index);
         req.request();
         return req;
     }

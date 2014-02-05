@@ -110,11 +110,11 @@ public class ManagedTxn extends Transaction {
         finalized = true;
     }
 
-    public void trackSubmitRequest(Request submitRequest, ServerInfo serverInfo) {
+    public void trackSubmitRequest(Request submitRequest, long ledger_index) {
         Submission submission = new Submission(submitRequest,
                                                sequence(),
                                                hash,
-                                               serverInfo.ledger_index,
+                                               ledger_index,
                                                get(Amount.Fee),
                                                get(UInt32.LastLedgerSequence));
         submissions.add(submission);

@@ -23,5 +23,6 @@ public class Submission {
         this.hash = hash;
         this.ledgerSequence = ledgerSequence;
         this.fee = fee;
+        this.lastLedgerSequence = lastLedgerIndex;
     }
 }

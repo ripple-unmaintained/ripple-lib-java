@@ -14,8 +14,8 @@ public class ServerInfo {
     public int reserve_inc;
     public int load_base;
     public int load_factor;
-    public int ledger_time;
-    public int ledger_index;
+    public long ledger_time;
+    public long ledger_index;
     public String ledger_hash;
     public String random;
     public String server_status;
