@@ -2,7 +2,7 @@ package com.ripple.core.coretypes.hash;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
-import com.ripple.core.serialized.BytesList;
+import com.ripple.core.serialized.BytesSink;
 
 public class Hash128 extends HASH<Hash128> {
     public Hash128(byte[] bytes) {
@@ -35,8 +35,8 @@ public class Hash128 extends HASH<Hash128> {
     }
 
     @Override
-    public void toBytesList(BytesList to) {
-        translate.toBytesList(this, to);
+    public void toBytesSink(BytesSink to) {
+        translate.toBytesSink(this, to);
     }
     public static class Translator extends HashTranslator<Hash128> {
         @Override

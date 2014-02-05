@@ -1,9 +1,6 @@
 package com.ripple.core.coretypes.hash;
 
-import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.BytesList;
-import com.ripple.core.serialized.SerializedType;
-import com.ripple.core.serialized.TypeTranslator;
+import com.ripple.core.serialized.*;
 import com.ripple.encodings.common.B16;
 
 import java.math.BigInteger;
@@ -118,7 +115,7 @@ abstract public class HASH<Subclass extends HASH> implements SerializedType, Com
         }
 
         @Override
-        public void toBytesList(T obj, BytesList to) {
+        public void toBytesSink(T obj, BytesSink to) {
             to.add(obj.hash);
         }
     }

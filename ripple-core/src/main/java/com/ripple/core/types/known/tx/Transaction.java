@@ -45,7 +45,7 @@ public class Transaction extends STObject {
         put(VariableLength.SigningPubKey, keyPair.pubBytes());
 
         BytesList to = new BytesList();
-        STObject.translate.toBytesList(this, to);
+        STObject.translate.toBytesSink(this, to);
         tx_blob = to.bytesHex();
 
         Hash256.HalfSha512 halfSha512 = new Hash256.HalfSha512();

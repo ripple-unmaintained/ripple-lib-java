@@ -2,10 +2,7 @@ package com.ripple.core.coretypes;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
-import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.BytesList;
-import com.ripple.core.serialized.SerializedType;
-import com.ripple.core.serialized.TypeTranslator;
+import com.ripple.core.serialized.*;
 import com.ripple.core.coretypes.uint.UInt64;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -400,7 +397,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     @Override
-    public void toBytesList(BytesList to) {
+    public void toBytesSink(BytesSink to) {
         UInt64 man = mantissa();
 
         if (isNative()) {

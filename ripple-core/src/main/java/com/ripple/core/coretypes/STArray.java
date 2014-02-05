@@ -43,9 +43,9 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
     }
 
     @Override
-    public void toBytesList(BytesList to) {
+    public void toBytesSink(BytesSink to) {
         for (STObject stObject : this) {
-            stObject.toBytesList(to);
+            stObject.toBytesSink(to);
         }
     }
 

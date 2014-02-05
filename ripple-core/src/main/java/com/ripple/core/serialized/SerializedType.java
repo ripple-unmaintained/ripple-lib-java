@@ -4,5 +4,5 @@ public interface SerializedType {
     Object toJSON();
     byte[] toBytes();
     String toHex();
-    void toBytesList(BytesList to);
+    void toBytesSink(BytesSink to);
 }

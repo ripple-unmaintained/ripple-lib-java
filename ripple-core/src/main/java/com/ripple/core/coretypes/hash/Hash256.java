@@ -3,7 +3,7 @@ package com.ripple.core.coretypes.hash;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
-import com.ripple.core.serialized.BytesList;
+import com.ripple.core.serialized.BytesSink;
 
 import java.security.MessageDigest;
 import java.util.TreeMap;
@@ -37,8 +37,8 @@ public class Hash256 extends HASH<Hash256> {
     }
 
     @Override
-    public void toBytesList(BytesList to) {
-        translate.toBytesList(this, to);
+    public void toBytesSink(BytesSink to) {
+        translate.toBytesSink(this, to);
     }
 
     public static class Hash256Map<Value> extends TreeMap<Hash256, Value> {}

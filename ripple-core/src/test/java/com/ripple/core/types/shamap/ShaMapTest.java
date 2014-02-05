@@ -8,6 +8,7 @@ import static junit.framework.TestCase.assertTrue;
 import java.util.*;
 
 import com.ripple.core.coretypes.Vector256;
+import com.ripple.core.serialized.BytesList;
 import org.json.JSONArray;
 import org.junit.Test;
 import org.ripple.bouncycastle.util.encoders.Hex;
@@ -155,10 +156,11 @@ public class ShaMapTest {
     }
 
     private ShaMapLeafNode.Item createItem(byte[] tx, byte[] meta) {
-        BinarySerializer s = new BinarySerializer();
+        BytesList bl = new BytesList();
+        BinarySerializer s = new BinarySerializer(bl);
         s.addLengthEncoded(tx);
         s.addLengthEncoded(meta);
-        final byte[] bytes = s.bytes();
+        final byte[] bytes = bl.bytes();
         return new ShaMapLeafNode.Item() {
             @Override
             public byte[] bytes() {

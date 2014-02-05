@@ -1,14 +1,11 @@
 
 package com.ripple.core.coretypes;
 
+import com.ripple.core.serialized.*;
 import org.ripple.bouncycastle.util.encoders.Hex;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
-import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.BytesList;
-import com.ripple.core.serialized.SerializedType;
-import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.encodings.common.B16;
 
 public class VariableLength implements SerializedType {
@@ -34,8 +31,8 @@ public class VariableLength implements SerializedType {
     }
 
     @Override
-    public void toBytesList(BytesList to) {
-        translate.toBytesList(this, to);
+    public void toBytesSink(BytesSink to) {
+        translate.toBytesSink(this, to);
     }
     public static class Translator extends TypeTranslator<VariableLength> {
         @Override
@@ -62,7 +59,7 @@ public class VariableLength implements SerializedType {
         }
 
         @Override
-        public void toBytesList(VariableLength obj, BytesList to) {
+        public void toBytesSink(VariableLength obj, BytesSink to) {
             to.add(obj.buffer);
         }
     }

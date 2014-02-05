@@ -113,19 +113,19 @@ public abstract class TypeTranslator<T extends SerializedType> {
         return obj.toJSON();
     }
 
-    public void toBytesList(T obj, BytesList to) {
-        obj.toBytesList(to);
+    public void toBytesSink(T obj, BytesSink to) {
+        obj.toBytesSink(to);
     }
 
     public byte[] toBytes(T obj) {
         BytesList to = new BytesList();
-        toBytesList(obj, to);
+        toBytesSink(obj, to);
         return to.bytes();
     }
 
     public String toHex(T obj) {
         BytesList to = new BytesList();
-        toBytesList(obj, to);
+        toBytesSink(obj, to);
         return to.bytesHex();
     }
 }

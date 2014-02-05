@@ -1,11 +1,8 @@
 package com.ripple.core.coretypes;
 
 import com.ripple.core.fields.TypedFields;
-import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.BytesList;
+import com.ripple.core.serialized.*;
 import com.ripple.core.fields.Field;
-import com.ripple.core.serialized.SerializedType;
-import com.ripple.core.serialized.TypeTranslator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,7 +29,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
     }
 
     @Override
-    public void toBytesList(BytesList buffer) {
+    public void toBytesSink(BytesSink buffer) {
         int n = 0;
         for (Path path : this) {
             if (n++ != 0) {

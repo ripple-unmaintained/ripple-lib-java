@@ -5,14 +5,11 @@ import static com.ripple.config.Config.getB58IdentiferCodecs;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.ripple.core.serialized.BytesList;
+import com.ripple.core.serialized.*;
 import com.ripple.encodings.common.B16;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
-import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.SerializedType;
-import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.coretypes.hash.Hash160;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.crypto.ecdsa.IKeyPair;
@@ -135,7 +132,7 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     }
 
     @Override
-    public void toBytesList(BytesList to) {
+    public void toBytesSink(BytesSink to) {
         to.add(bytes());
     }
 

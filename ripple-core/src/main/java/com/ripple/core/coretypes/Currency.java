@@ -3,7 +3,7 @@ package com.ripple.core.coretypes;
 import com.ripple.core.coretypes.hash.Hash160;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.BytesList;
+import com.ripple.core.serialized.BytesSink;
 import com.ripple.encodings.common.B16;
 
 import java.math.BigDecimal;
@@ -34,8 +34,8 @@ public class Currency extends Hash160 {
     }
 
     @Override
-    public void toBytesList(BytesList to) {
-        translate.toBytesList(this, to);
+    public void toBytesSink(BytesSink to) {
+        translate.toBytesSink(this, to);
     }
 
     public static enum Type {

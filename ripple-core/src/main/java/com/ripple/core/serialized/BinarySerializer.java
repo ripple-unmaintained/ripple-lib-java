@@ -5,18 +5,14 @@ import com.ripple.core.fields.Field;
 import java.util.Arrays;
 
 public class BinarySerializer {
-    public final BytesList buffer;
+    public final BytesSink sink;
 
-    public BinarySerializer() {
-        this.buffer = new BytesList();
-    }
-
-    public BinarySerializer(BytesList buffer) {
-        this.buffer = buffer;
+    public BinarySerializer(BytesSink sink) {
+        this.sink = sink;
     }
 
     public void add(byte[] n) {
-        buffer.add(n);
+        sink.add(n);
     }
 
     public void addLengthEncoded(byte[] n) {
@@ -50,8 +46,10 @@ public class BinarySerializer {
         }
     }
 
-    public void add(BytesList inner) {
-        buffer.add(inner);
+    public void add(BytesList bl) {
+        for (byte[] bytes : bl.rawList()) {
+            sink.add(bytes);
+        }
     }
 
     public int addFieldHeader(Field f) {
@@ -63,16 +61,12 @@ public class BinarySerializer {
         return n.length;
     }
 
-    public byte[] bytes() {
-        return buffer.bytes();
-    }
-
     public void add(byte type) {
-        buffer.add(type);
+        sink.add(type);
     }
 
     public void addLengthEncoded(BytesList bytes) {
-        add(BinarySerializer.encodeVL(bytes.length()));
+        add(BinarySerializer.encodeVL(bytes.bytesLength()));
         add(bytes);
     }
 }

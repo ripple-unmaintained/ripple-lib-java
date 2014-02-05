@@ -2,10 +2,7 @@ package com.ripple.core.coretypes;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
-import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.BytesList;
-import com.ripple.core.serialized.SerializedType;
-import com.ripple.core.serialized.TypeTranslator;
+import com.ripple.core.serialized.*;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.encodings.common.B16;
 import org.json.JSONArray;
@@ -41,9 +38,9 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
     }
 
     @Override
-    public void toBytesList(BytesList to) {
+    public void toBytesSink(BytesSink to) {
         for (Hash256 hash256 : this) {
-            hash256.toBytesList(to);
+            hash256.toBytesSink(to);
         }
     }
 

@@ -189,11 +189,11 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     @Override
-    public void toBytesList(BytesList to) {
-        toBytesList(to, false);
+    public void toBytesSink(BytesSink to) {
+        toBytesSink(to, false);
     }
 
-    public void toBytesList(BytesList to, boolean signingOnly) {
+    public void toBytesSink(BytesSink to, boolean signingOnly) {
         BinarySerializer serializer = new BinarySerializer(to);
 
         for (Field field : this) {
@@ -201,16 +201,15 @@ public class STObject implements SerializedType, Iterable<Field> {
                 if (signingOnly && !field.isSigningField()) {
                     continue;
                 }
-
                 SerializedType value = fields.get(field);
                 serializer.addFieldHeader(field);
 
                 if (field.isVLEncoded()) {
                     BytesList bytes = new BytesList();
-                    value.toBytesList(bytes);
+                    value.toBytesSink(bytes);
                     serializer.addLengthEncoded(bytes);
                 } else {
-                    value.toBytesList(to);
+                    value.toBytesSink(to);
                     if (field.getType() == Type.OBJECT) {
                         serializer.addFieldHeader(Field.ObjectEndMarker);
                     } else if (field.getType() == Type.ARRAY) {

@@ -18,7 +18,7 @@ public class BytesListTest {
         ba2.add((byte) 'h');
         ba2.add(ba1);
 
-        assertEquals(ba2.length(), 8);
+        assertEquals(ba2.bytesLength(), 8);
         byte[] bytes = ba2.bytes();
         String ascii = new String(bytes, "ascii");
 

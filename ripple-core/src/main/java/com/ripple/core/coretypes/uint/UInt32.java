@@ -2,7 +2,7 @@ package com.ripple.core.coretypes.uint;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
-import com.ripple.core.serialized.BytesList;
+import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.TypeTranslator;
 
 import java.math.BigInteger;
@@ -119,7 +119,7 @@ public class UInt32 extends UINT<UInt32> {
     }
 
     @Override
-    public void toBytesList(BytesList to) {
-        translate.toBytesList(this, to);
+    public void toBytesSink(BytesSink to) {
+        translate.toBytesSink(this, to);
     }
 }
