@@ -55,8 +55,6 @@ public class UInt16 extends UINT<UInt16> {
         return intValue();
     }
 
-    private UInt16(){}
-
     public static TypedFields.UInt16Field int16Field(final Field f) {
         return new TypedFields.UInt16Field(){ @Override public Field getField() {return f;}};
     }
@@ -68,16 +66,6 @@ public class UInt16 extends UINT<UInt16> {
     public Object toJSON() {
         return translate.toJSON(this);
     }
-
-//    @Override
-//    public JSONArray toJSONArray() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    public JSONObject toJSONObject() {
-//        throw new UnsupportedOperationException();
-//    }
 
     @Override
     public byte[] toBytes() {

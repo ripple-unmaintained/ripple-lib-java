@@ -134,3 +134,24 @@ The same logic that handles clearing transactions from the account subscription
 transaction stream is applied to each transaction in the transaction list.
 
 The rpc command `account_tx` is used to get the list of transactions.
+
+Robust transaction invalidation
+-------------------------------
+
+You keep submitting until you get a final result, either a response to submit
+with a `final` disposition, or a validated transaction (via some combination
+of subscription/account_tx).
+
+It must always be kept in mind that once a transaction goes on the wire it can
+be played back at any time[1], helpfully or maliciously.
+
+This means, that for failed transactions, the transaction `Sequence` must be
+consumed (via a `noop` transaction or Fee claimed tec*), or that an expiry be
+placed on the transaction.
+
+In ripple, expiry is done by declaring `LastLedgerSequence` which specifies
+the last valid `ledger_index` that a transaction is valid for. In this way,
+even if a Sequence is not consumed, the vulnerability to replay is greatly
+reduced.
+
+[1] Without declaring `LastLedgerSequence` there is no expiry on transactions.

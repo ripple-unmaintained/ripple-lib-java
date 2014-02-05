@@ -34,6 +34,7 @@ import java.util.Iterator;
 public class STObjectTest {
     @Test
     public void binaryParsingSerializingSanityTest() throws FileNotFoundException, JSONException {
+        // TODO, add this as a zipfile to the repo, so can test from it
         File f = new File("ripple-core/src/test/java/com/ripple/resources/ledgers-full.json");
         if (!f.exists()) {
             return;
