@@ -1,11 +1,12 @@
 package com.ripple.core.serialized;
 
 import com.ripple.core.fields.Field;
+import com.ripple.core.fields.Type;
 
 import java.util.Arrays;
 
 public class BinarySerializer {
-    public final BytesSink sink;
+    private final BytesSink sink;
 
     public BinarySerializer(BytesSink sink) {
         this.sink = sink;
@@ -66,7 +67,27 @@ public class BinarySerializer {
     }
 
     public void addLengthEncoded(BytesList bytes) {
-        add(BinarySerializer.encodeVL(bytes.bytesLength()));
+        add(encodeVL(bytes.bytesLength()));
         add(bytes);
+    }
+
+    public void add(Field field, SerializedType value) {
+        addFieldHeader(field);
+        if (field.isVLEncoded()) {
+            addLengthEncoded(value);
+        } else {
+            value.toBytesSink(sink);
+            if (field.getType() == Type.OBJECT) {
+                addFieldHeader(Field.ObjectEndMarker);
+            } else if (field.getType() == Type.ARRAY) {
+                addFieldHeader(Field.ArrayEndMarker);
+            }
+        }
+    }
+
+    public void addLengthEncoded(SerializedType value) {
+        BytesList bytes = new BytesList();
+        value.toBytesSink(bytes);
+        addLengthEncoded(bytes);
     }
 }

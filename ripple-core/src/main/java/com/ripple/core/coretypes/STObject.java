@@ -197,25 +197,10 @@ public class STObject implements SerializedType, Iterable<Field> {
         BinarySerializer serializer = new BinarySerializer(to);
 
         for (Field field : this) {
-            if (field.isSerialized()) {
-                if (signingOnly && !field.isSigningField()) {
-                    continue;
-                }
+            if (field.isSerialized() &&
+                !(signingOnly && !field.isSigningField())) {
                 SerializedType value = fields.get(field);
-                serializer.addFieldHeader(field);
-
-                if (field.isVLEncoded()) {
-                    BytesList bytes = new BytesList();
-                    value.toBytesSink(bytes);
-                    serializer.addLengthEncoded(bytes);
-                } else {
-                    value.toBytesSink(to);
-                    if (field.getType() == Type.OBJECT) {
-                        serializer.addFieldHeader(Field.ObjectEndMarker);
-                    } else if (field.getType() == Type.ARRAY) {
-                        serializer.addFieldHeader(Field.ArrayEndMarker);
-                    }
-                }
+                serializer.add(field, value);
             }
         }
     }

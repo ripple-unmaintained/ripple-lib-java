@@ -63,6 +63,7 @@ public class STObjectTest {
                     assertEquals(hexFromJSON, rebuiltFromHex.toHex());
                     assertEquals(hexFromJSON, hexFromJsonToToJsonToHex);
                     assertEquals(fromJsonToJsonAndBack.toJSONObject().toString(), fromJsonToJson.toString());
+                    assertEquals(stateObject.length(), fromJsonToJson.length());
                 } catch (RuntimeException e) {
                     // There's one annoying value, that we'll need to find a way to accomodate
                     if (!e.getMessage().split("\n")[0].equals(
