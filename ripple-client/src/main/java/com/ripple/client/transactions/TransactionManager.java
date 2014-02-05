@@ -66,6 +66,9 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     public long sequence = 0;
 
     private UInt32 locallyPreemptedSubmissionSequence() {
+        if (!accountRoot.primed()) {
+            throw new IllegalStateException("The AccountRoot hasn't been populated from the server");
+        }
         long server = accountRoot.Sequence.longValue();
         if (server > sequence) {
             sequence = server;
@@ -77,9 +80,17 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                seenValidatedSequences.contains(txn.sequence().longValue());
     }
 
-
-    public void queue(ManagedTxn tx) {
-        queue(tx, locallyPreemptedSubmissionSequence());
+    public void queue(final ManagedTxn tx) {
+        if (accountRoot.primed()) {
+            queue(tx, locallyPreemptedSubmissionSequence());
+        } else {
+            accountRoot.once(AccountRoot.OnUpdate.class, new AccountRoot.OnUpdate() {
+                @Override
+                public void called(AccountRoot accountRoot) {
+                    queue(tx, locallyPreemptedSubmissionSequence());
+                }
+            });
+        }
     }
 
     // TODO: data structure that keeps txns in sequence sorted order
@@ -170,7 +181,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         makeSubmitRequest(txn, sequence);
     }
 
-    private boolean canSubmit() {
+    public boolean canSubmit() {
         return client.connected  &&
                client.serverInfo.primed() &&
                client.serverInfo.load_factor < 768 &&
