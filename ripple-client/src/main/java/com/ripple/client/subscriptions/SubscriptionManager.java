@@ -6,6 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -51,12 +52,21 @@ public class SubscriptionManager extends Publisher<SubscriptionManager.events> {
     private JSONObject basicSubscriptionObject(Set<Stream> streams, Set<AccountID> accounts) {
         JSONObject subs = new JSONObject();
         try {
-            if (streams != null && streams.size() > 0) subs.put("streams", new JSONArray(streams));
-            if (accounts != null && accounts.size() > 0) subs.put("accounts", new JSONArray(accounts));
+            if (streams != null && streams.size() > 0) subs.put("streams", getJsonArray(streams));
+            if (accounts != null && accounts.size() > 0) subs.put("accounts", getJsonArray(accounts));
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
         return subs;
+    }
+
+    private JSONArray getJsonArray(Collection<?> streams) {
+        JSONArray jsonArray = new JSONArray();
+        for (Object obj : streams) {
+            jsonArray.put(obj);
+        }
+
+        return jsonArray;
     }
 
     public JSONObject allSubscribed() {
