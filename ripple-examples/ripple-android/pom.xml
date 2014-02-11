@@ -53,7 +53,7 @@
                     <resourceDirectory>${project.basedir}/res</resourceDirectory>
                     <nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
                     <sdk>
-                        <platform>16</platform>
+                        <platform>10</platform>
                     </sdk>
                     <undeployBeforeDeploy>true</undeployBeforeDeploy>
                     <proguard>

@@ -1,16 +1,37 @@
 language: java
 before_install:
 
+# Download the SDK
+- wget http://dl.google.com/android/android-sdk_r22.3-linux.tgz
+- tar -zxf android-sdk_r22.3-linux.tgz
+
+- export ANDROID_HOME=`pwd`/android-sdk-linux
+
+# Set the $PATH so all the tools like dx,aapt etc work
+- export PATH=$PATH:$ANDROID_HOME/tools
+- export PATH=$PATH:$ANDROID_HOME/platform-tools
+- export PATH=$PATH:$ANDROID_HOME/build-tools
+
+- echo -e "y\n" > accept.txt
+- android update sdk --force -u -t platform-tools < accept.txt
+
+# this command requires platform-tools installed first to work ...
+- android list sdk -a -u
+
+# actually get the packages we want
+- android update sdk --force -u -t 1,3,4,android-10,extra-android-support,extra-android-m2repository < accept.txt
+
+# useful information to debug problems with previous steps
+- ls -lah ${ANDROID_HOME}
+- ls -lah ${ANDROID_HOME}/platforms
+- ls -lah ${ANDROID_HOME}/build-tools
+- ls -lah ${ANDROID_HOME}/tools
+- ls -lah ${ANDROID_HOME}/platform-tools
+
+# Do this last because it takes so damn long, it's quicker to iterate on
+# refinements to prior section
 - sudo apt-get update
 - sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch
 
-- wget http://dl.google.com/android/android-sdk_r21.1-linux.tgz
-- tar -zxf android-sdk_r21.1-linux.tgz
-
-- export ANDROID_HOME=`pwd`/android-sdk-linux
-- export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
-
-- android list sdk
-- android update sdk -t tools,platform-tools,extra-android-support,extra-android-m2repository,android-10 --force --no-ui
-- ls ${ANDROID_HOME}/platforms
-script: mvn install
+# -e shows full stack trace on errors
+script: mvn -e install
