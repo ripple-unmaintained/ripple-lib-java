@@ -1,6 +1,9 @@
 The Ripple Java Library
 ===============
 
+
+##[![Build Status](https://travis-ci.org/ripple/ripple-lib-java.png?branch=master)](https://travis-ci.org/ripple/ripple-lib-java)
+
 Java version of ripple-lib (alpha work in progress)
 
 Currently looking for java/android developers to help evolve this library/api.
