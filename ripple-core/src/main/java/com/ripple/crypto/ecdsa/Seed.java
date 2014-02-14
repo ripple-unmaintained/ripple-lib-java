@@ -18,7 +18,7 @@ public class Seed {
     }
 
     public static IKeyPair createKeyPair(byte[] seedBytes) {
-        BigInteger secret, pub, privateGen, modSubPrime = SECP256K1.getN();
+        BigInteger secret, pub, privateGen, modSubPrime = SECP256K1.getOrder();
         byte[] privateGenBytes;
         byte[] publicGenBytes;
 

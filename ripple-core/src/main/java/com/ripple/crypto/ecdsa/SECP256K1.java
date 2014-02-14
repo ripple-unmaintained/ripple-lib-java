@@ -22,7 +22,7 @@ public class SECP256K1 {
         return ecParams;
     }
 
-    public static BigInteger getN() {
+    public static BigInteger getOrder() {
         return ecParams.getN();
     }
 
