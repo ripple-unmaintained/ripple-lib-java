@@ -1,4 +1,6 @@
 package com.ripple.core.types.known.tx.result;
 
-public class TransactionMeta {
+import com.ripple.core.coretypes.STObject;
+
+public class TransactionMeta extends STObject{
 }

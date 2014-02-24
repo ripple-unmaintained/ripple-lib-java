@@ -9,6 +9,7 @@ import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.types.known.tx.txns.Payment;
 import org.json.JSONObject;
 import org.junit.Test;
 
@@ -72,7 +73,7 @@ public class TransactionTest {
         final String niqwit1Seed = "snSq7dKr5v39hJ8Enb45RpXFJL25h";
         final AccountID niqwit1 = AccountID.fromSeedString(niqwit1Seed);
 
-        ManagedTxn transaction = new ManagedTxn(TransactionType.Payment);
+        ManagedTxn transaction = new ManagedTxn(new Payment());
         transaction.prepare(
                 niqwit1.getKeyPair(),
                 Amount.fromString("15"),

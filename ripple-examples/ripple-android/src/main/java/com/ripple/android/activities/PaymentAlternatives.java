@@ -167,7 +167,7 @@ public class PaymentAlternatives extends Activity {
                                 // TODO, doing a send max here is retarded ;)
                                 BigDecimal sendMaxMultiplier = new BigDecimal("1.01");
                                 ManagedTxn payment = flow.createPayment(alternative, sendMaxMultiplier);
-                                Amount destAmount = payment.get(Amount.Amount);
+                                Amount destAmount = payment.txn.get(Amount.Amount);
 
                                 String path;
                                 if (!alternative.directXRP()) {
@@ -590,7 +590,7 @@ public class PaymentAlternatives extends Activity {
         }
     };
     private void setTransactionStatusHandlers(final Account account, ManagedTxn tx) {
-        tx.publisher().once(ManagedTxn.OnSubmitSuccess.class, activityLifeCycled,
+        tx.once(ManagedTxn.OnSubmitSuccess.class, activityLifeCycled,
             new ManagedTxn.OnSubmitSuccess() {
                 @Override
                 public void called(Response response) {
@@ -600,7 +600,7 @@ public class PaymentAlternatives extends Activity {
                 }
         });
 
-        tx.publisher().once(ManagedTxn.OnSubmitFailure.class, activityLifeCycled,
+        tx.once(ManagedTxn.OnSubmitFailure.class, activityLifeCycled,
             new ManagedTxn.OnSubmitFailure() {
                 @Override
                 public void called(Response response) {
@@ -610,7 +610,7 @@ public class PaymentAlternatives extends Activity {
                 }
         });
 
-        tx.publisher().once(ManagedTxn.OnSubmitError.class, activityLifeCycled,
+        tx.once(ManagedTxn.OnSubmitError.class, activityLifeCycled,
             new ManagedTxn.OnSubmitError() {
                 @Override
                 public void called(Response response) {
@@ -620,7 +620,7 @@ public class PaymentAlternatives extends Activity {
                 }
         });
 
-        tx.publisher().once(ManagedTxn.OnTransactionValidated.class, activityLifeCycled,
+        tx.once(ManagedTxn.OnTransactionValidated.class, activityLifeCycled,
             new ManagedTxn.OnTransactionValidated() {
                 @Override
                 public void called(TransactionResult result) {

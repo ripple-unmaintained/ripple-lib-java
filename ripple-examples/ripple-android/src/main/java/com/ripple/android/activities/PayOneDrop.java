@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import android.text.method.ScrollingMovementMethod;
 import com.ripple.client.transactions.ManagedTxn;
+import com.ripple.core.types.known.tx.txns.Payment;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -334,26 +335,28 @@ public class PayOneDrop extends Activity {
      */
     private void makePayment(final Account account, Object destination, Object amt) {
         TransactionManager tm = account.transactionManager();
-        ManagedTxn tx = tm.payment();
 
-        tx.put(AccountID.Destination, destination);
-        tx.put(Amount.Amount, amt);
+        Payment payment = new Payment();
+        ManagedTxn tx = tm.manage(payment);
 
-        tx.publisher().once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
+        payment.put(AccountID.Destination, destination);
+        payment.put(Amount.Amount, amt);
+
+        tx.once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
                 threadSafeSetStatus("Transaction submitted "
                         + awaitingTransactionsParenthetical(account));
             }
         });
-        tx.publisher().once(ManagedTxn.OnSubmitFailure.class, new ManagedTxn.OnSubmitFailure() {
+        tx.once(ManagedTxn.OnSubmitFailure.class, new ManagedTxn.OnSubmitFailure() {
             @Override
             public void called(Response response) {
                 threadSafeSetStatus("Transaction submission failed"
                         + awaitingTransactionsParenthetical(account));
             }
         });
-        tx.publisher().once(ManagedTxn.OnTransactionValidated.class,
+        tx.once(ManagedTxn.OnTransactionValidated.class,
                 new ManagedTxn.OnTransactionValidated() {
                     @Override
                     public void called(TransactionResult result) {

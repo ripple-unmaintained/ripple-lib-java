@@ -7,6 +7,7 @@ import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.transactions.ManagedTxn;
 import com.ripple.core.coretypes.*;
+import com.ripple.core.types.known.tx.txns.Payment;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -246,7 +247,9 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         // Cancel the path finding request.
         requestPathFindClose();
 
-        ManagedTxn payment = client.account(src).transactionManager().payment();
+        Payment payment = new Payment();
+        ManagedTxn managed = client.account(src).transactionManager().manage(payment);
+
         payment.put(AccountID.Destination, dest);
 
         if (hasPaths) {
@@ -261,7 +264,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         }
 
         payment.put(Amount.Amount, destinationAmount);
-        return payment;
+        return managed;
     }
 
     public void requestPathFindClose() {

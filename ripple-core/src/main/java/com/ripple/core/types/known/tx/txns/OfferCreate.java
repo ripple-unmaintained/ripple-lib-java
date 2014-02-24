@@ -1,4 +1,10 @@
 package com.ripple.core.types.known.tx.txns;
 
-public class OfferCreate {
+import com.ripple.core.enums.TransactionType;
+import com.ripple.core.types.known.tx.Transaction;
+
+public class OfferCreate extends Transaction {
+    public OfferCreate() {
+        super(TransactionType.OfferCreate);
+    }
 }

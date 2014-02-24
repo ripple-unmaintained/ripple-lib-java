@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.transactions.ManagedTxn;
+import com.ripple.core.types.known.tx.txns.Payment;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ripple.bouncycastle.crypto.InvalidCipherTextException;
@@ -79,36 +80,36 @@ public class MakePayment {
 
     private static void makePayment(Account account, Object destination, Object amt) {
         TransactionManager tm = account.transactionManager();
-        ManagedTxn tx = tm.payment();
+
+
+        Payment payment = new Payment();
+        ManagedTxn tx = tm.manage(payment);
 
         // Tx is an STObject subclass, an associative container of Field to
         // SerializedType. Here conversion from Object is done automatically.
         // TODO: rename translate
-        tx.put(AccountID.Destination, destination);
-        tx.put(Amount.Amount, amt);
+        payment.put(AccountID.Destination, destination);
+        payment.put(Amount.Amount, amt);
 
-        // The ManagedTxn publishes events
-        Publisher<ManagedTxn.events> txEvents = tx.publisher();
-
-        txEvents.once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
+        tx.once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
                 LOG("Submit success response: %s", response.engineResult());
             }
         });
-        txEvents.once(ManagedTxn.OnSubmitFailure.class, new ManagedTxn.OnSubmitFailure() {
+        tx.once(ManagedTxn.OnSubmitFailure.class, new ManagedTxn.OnSubmitFailure() {
             @Override
             public void called(Response response) {
                 LOG("Submit failure response: %s", response.engineResult());
             }
         });
-        txEvents.once(ManagedTxn.OnSubmitError.class, new ManagedTxn.OnSubmitError() {
+        tx.once(ManagedTxn.OnSubmitError.class, new ManagedTxn.OnSubmitError() {
             @Override
             public void called(Response response) {
                 LOG("Submit error response: %s", response.rpcerr);
             }
         });
-        txEvents.once(ManagedTxn.OnTransactionValidated.class, new ManagedTxn.OnTransactionValidated() {
+        tx.once(ManagedTxn.OnTransactionValidated.class, new ManagedTxn.OnTransactionValidated() {
             @Override
             public void called(TransactionResult result) {
                 LOG("Transaction finalized on ledger: %s", result.ledgerIndex);

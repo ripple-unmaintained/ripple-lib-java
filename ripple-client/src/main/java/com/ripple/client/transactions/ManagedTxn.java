@@ -1,23 +1,55 @@
 package com.ripple.client.transactions;
 
+import com.ripple.client.pubsub.CallbackContext;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.pubsub.Publisher;
-import com.ripple.client.subscriptions.ServerInfo;
+import com.ripple.core.coretypes.STObject;
+import com.ripple.core.coretypes.VariableLength;
 import com.ripple.core.enums.TransactionType;
+import com.ripple.core.serialized.BytesList;
 import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.types.known.tx.signed.SignedTransaction;
+import com.ripple.core.types.known.tx.txns.Payment;
 import com.ripple.crypto.ecdsa.IKeyPair;
 
 import java.util.ArrayList;
 import java.util.TreeSet;
 
-// TODO: Should OfferCreate/Payment & co extend Transaction or ManagedTxn?
-// TODO: Should ManagedTxn instead HAVE instead of be?
-public class ManagedTxn extends Transaction {
-    // events enumeration
+public class ManagedTxn extends SignedTransaction {
+    public static abstract class events<T> extends Publisher.Callback<T> {}
+    public static abstract class OnSubmitSuccess extends events<Response> {}
+    public static abstract class OnSubmitFailure extends events<Response> {}
+    public static abstract class OnSubmitError extends events<Response> {}
+    public static abstract class OnTransactionValidated extends events<TransactionResult> {}
+
+    public <T extends events> boolean removeListener(Class<T> key, Publisher.ICallback cb) {
+        return publisher.removeListener(key, cb);
+    }
+
+    public <T extends events> int emit(Class<T> key, Object... args) {
+        return publisher.emit(key, args);
+    }
+
+    public <T extends events> void once(Class<T> key, CallbackContext executor, T cb) {
+        publisher.once(key, executor, cb);
+    }
+
+    public <T extends events> void once(Class<T> key, T cb) {
+        publisher.once(key, cb);
+    }
+
+    public <T extends events> void on(Class<T> key, CallbackContext executor, T cb) {
+        publisher.on(key, executor, cb);
+    }
+
+    public <T extends events> void on(Class<T> key, T cb) {
+        publisher.on(key, cb);
+    }
+
     public Publisher<events> publisher() {
         return publisher;
     }
@@ -34,7 +66,7 @@ public class ManagedTxn extends Transaction {
     private String description;
     public String description() {
         if (description == null) {
-            return transactionType().toString();
+            return txn.transactionType().toString();
         }
         return description;
     }
@@ -42,24 +74,9 @@ public class ManagedTxn extends Transaction {
         this.description = description;
     }
 
-/*
-    private boolean erredAwaitingFinal = false;
-    public boolean abortedAwaitingFinal() {
-        return erredAwaitingFinal;
-    }
-    public void setAbortedAwaitingFinal() {
-        erredAwaitingFinal = true;
-    }
-*/
 
-    public static abstract class events<T> extends Publisher.Callback<T> {}
-    public static abstract class OnSubmitSuccess extends events<Response> {}
-    public static abstract class OnSubmitFailure extends events<Response> {}
-    public static abstract class OnSubmitError extends events<Response> {}
-    public static abstract class OnTransactionValidated extends events<TransactionResult> {}
-
-    public ManagedTxn(TransactionType type) {
-        super(type);
+    public ManagedTxn(Transaction txn) {
+        this.txn = txn;
     }
     private final Publisher<events> publisher = new Publisher<events>();
 //    private final MyTransaction publisher = new MyTransaction();
@@ -70,25 +87,6 @@ public class ManagedTxn extends Transaction {
         return res.request == req;
     }
 
-    @Override
-    public void prepare(IKeyPair keyPair, Amount fee, UInt32 Sequence, UInt32 lastLedgerSequence) {
-        if (needsSigning(fee, Sequence, lastLedgerSequence)) {
-            super.prepare(keyPair, fee, Sequence, lastLedgerSequence);
-        }
-    }
-
-    public boolean needsSigning(Amount fee, UInt32 Sequence, UInt32 lastLedgerSequence) {
-        Amount previousFee = get(Amount.Fee);
-        UInt32 previousSequence = get(UInt32.Sequence);
-        UInt32 previousLastLedgerSequence = get(UInt32.LastLedgerSequence);
-
-        return  (previousFee == null) ||
-                (previousSequence == null) ||
-                previousLastLedgerSequence != null && !previousLastLedgerSequence.equals(lastLedgerSequence) ||
-                previousLastLedgerSequence == null && lastLedgerSequence != null ||
-                !previousFee.equals(fee) ||
-                !previousSequence.equals(Sequence);
-    }
 
     public boolean finalizedOrResponseIsToPriorSubmission(Response res) {
         return isFinalized() || !responseWasToLastSubmission(res);
@@ -118,8 +116,8 @@ public class ManagedTxn extends Transaction {
                                                sequence(),
                                                hash,
                                                ledger_index,
-                                               get(Amount.Fee),
-                                               get(UInt32.LastLedgerSequence));
+                                               txn.get(Amount.Fee),
+                                               txn.get(UInt32.LastLedgerSequence));
         submissions.add(submission);
         trackSubmittedID();
     }
@@ -133,6 +131,6 @@ public class ManagedTxn extends Transaction {
     }
 
     public UInt32 sequence() {
-        return get(UInt32.Sequence);
+        return txn.sequence();
     }
 }

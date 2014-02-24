@@ -9,11 +9,13 @@ import com.ripple.client.responses.Response;
 import com.ripple.client.subscriptions.AccountRoot;
 import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.core.enums.TransactionEngineResult;
-import com.ripple.core.enums.TransactionType;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.types.known.tx.Transaction;
+import com.ripple.core.types.known.tx.txns.AccountSet;
+import com.ripple.core.types.known.tx.txns.Payment;
 import com.ripple.crypto.ecdsa.IKeyPair;
 
 import java.util.*;
@@ -216,7 +218,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
     private Request doSubmitRequest(final ManagedTxn txn, UInt32 sequence) {
         // Compute the fee for the current load_factor
-        Amount fee = client.serverInfo.transactionFee(txn);
+        Amount fee = client.serverInfo.transactionFee(txn.txn);
         // Inside prepare we check if Fee and Sequence are the same, and if so
         // we don't recreate tx_blob, or resign ;)
 
@@ -270,7 +272,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 // TODO, what if this actually eventually clears?
                 // TOOD, need to use LastLedgerSequence
                 finalizeTxnAndRemoveFromQueue(txn);
-                txn.publisher().emit(ManagedTxn.OnSubmitError.class, res);
+                txn.emit(ManagedTxn.OnSubmitError.class, res);
                 break;
         }
     }
@@ -287,7 +289,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         final UInt32 submitSequence = res.getSubmitSequence();
         switch (ter) {
             case tesSUCCESS:
-                txn.publisher().emit(ManagedTxn.OnSubmitSuccess.class, res);
+                txn.emit(ManagedTxn.OnSubmitSuccess.class, res);
                 return;
             case tefPAST_SEQ:
                 resubmitWithNewSequence(txn);
@@ -323,7 +325,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                     case tecCLAIMED:
                         // Sequence was consumed, do nothing
                         finalizeTxnAndRemoveFromQueue(txn);
-                        txn.publisher().emit(ManagedTxn.OnSubmitFailure.class, res);
+                        txn.emit(ManagedTxn.OnSubmitFailure.class, res);
                         break;
                     // These are, according to the wiki, all of a final disposition
                     case temMALFORMED:
@@ -342,7 +344,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                             queueSequencePlugTxn(submitSequence);
                             resubmitGreaterThan(submitSequence);
                         }
-                        txn.publisher().emit(ManagedTxn.OnSubmitFailure.class, res);
+                        txn.emit(ManagedTxn.OnSubmitFailure.class, res);
                         break;
 
                 }
@@ -359,7 +361,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     private void queueSequencePlugTxn(UInt32 sequence) {
-        ManagedTxn plug = transaction(TransactionType.AccountSet);
+        ManagedTxn plug = manage(new AccountSet());
         plug.setSequencePlug(true);
         queue(plug, sequence);
     }
@@ -433,13 +435,9 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         resubmit(txn, previouslySubmitted);
     }
 
-    public ManagedTxn payment() {
-        return transaction(TransactionType.Payment);
-    }
-
-    public ManagedTxn transaction(TransactionType tt) {
+    public ManagedTxn manage(Transaction tt) {
         ManagedTxn txn = new ManagedTxn(tt);
-        txn.put(AccountID.Account, accountID);
+        tt.put(AccountID.Account, accountID);
         return txn;
     }
 
@@ -457,7 +455,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             // a ManagedTxn has a result
             tr.submittedTransaction = txn;
             finalizeTxnAndRemoveFromQueue(txn);
-            txn.publisher().emit(ManagedTxn.OnTransactionValidated.class, tr);
+            txn.emit(ManagedTxn.OnTransactionValidated.class, tr);
         } else {
             // TODO Check for transaction malleability, by computing a signing hash
             // for each.
