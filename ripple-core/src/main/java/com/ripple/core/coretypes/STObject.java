@@ -21,6 +21,7 @@ import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.sle.entries.RippleState;
 import com.ripple.core.types.known.tx.result.AffectedNode;
 import com.ripple.core.types.known.tx.result.TransactionMeta;
+import com.ripple.core.types.known.tx.txns.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -74,10 +75,69 @@ public class STObject implements SerializedType, Iterable<Field> {
         }
 
         LedgerEntryType ledgerEntryType = ledgerEntryType(source);
-        if (ledgerEntryType == null) {
-            return source;
+        if (ledgerEntryType != null) {
+            return ledgerFormatted(source, ledgerEntryType);
         }
 
+        TransactionType transactionType = transactionType(source);
+        if (transactionType != null) {
+            return transactionFormatted(source, transactionType);
+        }
+
+        return source;
+    }
+
+    private static STObject transactionFormatted(STObject source, TransactionType transactionType) {
+        STObject constructed = null;
+        switch (transactionType) {
+            case Invalid:
+                break;
+            case Payment:
+                constructed = new Payment();
+                break;
+            case Claim:
+                break;
+            case WalletAdd:
+                break;
+            case AccountSet:
+                constructed = new AccountSet();
+                break;
+            case PasswordFund:
+                break;
+            case SetRegularKey:
+                break;
+            case NickNameSet:
+                break;
+            case OfferCreate:
+                constructed = new OfferCreate();
+                break;
+            case OfferCancel:
+                constructed = new OfferCancel();
+                break;
+            case Contract:
+                break;
+            case RemoveContract:
+                break;
+            case TrustSet:
+                constructed = new TrustSet();
+                break;
+            case EnableFeature:
+                break;
+            case SetFee:
+                break;
+        }
+        if (constructed == null) {
+            return source;
+        }  else {
+            // getFormat() may get the Format from the fields
+            constructed.setFormat(source.getFormat());
+            constructed.fields = source.fields;
+            return constructed;
+        }
+
+    }
+
+    private static STObject ledgerFormatted(STObject source, LedgerEntryType ledgerEntryType) {
         STObject constructed = null;
         switch (ledgerEntryType) {
             case Offer:
