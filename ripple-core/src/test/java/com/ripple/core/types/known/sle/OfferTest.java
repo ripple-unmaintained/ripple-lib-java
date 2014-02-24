@@ -4,6 +4,7 @@ import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.STArray;
 import com.ripple.core.coretypes.STObject;
+import com.ripple.core.types.known.sle.entries.Offer;
 import org.json.JSONObject;
 import org.junit.Test;
 

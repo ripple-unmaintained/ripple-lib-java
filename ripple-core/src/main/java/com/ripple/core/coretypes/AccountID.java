@@ -17,7 +17,7 @@ import com.ripple.crypto.ecdsa.Seed;
 import com.ripple.utils.Utils;
 
 public class AccountID implements SerializedType, Comparable<AccountID> {
-    public String masterSeed;
+//    public String masterSeed;
     public String address;
     protected IKeyPair keyPair;
     protected byte[] addressBytes;

@@ -93,7 +93,7 @@ public class Hash256 extends HASH<Hash256> {
         return prefixedHalfSha512(HASH_PREFIX_TX_SIGN, blob);
     }
 
-    public static class HalfSha512 {
+    public static class HalfSha512 implements BytesSink {
         MessageDigest messageDigest;
 
         public HalfSha512() {
@@ -122,6 +122,16 @@ public class Hash256 extends HASH<Hash256> {
             System.arraycopy(digest, 0, half, 0, 32);
 
             return new Hash256(half);
+        }
+
+        @Override
+        public void add(byte aByte) {
+            messageDigest.update(aByte);
+        }
+
+        @Override
+        public void add(byte[] bytes) {
+            messageDigest.update(bytes);
         }
     }
 

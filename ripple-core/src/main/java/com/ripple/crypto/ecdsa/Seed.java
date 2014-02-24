@@ -18,7 +18,7 @@ public class Seed {
     }
 
     public static IKeyPair createKeyPair(byte[] seedBytes) {
-        BigInteger secret, pub, privateGen, modSubPrime = SECP256K1.getOrder();
+        BigInteger secret, pub, privateGen, order = SECP256K1.order();
         byte[] privateGenBytes;
         byte[] publicGenBytes;
 
@@ -27,23 +27,23 @@ public class Seed {
         while (true) {
             privateGenBytes = hashedIncrement(seedBytes, i++);
             privateGen = Utils.uBigInt(privateGenBytes);
-            if (privateGen.compareTo(modSubPrime) == -1) {
+            if (privateGen.compareTo(order) == -1) {
                 break;
             }
         }
-        publicGenBytes = SECP256K1.gMultBy(privateGen);
+        publicGenBytes = SECP256K1.basePointMultipliedBy(privateGen);
 
         i=0;
         while (true) {
             byte[] secretBytes = hashedIncrement(appendIntBytes(publicGenBytes, seq), i++);
             secret = Utils.uBigInt(secretBytes);
-            if (secret.compareTo(modSubPrime) == -1) {
+            if (secret.compareTo(order) == -1) {
                 break;
             }
         }
 
-        secret = secret.add(privateGen).mod(modSubPrime);
-        pub = Utils.uBigInt(SECP256K1.gMultBy(secret));
+        secret = secret.add(privateGen).mod(order);
+        pub = Utils.uBigInt(SECP256K1.basePointMultipliedBy(secret));
 
         return new KeyPair(secret, pub);
     }

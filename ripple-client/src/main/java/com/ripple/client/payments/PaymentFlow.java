@@ -76,6 +76,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
     // We store these guys here so we can know if they have become stale
     Request pathFind;
 
+    // TODO, do from cache ;)
     public Request requestAccountInfo(final AccountID id) {
         // TODO try from cache
 
@@ -192,11 +193,15 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
             alts = new Alternatives(alternatives, prior);
         }
 
-        if (destinationAmount.isNative()) {
+        if (destinationAmount.isNative() && !src.equals(dest) && srcCanSendNative(destinationAmount)) {
             injectNativeAlternative(alts, prior);
         }
 
         return alts;
+    }
+
+    private boolean srcCanSendNative(Amount destinationAmount) {
+        return true; // TODO
     }
 
     private void injectNativeAlternative(Alternatives alts, Alternatives prior) {

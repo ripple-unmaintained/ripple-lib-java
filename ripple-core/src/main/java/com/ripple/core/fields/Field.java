@@ -237,7 +237,7 @@ public enum Field {
     }
 
     public boolean isSigningField() {
-        return isSerialized() && this != TxnSignature && this != SigningPubKey;
+        return isSerialized() && this != TxnSignature; // && this != SigningPubKey;
     }
 
     static public Comparator<Field> comparator = new Comparator<Field>() {

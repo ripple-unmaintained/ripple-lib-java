@@ -15,9 +15,9 @@ import com.ripple.core.formats.Format;
 import com.ripple.core.formats.SLEFormat;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.*;
-import com.ripple.core.types.known.sle.AccountRoot;
-import com.ripple.core.types.known.sle.Offer;
-import com.ripple.core.types.known.sle.RippleState;
+import com.ripple.core.types.known.sle.entries.AccountRoot;
+import com.ripple.core.types.known.sle.entries.Offer;
+import com.ripple.core.types.known.sle.entries.RippleState;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -188,17 +188,26 @@ public class STObject implements SerializedType, Iterable<Field> {
         return translate.toHex(this);
     }
 
-    @Override
-    public void toBytesSink(BytesSink to) {
-        toBytesSink(to, false);
+    // There's no nice predicates
+    public static interface FieldFilter {
+        boolean evaluate(Field a);
     }
 
-    public void toBytesSink(BytesSink to, boolean signingOnly) {
+    @Override
+    public void toBytesSink(BytesSink to) {
+        toBytesSink(to, new FieldFilter() {
+            @Override
+            public boolean evaluate(Field field) {
+                return field.isSerialized();
+            }
+        });
+    }
+
+    public void toBytesSink(BytesSink to, FieldFilter p) {
         BinarySerializer serializer = new BinarySerializer(to);
 
         for (Field field : this) {
-            if (field.isSerialized() &&
-                !(signingOnly && !field.isSigningField())) {
+            if (p.evaluate(field)) {
                 SerializedType value = fields.get(field);
                 serializer.add(field, value);
             }
@@ -408,7 +417,7 @@ public class STObject implements SerializedType, Iterable<Field> {
 
     private void put(Field f, byte[] bytes) {
         // TODO, all!!!
-        put(f, Translators.forField(f).fromParser(new BinaryParser(bytes)));
+        put(f, Translators.forField(f).fromBytes(bytes));
     }
 
     public void put(Field f, String s) {

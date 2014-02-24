@@ -5,7 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import com.ripple.core.types.known.sle.Offer;
+import com.ripple.core.types.known.sle.entries.Offer;
 import junit.framework.TestCase;
 import org.json.JSONArray;
 import org.json.JSONException;

@@ -1,13 +1,14 @@
-package com.ripple.core.types.known.sle;
+package com.ripple.core.types.known.sle.entries;
 
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.Quality;
 import com.ripple.core.coretypes.STObject;
+import com.ripple.core.types.known.sle.ThreadedLedgerEntry;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
 
-public class Offer extends STObject {
+public class Offer extends ThreadedLedgerEntry {
 
     public static Comparator<Offer> qualityAscending = new Comparator<Offer>() {
         @Override
@@ -42,6 +43,7 @@ public class Offer extends STObject {
                takerPays().currencyString();
     }
 
+    // TODO, rename this
     public STObject inOut(STObject finals) {
         STObject inOut = new STObject();
         inOut.put(Amount.TakerPays, finals.get(Amount.TakerPays).subtract(get(Amount.TakerPays)).abs());

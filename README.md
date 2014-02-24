@@ -16,7 +16,7 @@ the basis for various clients/wallets.
 
 ### Current status
   
-  - sjcl.json aes/ccm for (wallet) blob decrytion
+  - sjcl.json aes/ccm for (wallet) blob decryption
   - Binary serialization/parsing/shamap
   - Crude implementation of a high level client
     - Single threaded

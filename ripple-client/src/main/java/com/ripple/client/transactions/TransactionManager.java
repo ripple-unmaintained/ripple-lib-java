@@ -130,9 +130,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 txnRequester = null;
             }
             for (TransactionResult tr : page.transactionResults()) {
-                if (tr.initiatingAccount().equals(accountID)) {
-                    notifyTransactionResult(tr);
-                }
+                notifyTransactionResult(tr);
             }
         }
     };
@@ -338,7 +336,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                         if (getPending().isEmpty()) {
                             sequence--;
                         } else {
-                            // Plug a Sequence gap and preemptively resubmit some txns
+                            // Plug a Sequence gap and pre-emptively resubmit some txns
                             // rather than waiting for `OnValidatedSequence` which will take
                             // quite some ledgers.
                             queueSequencePlugTxn(submitSequence);
@@ -424,9 +422,9 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     private void resubmit(ManagedTxn txn, UInt32 sequence) {
-        if (txn.abortedAwaitingFinal()) {
-            return;
-        }
+//        if (txn.abortedAwaitingFinal()) {
+//            return;
+//        }
         makeSubmitRequest(txn, sequence);
     }
 
@@ -461,6 +459,9 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             finalizeTxnAndRemoveFromQueue(txn);
             txn.publisher().emit(ManagedTxn.OnTransactionValidated.class, tr);
         } else {
+            // TODO Check for transaction malleability, by computing a signing hash
+            // for each.
+
             // preempt the terPRE_SEQ
             resubmitFirstTransactionWithTakenSequence(txnSequence);
             // Some transactions are waiting on this event before resubmission

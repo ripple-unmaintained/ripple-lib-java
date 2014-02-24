@@ -42,6 +42,7 @@ public class ManagedTxn extends Transaction {
         this.description = description;
     }
 
+/*
     private boolean erredAwaitingFinal = false;
     public boolean abortedAwaitingFinal() {
         return erredAwaitingFinal;
@@ -49,6 +50,7 @@ public class ManagedTxn extends Transaction {
     public void setAbortedAwaitingFinal() {
         erredAwaitingFinal = true;
     }
+*/
 
     public static abstract class events<T> extends Publisher.Callback<T> {}
     public static abstract class OnSubmitSuccess extends events<Response> {}
@@ -83,6 +85,7 @@ public class ManagedTxn extends Transaction {
         return  (previousFee == null) ||
                 (previousSequence == null) ||
                 previousLastLedgerSequence != null && !previousLastLedgerSequence.equals(lastLedgerSequence) ||
+                previousLastLedgerSequence == null && lastLedgerSequence != null ||
                 !previousFee.equals(fee) ||
                 !previousSequence.equals(Sequence);
     }

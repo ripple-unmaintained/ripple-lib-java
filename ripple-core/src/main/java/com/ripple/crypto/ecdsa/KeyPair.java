@@ -57,8 +57,8 @@ public class KeyPair implements IKeyPair {
     public static boolean verify(byte[] data, byte[] sigBytes, BigInteger pub) {
         ECDSASignature signature = ECDSASignature.decodeFromDER(sigBytes);
         ECDSASigner signer = new ECDSASigner();
-        ECPoint pubPoint = SECP256K1.getCurve().decodePoint(pub.toByteArray());
-        ECPublicKeyParameters params = new ECPublicKeyParameters(pubPoint, SECP256K1.getParams());
+        ECPoint pubPoint = SECP256K1.curve().decodePoint(pub.toByteArray());
+        ECPublicKeyParameters params = new ECPublicKeyParameters(pubPoint, SECP256K1.params());
         signer.init(false, params);
         try {
             return signer.verifySignature(data, signature.r, signature.s);
@@ -139,7 +139,7 @@ public class KeyPair implements IKeyPair {
 
         BigInteger r = new BigInteger(1, rBytes), s = new BigInteger(1, sBytes);
 
-        BigInteger order = SECP256K1.getOrder();
+        BigInteger order = SECP256K1.order();
 
         if (r.compareTo(order) != -1 || s.compareTo(order) != -1) {
             return false; // R or S greater than modulus
@@ -154,12 +154,12 @@ public class KeyPair implements IKeyPair {
 
     private static ECDSASignature createECDSASignature(byte[] bytes, BigInteger secret) {
         ECDSASigner signer = new ECDSASigner();
-        ECPrivateKeyParameters privKey = new ECPrivateKeyParameters(secret, SECP256K1.getParams());
+        ECPrivateKeyParameters privKey = new ECPrivateKeyParameters(secret, SECP256K1.params());
         signer.init(true, privKey);
         BigInteger[] sigs = signer.generateSignature(bytes);
         BigInteger r = sigs[0], s = sigs[1];
 
-        BigInteger otherS = SECP256K1.getOrder().subtract(s);
+        BigInteger otherS = SECP256K1.order().subtract(s);
         if (s.compareTo(otherS) == 1) {
             s = otherS;
         }

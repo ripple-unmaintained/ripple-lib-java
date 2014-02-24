@@ -26,7 +26,14 @@
             <!--</intent-filter>-->
         <!--</activity>-->
         <activity android:name=".activities.PaymentAlternatives"
+                  android:launchMode="singleTask"
                   android:label="@string/pay_iou">
+            <intent-filter>
+                <data android:scheme="https" android:host="ripple.com" android:pathPattern="/*contact" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
             </intent-filter>

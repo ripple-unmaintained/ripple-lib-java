@@ -3,13 +3,13 @@ package com.ripple.android.activities;
 
 import android.app.Activity;
 import android.app.Service;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.GestureDetector;
-import android.view.Gravity;
-import android.view.MotionEvent;
+import android.view.Menu;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
@@ -20,7 +20,6 @@ import com.ripple.android.RippleApplication;
 import com.ripple.android.client.AndroidClient;
 import com.ripple.client.Account;
 import com.ripple.client.Client;
-import com.ripple.client.ClientLogger;
 import com.ripple.client.blobvault.BlobVault;
 import com.ripple.client.pubsub.CallbackContext;
 import com.ripple.client.payments.Alternative;
@@ -46,6 +45,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import static com.ripple.client.ClientLogger.log;
 
 public class PaymentAlternatives extends Activity {
     private final Client.OnSendMessage onClientSendMessage = new Client.OnSendMessage() {
@@ -82,7 +83,7 @@ public class PaymentAlternatives extends Activity {
     ArrayList<AccountID> contactsAddresses = new ArrayList<AccountID>(); // parallel
     AccountID destination;
 
-    BlobVault blobVault = new BlobVault("https://blobvault.payward.com/");
+    BlobVault blobVault = new BlobVault("https://blobvault.ripple.com/");
     DownloadBlobTask blobDownloadTask;
     String masterSeed;
 
@@ -146,7 +147,7 @@ public class PaymentAlternatives extends Activity {
             Button button = same.get(alternative);
 
             if (button != null) {
-                ClientLogger.log("Reusing existing button for alternative");
+                log("Reusing existing button for alternative");
             }
 
             if (button == null) {
@@ -216,7 +217,6 @@ public class PaymentAlternatives extends Activity {
         showOnlyLogin();
 
         tryLoadDevCredentialsFromAssets();
-
     }
 
     @SuppressWarnings("unused")
@@ -254,6 +254,36 @@ public class PaymentAlternatives extends Activity {
         username.setText(user);
         password.setText(pass);
         retrieveWallet.performClick();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        log(intent.getAction());
+        super.onNewIntent(intent);
+        Uri data = intent.getData();
+        if (data != null) {
+            if (data.getPath().matches("^/+contact.*")) {
+                String to = data.getQueryParameter("to");
+                AccountID contact = AccountID.fromAddress(to);
+                // We haven't bootstrapped yet
+                if (contactsAdapter.isEmpty()) {
+                    if (!contactsAddresses.contains(contact)) {
+                        contactsAddresses.add(contact);
+                    }
+                }
+                // We've already bootstrapped contacts from the blobvault
+                else {
+                    int position;
+                    position = contactsAddresses.indexOf(contact);
+                    if (position == -1) {
+                        unshiftContact(to.substring(0, 16) + "...", to);
+                        contacts.setSelection(0, true);
+                    } else {
+                        contacts.setSelection(position, true);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -786,10 +816,16 @@ public class PaymentAlternatives extends Activity {
             // There's hard coded assumptions that there will be at least one contact
             // In fact this demo has no way of adding contacts so it's not completely
             // unreasonable.
-            addContact("Niq", "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH");
+
+            for (AccountID addy : contactsAddresses) {
+                String address = addy.toString();
+                pushContact(address.substring(0, 16) + "...", address);
+            }
+
+            pushContact("Niq", "rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH");
             for (int i = 0; i < rawContacts.length(); i++) {
                 JSONObject contact = rawContacts.getJSONObject(i);
-                addContact(contact.getString("name"), contact.getString("address"));
+                pushContact(contact.getString("name"), contact.getString("address"));
             }
         } catch (JSONException e) {
             throw new RuntimeException(e);
@@ -799,10 +835,19 @@ public class PaymentAlternatives extends Activity {
     /**
      * Thread: ui thread
      */
-    private void addContact(String niq, String address) {
+    private void pushContact(String niq, String address) {
         // parallel arrays for key/value
         contactsAdapter.add(niq);
         contactsAddresses.add(AccountID.fromString(address));
+    }
+
+    /**
+     * Thread: ui thread
+     */
+    private void unshiftContact(String niq, String address) {
+        // parallel arrays for key/value
+        contactsAdapter.insert(niq, 0);
+        contactsAddresses.add(0, AccountID.fromString(address));
     }
 
 }

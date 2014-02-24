@@ -67,7 +67,7 @@ public class MakePayment {
     }
 
     private static void makePayment(Client client) throws IOException, InvalidCipherTextException, JSONException {
-        BlobVault payward = new BlobVault("https://blobvault.payward.com/");
+        BlobVault payward = new BlobVault("https://blobvault.ripple.com/");
         JSONObject blob = payward.getBlob(PAYWARD_USER, PAYWARD_PASS);
         // The blob has the master seed (the secret is deterministically derived
         // Constructing this will automatically subscribe to the accounts

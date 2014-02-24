@@ -18,24 +18,24 @@ public class SECP256K1 {
         ecParams = new ECDomainParameters(params.getCurve(), params.getG(), params.getN(), params.getH());
     }
 
-    public static ECDomainParameters getParams() {
+    public static ECDomainParameters params() {
         return ecParams;
     }
 
-    public static BigInteger getOrder() {
+    public static BigInteger order() {
         return ecParams.getN();
     }
 
 
-    public static ECCurve getCurve() {
+    public static ECCurve curve() {
         return ecParams.getCurve();
     }
 
-    public static ECPoint getG() {
+    public static ECPoint basePoint() {
         return ecParams.getG();
     }
 
-    static byte[] gMultBy(BigInteger secret) {
-        return getG().multiply(secret).getEncoded(true);
+    static byte[] basePointMultipliedBy(BigInteger secret) {
+        return basePoint().multiply(secret).getEncoded(true);
     }
 }
