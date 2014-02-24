@@ -4,17 +4,12 @@ import com.ripple.client.pubsub.CallbackContext;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.pubsub.Publisher;
-import com.ripple.core.coretypes.STObject;
-import com.ripple.core.coretypes.VariableLength;
-import com.ripple.core.enums.TransactionType;
-import com.ripple.core.serialized.BytesList;
 import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.types.known.tx.result.TransactionResult;
 import com.ripple.core.types.known.tx.signed.SignedTransaction;
-import com.ripple.core.types.known.tx.txns.Payment;
-import com.ripple.crypto.ecdsa.IKeyPair;
 
 import java.util.ArrayList;
 import java.util.TreeSet;

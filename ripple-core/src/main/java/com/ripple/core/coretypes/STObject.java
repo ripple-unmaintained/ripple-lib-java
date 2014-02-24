@@ -16,8 +16,11 @@ import com.ripple.core.formats.SLEFormat;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.*;
 import com.ripple.core.types.known.sle.entries.AccountRoot;
+import com.ripple.core.types.known.sle.entries.DirectoryNode;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.sle.entries.RippleState;
+import com.ripple.core.types.known.tx.result.AffectedNode;
+import com.ripple.core.types.known.tx.result.TransactionMeta;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,10 +36,6 @@ public class STObject implements SerializedType, Iterable<Field> {
         }
     }
 
-    public boolean wasPreviousNode() {
-        return isDeletedNode() || isModifiedNode();
-    }
-
     public static class FieldsMap extends TreeMap<Field, SerializedType> {}
 
     public String prettyJSON() {
@@ -48,86 +47,33 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     protected FieldsMap fields;
-    public Format format;
 
+    public Format format;
     public STObject() {
         fields = new FieldsMap();
     }
+
     public STObject(FieldsMap fieldsMap) {
         fields = fieldsMap;
     }
-
     public static STObject newInstance() {
         return new STObject();
     }
 
-    public boolean isCreatedNode() {
-        return fields.size() == 1 && has(Field.CreatedNode);
-    }
-
-    public boolean isDeletedNode() {
-        return fields.size() == 1 && has(Field.DeletedNode);
-    }
-
-    public boolean isModifiedNode() {
-        return fields.size() == 1 && has(Field.ModifiedNode);
-    }
-
-    public STObject nodeAsPrevious() {
-        return rebuildFromMeta(true);
-    }
-
-    public STObject nodeAsFinal() {
-        return rebuildFromMeta(false);
-    }
-
-    public STObject rebuildFromMeta(boolean layerPrevious) {
-        STObject mixed = new STObject();
-        boolean created = isCreatedNode();
-
-        Field wrapperField = created ? Field.CreatedNode :
-                             isDeletedNode() ? Field.DeletedNode :
-                                               Field.ModifiedNode;
-
-        STObject wrapped = (STObject) get(wrapperField);
-
-        Field finalFields = created ? Field.NewFields :
-                                      Field.FinalFields;
-
-        STObject finals = (STObject) wrapped.get(finalFields);
-        for (Field field : finals) {
-            mixed.put(field, finals.get(field));
-        }
-
-        // DirectoryNode LedgerEntryType won't have `PreviousFields`
-        if (layerPrevious && wrapped.has(Field.PreviousFields)) {
-            STObject previous = wrapped.get(STObject.PreviousFields);
-            STObject changed = new STObject();
-            mixed.put(Field.FinalFields, changed);
-
-            for (Field field : previous) {
-                mixed.put(field, previous.get(field));
-                changed.put(field, finals.get(field));
-            }
-        }
-
-        for (Field field : wrapped) {
-            switch (field) {
-                case NewFields:
-                case PreviousFields:
-                case FinalFields:
-                    continue;
-                default:
-                    mixed.put(field, wrapped.get(field));
-
-            }
-        }
-        return STObject.formatted(mixed);
-    }
-
-
     public static STObject formatted(STObject source) {
-        LedgerEntryType ledgerEntryType = source.ledgerEntryType();
+        if (AffectedNode.isAffectedNode(source)) {
+            AffectedNode affected = new AffectedNode();
+            affected.fields = source.fields;
+            return affected;
+        }
+
+        if (TransactionMeta.isTransactionMeta(source)) {
+            TransactionMeta meta = new TransactionMeta();
+            meta.fields = source.fields;
+            return meta;
+        }
+
+        LedgerEntryType ledgerEntryType = ledgerEntryType(source);
         if (ledgerEntryType == null) {
             return source;
         }
@@ -146,6 +92,7 @@ public class STObject implements SerializedType, Iterable<Field> {
             case Invalid:
                 break;
             case DirectoryNode:
+                constructed = new DirectoryNode();
                 break;
             case GeneratorMap:
                 break;
@@ -165,7 +112,7 @@ public class STObject implements SerializedType, Iterable<Field> {
         }  else {
             // getFormat() may get the Format from the fields
             constructed.setFormat(source.getFormat());
-            constructed.fields = source.stealFields();
+            constructed.fields = source.fields;
             return constructed;
         }
     }
@@ -218,12 +165,12 @@ public class STObject implements SerializedType, Iterable<Field> {
         return translate.fromJSONObject(json);
     }
 
-    public FieldsMap stealFields() {
+    public FieldsMap fieldsReference() {
         /*Steal the fields map*/
-        FieldsMap stolen = fields;
+//        FieldsMap stolen = fields;
         /*Any subsequent usage will blow up*/
-        fields = null;
-        return stolen;
+//        fields = null;
+        return fields;
     }
 
     public Format getFormat() {
@@ -245,22 +192,27 @@ public class STObject implements SerializedType, Iterable<Field> {
     public void setFormat(Format format) {
         this.format = format;
     }
-    public TransactionEngineResult transactionResult() {
-        UInt8 uInt8 = get(UInt8.TransactionResult);
+
+    // TODO, move these some where more specific
+    // leave these here as static methods
+    // delegate from more specific places
+    public static TransactionEngineResult transactionResult(STObject obj) {
+        UInt8 uInt8 = obj.get(UInt8.TransactionResult);
         if (uInt8 == null) {
             return null;
         }
         return TransactionEngineResult.fromNumber(uInt8.intValue());
     }
-    public LedgerEntryType ledgerEntryType() {
-        UInt16 uInt16 = get(UInt16.LedgerEntryType);
+
+    static public LedgerEntryType ledgerEntryType(STObject obj) {
+        UInt16 uInt16 = obj.get(UInt16.LedgerEntryType);
         if (uInt16 == null) {
             return null;
         }
         return LedgerEntryType.fromNumber(uInt16);
     }
-    public TransactionType transactionType() {
-        UInt16 uInt16 = get(UInt16.TransactionType);
+    public static TransactionType transactionType(STObject obj) {
+        UInt16 uInt16 = obj.get(UInt16.TransactionType);
         if (uInt16 == null) {
             return null;
         }

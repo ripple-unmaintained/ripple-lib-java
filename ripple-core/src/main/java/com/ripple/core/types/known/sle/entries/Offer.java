@@ -43,12 +43,12 @@ public class Offer extends ThreadedLedgerEntry {
                takerPays().currencyString();
     }
 
-    // TODO, rename this
-    public STObject inOut(STObject finals) {
-        STObject inOut = new STObject();
-        inOut.put(Amount.TakerPays, finals.get(Amount.TakerPays).subtract(get(Amount.TakerPays)).abs());
-        inOut.put(Amount.TakerGets, finals.get(Amount.TakerGets).subtract(get(Amount.TakerGets)).abs());
-        return inOut;
+    public STObject executed(STObject finalFields) {
+        // where `this` is an AffectedNode nodeAsPrevious
+        STObject executed = new STObject();
+        executed.put(Amount.TakerPays, finalFields.get(Amount.TakerPays).subtract(takerPays()).abs());
+        executed.put(Amount.TakerGets, finalFields.get(Amount.TakerGets).subtract(takerGets()).abs());
+        return executed;
     }
 
     public Amount takerPays() {

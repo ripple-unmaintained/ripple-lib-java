@@ -5,6 +5,7 @@ import com.ripple.client.enums.Command;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.types.known.tx.result.TransactionResult;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

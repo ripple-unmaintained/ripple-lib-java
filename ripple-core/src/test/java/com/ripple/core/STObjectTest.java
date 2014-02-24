@@ -5,7 +5,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.ripple.core.types.known.sle.entries.AccountRoot;
 import com.ripple.core.types.known.sle.entries.Offer;
+import com.ripple.core.types.known.tx.result.TransactionMeta;
 import junit.framework.TestCase;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -408,7 +410,7 @@ public class STObjectTest {
 
     @Test
     public void test_parsing_transaction_meta_with_STArray() throws Exception {
-        STObject meta = STObject.fromJSONObject(new JSONObject(metaString));
+        TransactionMeta meta = (TransactionMeta) STObject.fromJSONObject(new JSONObject(metaString));
         STArray nodes = meta.get(STArray.AffectedNodes);
 
         // Some helper methods to get enum fields
@@ -417,7 +419,7 @@ public class STObjectTest {
 
         STObject firstAffected = nodes.get(0);
         assertEquals(LedgerEntryType.AccountRoot,
-                firstAffected.get(STObject.ModifiedNode).ledgerEntryType());
+                ((AccountRoot) firstAffected.get(STObject.ModifiedNode)).ledgerEntryType());
 
         assertTrue(firstAffected.has(STObject.ModifiedNode));
         assertEquals(new UInt32(35), finalSequence(firstAffected));

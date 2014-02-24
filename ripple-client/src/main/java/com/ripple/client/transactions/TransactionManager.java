@@ -14,8 +14,8 @@ import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.types.known.tx.Transaction;
+import com.ripple.core.types.known.tx.result.TransactionResult;
 import com.ripple.core.types.known.tx.txns.AccountSet;
-import com.ripple.core.types.known.tx.txns.Payment;
 import com.ripple.crypto.ecdsa.IKeyPair;
 
 import java.util.*;
@@ -131,6 +131,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 lastLedgerCheckedAccountTxns = Math.max(lastLedgerCheckedAccountTxns, page.ledgerMax());
                 txnRequester = null;
             }
+
             for (TransactionResult tr : page.transactionResults()) {
                 notifyTransactionResult(tr);
             }
@@ -453,7 +454,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             // TODO: icky
             // A result doesn't have a ManagedTxn
             // a ManagedTxn has a result
-            tr.submittedTransaction = txn;
+//            tr.submittedTransaction = txn;
             finalizeTxnAndRemoveFromQueue(txn);
             txn.emit(ManagedTxn.OnTransactionValidated.class, tr);
         } else {

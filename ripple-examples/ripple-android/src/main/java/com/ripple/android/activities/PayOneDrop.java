@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import android.text.method.ScrollingMovementMethod;
 import com.ripple.client.transactions.ManagedTxn;
+import com.ripple.core.types.known.tx.result.TransactionResult;
 import com.ripple.core.types.known.tx.txns.Payment;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,7 +38,6 @@ import com.ripple.client.blobvault.BlobVault;
 import com.ripple.client.responses.Response;
 import com.ripple.client.subscriptions.AccountRoot;
 import com.ripple.client.transactions.TransactionManager;
-import com.ripple.client.transactions.TransactionResult;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
 

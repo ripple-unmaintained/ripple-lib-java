@@ -25,6 +25,10 @@ public class Transaction extends STObject {
         return get(UInt32.Sequence);
     }
 
+    public TransactionType transactionType() {
+        return transactionType(this);
+    }
+
     public Hash256 signingHash() {
         Hash256.HalfSha512 halfSha512 = new Hash256.HalfSha512();
         halfSha512.update(Hash256.HASH_PREFIX_TX_SIGN);

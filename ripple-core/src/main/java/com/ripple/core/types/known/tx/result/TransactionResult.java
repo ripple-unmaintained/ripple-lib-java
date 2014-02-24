@@ -1,16 +1,22 @@
 package com.ripple.core.types.known.tx.result;
 
 import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.STArray;
 import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt8;
+import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.fields.Field;
+import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.encodings.common.B16;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TransactionResult {
 
@@ -21,7 +27,7 @@ public class TransactionResult {
     public UInt32 ledgerIndex;
     public boolean validated;
 
-    public STObject         transaction;
+    public Transaction transaction;
     public TransactionMeta  meta;
     public JSONObject       message;
 
@@ -35,6 +41,66 @@ public class TransactionResult {
 
     public TransactionType transactionType() {
         return transaction.transactionType();
+    }
+
+    public AccountID createdAccount() {
+        AccountID destination    =  null;
+        Hash256   destinationIndex =  null;
+
+        if (transactionType() == TransactionType.Payment && meta.has(Field.AffectedNodes)) {
+            STArray affected = meta.get(STArray.AffectedNodes);
+            for (STObject node : affected) {
+                if (node.has(STObject.CreatedNode)) {
+                    STObject created = node.get(STObject.CreatedNode);
+                    if (STObject.ledgerEntryType(created) == LedgerEntryType.AccountRoot) {
+                        if (destination == null) {
+                            destination = transaction.get(AccountID.Destination);
+                            destinationIndex = Hash256.accountIDLedgerIndex(destination);
+                        }
+                        if (destinationIndex.equals(created.get(Hash256.LedgerIndex))) {
+                            return destination;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public Map<AccountID, STObject> modifiedRoots() {
+        HashMap<AccountID, STObject> accounts = null;
+
+        if (meta.has(Field.AffectedNodes)) {
+            accounts = new HashMap<AccountID, STObject>();
+            STArray affected = meta.get(STArray.AffectedNodes);
+            for (STObject node : affected) {
+                if (node.has(Field.ModifiedNode)) {
+                    node = node.get(STObject.ModifiedNode);
+                    if (STObject.ledgerEntryType(node) == LedgerEntryType.AccountRoot) {
+                        STObject finalFields = node.get(STObject.FinalFields);
+                        AccountID key;
+
+                        if (finalFields != null) {
+                            key = finalFields.get(AccountID.Account);
+                            accounts.put(key, node);
+                        } else {
+
+//                            key = initiatingAccount();
+//                            Hash256 ledgerIndex = Hash256.accountIDLedgerIndex(key);
+//                            if (ledgerIndex.equals(node.get(Hash256.LedgerIndex))) {
+//                                accounts.put(key, node);
+//                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return accounts;
+    }
+
+    public AccountID initiatingAccount() {
+        return transaction.get(AccountID.Account);
     }
 
     public enum Source {
@@ -56,7 +122,7 @@ public class TransactionResult {
                 ledgerIndex = new UInt32(json.getLong("ledger_index"));
 
                 if (json.has("transaction")) {
-                    transaction = STObject.fromJSONObject(json.getJSONObject("transaction"));
+                    transaction = (Transaction) STObject.fromJSONObject(json.getJSONObject("transaction"));
                     hash = transaction.get(Hash256.hash);
                 }
 
@@ -71,7 +137,7 @@ public class TransactionResult {
                 if (validated) {
                     meta = (TransactionMeta) STObject.fromJSONObject(json.getJSONObject("meta"));
                     engineResult = TransactionEngineResult.fromNumber(meta.get(UInt8.TransactionResult));
-                    transaction = STObject.fromJSONObject(json);
+                    transaction = (Transaction) STObject.fromJSONObject(json);
                     hash = transaction.get(Hash256.hash);
                     ledgerHash = null; // XXXXXX
                 }
@@ -84,7 +150,7 @@ public class TransactionResult {
                     JSONObject tx = json.getJSONObject("tx");
                     meta = (TransactionMeta) STObject.fromJSONObject(json.getJSONObject("meta"));
                     engineResult = TransactionEngineResult.fromNumber(meta.get(UInt8.TransactionResult));
-                    transaction = STObject.fromJSONObject(tx);
+                    transaction = (Transaction) STObject.fromJSONObject(tx);
                     hash = transaction.get(Hash256.hash);
                     ledgerIndex = new UInt32(tx.getLong("ledger_index"));
                     ledgerHash = null;
@@ -107,7 +173,7 @@ public class TransactionResult {
                     String tx = json.getString("tx_blob");
                     byte[] decodedTx = B16.decode(tx);
                     meta = (TransactionMeta) STObject.translate.fromHex(json.getString("meta"));
-                    transaction = STObject.translate.fromBytes(decodedTx);
+                    transaction = (Transaction) STObject.translate.fromBytes(decodedTx);
                     hash = Hash256.transactionID(decodedTx);
                     transaction.put(Field.hash, hash);
 

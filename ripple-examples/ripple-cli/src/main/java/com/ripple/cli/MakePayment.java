@@ -4,8 +4,8 @@ import static com.ripple.cli.log.Log.LOG;
 
 import java.io.IOException;
 
-import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.transactions.ManagedTxn;
+import com.ripple.core.types.known.tx.result.TransactionResult;
 import com.ripple.core.types.known.tx.txns.Payment;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,7 +17,6 @@ import com.ripple.client.ClientLogger;
 import com.ripple.client.blobvault.BlobVault;
 import com.ripple.client.responses.Response;
 import com.ripple.client.transactions.TransactionManager;
-import com.ripple.client.transactions.TransactionResult;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
