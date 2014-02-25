@@ -15,8 +15,6 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
         return toJSONArray();
     }
 
-
-//    @Override
     public JSONArray toJSONArray() {
         JSONArray array = new JSONArray();
 
@@ -26,11 +24,6 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
 
         return array;
     }
-
-//    @Override
-//    public JSONObject toJSONObject() {
-//        throw new UnsupportedOperationException();
-//    }
 
     @Override
     public byte[] toBytes() {

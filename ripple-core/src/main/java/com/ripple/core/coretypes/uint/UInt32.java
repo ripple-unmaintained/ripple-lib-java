@@ -98,16 +98,6 @@ public class UInt32 extends UInt<UInt32> {
         return translate.toJSON(this);
     }
 
-//    @Override
-//    public JSONArray toJSONArray() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    public JSONObject toJSONObject() {
-//        throw new UnsupportedOperationException();
-//    }
-
     @Override
     public byte[] toBytes() {
         return translate.toBytes(this);

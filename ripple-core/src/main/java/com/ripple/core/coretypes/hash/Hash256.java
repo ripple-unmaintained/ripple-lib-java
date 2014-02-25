@@ -19,16 +19,6 @@ public class Hash256 extends Hash<Hash256> {
         return translate.toJSON(this);
     }
 
-//    @Override
-//    public JSONArray toJSONArray() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    public JSONObject toJSONObject() {
-//        throw new UnsupportedOperationException();
-//    }
-
     @Override
     public byte[] toBytes() {
         return translate.toBytes(this);

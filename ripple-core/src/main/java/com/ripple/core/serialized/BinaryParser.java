@@ -5,6 +5,7 @@ import com.ripple.encodings.common.B16;
 
 /**
  * This class should parse headers and object markers
+ * TODO: Add capability for working with byte[] and offsets
  */
 public class BinaryParser {
     protected byte[] bytes;

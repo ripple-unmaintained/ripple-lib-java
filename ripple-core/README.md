@@ -172,7 +172,14 @@ com
 
 #### com.ripple.core.serialized.SerializedType
 
-Merely a tag interface. Doesn't actually require any methods be implemented.
+```java
+public interface SerializedType {
+    Object toJSON();
+    byte[] toBytes();
+    String toHex();
+    void toBytesSink(BytesSink to);
+}
+```
 
 #### com.ripple.core.serialized.BytesList
 
@@ -192,7 +199,7 @@ Responsible for decoding Fields and VL encoded structures.
 Handles converting a SerializedType instances to/from json, binary and other non
 SerializedType values.
 
-Has methods like fromWireHex, fromWireBytes, which delegate to fromParser.
+Has methods like fromHex, fromBytes, which delegate to fromParser.
 
 #### com.ripple.core.serialized.BinarySerializer
 
@@ -228,39 +235,115 @@ Responsible for encoding Fields/SerializeType into binary.
 * Simply using google protocol buffers was considered inadequate [link](https://github.com/ripple/rippled/blob/ee51968820fc41c5aeadf2067bfdae54ff21fa66/BinaryFormats.txt#L16)
 
 ```
-com
-└── ripple
-    ├── core
-    │   └── types
-    │       ├── uint
-    │       │   ├── UINT
-    │       │   |
-    │       │   ├── UInt8
-    │       │   ├── UInt16
-    │       │   ├── UInt32
-    │       │   └── UInt64
-    │       │
-    │       ├── hash
-    │       │   ├── HASH
-    │       │   |
-    │       │   ├── Hash128
-    │       │   ├── Hash160
-    │       │   └── Hash256
-    │       │
-    │       ├── AccountID
-    │       ├── Currency
-    │       ├── Amount
-    │       │
-    │       ├── VariableLength
-    │       │
-    │       ├── PathSet
-    │       └── Vector256
-    │       ├── STObject
-    │       ├── STArray
-    │       │
-    │       ├── shamap
-    │       │   ├── ShaMapInnerNode
-    │       │   ├── ShaMap
-    │       │   ├── ShaMapLeafNode
-    │       │   └── ShaMapNode
+└── com
+    └── ripple
+        ├── config
+        │   └── Config.java
+        ├── core
+        │   ├── binary
+        │   │   ├── BinaryReader.java
+        │   │   └── BinaryWriter.java
+        │   ├── coretypes
+        │   │   ├── AccountID.java
+        │   │   ├── Amount.java
+        │   │   ├── Currency.java
+        │   │   ├── hash
+        │   │   │   ├── Hash128.java
+        │   │   │   ├── Hash160.java
+        │   │   │   ├── Hash256.java
+        │   │   │   ├── Hash.java
+        │   │   │   └── prefixes
+        │   │   │       ├── HashPrefix.java
+        │   │   │       ├── LedgerSpace.java
+        │   │   │       └── Prefix.java
+        │   │   ├── Issue.java
+        │   │   ├── PathSet.java
+        │   │   ├── Quality.java
+        │   │   ├── RippleDate.java
+        │   │   ├── STArray.java
+        │   │   ├── STObject.java
+        │   │   ├── uint
+        │   │   │   ├── UInt16.java
+        │   │   │   ├── UInt32.java
+        │   │   │   ├── UInt64.java
+        │   │   │   ├── UInt8.java
+        │   │   │   └── UInt.java
+        │   │   ├── VariableLength.java
+        │   │   └── Vector256.java
+        │   ├── enums
+        │   │   ├── LedgerEntryType.java
+        │   │   ├── TransactionEngineResult.java
+        │   │   └── TransactionType.java
+        │   ├── fields
+        │   │   ├── Field.java
+        │   │   ├── FieldSymbolics.java
+        │   │   ├── HasField.java
+        │   │   ├── TypedFields.java
+        │   │   └── Type.java
+        │   ├── formats
+        │   │   ├── Format.java
+        │   │   ├── SLEFormat.java
+        │   │   └── TxFormat.java
+        │   ├── runtime
+        │   │   └── Value.java
+        │   ├── serialized
+        │   │   ├── BinaryParser.java
+        │   │   ├── BinarySerializer.java
+        │   │   ├── BytesList.java
+        │   │   ├── BytesSink.java
+        │   │   ├── SerializedType.java
+        │   │   └── TypeTranslator.java
+        │   └── types
+        │       ├── known
+        │       │   ├── sle
+        │       │   │   ├── entries
+        │       │   │   │   ├── AccountRoot.java
+        │       │   │   │   ├── DirectoryNode.java
+        │       │   │   │   ├── Offer.java
+        │       │   │   │   └── RippleState.java
+        │       │   │   ├── LedgerEntry.java
+        │       │   │   └── ThreadedLedgerEntry.java
+        │       │   └── tx
+        │       │       ├── result
+        │       │       │   ├── AffectedNode.java
+        │       │       │   ├── TransactionMeta.java
+        │       │       │   └── TransactionResult.java
+        │       │       ├── signed
+        │       │       │   └── SignedTransaction.java
+        │       │       ├── Transaction.java
+        │       │       └── txns
+        │       │           ├── AccountSet.java
+        │       │           ├── OfferCancel.java
+        │       │           ├── OfferCreate.java
+        │       │           ├── Payment.java
+        │       │           └── TrustSet.java
+        │       ├── ledger
+        │       │   └── Ledger.java
+        │       └── shamap
+        │           ├── NodeStore.java
+        │           ├── README.md
+        │           ├── ShaMapInnerNode.java
+        │           ├── ShaMap.java
+        │           ├── ShaMapLeafNode.java
+        │           └── ShaMapNode.java
+        ├── crypto
+        │   ├── ecdsa
+        │   │   ├── ECDSASignature.java
+        │   │   ├── IKeyPair.java
+        │   │   ├── KeyPair.java
+        │   │   ├── SECP256K1.java
+        │   │   └── Seed.java
+        │   └── sjcljson
+        │       ├── JSEscape.java
+        │       └── JSONEncrypt.java
+        ├── encodings
+        │   ├── B58IdentiferCodecs.java
+        │   ├── base58
+        │   │   ├── B58.java
+        │   │   └── EncodingFormatException.java
+        │   └── common
+        │       ├── B16.java
+        │       └── B64.java
+        └── utils
+            └── Utils.java
 ```

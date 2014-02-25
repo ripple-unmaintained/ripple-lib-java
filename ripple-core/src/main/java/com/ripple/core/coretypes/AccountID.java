@@ -111,16 +111,6 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
         return toString();
     }
 
-//    @Override
-//    public JSONArray toJSONArray() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    public JSONObject toJSONObject() {
-//        throw new UnsupportedOperationException();
-//    }
-
     @Override
     public byte[] toBytes() {
         return translate.toBytes(this);

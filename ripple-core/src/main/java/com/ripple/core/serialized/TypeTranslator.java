@@ -9,6 +9,8 @@ import com.ripple.encodings.common.B16;
 
 /**
  * @param <T> The SerializedType class
+ * TODO, this should only really have methods that each class over-rides
+ *       it's currently pretty NASTY
  */
 public abstract class TypeTranslator<T extends SerializedType> {
 
@@ -86,7 +88,7 @@ public abstract class TypeTranslator<T extends SerializedType> {
     /**
      * @param hint Using a boxed integer, allowing null for no hint
      *             This generic parameter can be used to hint the amount of
-     *             bytes (VL) or amount of fields (STObject) for example
+     *             bytes (VL) (or for any other purpose desired)
      */
     public abstract T fromParser(BinaryParser parser, Integer hint);
 
