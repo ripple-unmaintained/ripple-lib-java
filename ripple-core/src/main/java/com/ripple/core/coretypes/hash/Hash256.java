@@ -1,6 +1,9 @@
 package com.ripple.core.coretypes.hash;
 
 import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.hash.prefixes.LedgerSpace;
+import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
+import com.ripple.core.coretypes.hash.prefixes.Prefix;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BytesSink;
@@ -8,7 +11,7 @@ import com.ripple.core.serialized.BytesSink;
 import java.security.MessageDigest;
 import java.util.TreeMap;
 
-public class Hash256 extends HASH<Hash256> {
+public class Hash256 extends Hash<Hash256> {
 
 
     @Override
@@ -43,54 +46,12 @@ public class Hash256 extends HASH<Hash256> {
 
     public static class Hash256Map<Value> extends TreeMap<Hash256, Value> {}
 
-    public static final byte[] LEDGER_SPACE_ACCOUNT      = new byte[]{0, 'a'};
-    public static final byte[] LEDGER_SPACE_DIR_NODE     = new byte[]{0, 'd'};
-    public static final byte[] LEDGER_SPACE_GENERATOR    = new byte[]{0, 'g'};
-    public static final byte[] LEDGER_SPACE_NICKNAME     = new byte[]{0, 'n'};
-    public static final byte[] LEDGER_SPACE_RIPPLE       = new byte[]{0, 'r'};
-    public static final byte[] LEDGER_SPACE_OFFER        = new byte[]{0, 'o'};  // Entry for an offer.
-    public static final byte[] LEDGER_SPACE_OWNER_DIR    = new byte[]{0, 'O'};  // Directory of things owned by an account.
-    public static final byte[] LEDGER_SPACE_BOOK_DIR     = new byte[]{0, 'B'};  // Directory of order books.
-    public static final byte[] LEDGER_SPACE_CONTRACT     = new byte[]{0, 'c'};
-    public static final byte[] LEDGER_SPACE_SKIP_LIST    = new byte[]{0, 's'};
-    public static final byte[] LEDGER_SPACE_FEATURE      = new byte[]{0, 'f'};
-    public static final byte[] LEDGER_SPACE_FEE          = new byte[]{0, 'e'};
-
-    // transaction plus signature to give transaction ID
-    public static final  byte[] HASH_PREFIX_TRANSACTION_ID           =  new byte[]{'T', 'X', 'N', 0};
-    // inner transaction to sign
-    public static final  byte[] HASH_PREFIX_TX_SIGN                  =  new byte[]{'S', 'T', 'X', 0};
-    // transaction plus metadata
-//    public static final  byte[] HASH_PREFIX_TX_NODE                  =  new byte[]{'T', 'N', 'D', 0};
-    public static final  byte[] HASH_PREFIX_TX_NODE                  =  new byte[]{0x53, 0x4E, 0x44, 0};
-
-    // account state
-    public static final  byte[] HASH_PREFIX_LEAF_NODE                =  new byte[]{'M', 'L', 'N', 0};
-    // inner node in tree
-//    public static final  byte[] HASH_PREFIX_INNER_NODE               =  new byte[]{'M', 'I', 'N', 0};
-    public static final  byte[] HASH_PREFIX_INNER_NODE               =  new byte[]{0x4D, 0x49, 0x4E, 0};
-
-    // ledger master data for signing
-
-
-    public static final  byte[] HASH_PREFIX_LEDGER_MASTER            =  new byte[]{'L', 'G', 'R', 0};
-    // validation for signing
-    public static final  byte[] HASH_PREFIX_VALIDATION               =  new byte[]{'V', 'A', 'L', 0};
-    // proposal for signing
-    public static final  byte[] HASH_PREFIX_PROPOSAL                 =  new byte[]{'P', 'R', 'P', 0};
-    // inner transaction to sign (TESTNET)
-    public static final  byte[] HASH_PREFIX_TX_SIGN_TESTNET          =  new byte[]{'s', 't', 'x', 0};
-    // validation for signing (TESTNET)
-    public static final  byte[] HASH_PREFIX_VALIDATION_TESTNET       =  new byte[]{'v', 'a', 'l', 0};
-    // proposal for signing (TESTNET)
-    public static final  byte[] HASH_PREFIX_PROPOSAL_TESTNET         =  new byte[]{'p', 'r', 'p', 0};
-
     public Hash256(byte[] bytes) {
         super(bytes, 32);
     }
 
     public static Hash256 signingHash(byte[] blob) {
-        return prefixedHalfSha512(HASH_PREFIX_TX_SIGN, blob);
+        return prefixedHalfSha512(HashPrefix.txSign.bytes, blob);
     }
 
     public static class HalfSha512 implements BytesSink {
@@ -133,9 +94,20 @@ public class Hash256 extends HASH<Hash256> {
         public void add(byte[] bytes) {
             messageDigest.update(bytes);
         }
+
+        public void update(Prefix prefix) {
+            messageDigest.update(prefix.bytes());
+        }
     }
 
     public static Hash256 prefixedHalfSha512(byte[] prefix, byte[] blob) {
+        HalfSha512 messageDigest = new HalfSha512();
+        messageDigest.update(prefix);
+        messageDigest.update(blob);
+        return messageDigest.finish();
+    }
+
+    public static Hash256 prefixedHalfSha512(Prefix prefix, byte[] blob) {
         HalfSha512 messageDigest = new HalfSha512();
         messageDigest.update(prefix);
         messageDigest.update(blob);
@@ -154,11 +126,11 @@ public class Hash256 extends HASH<Hash256> {
     }
 
     public static Hash256 transactionID(byte[] blob) {
-        return prefixedHalfSha512(HASH_PREFIX_TRANSACTION_ID, blob);
+        return prefixedHalfSha512(HashPrefix.transactionID, blob);
     }
 
     public static Hash256 accountIDLedgerIndex(AccountID accountID) {
-        return prefixedHalfSha512(LEDGER_SPACE_ACCOUNT, accountID.bytes());
+        return prefixedHalfSha512(LedgerSpace.account, accountID.bytes());
     }
 
     public static class Translator extends HashTranslator<Hash256> {

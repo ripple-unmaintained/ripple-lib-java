@@ -1,6 +1,7 @@
 package com.ripple.core.types.known.tx;
 
 import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.fields.Field;
 import com.ripple.core.formats.TxFormat;
@@ -28,7 +29,7 @@ public class Transaction extends STObject {
 
     public Hash256 signingHash() {
         Hash256.HalfSha512 halfSha512 = new Hash256.HalfSha512();
-        halfSha512.update(Hash256.HASH_PREFIX_TX_SIGN);
+        halfSha512.update(HashPrefix.txSign.bytes);
         toBytesSink(halfSha512, new FieldFilter() {
             @Override
             public boolean evaluate(Field a) {

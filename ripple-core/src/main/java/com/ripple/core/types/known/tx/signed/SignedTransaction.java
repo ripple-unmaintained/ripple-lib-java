@@ -4,6 +4,7 @@ import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.VariableLength;
 import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.serialized.BytesList;
@@ -50,7 +51,7 @@ public class SignedTransaction {
 
             // Then the transactionID hash
             Hash256.HalfSha512 halfSha512 = new Hash256.HalfSha512();
-            halfSha512.update(Hash256.HASH_PREFIX_TRANSACTION_ID);
+            halfSha512.update(HashPrefix.transactionID.bytes);
             to.updateDigest(halfSha512.digest());
             hash = halfSha512.finish();
         } finally {

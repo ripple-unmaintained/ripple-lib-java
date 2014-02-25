@@ -1,6 +1,7 @@
 package com.ripple.core.coretypes;
 
 import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.serialized.BinaryParser;
 import org.junit.Test;
@@ -27,7 +28,7 @@ public class Vector256Test {
 
         System.out.println((int) type);
         UInt32 prefix = UInt32.translate.fromParser(parser);
-        UInt32 innerNode = UInt32.translate.fromBytes(Hash256.HASH_PREFIX_INNER_NODE);
+        UInt32 innerNode = HashPrefix.innerNode.uInt32;
 
 //        System.out.println(prefix.equals(innerNode));
 

@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static com.ripple.cli.log.Log.LOG;
+import static com.ripple.cli.log.Log.log;
 
 public class AnalyzeDump {
     public static void main(String[] args) throws IOException, JSONException {
@@ -81,24 +81,24 @@ public class AnalyzeDump {
                 }
             }
         }
-        LOG("Aggregates: ");
-        LOG("    Total transactions:            %d%n" +
-            "    Min ledger:                    %d%n" +
-            "    Max ledger:                    %d%n" +
-            "    Successful outbound payments:  %d%n" +
-            "    Newly funded accounts:         %d%n",
+        log("Aggregates: ");
+        log("    Total transactions:            %d%n" +
+                "    Min ledger:                    %d%n" +
+                "    Max ledger:                    %d%n" +
+                "    Successful outbound payments:  %d%n" +
+                "    Newly funded accounts:         %d%n",
                 total,
                 minMaxTracker.min,
                 minMaxTracker.max,
                 successful,
                 accountsFunded);
 
-        LOG("Payments: ");
+        log("Payments: ");
         for (Map.Entry<BigDecimal, Integer> entry : payments.entrySet()) {
             BigDecimal key = entry.getKey();
             Integer integer = createdStats.get(key);
             integer = integer == null ? 0 : integer;
-            LOG("    %7s/XRP: total: %4d, funding: %d", key.toPlainString(),
+            log("    %7s/XRP: total: %4d, funding: %d", key.toPlainString(),
                     entry.getValue(),
                     integer);
         }

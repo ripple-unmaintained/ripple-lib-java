@@ -7,7 +7,7 @@ import com.ripple.core.serialized.TypeTranslator;
 
 import java.math.BigInteger;
 
-public class UInt32 extends UINT<UInt32> {
+public class UInt32 extends UInt<UInt32> {
     public static TypeTranslator<UInt32> translate = new UINTTranslator<UInt32>() {
         @Override
         public UInt32 newInstance(BigInteger i) {

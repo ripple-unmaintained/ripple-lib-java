@@ -5,7 +5,7 @@ import com.ripple.encodings.common.B16;
 
 import java.math.BigInteger;
 
-abstract public class UINT<Subclass extends UINT> extends Number implements SerializedType, Comparable<UINT> {
+abstract public class UInt<Subclass extends UInt> extends Number implements SerializedType, Comparable<UInt> {
 
     private BigInteger value;
 
@@ -17,19 +17,19 @@ abstract public class UINT<Subclass extends UINT> extends Number implements Seri
     public BigInteger getMinimumValue() {
         return BigInteger.ZERO;
     }
-    public UINT(byte[] bytes) {
+    public UInt(byte[] bytes) {
         setValue(new BigInteger(1, bytes));
     }
-    public UINT(BigInteger bi) {
+    public UInt(BigInteger bi) {
         setValue(bi);
     }
-    public UINT(Number s) {
+    public UInt(Number s) {
         setValue(BigInteger.valueOf(s.longValue()));
     }
-    public UINT(String s) {
+    public UInt(String s) {
         setValue(new BigInteger(s));
     }
-    public UINT(String s, int radix) {
+    public UInt(String s, int radix) {
         setValue(new BigInteger(s, radix));
     }
 
@@ -39,7 +39,7 @@ abstract public class UINT<Subclass extends UINT> extends Number implements Seri
         return value.toString();
     }
 
-    public UINT() {}
+    public UInt() {}
 
     public abstract int getByteWidth();
     public abstract Subclass instanceFrom(BigInteger n);
@@ -48,23 +48,23 @@ abstract public class UINT<Subclass extends UINT> extends Number implements Seri
         return !((bitLength() / 8) > getByteWidth());
     }
 
-    public Subclass add(UINT val) {
+    public Subclass add(UInt val) {
         return instanceFrom(value.add(val.value));
     }
 
-    public Subclass subtract(UINT val) {
+    public Subclass subtract(UInt val) {
         return instanceFrom(value.subtract(val.value));
     }
 
-    public Subclass multiply(UINT val) {
+    public Subclass multiply(UInt val) {
         return instanceFrom(value.multiply(val.value));
     }
 
-    public Subclass divide(UINT val) {
+    public Subclass divide(UInt val) {
         return instanceFrom(value.divide(val.value));
     }
 
-    public Subclass or(UINT val) {
+    public Subclass or(UInt val) {
         return instanceFrom(value.or(val.value));
     }
 
@@ -80,19 +80,19 @@ abstract public class UINT<Subclass extends UINT> extends Number implements Seri
         return value.bitLength();
     }
 
-    public int compareTo(UINT val) {
+    public int compareTo(UInt val) {
         return value.compareTo(val.value);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof UINT) {
-            return equals((UINT) obj);
+        if (obj instanceof UInt) {
+            return equals((UInt) obj);
         }
         else return super.equals(obj);
     }
 
-    public boolean equals(UINT x) {
+    public boolean equals(UInt x) {
         return value.equals(x.value);
     }
 
@@ -182,11 +182,11 @@ abstract public class UINT<Subclass extends UINT> extends Number implements Seri
         this.value = value;
     }
 
-    public <T extends UINT> boolean  lte(T sequence) {
+    public <T extends UInt> boolean  lte(T sequence) {
         return compareTo(sequence) < 1;
     }
 
-    static public abstract class UINTTranslator<T extends UINT> extends TypeTranslator<T> {
+    static public abstract class UINTTranslator<T extends UInt> extends TypeTranslator<T> {
 
         public abstract T newInstance(BigInteger i);
         public abstract int byteWidth();

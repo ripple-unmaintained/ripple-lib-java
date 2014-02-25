@@ -1,6 +1,6 @@
 package com.ripple.cli;
 
-import static com.ripple.cli.log.Log.LOG;
+import static com.ripple.cli.log.Log.log;
 
 import java.io.IOException;
 
@@ -52,7 +52,7 @@ public class MakePayment {
 
     public static void main(String[] args) throws Exception {
         if (PAYWARD_USER.isEmpty() || PAYWARD_PASS.isEmpty()) {
-            LOG("Must configure PAYWARD_USER && PAYWARD_PASS");
+            log("Must configure PAYWARD_USER && PAYWARD_PASS");
         }
         else {
             final Client client = new Client(new JavaWebSocketTransportImpl());
@@ -93,27 +93,27 @@ public class MakePayment {
         tx.once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
             @Override
             public void called(Response response) {
-                LOG("Submit success response: %s", response.engineResult());
+                log("Submit success response: %s", response.engineResult());
             }
         });
         tx.once(ManagedTxn.OnSubmitFailure.class, new ManagedTxn.OnSubmitFailure() {
             @Override
             public void called(Response response) {
-                LOG("Submit failure response: %s", response.engineResult());
+                log("Submit failure response: %s", response.engineResult());
             }
         });
         tx.once(ManagedTxn.OnSubmitError.class, new ManagedTxn.OnSubmitError() {
             @Override
             public void called(Response response) {
-                LOG("Submit error response: %s", response.rpcerr);
+                log("Submit error response: %s", response.rpcerr);
             }
         });
         tx.once(ManagedTxn.OnTransactionValidated.class, new ManagedTxn.OnTransactionValidated() {
             @Override
             public void called(TransactionResult result) {
-                LOG("Transaction finalized on ledger: %s", result.ledgerIndex);
-                LOG("Transaction message:\n%s", prettyJSON(result.message));
-
+                log("Transaction finalized on ledger: %s", result.ledgerIndex);
+                log("Transaction message:\n%s", prettyJSON(result.message));
+                System.exit(0);
             }
         });
         tm.queue(tx);

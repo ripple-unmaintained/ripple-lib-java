@@ -1,6 +1,7 @@
 package com.ripple.core.types.shamap;
 
 import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 
 public class ShaMapInnerNode extends ShaMapNode {
     public static final Hash256 ZERO_256 = new Hash256(new byte[32]);
@@ -25,7 +26,7 @@ public class ShaMapInnerNode extends ShaMapNode {
         }
 
         Hash256.HalfSha512 hasher = new Hash256.HalfSha512();
-        hasher.update(Hash256.HASH_PREFIX_INNER_NODE);
+        hasher.update(HashPrefix.innerNode.bytes);
 
         int fullBranches = 0;
         for (ShaMapNode node : branches) {

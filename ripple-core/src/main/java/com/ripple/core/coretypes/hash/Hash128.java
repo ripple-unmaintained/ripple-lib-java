@@ -4,7 +4,7 @@ import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BytesSink;
 
-public class Hash128 extends HASH<Hash128> {
+public class Hash128 extends Hash<Hash128> {
     public Hash128(byte[] bytes) {
         super(bytes, 16);
     }
@@ -13,16 +13,6 @@ public class Hash128 extends HASH<Hash128> {
     public Object toJSON() {
         return translate.toJSON(this);
     }
-
-//    @Override
-//    public JSONArray toJSONArray() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    public JSONObject toJSONObject() {
-//        throw new UnsupportedOperationException();
-//    }
 
     @Override
     public byte[] toBytes() {

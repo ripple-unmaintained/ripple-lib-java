@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import static junit.framework.TestCase.assertTrue;
 
-public class UINTTest {
+public class UIntTest {
     @Test
     public void testLTE() throws Exception {
         UInt64 n = new UInt64(34);

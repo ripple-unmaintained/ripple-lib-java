@@ -5,7 +5,7 @@ import com.ripple.core.fields.TypedFields;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.serialized.BytesSink;
 
-public class Hash160 extends HASH<Hash160> {
+public class Hash160 extends Hash<Hash160> {
     public Hash160(byte[] bytes) {
         super(bytes, 20);
     }

@@ -1,6 +1,7 @@
 package com.ripple.core.types.shamap;
 
 import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 
 public class ShaMapLeafNode extends ShaMapNode {
     Hash256 index;
@@ -25,7 +26,7 @@ public class ShaMapLeafNode extends ShaMapNode {
                 return index;
             case tnTRANSACTION_MD:
                 Hash256.HalfSha512 half = new Hash256.HalfSha512();
-                half.update(Hash256.HASH_PREFIX_TX_NODE);
+                half.update(HashPrefix.txNode.bytes);
                 half.update(getBlob().bytes());
                 half.update(index);
                 return half.finish();

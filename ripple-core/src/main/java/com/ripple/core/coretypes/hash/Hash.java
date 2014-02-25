@@ -6,11 +6,11 @@ import com.ripple.encodings.common.B16;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-abstract public class HASH<Subclass extends HASH> implements SerializedType, Comparable<Subclass> {
+abstract public class Hash<Subclass extends Hash> implements SerializedType, Comparable<Subclass> {
     protected final byte[] hash;
     protected int hashCode = -1;
 
-    public HASH(byte[] bytes, int size) {
+    public Hash(byte[] bytes, int size) {
         hash = normalizeAndCheckHash(bytes, size);
     }
 
@@ -53,8 +53,8 @@ abstract public class HASH<Subclass extends HASH> implements SerializedType, Com
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof HASH) {
-            return Arrays.equals(hash, ((HASH) obj).hash);
+        if (obj instanceof Hash) {
+            return Arrays.equals(hash, ((Hash) obj).hash);
         }
 
         return super.equals(obj);
@@ -94,7 +94,7 @@ abstract public class HASH<Subclass extends HASH> implements SerializedType, Com
         return slice;
     }
 
-    static public abstract class HashTranslator<T extends HASH> extends TypeTranslator<T> {
+    static public abstract class HashTranslator<T extends Hash> extends TypeTranslator<T> {
 
         public abstract T newInstance(byte[] b);
         public abstract int byteWidth();
