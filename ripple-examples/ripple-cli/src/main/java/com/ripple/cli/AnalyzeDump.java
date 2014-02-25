@@ -67,7 +67,7 @@ public class AnalyzeDump {
                 if (tr.engineResult      == TransactionEngineResult.tesSUCCESS &&
                     tr.transactionType() == TransactionType.Payment            &&
                     tr.initiatingAccount().equals(giveAwayAccount)) {
-                    Amount amount = tr.transaction.get(Amount.Amount);
+                    Amount amount = tr.txn.get(Amount.Amount);
 
                     if (amount.isNative()) {
                         successful++;

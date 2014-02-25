@@ -27,7 +27,7 @@ public class TransactionResult {
     public UInt32 ledgerIndex;
     public boolean validated;
 
-    public Transaction transaction;
+    public Transaction txn;
     public TransactionMeta  meta;
     public JSONObject       message;
 
@@ -35,12 +35,8 @@ public class TransactionResult {
         return transactionType() == TransactionType.Payment;
     }
 
-    public AccountID destinationAccount() {
-        return transaction.get(AccountID.Destination);
-    }
-
     public TransactionType transactionType() {
-        return transaction.transactionType();
+        return txn.transactionType();
     }
 
     public AccountID createdAccount() {
@@ -54,7 +50,7 @@ public class TransactionResult {
                     STObject created = node.get(STObject.CreatedNode);
                     if (STObject.ledgerEntryType(created) == LedgerEntryType.AccountRoot) {
                         if (destination == null) {
-                            destination = transaction.get(AccountID.Destination);
+                            destination = txn.get(AccountID.Destination);
                             destinationIndex = Hash256.accountIDLedgerIndex(destination);
                         }
                         if (destinationIndex.equals(created.get(Hash256.LedgerIndex))) {
@@ -84,6 +80,7 @@ public class TransactionResult {
                             key = finalFields.get(AccountID.Account);
                             accounts.put(key, node);
                         } else {
+                            // TODO why the hell is this commented out
 
 //                            key = initiatingAccount();
 //                            Hash256 ledgerIndex = Hash256.accountIDLedgerIndex(key);
@@ -100,7 +97,7 @@ public class TransactionResult {
     }
 
     public AccountID initiatingAccount() {
-        return transaction.get(AccountID.Account);
+        return txn.get(AccountID.Account);
     }
 
     public enum Source {
@@ -122,8 +119,8 @@ public class TransactionResult {
                 ledgerIndex = new UInt32(json.getLong("ledger_index"));
 
                 if (json.has("transaction")) {
-                    transaction = (Transaction) STObject.fromJSONObject(json.getJSONObject("transaction"));
-                    hash = transaction.get(Hash256.hash);
+                    txn = (Transaction) STObject.fromJSONObject(json.getJSONObject("transaction"));
+                    hash = txn.get(Hash256.hash);
                 }
 
                 if (json.has("meta")) {
@@ -137,8 +134,8 @@ public class TransactionResult {
                 if (validated) {
                     meta = (TransactionMeta) STObject.fromJSONObject(json.getJSONObject("meta"));
                     engineResult = TransactionEngineResult.fromNumber(meta.get(UInt8.TransactionResult));
-                    transaction = (Transaction) STObject.fromJSONObject(json);
-                    hash = transaction.get(Hash256.hash);
+                    txn = (Transaction) STObject.fromJSONObject(json);
+                    hash = txn.get(Hash256.hash);
                     ledgerHash = null; // XXXXXX
                 }
             } else if (resultMessageSource == Source.request_account_tx) {
@@ -150,8 +147,8 @@ public class TransactionResult {
                     JSONObject tx = json.getJSONObject("tx");
                     meta = (TransactionMeta) STObject.fromJSONObject(json.getJSONObject("meta"));
                     engineResult = TransactionEngineResult.fromNumber(meta.get(UInt8.TransactionResult));
-                    transaction = (Transaction) STObject.fromJSONObject(tx);
-                    hash = transaction.get(Hash256.hash);
+                    this.txn = (Transaction) STObject.fromJSONObject(tx);
+                    hash = this.txn.get(Hash256.hash);
                     ledgerIndex = new UInt32(tx.getLong("ledger_index"));
                     ledgerHash = null;
                 }
@@ -173,9 +170,9 @@ public class TransactionResult {
                     String tx = json.getString("tx_blob");
                     byte[] decodedTx = B16.decode(tx);
                     meta = (TransactionMeta) STObject.translate.fromHex(json.getString("meta"));
-                    transaction = (Transaction) STObject.translate.fromBytes(decodedTx);
+                    this.txn = (Transaction) STObject.translate.fromBytes(decodedTx);
                     hash = Hash256.transactionID(decodedTx);
-                    transaction.put(Field.hash, hash);
+                    this.txn.put(Field.hash, hash);
 
                     engineResult = meta.transactionResult();
                     ledgerIndex = new UInt32(json.getLong("ledger_index"));

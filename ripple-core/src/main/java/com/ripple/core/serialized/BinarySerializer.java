@@ -77,9 +77,9 @@ public class BinarySerializer {
             addLengthEncoded(value);
         } else {
             value.toBytesSink(sink);
-            if (field.getType() == Type.OBJECT) {
+            if (field.getType() == Type.STObject) {
                 addFieldHeader(Field.ObjectEndMarker);
-            } else if (field.getType() == Type.ARRAY) {
+            } else if (field.getType() == Type.STArray) {
                 addFieldHeader(Field.ArrayEndMarker);
             }
         }

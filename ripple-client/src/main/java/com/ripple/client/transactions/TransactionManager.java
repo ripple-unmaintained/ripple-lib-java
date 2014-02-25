@@ -446,7 +446,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         if (!tr.validated || !(tr.initiatingAccount().equals(accountID))) {
             return;
         }
-        UInt32 txnSequence = tr.transaction.get(UInt32.Sequence);
+        UInt32 txnSequence = tr.txn.get(UInt32.Sequence);
         seenValidatedSequences.add(txnSequence.longValue());
 
         ManagedTxn txn = submittedTransactionForHash(tr.hash);
@@ -460,7 +460,6 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         } else {
             // TODO Check for transaction malleability, by computing a signing hash
             // for each.
-
             // preempt the terPRE_SEQ
             resubmitFirstTransactionWithTakenSequence(txnSequence);
             // Some transactions are waiting on this event before resubmission

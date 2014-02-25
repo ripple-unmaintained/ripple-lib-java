@@ -4,26 +4,26 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public enum Type {
-    UNKNOWN(-2),
-    DONE(-1),
-    NOTPRESENT(0),
-    UINT16(1),
-    UINT32(2),
-    UINT64(3),
-    HASH128(4),
-    HASH256(5),
-    AMOUNT(6),
-    VL(7),
-    ACCOUNT(8),
-    OBJECT(14),
-    ARRAY(15),
-    UINT8(16),
-    HASH160(17),
-    PATHSET(18),
-    VECTOR256(19),
-    TRANSACTION(10001),
-    LEDGERENTRY(10002),
-    VALIDATION(10003);
+    Unknown(-2),
+    Done(-1),
+    NotPresent(0),
+    UInt16(1),
+    UInt32(2),
+    UInt64(3),
+    Hash128(4),
+    Hash256(5),
+    Amount(6),
+    VariableLength(7),
+    AccountID(8),
+    STObject(14),
+    STArray(15),
+    UInt8(16),
+    Hash160(17),
+    PathSet(18),
+    Vector256(19),
+    Transaction(10001),
+    LedgerEntry(10002),
+    Validation(10003);
 
     static private Map<Integer, Type> byInt = new TreeMap<Integer, Type>();
     static {

@@ -183,6 +183,7 @@ public class Hash256 extends HASH<Hash256> {
     static public TypedFields.Hash256Field TransactionHash = hash256Field(Field.TransactionHash);
     static public TypedFields.Hash256Field AccountHash = hash256Field(Field.AccountHash);
     static public TypedFields.Hash256Field PreviousTxnID = hash256Field(Field.PreviousTxnID);
+    static public TypedFields.Hash256Field AccountTxnID = hash256Field(Field.AccountTxnID);
     static public TypedFields.Hash256Field LedgerIndex = hash256Field(Field.LedgerIndex);
     static public TypedFields.Hash256Field WalletLocator = hash256Field(Field.WalletLocator);
     static public TypedFields.Hash256Field RootIndex = hash256Field(Field.RootIndex);

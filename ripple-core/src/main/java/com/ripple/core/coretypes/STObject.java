@@ -15,10 +15,12 @@ import com.ripple.core.formats.Format;
 import com.ripple.core.formats.SLEFormat;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.*;
+import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.sle.entries.AccountRoot;
 import com.ripple.core.types.known.sle.entries.DirectoryNode;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.sle.entries.RippleState;
+import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.core.types.known.tx.result.AffectedNode;
 import com.ripple.core.types.known.tx.result.TransactionMeta;
 import com.ripple.core.types.known.tx.txns.*;
@@ -127,13 +129,11 @@ public class STObject implements SerializedType, Iterable<Field> {
                 break;
         }
         if (constructed == null) {
-            return source;
-        }  else {
-            // getFormat() may get the Format from the fields
-            constructed.setFormat(source.getFormat());
-            constructed.fields = source.fields;
-            return constructed;
+            constructed = new Transaction(transactionType);
         }
+
+        constructed.fields = source.fields;
+        return constructed;
 
     }
 
@@ -168,13 +168,10 @@ public class STObject implements SerializedType, Iterable<Field> {
                 break;
         }
         if (constructed == null) {
-            return source;
-        }  else {
-            // getFormat() may get the Format from the fields
-            constructed.setFormat(source.getFormat());
-            constructed.fields = source.fields;
-            return constructed;
+            constructed = new LedgerEntry(ledgerEntryType);
         }
+        constructed.fields = source.fields;
+        return constructed;
     }
 
     @Override
@@ -223,14 +220,6 @@ public class STObject implements SerializedType, Iterable<Field> {
 
     public static STObject fromJSONObject(JSONObject json) {
         return translate.fromJSONObject(json);
-    }
-
-    public FieldsMap fieldsReference() {
-        /*Steal the fields map*/
-//        FieldsMap stolen = fields;
-        /*Any subsequent usage will blow up*/
-//        fields = null;
-        return fields;
     }
 
     public Format getFormat() {
@@ -516,21 +505,21 @@ public class STObject implements SerializedType, Iterable<Field> {
     public static class Translators {
         public static TypeTranslator forType(Type type) {
             switch (type) {
-                case OBJECT:     return translate;
+                case STObject:     return translate;
 
-                case AMOUNT:     return Amount.translate;
-                case UINT16:     return UInt16.translate;
-                case UINT32:     return UInt32.translate;
-                case UINT64:     return UInt64.translate;
-                case HASH128:    return Hash128.translate;
-                case HASH256:    return Hash256.translate;
-                case VL:         return VariableLength.translate;
-                case ACCOUNT:    return AccountID.translate;
-                case ARRAY:      return STArray.translate;
-                case UINT8:      return UInt8.translate;
-                case HASH160:    return Hash160.translate;
-                case PATHSET:    return PathSet.translate;
-                case VECTOR256:  return Vector256.translate;
+                case Amount:     return Amount.translate;
+                case UInt16:     return UInt16.translate;
+                case UInt32:     return UInt32.translate;
+                case UInt64:     return UInt64.translate;
+                case Hash128:    return Hash128.translate;
+                case Hash256:    return Hash256.translate;
+                case VariableLength:         return VariableLength.translate;
+                case AccountID:    return AccountID.translate;
+                case STArray:      return STArray.translate;
+                case UInt8:      return UInt8.translate;
+                case Hash160:    return Hash160.translate;
+                case PathSet:    return PathSet.translate;
+                case Vector256:  return Vector256.translate;
                 default:         throw new RuntimeException("Unknown type");
             }
         }

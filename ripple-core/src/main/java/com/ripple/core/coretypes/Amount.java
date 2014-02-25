@@ -652,6 +652,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     static public TypedFields.AmountField Amount = amountField(Field.Amount);
     static public TypedFields.AmountField Balance = amountField(Field.Balance);
     static public TypedFields.AmountField LimitAmount = amountField(Field.LimitAmount);
+    static public TypedFields.AmountField DeliveredAmount = amountField(Field.DeliveredAmount);
     static public TypedFields.AmountField TakerPays = amountField(Field.TakerPays);
     static public TypedFields.AmountField TakerGets = amountField(Field.TakerGets);
     static public TypedFields.AmountField LowLimit = amountField(Field.LowLimit);
@@ -660,10 +661,5 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     static public TypedFields.AmountField SendMax = amountField(Field.SendMax);
     static public TypedFields.AmountField MinimumOffer = amountField(Field.MinimumOffer);
     static public TypedFields.AmountField RippleEscrow = amountField(Field.RippleEscrow);
-
-    // TODO: create a Quality extends BigDecimal type
-    // static public TypedFields.AmountField quality = amountField(Field.quality);
-    static public TypedFields.AmountField taker_gets_funded = amountField(Field.taker_gets_funded);
-    static public TypedFields.AmountField taker_pays_funded = amountField(Field.taker_pays_funded);
 
 }

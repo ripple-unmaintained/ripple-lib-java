@@ -7,7 +7,8 @@ import com.ripple.core.fields.Field;
 
 public class TransactionMeta extends STObject{
     public static boolean isTransactionMeta(STObject source) {
-        return source.has(UInt8.TransactionResult) && source.has(Field.AffectedNodes);
+        return source.has(UInt8.TransactionResult) &&
+               source.has(Field.AffectedNodes);
     }
 
     public TransactionEngineResult transactionResult() {
