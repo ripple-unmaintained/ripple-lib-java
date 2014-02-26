@@ -83,8 +83,8 @@ public class TransactionResult {
                             // TODO why the hell is this commented out
 
 //                            key = initiatingAccount();
-//                            Hash256 ledgerIndex = Hash256.accountIDLedgerIndex(key);
-//                            if (ledgerIndex.equals(node.get(Hash256.LedgerIndex))) {
+//                            Hash256 index = Hash256.accountIDLedgerIndex(key);
+//                            if (index.equals(node.get(Hash256.LedgerIndex))) {
 //                                accounts.put(key, node);
 //                            }
                         }

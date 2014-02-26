@@ -39,6 +39,10 @@ public class STObject implements SerializedType, Iterable<Field> {
         }
     }
 
+    public FieldsMap getFields() {
+        return fields;
+    }
+
     public static class FieldsMap extends TreeMap<Field, SerializedType> {}
 
     public String prettyJSON() {
@@ -65,9 +69,7 @@ public class STObject implements SerializedType, Iterable<Field> {
 
     public static STObject formatted(STObject source) {
         if (AffectedNode.isAffectedNode(source)) {
-            AffectedNode affected = new AffectedNode();
-            affected.fields = source.fields;
-            return affected;
+            return new AffectedNode(source);
         }
 
         if (TransactionMeta.isTransactionMeta(source)) {

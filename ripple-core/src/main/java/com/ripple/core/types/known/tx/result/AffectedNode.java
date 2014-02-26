@@ -1,23 +1,51 @@
 package com.ripple.core.types.known.tx.result;
 
 import com.ripple.core.coretypes.STObject;
+import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
 
+// TODO: fix up this nonsense
 public class AffectedNode extends STObject {
+    Field field;
+    STObject nested;
+
+    public AffectedNode(STObject source) {
+        fields = source.getFields();
+        field = getField();
+        nested = getNested();
+    }
+
     public boolean wasPreviousNode() {
         return isDeletedNode() || isModifiedNode();
     }
 
     public boolean isCreatedNode() {
-        return fields.size() == 1 && has(Field.CreatedNode);
+        return field == Field.CreatedNode;
     }
 
     public boolean isDeletedNode() {
-        return fields.size() == 1 && has(Field.DeletedNode);
+        return field == Field.DeletedNode;
     }
 
     public boolean isModifiedNode() {
-        return fields.size() == 1 && has(Field.ModifiedNode);
+        return field == Field.ModifiedNode;
+    }
+
+    public Field getField() {
+        return fields.firstKey();
+    }
+
+    public Hash256 ledgerIndex() {
+        return nested.get(Hash256.LedgerIndex);
+    }
+
+    public LedgerEntryType ledgerEntryType() {
+        return ledgerEntryType(nested);
+    }
+
+    private STObject getNested() {
+        return (STObject) get(getField());
     }
 
     public STObject nodeAsPrevious() {
@@ -74,7 +102,7 @@ public class AffectedNode extends STObject {
 
     public static boolean isAffectedNode(STObject source) {
         return (source.size() == 1 && source.has(DeletedNode) ||
-                                  source.has(CreatedNode) ||
-                                  source.has(ModifiedNode));
+                source.has(CreatedNode) ||
+                source.has(ModifiedNode));
     }
 }

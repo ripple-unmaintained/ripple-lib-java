@@ -13,12 +13,12 @@ public class LedgerEntry extends STObject {
         setFormat(SLEFormat.formats.get(type));
         put(UInt16.LedgerEntryType, type.asInteger());
     }
-    public LedgerEntryType ledgerEntryType() {
-        return ledgerEntryType(this);
-    }
 
+    public LedgerEntryType ledgerEntryType() {return ledgerEntryType(this);}
+    public Hash256 index() { return get(Hash256.index); }
     public UInt32 flags() {return get(UInt32.Flags);}
     public Hash256 ledgerIndex() {return get(Hash256.LedgerIndex);}
+
     public void ledgerEntryType(UInt16 val) {put(Field.LedgerEntryType, val);}
     public void ledgerEntryType(LedgerEntryType val) {put(Field.LedgerEntryType, val.asInteger());}
     public void flags(UInt32 val) {put(Field.Flags, val);}
