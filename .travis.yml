@@ -16,10 +16,10 @@ before_install:
 - android update sdk --force -u -t platform-tools < accept.txt
 
 # this command requires platform-tools installed first to work ...
-- android list sdk -a -u
+- android list sdk -a -u -e
 
 # actually get the packages we want
-- android update sdk --force -u -t 1,3,4,android-10,extra-android-support,extra-android-m2repository < accept.txt
+- android update sdk --force -u -t tools,platform-tools,build-tools-19.0.3,android-10,extra-android-support,extra-android-m2repository < accept.txt
 
 # useful information to debug problems with previous steps
 - ls -lah ${ANDROID_HOME}
