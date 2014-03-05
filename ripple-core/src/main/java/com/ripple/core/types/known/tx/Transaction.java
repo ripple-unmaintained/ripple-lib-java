@@ -11,8 +11,6 @@ import com.ripple.core.coretypes.VariableLength;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt16;
 import com.ripple.core.coretypes.uint.UInt32;
-import com.ripple.core.serialized.BytesList;
-import com.ripple.crypto.ecdsa.IKeyPair;
 
 public class Transaction extends STObject {
     public static final boolean CANONICAL_FLAG_DEPLOYED = false;
@@ -28,15 +26,14 @@ public class Transaction extends STObject {
     }
 
     public Hash256 signingHash() {
-        Hash256.HalfSha512 halfSha512 = new Hash256.HalfSha512();
-        halfSha512.update(HashPrefix.txSign.bytes);
-        toBytesSink(halfSha512, new FieldFilter() {
+        Hash256.HalfSha512 signing = Hash256.prefixed256(HashPrefix.txSign);
+        toBytesSink(signing, new FieldFilter() {
             @Override
             public boolean evaluate(Field a) {
                 return a.isSigningField();
             }
         });
-        return halfSha512.finish();
+        return signing.finish();
     }
 
     public void setCanonicalSignatureFlag() {

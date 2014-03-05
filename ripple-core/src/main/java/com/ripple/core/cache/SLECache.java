@@ -93,16 +93,18 @@ public class SLECache {
         for (AffectedNode an : meta.affectedNodes()) {
             Hash256 index = an.ledgerIndex();
             CacheEntry ce = getOrCreate(index);
-            ce.upateLedgerEntry(an.isDeletedNode() ? null : (LedgerEntry) an.nodeAsFinal(), ledgerIndex, txnIndex);
+            ce.upateLedgerEntry(an.isDeletedNode() ? null : (LedgerEntry) an.nodeAsFinal(),
+                                ledgerIndex,
+                                txnIndex);
         }
     }
 
     private CacheEntry getOrCreate(Hash256 index) {
         CacheEntry already = getEntry(index);
-        if (already != null) {
-            return already;
-        } else {
+        if (already == null) {
             return createEntry(index);
+        } else {
+            return already;
         }
     }
 }

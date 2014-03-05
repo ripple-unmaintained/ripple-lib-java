@@ -8,6 +8,8 @@ import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.serialized.BytesList;
+import com.ripple.core.serialized.BytesSink;
+import com.ripple.core.serialized.MultiSink;
 import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.crypto.ecdsa.IKeyPair;
 
@@ -35,28 +37,23 @@ public class SignedTransaction {
         if (previousSigningHash != null && signingHash.equals(previousSigningHash)) {
             return;
         }
-        previousSigningHash = null;
-
         try {
             byte[] signature = keyPair.sign(signingHash.bytes());
-
-            // This is included in the final hash
             txn.put(VariableLength.TxnSignature, signature);
 
-            // We can dump this to a list of byte[]
-            BytesList to = new BytesList();
-            STObject.translate.toBytesSink(txn, to);
-            // Create the hex
-            tx_blob = to.bytesHex();
+            BytesList blob = new BytesList();
+            Hash256.HalfSha512 id = Hash256.prefixed256(HashPrefix.transactionID);
 
-            // Then the transactionID hash
-            Hash256.HalfSha512 halfSha512 = new Hash256.HalfSha512();
-            halfSha512.update(HashPrefix.transactionID.bytes);
-            to.updateDigest(halfSha512.digest());
-            hash = halfSha512.finish();
-        } finally {
+            txn.toBytesSink(new MultiSink(blob, id));
+            tx_blob = blob.bytesHex();
+            hash = id.finish();
+        } catch (Exception e) {
+            // electric paranoia
+            previousSigningHash = null;
+            throw new RuntimeException(e);
+        } /*else {*/
             previousSigningHash = signingHash;
-        }
+        // }
     }
 
     public TransactionType transactionType() {

@@ -6,7 +6,9 @@ import com.ripple.core.coretypes.STObject;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.sle.entries.Offer;
+import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.core.types.known.tx.result.AffectedNode;
+import com.ripple.core.types.known.tx.result.TransactionMeta;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -20,7 +22,7 @@ public class AnalyseExecutedOffers {
         FileReader f = new FileReader(filename);
         BufferedReader bufferedReader = new BufferedReader(f);
         StringBuilder b = new StringBuilder();
-        String line = null;
+        String line;
         while ((line = bufferedReader.readLine()) != null) {
             b.append(line);
         }
@@ -34,8 +36,8 @@ public class AnalyseExecutedOffers {
     public static void testOfferQuality() throws Exception {
         JSONObject transaction = new JSONObject(getFileText("offer-create-txn.json"));
         JSONObject metaJSON = (JSONObject) transaction.remove("meta");
-        STObject meta = STObject.translate.fromJSONObject(metaJSON);
-        STObject txn = STObject.translate.fromJSONObject(transaction);
+        TransactionMeta meta = (TransactionMeta) STObject.fromJSONObject(metaJSON);
+        Transaction txn = (Transaction) STObject.fromJSONObject(transaction);
 
         ArrayList<Offer> offersExecuted = new ArrayList<Offer>();
 
@@ -51,11 +53,7 @@ public class AnalyseExecutedOffers {
         System.out.println("TakerGets:  " + gets);
         System.out.println(txn.prettyJSON());
 
-        STArray nodes = meta.get(STArray.AffectedNodes);
-
-        for (STObject raw : nodes) {
-            AffectedNode node = (AffectedNode) raw;
-
+        for (AffectedNode node :meta.affectedNodes()) {
             if (!node.isCreatedNode()) {
                 // Merge fields from node / node.FinalFields && node.PreviousFields
                 // to determine state of node prior to transaction.
@@ -63,14 +61,13 @@ public class AnalyseExecutedOffers {
                 // in a nested STObject keyed by FinalFields.
                 LedgerEntry asPrevious = (LedgerEntry) node.nodeAsPrevious();
                 // If it's an offer
-                if (asPrevious.ledgerEntryType() == LedgerEntryType.Offer) {
+                if (asPrevious instanceof Offer) {
                     // We can down-cast this to use Offer specific methods
-                    Offer offer = (Offer) asPrevious;
-                    offersExecuted.add(offer);
+                    offersExecuted.add((Offer) asPrevious);
                 }
             } else {
                 LedgerEntry asFinal = (LedgerEntry) node.nodeAsPrevious();
-                if (asFinal.ledgerEntryType() == LedgerEntryType.Offer) {
+                if (asFinal instanceof Offer) {
                     Offer offer = (Offer) asFinal;
 
                     System.out.println("---------------------------------------------------------------");
@@ -82,17 +79,11 @@ public class AnalyseExecutedOffers {
                     System.out.println("TakerGets:  " + offer.takerGets());
                     System.out.println("---------------------------------------------------------------");
                     System.out.println(offer.prettyJSON());
-
-
-//                    System.out.println(offer.getPayCurrencyPair());
-//                    System.out.println(offer.bidQuality());
-//                    System.out.println(BigDecimal.ONE.divide(offer.directoryAskQuality(), Amount.MATH_CONTEXT));
                 }
             }
         }
 
         Collections.sort(offersExecuted, Offer.qualityAscending);
-
         for (Offer offer : offersExecuted) {
             STObject executed = offer.executed(offer.get(STObject.FinalFields));
 

@@ -14,6 +14,12 @@ import java.util.TreeMap;
 public class Hash256 extends Hash<Hash256> {
 
 
+    public static HalfSha512 prefixed256(HashPrefix bytes) {
+        HalfSha512 halfSha512 = new HalfSha512();
+        halfSha512.update(bytes);
+        return halfSha512;
+    }
+
     @Override
     public Object toJSON() {
         return translate.toJSON(this);
