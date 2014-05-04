@@ -5,9 +5,19 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.ripple.core.coretypes.*;
+import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
+import com.ripple.core.coretypes.hash.prefixes.LedgerSpace;
+import com.ripple.core.coretypes.hash.prefixes.Prefix;
+import com.ripple.core.serialized.BytesList;
+import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.sle.entries.AccountRoot;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.tx.result.TransactionMeta;
+import com.ripple.core.types.shamap.ShaMap;
+import com.ripple.core.types.shamap.ShaMapLeafNode;
+import com.ripple.core.types.shamap.ShaMapNode;
 import junit.framework.TestCase;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,24 +30,49 @@ import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.fields.Field;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.coretypes.AccountID;
-import com.ripple.core.coretypes.Amount;
-import com.ripple.core.coretypes.STArray;
-import com.ripple.core.coretypes.STObject;
-import com.ripple.core.coretypes.VariableLength;
 import com.ripple.core.coretypes.uint.UInt16;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.util.Iterator;
 
 public class STObjectTest {
     @Test
+    public void binaryParsingSerializingSanityTest2() throws FileNotFoundException, JSONException {
+//        File f = new File("/home/nick/dumps/ledger-full-120000.json");
+        File f = new File("/home/nick/dumps/ledger-full-6220000.json");
+        if (!f.exists()) {
+            return;
+        }
+
+        JSONTokener tok = new JSONTokener(new FileReader(f));
+        JSONObject ledgerJSON = new JSONObject(tok);
+        JSONArray accountState = ledgerJSON.getJSONArray("accountState");
+        ShaMap sm = new ShaMap();
+        JSONObject stateObject = null;
+
+        int i = 0;
+        while (i < accountState.length()) {
+            final STObject fromJSON;
+            stateObject = accountState.getJSONObject(i);
+            fromJSON = STObject.fromJSONObject(stateObject);
+            sm.addSLE((LedgerEntry) fromJSON);
+            i++;
+        }
+        Hash256 hash = sm.hash();
+        System.out.println(hash);
+        System.out.println(ledgerJSON.getString("account_hash"));
+    }
+
+
+    @Test
     public void binaryParsingSerializingSanityTest() throws FileNotFoundException, JSONException {
         // TODO, add this as a zipfile to the repo, so can test from it
         File f = new File("ripple-core/src/test/java/com/ripple/resources/ledgers-full.json");
+//        File f = new File("/home/nick/dumps/ledger-full-120000.json");
         if (!f.exists()) {
             return;
         }

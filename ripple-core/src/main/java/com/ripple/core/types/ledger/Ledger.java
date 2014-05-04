@@ -11,7 +11,7 @@ import com.ripple.core.coretypes.uint.UInt8;
 import java.util.Date;
 
 public class Ledger {
-    UInt32  version;         // Always 0x4C475200 (LGR) (Secures signed objects)
+    UInt32  version;         // Always 0x4C475200 (LWR) (Secures signed objects)
     UInt32  sequence;        // Ledger Sequence (0 for genesis ledger)
     UInt64  totalXRP;        //
     Hash256 previousLedger;  // The hash of the previous ledger (0 for genesis ledger)

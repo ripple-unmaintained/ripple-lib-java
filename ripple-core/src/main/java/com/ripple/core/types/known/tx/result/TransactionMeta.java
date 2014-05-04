@@ -13,7 +13,7 @@ import java.util.Iterator;
 public class TransactionMeta extends STObject{
     public static boolean isTransactionMeta(STObject source) {
         return source.has(UInt8.TransactionResult) &&
-               source.has(Field.AffectedNodes);
+               source.has(STArray.AffectedNodes);
     }
 
     public TransactionEngineResult transactionResult() {

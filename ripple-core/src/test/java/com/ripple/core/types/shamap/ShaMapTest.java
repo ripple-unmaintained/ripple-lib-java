@@ -7,9 +7,7 @@ import static junit.framework.TestCase.assertTrue;
 
 import java.util.*;
 
-import com.ripple.core.coretypes.Vector256;
 import com.ripple.core.serialized.BytesList;
-import org.json.JSONArray;
 import org.junit.Test;
 import org.ripple.bouncycastle.util.encoders.Hex;
 
@@ -118,6 +116,7 @@ public class ShaMapTest {
             public byte[] bytes() {
                 return id1.bytes();
             }
+
         };
     }
 

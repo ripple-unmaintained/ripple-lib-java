@@ -187,7 +187,6 @@ abstract public class UInt<Subclass extends UInt> extends Number implements Seri
     }
 
     static public abstract class UINTTranslator<T extends UInt> extends TypeTranslator<T> {
-
         public abstract T newInstance(BigInteger i);
         public abstract int byteWidth();
 
@@ -212,7 +211,8 @@ abstract public class UInt<Subclass extends UInt> extends Number implements Seri
 
         @Override
         public T fromString(String value) {
-            return newInstance(new BigInteger(value, 16));
+            int radix = byteWidth() <= 4 ? 10 : 16;
+            return newInstance(new BigInteger(value, radix));
         }
 
         @Override

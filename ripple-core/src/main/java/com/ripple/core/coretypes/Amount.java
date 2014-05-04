@@ -18,6 +18,9 @@ import java.math.MathContext;
 public class Amount extends Number implements SerializedType, Comparable<Amount>
 
 {
+
+    private static BigDecimal TAKER_PAYS_FOR_THAT_DAMN_OFFER = new BigDecimal("1000000000000.000100");
+
     /**
      * Thrown when an Amount is constructed with an invalid value
      */
@@ -617,6 +620,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public static void checkXRPBounds(BigDecimal value) {
+        // This is for that damn offer at index: 6310D78E6AD408892743DD62455694162E758DA283D0E4A2CB3A3C173B7C794A
+        if (value.compareTo(TAKER_PAYS_FOR_THAT_DAMN_OFFER) == 0) {
+            return;
+        }
         value = value.abs();
         checkLowerDropBound(value);
         checkUpperBound(value);

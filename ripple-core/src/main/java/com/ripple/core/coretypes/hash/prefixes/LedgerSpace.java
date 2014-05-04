@@ -24,8 +24,8 @@ public enum LedgerSpace implements Prefix {
         return bytes;
     }
 
-    LedgerSpace(char a) {
-        uInt16 = new UInt16((int) a);
+    LedgerSpace(char c) {
+        uInt16 = new UInt16((int) c);
         bytes = uInt16.toByteArray();
     }
 }
