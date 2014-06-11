@@ -54,7 +54,7 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
                 }
                 STObject outer = new STObject();
                 outer.put(field, STObject.translate.fromParser(parser));
-                stArray.add(outer);
+                stArray.add(STObject.formatted(outer));
             }
             return stArray;
         }
