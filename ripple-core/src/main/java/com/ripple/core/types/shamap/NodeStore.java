@@ -1,5 +1,6 @@
 package com.ripple.core.types.shamap;
 
+import com.ripple.core.coretypes.hash.HalfSha512;
 import com.ripple.core.coretypes.hash.Hash256;
 
 /**
@@ -29,7 +30,7 @@ public class NodeStore {
      * @return `key` used to store the content
      */
     private Hash256 storeContent(byte[] content) {
-        Hash256.HalfSha512 hasher = new Hash256.HalfSha512();
+        HalfSha512 hasher = new HalfSha512();
         hasher.update(content);
         Hash256 key = hasher.finish();
         storeHashKeyedContent(key, content);

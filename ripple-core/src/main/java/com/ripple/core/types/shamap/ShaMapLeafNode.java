@@ -1,13 +1,11 @@
 package com.ripple.core.types.shamap;
 
+import com.ripple.core.coretypes.hash.HalfSha512;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
-import com.ripple.core.serialized.BytesSink;
-
-import javax.xml.soap.Node;
 
 public class ShaMapLeafNode extends ShaMapNode {
-    Hash256 index;
+    public Hash256 index;
     private Item blob;
 
     public ShaMapLeafNode() {
@@ -29,7 +27,7 @@ public class ShaMapLeafNode extends ShaMapNode {
 
     @Override
     public Hash256 hash() {
-        Hash256.HalfSha512 half = new Hash256.HalfSha512();
+        HalfSha512 half = new HalfSha512();
         HashPrefix prefix;
 
         if (type == NodeType.tnTRANSACTION_MD)
