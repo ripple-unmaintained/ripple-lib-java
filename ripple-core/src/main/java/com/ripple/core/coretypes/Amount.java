@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
+import java.math.RoundingMode;
 
 /**
  * In ripple, amounts are either XRP, the native currency, or an IOU of
@@ -31,7 +32,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     // For rounding/multiplying/dividing
-    public static final MathContext MATH_CONTEXT = MathContext.DECIMAL64;
+    public static final MathContext MATH_CONTEXT = new MathContext(16, RoundingMode.HALF_UP);
     // The maximum amount of digits in mantissa of an IOU amount
     public static final int MAXIMUM_IOU_PRECISION = 16;
     // The smallest quantity of an XRP is a drop, 1 millionth of an XRP
@@ -137,7 +138,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     private Amount newValue(BigDecimal newValue, boolean round, boolean unbounded) {
         if (round) {
-            newValue = roundValue(isNative, newValue);
+            newValue = roundValue(newValue, isNative);
         }
         return new Amount(newValue, currency, issuer, isNative, unbounded);
     }
@@ -208,7 +209,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return -MAXIMUM_IOU_PRECISION + value.precision() - value.scale();
     }
 
-    private BigInteger bigIntegerIOUMantissa() {
+    public BigInteger bigIntegerIOUMantissa() {
         return exactBigIntegerScaledByPowerOfTen(-offset).abs();
     }
 
@@ -244,6 +245,8 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 currencyString().equals(amt.currencyString());
     }
 
+
+
     public int compareTo(Amount amount) {
         return value.compareTo(amount.value);
     }
@@ -265,7 +268,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     /**
 
-    Arithimetic Operations
+    Arithmetic Operations
 
     There's no checking if an amount is of a different currency/issuer.
     
@@ -275,19 +278,15 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     eg.
 
         amountOne.add(amountTwo)
-        amountOne.multiply(amountTwo)
-        amountOne.divide(amountTwo)
-        amountOne.subtract(amountTwo)
-        
-        For all of these operations, the currency/issuer of the resultant
-        amount, is that of `amountOne`
+
+        The currency/issuer of the resultant amount, is that of `amountOne`
     
     Divide and multiply are equivalent to the javascript ripple-lib
-    ratio_human and product_huam.
+    ratio_human and product_human.
 
     */
     public Amount add(BigDecimal augend) {
-        return newValue(value.add(augend));
+        return newValue(value.add(augend), true);
     }
 
     public Amount add(Amount augend) {
@@ -299,7 +298,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public Amount subtract(BigDecimal subtrahend) {
-        return newValue(value.subtract(subtrahend));
+        return newValue(value.subtract(subtrahend), true);
     }
 
     public Amount subtract(Amount subtrahend) {
@@ -636,7 +635,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
-    public static BigDecimal roundValue(boolean nativeSrc, BigDecimal value) {
+    public static BigDecimal roundValue(BigDecimal value, boolean nativeSrc) {
         int i = value.precision() - value.scale();
         return value.setScale(nativeSrc ? MAXIMUM_NATIVE_SCALE :
                 MAXIMUM_IOU_PRECISION - i,
@@ -668,5 +667,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     static public TypedFields.AmountField SendMax = amountField(Field.SendMax);
     static public TypedFields.AmountField MinimumOffer = amountField(Field.MinimumOffer);
     static public TypedFields.AmountField RippleEscrow = amountField(Field.RippleEscrow);
+    static public TypedFields.AmountField taker_gets_funded = amountField(Field.taker_gets_funded);
+    static public TypedFields.AmountField taker_pays_funded = amountField(Field.taker_pays_funded);
 
 }

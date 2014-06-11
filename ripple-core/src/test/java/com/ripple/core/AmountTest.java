@@ -120,8 +120,7 @@ public class AmountTest {
         assertEquals(0, amt("1").compareTo(amt("0.000001")));
     }
 
-    // TODO: use a more specific Exception class
-    @Test(expected = RuntimeException.class)
+    @Test(expected = Amount.PrecisionError.class)
     public void tests_Mother_Fucker_Do_You_Write_Them() {
         amt("-0.0001621621623423423234234234");
     }
