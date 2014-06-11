@@ -5,6 +5,7 @@ import com.ripple.utils.Utils;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 
+import static com.ripple.config.Config.getB58IdentiferCodecs;
 import static com.ripple.utils.Utils.halfSha512;
 import static com.ripple.utils.Utils.quarterSha512;
 
@@ -63,5 +64,13 @@ public class Seed {
         out[in.length + 3] = (byte) ((i)       & 0xFF);
 
         return out;
+    }
+
+    public static IKeyPair getKeyPair(byte[] master_seed) {
+        return createKeyPair(master_seed);
+    }
+
+    public static IKeyPair getKeyPair(String master_seed) {
+        return getKeyPair(getB58IdentiferCodecs().decodeFamilySeed(master_seed));
     }
 }

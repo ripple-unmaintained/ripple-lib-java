@@ -2,12 +2,15 @@ package com.ripple.crypto.ecdsa;
 
 import java.math.BigInteger;
 
+import com.ripple.core.coretypes.AccountID;
 import org.ripple.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.ripple.bouncycastle.crypto.signers.ECDSASigner;
 import org.ripple.bouncycastle.math.ec.ECPoint;
 
 import com.ripple.utils.Utils;
+
+import static com.ripple.config.Config.getB58IdentiferCodecs;
 
 public class KeyPair implements IKeyPair {
     BigInteger priv, pub;
@@ -42,6 +45,11 @@ public class KeyPair implements IKeyPair {
     @Override
     public byte[] sign(byte[] bytes) {
         return sign(bytes, priv);
+    }
+
+    @Override
+    public byte[] sha256_Ripemd160_Pub() {
+        return Utils.SHA256_RIPEMD160(pubBytes);
     }
 
     @Override

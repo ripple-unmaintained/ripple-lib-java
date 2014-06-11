@@ -1,26 +1,32 @@
 package com.ripple.core.coretypes;
 
-import static com.ripple.config.Config.getB58IdentiferCodecs;
+import com.ripple.core.coretypes.hash.Hash160;
+import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.fields.Field;
+import com.ripple.core.fields.TypedFields;
+import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.BytesSink;
+import com.ripple.core.serialized.TypeTranslator;
+import com.ripple.crypto.ecdsa.IKeyPair;
+import com.ripple.crypto.ecdsa.Seed;
+import com.ripple.encodings.common.B16;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.ripple.core.serialized.*;
-import com.ripple.encodings.common.B16;
+import static com.ripple.config.Config.getB58IdentiferCodecs;
 
-import com.ripple.core.fields.Field;
-import com.ripple.core.fields.TypedFields;
-import com.ripple.core.coretypes.hash.Hash160;
-import com.ripple.core.coretypes.uint.UInt32;
-import com.ripple.crypto.ecdsa.IKeyPair;
-import com.ripple.crypto.ecdsa.Seed;
-import com.ripple.utils.Utils;
+public class AccountID extends Hash160 {
+    final public String address;
 
-public class AccountID implements SerializedType, Comparable<AccountID> {
-//    public String masterSeed;
-    public String address;
-    protected IKeyPair keyPair;
-    protected byte[] addressBytes;
+    public AccountID(byte[] bytes) {
+        this(bytes, encodeAddress(bytes));
+    }
+
+    public AccountID(byte[] bytes, String address) {
+        super(bytes);
+        this.address = address;
+    }
 
     @Override
     public int hashCode() {
@@ -28,7 +34,7 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     }
 
     public static AccountID ONE,
-                          ZERO;
+                            ZERO;
 
     static {
         ZERO = fromInteger(0);
@@ -40,66 +46,41 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
         return address;
     }
 
-    static public AccountID fromSeedString(String masterSeed) {
-        AccountID a = new AccountID();
-        populateFieldsFromKeyPair(a, keyPairFromSeedString(masterSeed));
-        return a;
+    @Deprecated
+    static public AccountID fromSeedString(String seed) {
+        return fromKeyPair(Seed.getKeyPair(seed));
     }
 
-    static public AccountID fromSeedBytes(byte[] masterSeed) {
-        AccountID a = new AccountID();
-        populateFieldsFromKeyPair(a, keyPairFromSeedBytes(masterSeed));
-        return a;
+    @Deprecated
+    static public AccountID fromSeedBytes(byte[] seed) {
+        return fromKeyPair(Seed.getKeyPair(seed));
     }
 
-    private static void populateFieldsFromKeyPair(AccountID a, IKeyPair kp) {
-        a.keyPair = kp;
-        a.addressBytes = Utils.SHA256_RIPEMD160(kp.pub().toByteArray());
-        a.address = getB58IdentiferCodecs().encodeAddress(a.bytes());
+    public static AccountID fromKeyPair(IKeyPair kp) {
+        byte[] bytes = kp.sha256_Ripemd160_Pub();
+        return new AccountID(bytes, encodeAddress(bytes));
+    }
+
+    private static String encodeAddress(byte[] a) {
+        return getB58IdentiferCodecs().encodeAddress(a);
     }
 
     static public AccountID fromInteger(Integer n) {
-        AccountID a = new AccountID();
-        a.addressBytes = new Hash160(new UInt32(n).toByteArray()).bytes();
-        a.address = getB58IdentiferCodecs().encodeAddress(a.bytes());
-        return a;
+        // The hash160 will extend the address
+        return fromBytes(new Hash160(new UInt32(n).toByteArray()).bytes());
+    }
+
+    public static AccountID fromBytes(byte[] bytes) {
+        return new AccountID(bytes, encodeAddress(bytes));
     }
 
     static public AccountID fromAddress(String address) {
-        AccountID a = new AccountID();
-        a.keyPair = null;
-        a.addressBytes = getB58IdentiferCodecs().decodeAddress(address);
-        a.address = address;
-        return a;
+        byte[] bytes = getB58IdentiferCodecs().decodeAddress(address);
+        return new AccountID(bytes, address);
     }
 
     static public AccountID fromAddressBytes(byte[] bytes) {
-        AccountID a = new AccountID();
-        a.keyPair = null;
-        a.addressBytes = bytes;
-        a.address = getB58IdentiferCodecs().encodeAddress(bytes);
-        return a;
-    }
-
-    public static IKeyPair keyPairFromSeedString(String master_seed) {
-        return keyPairFromSeedBytes(getB58IdentiferCodecs().decodeFamilySeed(master_seed));
-    }
-
-    public static IKeyPair keyPairFromSeedBytes(byte[] master_seed) {
-        return Seed.createKeyPair(master_seed);
-    }
-
-    public IKeyPair getKeyPair() {
-        return keyPair;
-    }
-
-    public byte[] bytes() {
-        return addressBytes;
-    }
-
-    @Override
-    public int compareTo(AccountID o) {
-        return address.compareTo(o.address);
+        return fromBytes(bytes);
     }
 
     public Issue issue(String code) {
@@ -147,12 +128,12 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     }
 
     public static AccountID fromString(String value) {
-        // TODO No valid addresses should ever fail below condition
-        if (value.startsWith("r") && value.length() >= 26) {
-            return AccountID.fromAddress(value);
-        } else if (value.length() == 160 / 4) {
-            return AccountID.fromAddressBytes(B16.decode(value));
+        if (value.length() == 160 / 4) {
+            return fromAddressBytes(B16.decode(value));
         } else {
+            if (value.startsWith("r") && value.length() >= 26) {
+                return fromAddress(value);
+            }
             // This is potentially dangerous but fromString in
             // generic sense is used by Amount for parsing strings
             return accountForPassPhrase(value);
@@ -189,9 +170,6 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     }
 
     static public Translator translate = new Translator();
-
-    protected AccountID() {
-    }
 
     public static TypedFields.AccountIDField accountField(final Field f) {
         return new TypedFields.AccountIDField() {
