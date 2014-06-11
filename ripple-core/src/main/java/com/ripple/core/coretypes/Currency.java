@@ -38,6 +38,10 @@ public class Currency extends Hash160 {
         translate.toBytesSink(this, to);
     }
 
+    public boolean isNative() {
+        return this == Currency.XRP;
+    }
+
     public static enum Type {
         HASH,
         ISO,      // three letter isoCode
