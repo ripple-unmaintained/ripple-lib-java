@@ -11,10 +11,20 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class SubscriptionManager extends Publisher<SubscriptionManager.events> {
+    public void pauseEventEmissions() {
+        paused = true;
+    }
+
+    public void unpauseEventEmissions() {
+        paused = false;
+    }
+
     public static abstract class events<T>      extends Publisher.Callback<T> {}
 
     public abstract static class OnSubscribed extends events<JSONObject> {}
     public abstract static class OnUnSubscribed extends events<JSONObject> {}
+
+    public boolean paused = false;
 
     public enum Stream {
         server,
@@ -34,12 +44,30 @@ public class SubscriptionManager extends Publisher<SubscriptionManager.events> {
 
     public void addStream(Stream s) {
         streams.add(s);
-        emit(OnSubscribed.class, basicSubscriptionObject(single(s), null));
+        subscribeStream(s);
     }
+
     public void removeStream(Stream s) {
         streams.remove(s);
+        unsubscribeStream(s);
+    }
+
+    private void subscribeStream(Stream s) {
+       emit(OnSubscribed.class, basicSubscriptionObject(single(s), null));
+    }
+
+    @Override
+    public <T extends events> int emit(Class<T> key, Object... args) {
+        if (paused) {
+            return 0;
+        }
+        return super.emit(key, args);
+    }
+
+    private void unsubscribeStream(Stream s) {
         emit(OnUnSubscribed.class, basicSubscriptionObject(single(s), null));
     }
+
     public void addAccount(AccountID a) {
         accounts.add(a);
         emit(OnSubscribed.class, basicSubscriptionObject(null, single(a)));

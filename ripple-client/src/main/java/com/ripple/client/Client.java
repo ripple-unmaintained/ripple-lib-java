@@ -589,6 +589,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 //        logger.entering(getClass().getName(), "doOnConnected");
         connected = true;
         emit(OnConnected.class, this);
+
         subscribe(prepareSubscription());
 //        logger.exiting(getClass().getName(), "doOnConnected");
     }
@@ -609,8 +610,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     private JSONObject prepareSubscription() {
+        subscriptions.pauseEventEmissions();
         subscriptions.addStream(SubscriptionManager.Stream.ledger);
         subscriptions.addStream(SubscriptionManager.Stream.server);
+        subscriptions.unpauseEventEmissions();
         return subscriptions.allSubscribed();
     }
 
