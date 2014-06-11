@@ -88,8 +88,8 @@ public enum Field {
 
     // These are auxillary fields
 //    quality(257, Type.AMOUNT),
-//    taker_gets_funded(258, Type.Amount),
-//    taker_pays_funded(259, Type.Amount),
+    taker_gets_funded(258, Type.Amount),
+    taker_pays_funded(259, Type.Amount),
 
     PublicKey(1, Type.VariableLength),
     MessageKey(2, Type.VariableLength),
@@ -102,6 +102,8 @@ public enum Field {
     RemoveCode(9, Type.VariableLength),
     ExpireCode(10, Type.VariableLength),
     CreateCode(11, Type.VariableLength),
+    MemoType(12, Type.VariableLength),
+    MemoData(13, Type.VariableLength),
     Account(1, Type.AccountID),
     Owner(2, Type.AccountID),
     Destination(3, Type.AccountID),
@@ -117,6 +119,7 @@ public enum Field {
     FinalFields(7, Type.STObject),
     NewFields(8, Type.STObject),
     TemplateEntry(9, Type.STObject),
+    Memo(10, Type.STObject),
     ArrayEndMarker(1, Type.STArray),
     SigningAccounts(2, Type.STArray),
     TxnSignatures(3, Type.STArray),
@@ -125,6 +128,8 @@ public enum Field {
     Necessary(6, Type.STArray),
     Sufficient(7, Type.STArray),
     AffectedNodes(8, Type.STArray),
+    Memos(9, Type.STArray),
+
     CloseResolution(1, Type.UInt8),
     TemplateEntryType(2, Type.UInt8),
     TransactionResult(3, Type.UInt8),
