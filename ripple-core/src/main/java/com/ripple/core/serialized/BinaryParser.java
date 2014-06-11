@@ -9,8 +9,8 @@ import com.ripple.encodings.common.B16;
  */
 public class BinaryParser {
     protected byte[] bytes;
-    private int cursor = 0;
-    private final int size;
+    protected int cursor = 0;
+    protected final int size;
 
     public BinaryParser(byte[] bytes) {
         size = bytes.length;

@@ -1,14 +1,20 @@
 package com.ripple.core.binary;
 
-import com.ripple.core.serialized.BytesList;
+import com.ripple.core.serialized.BinarySerializer;
+import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.SerializedType;
 
 public class BinaryWriter {
-    BytesList list;
-    public BinaryWriter(BytesList list) {
-        this.list = list;
+    BytesSink sink;
+    BinarySerializer serializer;
+    public BinaryWriter(BytesSink bytesSink) {
+        serializer = new BinarySerializer(bytesSink);
+        sink = bytesSink;
     }
     public void write(SerializedType obj) {
-        obj.toBytesSink(list);
+        obj.toBytesSink(sink);
+    }
+    public void writeVl(SerializedType obj) {
+        serializer.addLengthEncoded(obj);
     }
 }
