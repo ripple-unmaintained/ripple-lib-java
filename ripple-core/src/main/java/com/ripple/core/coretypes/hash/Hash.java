@@ -66,7 +66,7 @@ abstract public class Hash<Subclass extends Hash> implements SerializedType, Com
         byte[] bytes = another.bytes();
 
         for (int i = 0; i < thisLength; i++) {
-            int cmp = hash[i] - bytes[i];
+            int cmp = (hash[i] & 0xFF) - (bytes[i] & 0xFF);
             if (cmp != 0) {
                 return cmp;
             }
