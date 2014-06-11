@@ -1,7 +1,6 @@
 package com.ripple.cli;
 
 import com.ripple.client.Client;
-import com.ripple.client.ClientLogger;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
@@ -14,7 +13,6 @@ import java.math.BigDecimal;
 
 public class CheckPrice {
     public static void main(String[] args) throws JSONException {
-        ClientLogger.quiet = true;
         Client client = new Client(new JavaWebSocketTransportImpl());
         client.connect("wss://s1.ripple.com");
 

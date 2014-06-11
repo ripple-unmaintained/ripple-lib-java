@@ -13,7 +13,6 @@ import org.ripple.bouncycastle.crypto.InvalidCipherTextException;
 
 import com.ripple.client.Account;
 import com.ripple.client.Client;
-import com.ripple.client.ClientLogger;
 import com.ripple.client.blobvault.BlobVault;
 import com.ripple.client.responses.Response;
 import com.ripple.client.transactions.TransactionManager;
@@ -44,8 +43,6 @@ public class MakePayment {
 
         if (envUser != null) PAYWARD_USER = envUser;
         if (envPass != null) PAYWARD_PASS = envPass;
-        ClientLogger.quiet = false;
-
         // Uncomment to send a non native SEND_AMOUNT
         // SEND_AMOUNT = Amount.fromString("0.00001/USD/" + DESTINATION_ACCOUNT);
     }
