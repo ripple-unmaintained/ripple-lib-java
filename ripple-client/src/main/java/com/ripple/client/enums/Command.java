@@ -49,5 +49,5 @@ public enum Command {
     validation_seed,
     wallet_accounts,
     wallet_propose,
-    wallet_seed
+    ledger_data, wallet_seed
 }
