@@ -1,6 +1,6 @@
 package com.ripple.client.subscriptions;
 
-import com.ripple.client.ClientLogger;
+import com.ripple.client.Client;
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
@@ -9,11 +9,14 @@ import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
 import org.json.JSONObject;
 
+import java.util.logging.Logger;
+
 /**
  * This should probably be an STObject extending class
  * Publisher should probably be an inner (non static) class
  */
 public class AccountRoot extends Publisher<AccountRoot.events> {
+    static final protected Logger logger = Logger.getLogger(AccountRoot.class.getName());
     public static abstract class events<T> extends Publisher.Callback<T> {}
     public static abstract class OnUpdate extends events<AccountRoot> {}
     boolean updated = false;
@@ -31,7 +34,7 @@ public class AccountRoot extends Publisher<AccountRoot.events> {
             PreviousTxnID = transactionHash;
             PreviousTxnLgrSeq = transactionLedgerIndex;
         } else {
-            ClientLogger.log("hrmmm .... "); // We should keep track of these and try and form a chain
+            logger.fine("hrmmm .... "); // We should keep track of these and try and form a chain
         }
     }
 
