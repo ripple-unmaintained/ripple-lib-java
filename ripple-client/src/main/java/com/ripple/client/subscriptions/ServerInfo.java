@@ -5,6 +5,8 @@ import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.core.coretypes.Amount;
 import org.json.JSONObject;
 
+// TODO, really want to split this into a few classes
+// ServerStatus / LedgerClosed events.
 public class ServerInfo {
     public boolean updated = false;
 
@@ -16,6 +18,9 @@ public class ServerInfo {
     public int load_factor;
     public long ledger_time;
     public long ledger_index;
+
+    public int txn_count;
+
     public String ledger_hash;
     public String random;
     public String server_status;
@@ -41,6 +46,7 @@ public class ServerInfo {
         // TODO, this might asking for trouble, just assuming certain fields, it should BLOW UP
 
         fee_base          = json.optInt(     "fee_base",          fee_base);
+        txn_count         = json.optInt(     "txn_count",          txn_count);
         fee_ref           = json.optInt(     "fee_ref",           fee_ref);
         reserve_base      = json.optInt(     "reserve_base",      reserve_base);
         reserve_inc       = json.optInt(     "reserve_inc",       reserve_inc);
