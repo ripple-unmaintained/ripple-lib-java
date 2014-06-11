@@ -374,7 +374,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
         try {
             emit(OnMessage.class, msg);
-            log (Level.FINE, "Receive `{0}`: {1}", type, msg);
+            if (logger.isLoggable(Level.FINER)) {
+                log(Level.FINER, "Receive `{0}`: {1}", type, prettyJSON(msg));
+            }
 
             switch (type) {
                 case serverStatus:
