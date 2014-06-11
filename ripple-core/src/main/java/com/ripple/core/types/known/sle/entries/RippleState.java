@@ -1,11 +1,19 @@
 package com.ripple.core.types.known.sle.entries;
 
+import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
+import com.ripple.core.coretypes.Currency;
+import com.ripple.core.coretypes.Issue;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
+import com.ripple.core.fields.TypedFields;
 import com.ripple.core.types.known.sle.ThreadedLedgerEntry;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class RippleState extends ThreadedLedgerEntry {
     public RippleState() {
@@ -30,4 +38,81 @@ public class RippleState extends ThreadedLedgerEntry {
     public void balance(Amount val) {put(Field.Balance, val);}
     public void lowLimit(Amount val) {put(Field.LowLimit, val);}
     public void highLimit(Amount val) {put(Field.HighLimit, val);}
+
+
+    public AccountID lowAccount() {
+        return lowLimit().issuer();
+    }
+
+    public AccountID highAccount() {
+        return highLimit().issuer();
+    }
+
+    public List<AccountID> sortedAccounts() {
+        return Arrays.asList(lowAccount(), highAccount());
+    }
+
+    public TypedFields.AmountField limitFieldFor(AccountID source) {
+        if (lowAccount().equals(source)) {
+            return Amount.LowLimit;
+        }
+        if (highAccount().equals(source)) {
+            return Amount.HighLimit;
+        } else {
+            return null;
+        }
+    }
+
+    public boolean isFor(AccountID source) {
+        return lowAccount().equals(source) || highAccount().equals(source);
+    }
+
+    public boolean isFor(Issue issue) {
+        return isFor(issue.issuer()) && balance().currency().equals(issue.currency());
+    }
+
+    // TODO, can optimize this
+    public boolean isFor(AccountID s1, AccountID s2, Currency currency) {
+        return currency.equals(balance().currency()) && isFor(s1) && isFor(s2);
+    }
+
+    public Currency currency() {
+        return balance().currency();
+    }
+
+    public Amount balanceFor(AccountID owner) {
+        TypedFields.AmountField field = limitFieldFor(owner);
+        Amount balance = balance();
+        AccountID issuer = lowAccount();
+        if (field == Amount.HighLimit) {
+            balance = balance.negate();
+            issuer = highAccount();
+        }
+        return balance.newIssuer(issuer);
+    }
+
+    public Amount issued() {
+        Amount balance = balance();
+        if (balance.isNegative()) {
+            // Balance is in terms of the LowAccount, so if the
+            // balance is negative, that means it has issued
+            return balance.negate().newIssuer(lowAccount());
+        } else {
+            // If it's positive, then the LowAccount has money
+            // issued by the highAccount
+            return balance.newIssuer(highAccount());
+        }
+    }
+
+    //TODO, this logic needs looking over
+    // owed in terms of which issuer?
+//    public Amount owed() {
+//        Amount balance = balance();
+//        if (balance.isNegative()) {
+//            return balance.newIssuer(lowAccount());
+//        } else {
+//            return balance.negate().newIssuer(highAccount());
+//        }
+//    }
+
 }

@@ -510,6 +510,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return value.toBigIntegerExact();
     }
 
+    public Amount newIssuer(AccountID issuer) {
+        return new Amount(value, currency, issuer);
+    }
+
     // Static constructors
     public static Amount fromString(String val) {
         if (val.contains("/")) {

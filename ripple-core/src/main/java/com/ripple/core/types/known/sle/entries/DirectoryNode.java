@@ -4,6 +4,7 @@ import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Vector256;
 import com.ripple.core.coretypes.hash.Hash160;
 import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
@@ -35,4 +36,18 @@ public class DirectoryNode extends LedgerEntry {
     public void takerGetsIssuer(Hash160 val) {put(Field.TakerGetsIssuer, val);}
     public void indexes(Vector256 val) {put(Field.Indexes, val);}
 
+    public Hash256 nextIndex() {
+        return Index.directoryNode(rootIndex(), indexNext());
+    }
+    public Hash256 prevIndex() {
+        return Index.directoryNode(rootIndex(), indexPrevious());
+    }
+
+    public boolean hasPreviousIndex() {
+        return indexPrevious() != null;
+    }
+
+    public boolean hasNextIndex() {
+        return indexNext() != null;
+    }
 }
