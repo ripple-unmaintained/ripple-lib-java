@@ -13,9 +13,4 @@ public class Quality  {
                                                            getIsNative ? offset + 6 :
                                                            offset ));
     }
-    public static BigDecimal fromOfferBookDirectory(STObject offer) {
-        return fromBookDirectory(offer.get(Hash256.BookDirectory),
-                                 offer.get(Amount.TakerPays).isNative(),
-                                 offer.get(Amount.TakerGets).isNative());
-    }
 }
