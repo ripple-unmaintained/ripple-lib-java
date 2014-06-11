@@ -27,6 +27,7 @@ import com.ripple.core.types.known.tx.txns.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.TreeMap;
 
@@ -305,7 +306,12 @@ public class STObject implements SerializedType, Iterable<Field> {
             Field field;
             Integer sizeHint;
 
-            while (!parser.end()) {
+            // hint, is how many bytes to parse
+            if (hint != null) {
+                hint = parser.pos() + hint;
+            }
+
+            while (!(parser.end() || hint != null && parser.pos() >= hint)) {
                 field = parser.readField();
                 if (field == Field.ObjectEndMarker) {
                     break;

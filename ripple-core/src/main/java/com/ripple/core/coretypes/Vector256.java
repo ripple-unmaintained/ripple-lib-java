@@ -49,7 +49,7 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
         public Vector256 fromParser(BinaryParser parser, Integer hint) {
             Vector256 vector256 = new Vector256();
             if (hint == null) {
-                hint = parser.getSize();
+                hint = parser.getSize() - parser.pos();
             }
             for (int i = 0; i < hint / 32; i++) {
                 vector256.add(Hash256.translate.fromParser(parser));
