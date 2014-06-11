@@ -53,11 +53,9 @@ public class BlobVault {
 
         try {
             decryptionKey = userPassDerivedDecryptionKey(user, pass);
-            System.out.println(decryptionKey);
             return sjcl.decrypt(decryptionKey, utf8);
         } catch (InvalidCipherTextException e) {
             decryptionKey = userPassDerivedDecryptionKeyOLD(user, pass);
-            System.out.println(decryptionKey);
             return sjcl.decrypt(decryptionKey, utf8);
         }
     }
