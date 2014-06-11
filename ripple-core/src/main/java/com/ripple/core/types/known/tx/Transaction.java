@@ -1,6 +1,7 @@
 package com.ripple.core.types.known.tx;
 
 import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.hash.HalfSha512;
 import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.fields.Field;
@@ -26,7 +27,7 @@ public class Transaction extends STObject {
     }
 
     public Hash256 signingHash() {
-        Hash256.HalfSha512 signing = Hash256.prefixed256(HashPrefix.txSign);
+        HalfSha512 signing = HalfSha512.prefixed256(HashPrefix.txSign);
         toBytesSink(signing, new FieldFilter() {
             @Override
             public boolean evaluate(Field a) {
