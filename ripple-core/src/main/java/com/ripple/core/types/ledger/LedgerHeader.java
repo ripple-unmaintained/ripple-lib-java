@@ -10,7 +10,7 @@ import com.ripple.core.coretypes.uint.UInt8;
 
 import java.util.Date;
 
-public class Ledger {
+public class LedgerHeader {
     UInt32  version;         // Always 0x4C475200 (LWR) (Secures signed objects)
     UInt32  sequence;        // Ledger Sequence (0 for genesis ledger)
     UInt64  totalXRP;        //
@@ -24,11 +24,11 @@ public class Ledger {
 
     Date closeDate;
 
-    public static Ledger fromParser(BinaryParser parser) {
+    public static LedgerHeader fromParser(BinaryParser parser) {
         return fromReader(new BinaryReader(parser));
     }
-    public static Ledger fromReader(BinaryReader reader) {
-        Ledger ledger = new Ledger();
+    public static LedgerHeader fromReader(BinaryReader reader) {
+        LedgerHeader ledger = new LedgerHeader();
 
         ledger.version = reader.uInt32();
         ledger.sequence = reader.uInt32();

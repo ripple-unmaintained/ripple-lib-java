@@ -7,17 +7,13 @@ import static org.junit.Assert.assertTrue;
 
 import com.ripple.core.coretypes.*;
 import com.ripple.core.coretypes.hash.Hash256;
-import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
-import com.ripple.core.coretypes.hash.prefixes.LedgerSpace;
-import com.ripple.core.coretypes.hash.prefixes.Prefix;
-import com.ripple.core.serialized.BytesList;
 import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.sle.entries.AccountRoot;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.tx.result.TransactionMeta;
 import com.ripple.core.types.shamap.ShaMap;
-import com.ripple.core.types.shamap.ShaMapLeafNode;
-import com.ripple.core.types.shamap.ShaMapNode;
+import com.ripple.crypto.ecdsa.IKeyPair;
+import com.ripple.crypto.ecdsa.Seed;
 import junit.framework.TestCase;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,7 +32,6 @@ import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
 
 import java.io.*;
-import java.math.BigDecimal;
 import java.util.Iterator;
 
 public class STObjectTest {
@@ -59,7 +54,7 @@ public class STObjectTest {
             final STObject fromJSON;
             stateObject = accountState.getJSONObject(i);
             fromJSON = STObject.fromJSONObject(stateObject);
-            sm.addSLE((LedgerEntry) fromJSON);
+            sm.addLE((LedgerEntry) fromJSON);
             i++;
         }
         Hash256 hash = sm.hash();
@@ -469,14 +464,15 @@ public class STObjectTest {
     public void testSerializedPaymentTransaction() throws JSONException {
         String expectedSerialization = "120000240000000561D4C44364C5BB00000000000000000000000000005553440000000000B5F762798A53D543A014CAF8B297CFF8F2F937E868400000000000000F73210330E7FC9D56BB25D6893BA3F317AE5BCF33B3291BD63DB32654A313222F7FD0208114B5F762798A53D543A014CAF8B297CFF8F2F937E88314FD94A75318DE40B1D513E6764ECBCB6F1E7056ED";
 
-        AccountID ac = AccountID.fromSeedString(TestFixtures.master_seed);
+        IKeyPair kp = Seed.getKeyPair(TestFixtures.master_seed);
+        AccountID ac = AccountID.fromKeyPair(kp);
         STObject fromSO = STObject.newInstance();
 
         fromSO.put(Field.TransactionType, "Payment");
         fromSO.put(AccountID.Account, ac.address);
         fromSO.put(UInt32.Sequence, 5);
         fromSO.put(Amount.Fee, "15");
-        fromSO.put(VariableLength.SigningPubKey, ac.getKeyPair().pubHex());
+        fromSO.put(VariableLength.SigningPubKey, kp.pubHex());
         fromSO.put(AccountID.Destination, TestFixtures.bob_account.address);
         fromSO.put(Amount.Amount, "12/USD/" + ac.address);
 

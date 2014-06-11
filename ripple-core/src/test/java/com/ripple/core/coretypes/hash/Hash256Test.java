@@ -12,7 +12,7 @@ public class Hash256Test {
         String LedgerIndex = "D66D0EC951FD5707633BEBE74DB18B6D2DDA6771BA0FBF079AD08BFDE6066056";
         Hash256 expectedLedgerIndex = Hash256.translate.fromString(LedgerIndex);
         AccountID accountID = AccountID.fromAddress(addy);
-        Hash256 builtLedgerIndex = Hash256.accountIDLedgerIndex(accountID);
+        Hash256 builtLedgerIndex = Index.accountID(accountID);
         assertEquals(expectedLedgerIndex, builtLedgerIndex);
     }
 }

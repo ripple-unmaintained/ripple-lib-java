@@ -26,7 +26,7 @@ public class LedgerTest {
         assertEquals(4403788, reader.uInt32().longValue()); //
         assertEquals(3, parser.readOne()); //
 
-        Ledger ledger = Ledger.fromParser(parser);
+        LedgerHeader ledger = LedgerHeader.fromParser(parser);
         byte[] o = ledger.version.toByteArray();
 
         assertEquals('M',  ((char) o[0]));
