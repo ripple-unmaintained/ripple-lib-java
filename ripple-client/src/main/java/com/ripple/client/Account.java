@@ -6,6 +6,7 @@ import com.ripple.client.subscriptions.AccountRoot;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.wallet.Wallet;
 import com.ripple.core.coretypes.AccountID;
+import com.ripple.crypto.ecdsa.IKeyPair;
 
 /*
  *
@@ -27,6 +28,7 @@ public class Account {
     private AccountRoot accountRoot;
     private Wallet wallet;
     private TransactionManager tm;
+    public IKeyPair keyPair;
 
     public AccountID id() {
         return id;
@@ -51,14 +53,14 @@ public class Account {
     private AccountID id;
 
     public Account(AccountID id,
-            AccountRoot root,
-            Wallet wallet,
-            TransactionManager tm) {
+                   IKeyPair keyPair, AccountRoot root,
+                   Wallet wallet,
+                   TransactionManager tm) {
         this.id = id;
-
         this.accountRoot = root;
         this.wallet = wallet;
         this.tm = tm;
+        this.keyPair = keyPair;
     }
 
     @Override

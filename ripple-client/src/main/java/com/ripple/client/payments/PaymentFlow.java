@@ -1,5 +1,6 @@
 package com.ripple.client.payments;
 
+import com.ripple.client.Account;
 import com.ripple.client.Client;
 import com.ripple.client.enums.Command;
 import com.ripple.client.pubsub.Publisher;
@@ -15,8 +16,6 @@ import org.json.JSONObject;
 import java.math.BigDecimal;
 
 public class PaymentFlow extends Publisher<PaymentFlow.events> {
-    public Amount destinationAmount;
-
     public static abstract class events<T> extends Publisher.Callback<T> {}
     abstract static public class OnDestInfo extends events<STObject>{}
     abstract static public class OnAlternatives extends events<Alternatives> {}
@@ -67,7 +66,10 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         client.removeListener(Client.OnPathFind.class, onPathFind);
     }
 
-    AccountID src, dest;
+    public Amount destinationAmount;
+
+    Account srcAccount;
+    AccountID dest, src;
     STObject srcInfo, destInfo; // AccountRoot objects
     Alternatives alternatives;
 
@@ -103,10 +105,12 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         return request;
     }
 
-    public void setSource(final AccountID id) {
-        if (src == null || !src.equals(id)) {
+    public void setSource(final Account account) {
+        AccountID id = account.id();
+        if (src == null|| !src.equals(id)) {
             requestAccountInfo(id);
-            src = id;
+            srcAccount = account;
+            src = srcAccount.id();
             makePathFindRequestIfCan();
         }
     }
@@ -248,22 +252,19 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         requestPathFindClose();
 
         Payment payment = new Payment();
-        ManagedTxn managed = client.account(src).transactionManager().manage(payment);
-
-        payment.put(AccountID.Destination, dest);
+        ManagedTxn managed = srcAccount.transactionManager().manage(payment);
+        payment.destination(dest);
 
         if (hasPaths) {
             // A payment with an empty, but specified paths is invalid
-            // TODO: maybe it's just the serialization code?
-            payment.put(PathSet.Paths, alternative.paths);
+            payment.paths(alternative.paths);
         }
-        // If we are sending XRP and we have no paths, it's pointless?? to specify SendMax
-        // TODO: on surface it seems pointless, yet ??
+        // If we are sending XRP directly it's pointless to specify SendMax
         if (!alternative.directXRP()) {
-            payment.put(Amount.SendMax, sourceAmount.multiply(sendMaxMultiplier));
+            payment.sendMax(sourceAmount.multiply(sendMaxMultiplier));
         }
 
-        payment.put(Amount.Amount, destinationAmount);
+        payment.amount(destinationAmount);
         return managed;
     }
 

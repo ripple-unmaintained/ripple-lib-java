@@ -2,6 +2,7 @@ package com.ripple.client.payments;
 
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.PathSet;
+import com.ripple.core.coretypes.hash.HalfSha512;
 import com.ripple.core.coretypes.hash.Hash256;
 
 public class Alternative implements Comparable<Alternative> {
@@ -17,7 +18,7 @@ public class Alternative implements Comparable<Alternative> {
     }
 
     private Hash256 calculateHash(PathSet paths, Amount sourceAmount) {
-        Hash256.HalfSha512 half = new Hash256.HalfSha512();
+        HalfSha512 half = new HalfSha512();
         half.update(paths.toBytes());
         half.update(sourceAmount.toBytes());
         return half.finish();
