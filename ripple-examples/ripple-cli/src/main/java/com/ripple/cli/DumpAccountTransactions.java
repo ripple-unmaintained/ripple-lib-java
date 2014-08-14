@@ -1,12 +1,10 @@
 package com.ripple.cli;
 
 import com.ripple.client.Client;
-import com.ripple.client.ClientLogger;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.enums.Command;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
-import com.sun.org.apache.xpath.internal.SourceTree;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -24,7 +22,6 @@ public class DumpAccountTransactions {
             boolean delete = file.delete();
         }
 
-        ClientLogger.quiet = true;
         Client c = new Client(new JavaWebSocketTransportImpl());
         c.connect("wss://s1.ripple.com");
         walkAccountTx(c, null, 5); // a null marker to start with and 5 pages of 500 txn per page

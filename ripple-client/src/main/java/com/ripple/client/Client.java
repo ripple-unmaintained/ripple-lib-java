@@ -1,5 +1,6 @@
 package com.ripple.client;
 
+import com.google.common.cache.CacheBuilder;
 import com.ripple.client.enums.Command;
 import com.ripple.client.enums.Message;
 import com.ripple.client.enums.RPCErr;
@@ -9,7 +10,6 @@ import com.ripple.client.responses.Response;
 import com.ripple.client.subscriptions.AccountRoot;
 import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.client.subscriptions.SubscriptionManager;
-import com.ripple.core.types.known.tx.result.TransactionResult;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transport.TransportEventHandler;
 import com.ripple.client.transport.WebSocketTransport;
@@ -21,28 +21,68 @@ import com.ripple.core.types.known.tx.result.TransactionResult;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Client extends Publisher<Client.events> implements TransportEventHandler {
-    public static abstract class events<T>      extends Publisher.Callback<T> {}
-    public abstract static class OnLedgerClosed extends events<ServerInfo> {}
-    public abstract static class OnConnected    extends events<Client> {}
-    public abstract static class OnDisconnected extends events<Client> {}
-    public abstract static class OnSubscribed   extends events<ServerInfo> {}
-    public abstract static class OnMessage extends events<JSONObject> {}
-    public abstract static class OnSendMessage extends events<JSONObject> {}
-    public abstract static class OnStateChange extends events<Client> {}
-    public abstract static class OnPathFind extends events<JSONObject> {}
+
+    private static final Logger logger = Logger.getLogger(Client.class.getName());
+
+    // Keep a flag for disconnect status
+    private boolean disconnecting = false;
+
+    // Make disconnect status available
+    public boolean isDisconnecting() {
+        return disconnecting;
+    }
+
+    // Clean up WS resources on disconnect
+    public void disconnect() {
+        disconnecting = true;
+        ws.disconnect();
+    }
+
+    public void dispose() {
+        ws = null;
+    }
+
+    public static abstract class events<T> extends Publisher.Callback<T> {
+    }
+
+    public abstract static class OnLedgerClosed extends events<ServerInfo> {
+    }
+
+    public abstract static class OnConnected extends events<Client> {
+    }
+
+    public abstract static class OnDisconnected extends events<Client> {
+    }
+
+    public abstract static class OnSubscribed extends events<ServerInfo> {
+    }
+
+    public abstract static class OnMessage extends events<JSONObject> {
+    }
+
+    public abstract static class OnSendMessage extends events<JSONObject> {
+    }
+
+    public abstract static class OnStateChange extends events<Client> {
+    }
+
+    public abstract static class OnPathFind extends events<JSONObject> {
+    }
 
     protected ScheduledExecutorService service;
     public Thread clientThread;
 
     public static abstract class ThrowingRunnable implements Runnable {
+
         public abstract void throwingRun() throws Exception;
+
         @Override
         public void run() {
             try {
@@ -52,6 +92,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             }
         }
     }
+
     public boolean runningOnClientThread() {
         return clientThread != null && Thread.currentThread().getId() == clientThread.getId();
     }
@@ -65,6 +106,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             }
         });
     }
+
     public void run(Runnable runnable) {
         // What if we are already in the client thread?? What happens then ?
         if (runningOnClientThread()) {
@@ -88,16 +130,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     protected void onException(Exception e) {
-        String stackTrace = getStackTrace(e);
-        ClientLogger.log(stackTrace);
-        // TODO: exit on exceptions ?
-        System.out.println(stackTrace);
-    }
-
-    private String getStackTrace(Exception e) {
-        StringWriter sw = new StringWriter();
-        e.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
+        logger.log(Level.WARNING, e.getLocalizedMessage(), e);
     }
 
     public void schedule(int ms, Runnable runnable) {
@@ -131,10 +164,13 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     ArrayList<LedgerClosedCallback> ledgerClosedCallbacks = new ArrayList<LedgerClosedCallback>();
+
     public static class LedgerClosedCallback {
+
         public long anyLedgerGreaterOrEqual;
 
         public Runnable callback;
+
         public LedgerClosedCallback(long anyLedgerGreaterOrEqual, Runnable callback) {
             this.anyLedgerGreaterOrEqual = anyLedgerGreaterOrEqual;
             this.callback = callback;
@@ -146,7 +182,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         ledgerClosedCallbacks.add(new LedgerClosedCallback(ledgerIndex, runnable));
     }
 
-
     public Request requestBookOffers(Issue get, Issue pay) {
         Request request = newRequest(Command.book_offers);
         request.json("taker_pays", pay.toJSON());
@@ -157,8 +192,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public Account account(final AccountID id) {
         if (accounts.containsKey(id)) {
             return accounts.get(id);
-        }
-        else {
+        } else {
             AccountRoot accountRoot = accountRoot(id);
             Account account = new Account(
                     id,
@@ -172,6 +206,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             return account;
         }
     }
+
     public Account accountFromSeed(String masterSeed) {
         return account(AccountID.fromSeedString(masterSeed));
     }
@@ -194,7 +229,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                     if (response.succeeded) {
                         accountRoot.setFromJSON(response.result.getJSONObject("node"));
                     } else if (response.rpcerr == RPCErr.entryNotFound) {
-                        ClientLogger.log("Unfunded account: %s", response.message);
+                        logger.log(Level.INFO, "Unfunded account: {0}", response.message);
                         accountRoot.setUnfundedAccount(id);
                     } else {
                         if (attempt < 5) {
@@ -212,32 +247,31 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     public ServerInfo serverInfo = new ServerInfo();
-    public TreeMap<Integer, Request> requests = new TreeMap<Integer, Request>();
+    public Map<Integer, Request> requests = (Map) CacheBuilder.newBuilder().expireAfterAccess(60, TimeUnit.SECONDS).initialCapacity(100).build().asMap();
 
     WebSocketTransport ws;
     private int cmdIDs;
-
 
     String previousUri;
     // TODO: reconnect if we go 60s without any message from the server
 
     public void doConnect(String uri) {
-        ClientLogger.log("Connecting to " + uri);
+        logger.log(Level.INFO, "Connecting to {0}", uri);
         // XXX: connect to other uris ... just parameterise connect here ??
         previousUri = uri;
         ws.connect(URI.create(uri));
     }
 
     /**
-     * After calling this method, all subsequent interaction with the api
-     * should be called via posting Runnable() run blocks to the Executor
-     * Essentially, all ripple-lib-java api interaction should happen on
-     * the one thread.
+     * After calling this method, all subsequent interaction with the api should
+     * be called via posting Runnable() run blocks to the Executor Essentially,
+     * all ripple-lib-java api interaction should happen on the one thread.
      *
+     * @param uri
      * @see #onMessage(org.json.JSONObject)
      */
     public void connect(final String uri) {
-
+        disconnecting = false;
         run(new Runnable() {
             @Override
             public void run() {
@@ -245,8 +279,11 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             }
         });
     }
+
     /**
      * This is to ensure we run everything on the one HandlerThread
+     *
+     * @param msg
      */
     @Override
     public void onMessage(final JSONObject msg) {
@@ -258,12 +295,15 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         });
     }
 
-
 //    @Override
     public void onMessageInClientThread(JSONObject msg) {
         try {
             emit(OnMessage.class, msg);
-            ClientLogger.log("Receive: %s", prettyJSON(msg));
+
+            // Prevent running prettyJSON if not needed
+            if (logger.isLoggable(Level.FINEST)) {
+                logger.log(Level.FINEST, "Receive: {0}", prettyJSON(msg));
+            }
 
             switch (Message.valueOf(msg.optString("type", null))) {
                 case serverStatus:
@@ -287,7 +327,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                     break;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Caught exception processing message", e);
             // This seems to be swallowed higher up, (at least by the Java-WebSocket transport implementation)
             throw new RuntimeException(e); // TODO
         } finally {
@@ -296,12 +336,12 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     void onTransaction(JSONObject msg) {
-        TransactionResult tr = new TransactionResult(msg, TransactionResult
-                                                            .Source
-                                                            .transaction_subscription_notification);
+        TransactionResult tr = new TransactionResult(msg, TransactionResult.Source.transaction_subscription_notification);
 
         if (tr.validated) {
-            ClientLogger.log("Transaction %s is validated", tr.hash);
+            if (logger.isLoggable(Level.FINE)) {
+                logger.log(Level.FINE, "Transaction {0} is validated", tr.hash);
+            }
             Map<AccountID, STObject> affected = tr.modifiedRoots();
 
             if (affected != null) {
@@ -313,18 +353,18 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                     if (account != null) {
                         STObject rootUpdates = entry.getValue();
                         account.getAccountRoot()
-                               .updateFromTransaction(
-                                       transactionHash, transactionLedgerIndex, rootUpdates);
+                                .updateFromTransaction(
+                                        transactionHash, transactionLedgerIndex, rootUpdates);
                     }
                 }
             }
 
             Account initator = accounts.get(tr.initiatingAccount());
             if (initator != null) {
-                ClientLogger.log("Found initiator %s, notifying transactionManager", initator);
+                logger.log(Level.FINE, "Found initiator {0}, notifying transactionManager", initator);
                 initator.transactionManager().notifyTransactionResult(tr);
             } else {
-                ClientLogger.log("Can't find initiating account!");
+                logger.log(Level.FINE, "Can't find initiating account!");
             }
 
         }
@@ -337,7 +377,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     void onResponse(JSONObject msg) {
         Request request = requests.get(msg.optInt("id", -1));
         if (request == null) {
-            // TODO: should warn?
+            logger.log(Level.WARNING, "Could not locate a matching request for a received response {0}", prettyJSON(msg));
             return;
         }
 
@@ -422,22 +462,29 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     private void doOnDisconnected() {
         connected = false;
-        ClientLogger.log("onDisconnected");
+        logger.entering(getClass().getName(), "onDisconnected");
         emit(OnDisconnected.class, this);
-        // TODO: scheduled reconnect ;)
-        // Client abstract (Runable run, int ms) badboy
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+
+        if (!disconnecting) {
+            // TODO: scheduled reconnect ;)
+            // Client abstract (Runable run, int ms) badboy
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            connect(previousUri);
+        } else {
+            logger.fine("Currently disconnecting, so will not reconnect");
         }
-        connect(previousUri);
+        logger.exiting(getClass().getName(), "doOnDisconnected");
     }
 
     @Override
     public void
-    onConnected() {
+            onConnected() {
         run(new Runnable() {
+            @Override
             public void run() {
                 doOnConnected();
             }
@@ -446,19 +493,23 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     private void doOnConnected() {
         connected = true;
-        ClientLogger.log("onConnected");
+        logger.entering(getClass().getName(), "onConnected");
         emit(OnConnected.class, this);
         subscribe(prepareSubscription());
         subscriptions.on(SubscriptionManager.OnSubscribed.class, new SubscriptionManager.OnSubscribed() {
             @Override
             public void called(JSONObject subscription) {
-                if (!connected) return;
+                if (!connected) {
+                    return;
+                }
                 subscribe(subscription);
             }
         });
+        logger.exiting(getClass().getName(), "onConnected");
     }
 
     private void subscribe(JSONObject subscription) {
+        logger.entering(getClass().getName(), "subscribe", subscription);
         Request request = newRequest(Command.subscribe);
 
         request.json(subscription);
@@ -471,11 +522,14 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             }
         });
         request.request();
+        logger.exiting(getClass().getName(), "subscribe");
     }
 
     private JSONObject prepareSubscription() {
+        logger.entering(getClass().getName(), "prepareSubscription");
         subscriptions.addStream(SubscriptionManager.Stream.ledger);
         subscriptions.addStream(SubscriptionManager.Stream.server);
+        logger.exiting(getClass().getName(), "prepareSubscription");
         return subscriptions.allSubscribed();
     }
 
@@ -492,12 +546,14 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     public void sendMessage(JSONObject object) {
-        ClientLogger.log("Send: %s", prettyJSON(object));
+        if (logger.isLoggable(Level.FINER)) {
+            logger.log(Level.FINER, "Send: {0}", prettyJSON(object));
+        }
         emit(OnSendMessage.class, object);
         ws.sendMessage(object);
     }
 
-    private String prettyJSON(JSONObject object)  {
+    private String prettyJSON(JSONObject object) {
         try {
             return object.toString(4);
         } catch (JSONException e) {
