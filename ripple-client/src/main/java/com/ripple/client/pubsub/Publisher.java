@@ -1,12 +1,16 @@
 package com.ripple.client.pubsub;
 
-import com.ripple.client.ClientLogger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Publisher<EventClass extends Publisher.ICallback> {
+    
+    static final Logger logger = Logger.getLogger(Publisher.class.getName());
+    
     public static interface ICallback<T> {
         public void call(Object... args);
     }
@@ -38,7 +42,7 @@ public class Publisher<EventClass extends Publisher.ICallback> {
     }
 
     public <T extends EventClass> int emit(Class<T> key, Object... args) {
-        ClientLogger.log("Emitting %s from thread: %s", key.getSimpleName(), Thread.currentThread());
+        logger.log(Level.FINE,"Emitting {0} from thread: {1}", new Object[] {key.getSimpleName(), Thread.currentThread()});
         CallbackList callbacks = cbs.get(key);
         if (callbacks == null) {
             return 0;
