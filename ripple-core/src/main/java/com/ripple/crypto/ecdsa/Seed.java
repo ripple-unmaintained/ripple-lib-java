@@ -1,12 +1,12 @@
 package com.ripple.crypto.ecdsa;
 
-import com.ripple.utils.Utils;
-
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.util.Arrays;
 
 import static com.ripple.utils.Utils.halfSha512;
 import static com.ripple.utils.Utils.quarterSha512;
+import com.ripple.utils.Utils;
 
 public class Seed {
     public static byte[] passPhraseToSeedBytes(String seed) {
@@ -17,15 +17,23 @@ public class Seed {
         }
     }
 
-    public static IKeyPair createKeyPair(byte[] seedBytes) {
+    public static IKeyPair createKeyPair(Object account) {
+        int accountNumber = 0;
+        byte[] address = null;
+        if (account instanceof Integer) {
+            accountNumber = (Integer) account;
+        } else {
+            address = (byte[]) account;
+        }
+
         BigInteger secret, pub, privateGen, order = SECP256K1.order();
         byte[] privateGenBytes;
         byte[] publicGenBytes;
 
-        int i = 0, seq = 0;
+        int i = 0;
 
         while (true) {
-            privateGenBytes = hashedIncrement(seedBytes, i++);
+            privateGenBytes = hashedIncrement(address, i++);
             privateGen = Utils.uBigInt(privateGenBytes);
             if (privateGen.compareTo(order) == -1) {
                 break;
@@ -33,17 +41,29 @@ public class Seed {
         }
         publicGenBytes = SECP256K1.basePointMultipliedBy(privateGen);
 
-        i=0;
+        i = 0;
+        int maxLoops = 1000;
         while (true) {
-            byte[] secretBytes = hashedIncrement(appendIntBytes(publicGenBytes, seq), i++);
-            secret = Utils.uBigInt(secretBytes);
-            if (secret.compareTo(order) == -1) {
+            while (true) {
+                byte[] secretBytes = hashedIncrement(appendIntBytes(publicGenBytes, accountNumber), i++);
+                secret = Utils.uBigInt(secretBytes);
+                if (secret.compareTo(order) == -1) {
+                    break;
+                }
+            }
+
+            accountNumber += 1;
+            secret = secret.add(privateGen).mod(order);
+            pub = Utils.uBigInt(SECP256K1.basePointMultipliedBy(secret));
+
+            if (--maxLoops <= 0) {
+                throw new RuntimeException("Too many loops looking for KeyPair yielding: " + address);
+            }
+
+            if (address == null || Arrays.equals(pub.toByteArray(), address)) {
                 break;
             }
         }
-
-        secret = secret.add(privateGen).mod(order);
-        pub = Utils.uBigInt(SECP256K1.basePointMultipliedBy(secret));
 
         return new KeyPair(secret, pub);
     }
