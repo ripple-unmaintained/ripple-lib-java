@@ -2,28 +2,36 @@ package com.ripple.crypto.ecdsa;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
-import java.util.Arrays;
 
 import static com.ripple.utils.Utils.halfSha512;
 import static com.ripple.utils.Utils.quarterSha512;
 import com.ripple.utils.Utils;
 
 public class Seed {
-    public static byte[] passPhraseToSeedBytes(String seed) {
+
+    private String seedPhrase;
+
+    public Seed(String seedPhrase) {
+        this.seedPhrase = seedPhrase;
+    }
+
+    public static byte[] passPhraseToSeedBytes(String str) {
         try {
-            return quarterSha512(seed.getBytes("utf-8"));
+            return quarterSha512(str.getBytes("utf-8"));
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static IKeyPair createKeyPair(Object account) {
+    public IKeyPair createKeyPair(String account) {
         int accountNumber = 0;
-        byte[] address = null;
-        if (account instanceof Integer) {
-            accountNumber = (Integer) account;
-        } else {
-            address = (byte[]) account;
+        BigInteger address = null;
+        if (account != null) {
+            if (isNumeric(account)) {
+                accountNumber = Integer.parseInt(account);
+            } else {
+                address = new BigInteger(account.getBytes());
+            }
         }
 
         BigInteger secret, pub, privateGen, order = SECP256K1.order();
@@ -33,7 +41,7 @@ public class Seed {
         int i = 0;
 
         while (true) {
-            privateGenBytes = hashedIncrement(address, i++);
+            privateGenBytes = hashedIncrement(passPhraseToSeedBytes(seedPhrase), i++);
             privateGen = Utils.uBigInt(privateGenBytes);
             if (privateGen.compareTo(order) == -1) {
                 break;
@@ -60,7 +68,7 @@ public class Seed {
                 throw new RuntimeException("Too many loops looking for KeyPair yielding: " + address);
             }
 
-            if (address == null || Arrays.equals(pub.toByteArray(), address)) {
+            if (address == null || pub.equals(address)) {
                 break;
             }
         }
@@ -68,11 +76,11 @@ public class Seed {
         return new KeyPair(secret, pub);
     }
 
-    private static byte[] hashedIncrement(byte[] bytes, int increment) {
+    private byte[] hashedIncrement(byte[] bytes, int increment) {
         return halfSha512(appendIntBytes(bytes, increment));
     }
 
-    public static byte[] appendIntBytes(byte[] in, long i) {
+    private byte[] appendIntBytes(byte[] in, long i) {
         byte[] out = new byte[in.length + 4];
 
         System.arraycopy(in, 0, out, 0, in.length);
@@ -83,5 +91,15 @@ public class Seed {
         out[in.length + 3] = (byte) ((i)       & 0xFF);
 
         return out;
+    }
+
+    private static boolean isNumeric(String str) {
+        try {
+            int b = Integer.parseInt(str);
+        }
+        catch(NumberFormatException nfe) {
+            return false;
+        }
+        return true;
     }
 }
