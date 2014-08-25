@@ -1,24 +1,22 @@
 package com.ripple.core;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.KeyPair;
+import com.ripple.crypto.ecdsa.Seed;
 import com.ripple.encodings.common.B16;
 import org.json.JSONArray;
 import org.junit.Test;
 import org.ripple.bouncycastle.util.encoders.Hex;
 
-import com.ripple.core.coretypes.AccountID;
-import com.ripple.crypto.ecdsa.IKeyPair;
-import com.ripple.crypto.ecdsa.Seed;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-
 public class KeyPairTest {
-    IKeyPair keyPair = Seed.createKeyPair(TestFixtures.master_seed_bytes);
+    IKeyPair keyPair = Seed.createKeyPairFromSeedBytes(TestFixtures.master_seed_bytes);
 
     @Test
     public void testVerify() {
@@ -56,7 +54,7 @@ public class KeyPairTest {
         return b.toString();
     }
 
-//    @Test
+    //    @Test
     public void testRippleLibGarbage() throws Exception {
         String text = getFileText("/home/nick/ripple-lib/dumps.json");
         JSONArray array = new JSONArray(text);
