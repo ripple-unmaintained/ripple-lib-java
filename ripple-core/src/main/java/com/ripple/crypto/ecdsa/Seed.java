@@ -9,78 +9,88 @@ import com.ripple.utils.Utils;
 
 public class Seed {
 
-    private String seedPhrase;
+    private static final BigInteger ORDER = SECP256K1.order();
+    private static final int DEFAULT_SEQ = 0;
 
-    public Seed(String seedPhrase) {
-        this.seedPhrase = seedPhrase;
-    }
-
-    public static byte[] passPhraseToSeedBytes(String str) {
+    public static byte[] passPhraseToSeedBytes(String seed) {
         try {
-            return quarterSha512(str.getBytes("utf-8"));
+            return quarterSha512(seed.getBytes("utf-8"));
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public IKeyPair createKeyPair(String account) {
-        int accountNumber = 0;
-        BigInteger address = null;
-        if (account != null) {
-            if (isNumeric(account)) {
-                accountNumber = Integer.parseInt(account);
-            } else {
-                address = new BigInteger(account.getBytes());
-            }
-        }
+    public static IKeyPair createKeyPairFromAccountNumber(String seedStr, int accountNumber) {
+        BigInteger privateGen = createPrivateGen(passPhraseToSeedBytes(seedStr));
+        byte[] publicGenBytes = SECP256K1.basePointMultipliedBy(privateGen);
 
-        BigInteger secret, pub, privateGen, order = SECP256K1.order();
-        byte[] privateGenBytes;
-        byte[] publicGenBytes;
+        return createKeyPair(publicGenBytes, accountNumber, privateGen);
+    }
 
-        int i = 0;
-
-        while (true) {
-            privateGenBytes = hashedIncrement(passPhraseToSeedBytes(seedPhrase), i++);
-            privateGen = Utils.uBigInt(privateGenBytes);
-            if (privateGen.compareTo(order) == -1) {
-                break;
-            }
-        }
-        publicGenBytes = SECP256K1.basePointMultipliedBy(privateGen);
-
-        i = 0;
+    public static IKeyPair createKeyPairFromAddress(String seedStr, BigInteger address) {
+        IKeyPair keyPair;
         int maxLoops = 1000;
+        BigInteger privateGen = createPrivateGen(passPhraseToSeedBytes(seedStr));
+        byte[] publicGenBytes = SECP256K1.basePointMultipliedBy(privateGen);
+
         while (true) {
-            while (true) {
-                byte[] secretBytes = hashedIncrement(appendIntBytes(publicGenBytes, accountNumber), i++);
-                secret = Utils.uBigInt(secretBytes);
-                if (secret.compareTo(order) == -1) {
-                    break;
-                }
-            }
+            keyPair = createKeyPair(publicGenBytes, 0, privateGen);
 
-            accountNumber += 1;
-            secret = secret.add(privateGen).mod(order);
-            pub = Utils.uBigInt(SECP256K1.basePointMultipliedBy(secret));
-
-            if (--maxLoops <= 0) {
+            if (--maxLoops == 0) {
                 throw new RuntimeException("Too many loops looking for KeyPair yielding: " + address);
             }
-
-            if (address == null || pub.equals(address)) {
+            if (true /*address == ? (Still trying to figure out)*/) {
                 break;
             }
         }
+        return keyPair;
+    }
+
+    public static IKeyPair createKeyPairFromSeedBytes(byte[] seedBytes) {
+        BigInteger privateGen = createPrivateGen(seedBytes);
+        byte[] publicGenBytes = SECP256K1.basePointMultipliedBy(privateGen);
+
+        return createKeyPair(publicGenBytes, DEFAULT_SEQ, privateGen);
+    }
+
+    private static IKeyPair createKeyPair(byte[] publicGenBytes, int seq, BigInteger privateGen) {
+        BigInteger secret;
+
+        int i = 0;
+        while (true) {
+            byte[] secretBytes = hashedIncrement(appendIntBytes(publicGenBytes, seq), i++);
+            secret = Utils.uBigInt(secretBytes);
+            if (secret.compareTo(ORDER) == -1) {
+                break;
+            }
+        }
+
+        secret = secret.add(privateGen).mod(ORDER);
+        BigInteger pub = Utils.uBigInt(SECP256K1.basePointMultipliedBy(secret));
 
         return new KeyPair(secret, pub);
     }
 
-    private byte[] hashedIncrement(byte[] bytes, int increment) {
+    private static BigInteger createPrivateGen(byte[] seedBytes) {
+        BigInteger privateGen;
+        byte[] privateGenBytes;
+
+        int i = 0;
+        while (true) {
+            privateGenBytes = hashedIncrement(seedBytes, i++);
+            privateGen = Utils.uBigInt(privateGenBytes);
+            if (privateGen.compareTo(ORDER) == -1) {
+                break;
+            }
+        }
+        return privateGen;
+    }
+
+    private static byte[] hashedIncrement(byte[] bytes, int increment) {
         return halfSha512(appendIntBytes(bytes, increment));
     }
 
-    private byte[] appendIntBytes(byte[] in, long i) {
+    public static byte[] appendIntBytes(byte[] in, long i) {
         byte[] out = new byte[in.length + 4];
 
         System.arraycopy(in, 0, out, 0, in.length);
@@ -91,15 +101,5 @@ public class Seed {
         out[in.length + 3] = (byte) ((i)       & 0xFF);
 
         return out;
-    }
-
-    private static boolean isNumeric(String str) {
-        try {
-            int b = Integer.parseInt(str);
-        }
-        catch(NumberFormatException nfe) {
-            return false;
-        }
-        return true;
     }
 }

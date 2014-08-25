@@ -1,23 +1,24 @@
 package com.ripple.core.coretypes;
 
-import static com.ripple.config.Config.getB58IdentiferCodecs;
-
 import java.util.HashMap;
 import java.util.Map;
 
-import com.ripple.core.serialized.*;
-import com.ripple.encodings.common.B16;
-
-import com.ripple.core.fields.Field;
-import com.ripple.core.fields.TypedFields;
+import static com.ripple.config.Config.getB58IdentiferCodecs;
 import com.ripple.core.coretypes.hash.Hash160;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.fields.Field;
+import com.ripple.core.fields.TypedFields;
+import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.BytesSink;
+import com.ripple.core.serialized.SerializedType;
+import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
+import com.ripple.encodings.common.B16;
 import com.ripple.utils.Utils;
 
 public class AccountID implements SerializedType, Comparable<AccountID> {
-//    public String masterSeed;
+    //    public String masterSeed;
     public String address;
     protected IKeyPair keyPair;
     protected byte[] addressBytes;
@@ -28,7 +29,7 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     }
 
     public static AccountID ONE,
-                          ZERO;
+            ZERO;
 
     static {
         ZERO = fromInteger(0);
@@ -86,7 +87,7 @@ public class AccountID implements SerializedType, Comparable<AccountID> {
     }
 
     public static IKeyPair keyPairFromSeedBytes(byte[] master_seed) {
-        return Seed.createKeyPair(master_seed);
+        return Seed.createKeyPairFromSeedBytes(master_seed);
     }
 
     public IKeyPair getKeyPair() {
