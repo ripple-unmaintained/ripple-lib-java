@@ -33,12 +33,12 @@ public class AccountID extends Hash160 {
         return address.hashCode();
     }
 
-    public static AccountID ONE,
-                            ZERO;
+    public static AccountID NEUTRAL,
+                            XRP_ISSUER;
 
     static {
-        ZERO = fromInteger(0);
-        ONE = fromInteger(1);
+        XRP_ISSUER = fromInteger(0);
+        NEUTRAL = fromInteger(1);
     }
 
     @Override
@@ -107,6 +107,10 @@ public class AccountID extends Hash160 {
         to.add(bytes());
     }
 
+    public boolean lessThan(AccountID from) {
+        return compareTo(from) == -1;
+    }
+
     public static class Translator extends TypeTranslator<AccountID> {
         @Override
         public AccountID fromParser(BinaryParser parser, Integer hint) {
@@ -159,14 +163,8 @@ public class AccountID extends Hash160 {
         accounts.put("root", accountForPass("masterpassphrase"));
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof AccountID) {
-            return address.equals(((AccountID) obj).address);
-        }
-        else {
-            return super.equals(obj);
-        }
+    public boolean isNativeIssuer() {
+        return equals(XRP_ISSUER);
     }
 
     static public Translator translate = new Translator();
