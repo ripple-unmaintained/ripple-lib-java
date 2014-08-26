@@ -1,10 +1,11 @@
 package com.ripple.crypto.ecdsa;
 
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-
+import static com.ripple.config.Config.getB58IdentiferCodecs;
 import static com.ripple.utils.Utils.halfSha512;
 import static com.ripple.utils.Utils.quarterSha512;
+
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.utils.Utils;
 
@@ -104,5 +105,13 @@ public class Seed {
         out[in.length + 3] = (byte) ((i)       & 0xFF);
 
         return out;
+    }
+
+    public static IKeyPair getKeyPair(byte[] master_seed) {
+        return createKeyPairFromSeedBytes(master_seed);
+    }
+
+    public static IKeyPair getKeyPair(String master_seed) {
+        return createKeyPairFromSeedBytes(getB58IdentiferCodecs().decodeFamilySeed(master_seed));
     }
 }
