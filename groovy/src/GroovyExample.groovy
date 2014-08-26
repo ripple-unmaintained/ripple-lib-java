@@ -39,7 +39,7 @@ void main() {
     }
 }
 
-def JSONObject getBlob(user, pass) {
+def JSONObject getBlob(def user, def pass) {
     def payward = new BlobVault("https://blobvault.ripple.com/");
     def env = System.getenv()
     payward.getBlob(user, pass)
