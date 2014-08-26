@@ -1,6 +1,6 @@
 package com.ripple.core.types.ledger;
 
-import com.ripple.core.binary.BinaryReader;
+import com.ripple.core.binary.STReader;
 import com.ripple.core.serialized.BinaryParser;
 import org.junit.Test;
 
@@ -20,7 +20,7 @@ public class LedgerTest {
         hex = hex.substring(2);
 
         BinaryParser parser = new BinaryParser(hex);
-        BinaryReader reader = new BinaryReader(parser);
+        STReader reader = new STReader(parser);
 
         assertEquals(4403788, reader.uInt32().longValue()); //
         assertEquals(4403788, reader.uInt32().longValue()); //

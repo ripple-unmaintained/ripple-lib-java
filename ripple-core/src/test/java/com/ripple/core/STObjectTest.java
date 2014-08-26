@@ -424,7 +424,8 @@ public class STObjectTest {
         STObject meta = STObject.translate.fromHex(jsonHexed);
         String expectedJSON;
         expectedJSON = ("{\"LedgerEntryType\":\"DirectoryNode\",\"Indexes\":[\"081342A0AB45459A54D8E4FA1842339A102680216CF9A152BCE4F4CE467D8246\"],\"Owner\":\"rh6kN9s7spSb3vdv6H8ZGYzsddSLeEUGmc\",\"RootIndex\":\"000360186E008422E06B72D5B275E29EE3BE9D87A370F424E0E7BF613C465909\",\"Flags\":0}");
-        assertEquals(expectedJSON, meta.toJSONObject().toString());
+        assertEquals(new JSONObject(expectedJSON).toString(), new JSONObject(meta.toJSONObject().toString()).toString());
+
     }
 
     @Test
