@@ -16,6 +16,7 @@ import com.ripple.core.formats.SLEFormat;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.*;
 import com.ripple.core.types.known.sle.LedgerEntry;
+import com.ripple.core.types.known.sle.LedgerHashes;
 import com.ripple.core.types.known.sle.entries.AccountRoot;
 import com.ripple.core.types.known.sle.entries.DirectoryNode;
 import com.ripple.core.types.known.sle.entries.Offer;
@@ -164,6 +165,7 @@ public class STObject implements SerializedType, Iterable<Field> {
             case Contract:
                 break;
             case LedgerHashes:
+                constructed = new LedgerHashes();
                 break;
             case EnabledFeatures:
                 break;
