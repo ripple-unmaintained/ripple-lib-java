@@ -6,6 +6,7 @@ import com.ripple.core.coretypes.VariableLength;
 import com.ripple.core.coretypes.hash.Hash128;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.enums.LSF;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
 import com.ripple.core.types.known.sle.ThreadedLedgerEntry;
@@ -38,4 +39,14 @@ public class AccountRoot extends ThreadedLedgerEntry {
     public void domain(VariableLength val) {put(Field.Domain, val);}
     public void account(AccountID val) {put(Field.Account, val);}
     public void regularKey(AccountID val) {put(Field.RegularKey, val);}
+
+    public boolean requiresAuth() {
+        return flags().testBit(LSF.RequireAuth);
+    }
+
+    public void setAccountRootDefaults() {
+        if (ownerCount() == null) {
+            ownerCount(new UInt32(0));
+        }
+    }
 }

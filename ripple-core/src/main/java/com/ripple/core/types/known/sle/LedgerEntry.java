@@ -9,6 +9,10 @@ import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
 import com.ripple.core.formats.SLEFormat;
+import com.ripple.core.types.known.sle.entries.AccountRoot;
+import com.ripple.core.types.known.sle.entries.DirectoryNode;
+import com.ripple.core.types.known.sle.entries.Offer;
+import com.ripple.core.types.known.sle.entries.RippleState;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,5 +48,36 @@ public class LedgerEntry extends STObject {
         }
 
         return owners;
+    }
+
+    public void index(Hash256 index) {
+        put(Hash256.index, index);
+    }
+
+    public void setLedgerEntryDefaults() {
+        if (flags() == null) {
+            flags(new UInt32(0));
+        }
+    }
+
+    public static abstract class OnLedgerEntry {
+        public abstract void onOffer(Offer of);
+        public abstract void onDirectoryNode(DirectoryNode dn);
+        public abstract void onRippleState(RippleState rs);
+        public abstract void onAccountRoot(AccountRoot ar);
+        public abstract void onAll(LedgerEntry le);
+
+        public void onObject(STObject object) {
+            if (object instanceof Offer) {
+                onOffer(((Offer) object));
+            } else if (object instanceof AccountRoot) {
+                onAccountRoot((AccountRoot) object);
+            } else if (object instanceof DirectoryNode) {
+                onDirectoryNode((DirectoryNode) object);
+            } else if (object instanceof RippleState) {
+                onRippleState((RippleState) object);
+            }
+            onAll((LedgerEntry) object);
+        }
     }
 }

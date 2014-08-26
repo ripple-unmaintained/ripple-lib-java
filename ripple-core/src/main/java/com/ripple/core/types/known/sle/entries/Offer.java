@@ -145,6 +145,16 @@ public class Offer extends ThreadedLedgerEntry {
         };
     }
 
+    public Hash256 bookNodeDirectoryIndex() {
+        return Index.directoryNode(bookDirectory(), bookNode());
+    }
+
+    public Hash256 ownerNodeDirectoryIndex() {
+        Hash256 ownerDir = Index.ownerDirectory(account());
+        return Index.directoryNode(ownerDir, ownerNode());
+    }
+
+
     public UInt32 sequence() {return get(UInt32.Sequence);}
     public UInt32 expiration() {return get(UInt32.Expiration);}
     public UInt64 bookNode() {return get(UInt64.BookNode);}
@@ -162,4 +172,16 @@ public class Offer extends ThreadedLedgerEntry {
     public void takerGets(Amount val) {put(Field.TakerGets, val);}
     public void account(AccountID val) {put(Field.Account, val);}
 
+    public Hash256[] directoryIndexes() {
+        return new Hash256[]{bookNodeDirectoryIndex(), ownerNodeDirectoryIndex()};
+    }
+
+    public void setOfferDefaults() {
+        if (bookNode() == null) {
+            bookNode(new UInt64(0));
+        }
+        if (ownerNode() == null) {
+            ownerNode(new UInt64(0));
+        }
+    }
 }

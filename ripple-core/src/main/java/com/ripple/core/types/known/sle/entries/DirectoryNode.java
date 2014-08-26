@@ -1,6 +1,7 @@
 package com.ripple.core.types.known.sle.entries;
 
 import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Currency;
 import com.ripple.core.coretypes.Vector256;
 import com.ripple.core.coretypes.hash.Hash160;
 import com.ripple.core.coretypes.hash.Hash256;
@@ -49,5 +50,28 @@ public class DirectoryNode extends LedgerEntry {
 
     public boolean hasNextIndex() {
         return indexNext() != null;
+    }
+
+    public boolean isRootIndex() {
+        return rootIndex().equals(index());
+    }
+
+    public void setExchangeDefaults() {
+        if (takerGetsCurrency() == null) {
+            takerGetsCurrency(Currency.XRP);
+            takerGetsIssuer(AccountID.XRP_ISSUER);
+        } else if (takerPaysCurrency() == null) {
+            takerPaysCurrency(Currency.XRP);
+            takerPaysIssuer(AccountID.XRP_ISSUER);
+        }
+    }
+
+    public void setDirectoryNodeDefaults() {
+        if (exchangeRate() != null) {
+            setExchangeDefaults();
+        }
+        if (indexes() == null) {
+            indexes(new Vector256());
+        }
     }
 }

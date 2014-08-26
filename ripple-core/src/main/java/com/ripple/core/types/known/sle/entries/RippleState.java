@@ -4,15 +4,17 @@ import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.Currency;
 import com.ripple.core.coretypes.Issue;
+import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
+import com.ripple.core.enums.LSF;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.types.known.sle.ThreadedLedgerEntry;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class RippleState extends ThreadedLedgerEntry {
@@ -104,15 +106,43 @@ public class RippleState extends ThreadedLedgerEntry {
         }
     }
 
-    //TODO, this logic needs looking over
-    // owed in terms of which issuer?
-//    public Amount owed() {
-//        Amount balance = balance();
-//        if (balance.isNegative()) {
-//            return balance.newIssuer(lowAccount());
-//        } else {
-//            return balance.negate().newIssuer(highAccount());
-//        }
-//    }
+    @Deprecated() // "not deprecated but needs fixing"
+    public boolean authorizedBy(AccountID account) {
+        UInt32 flags = flags();
+        return flags == null || flags.testBit(isHighAccount(account) ? LSF.HighAuth : LSF.LowAuth);
+    }
 
+    private boolean isBitSet(int flags, int flag) {
+        return (flags & flag) != 0;
+    }
+
+    private boolean isHighAccount(AccountID account) {
+        return highAccount().equals(account);
+    }
+    private boolean isLowAccount(AccountID account) {
+        return lowAccount().equals(account);
+    }
+
+
+    public Hash256 lowNodeOwnerDirectory() {
+        Hash256 ownerDir = Index.ownerDirectory(lowAccount());
+        return Index.directoryNode(ownerDir, lowNode());
+    }
+    public Hash256 highNodeOwnerDirectory() {
+        Hash256 ownerDir = Index.ownerDirectory(highAccount());
+        return Index.directoryNode(ownerDir, highNode());
+    }
+
+    public Hash256[] directoryIndexes() {
+        return new Hash256[]{lowNodeOwnerDirectory(), highNodeOwnerDirectory()};
+    }
+
+    public void setRippleStateDefaults() {
+        if (lowNode() == null) {
+            lowNode(new UInt64(0));
+        }
+        if (highNode() == null) {
+            highNode(new UInt64(0));
+        }
+    }
 }
