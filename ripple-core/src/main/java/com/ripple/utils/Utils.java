@@ -4,15 +4,17 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-
-import org.ripple.bouncycastle.crypto.digests.RIPEMD160Digest;
-import org.ripple.bouncycastle.util.encoders.Hex;
+import java.security.Security;
 
 import com.ripple.encodings.common.B16;
+import org.ripple.bouncycastle.crypto.digests.RIPEMD160Digest;
+import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.ripple.bouncycastle.util.encoders.Hex;
 
 public class Utils {
     private static final MessageDigest digest;
     static {
+        Security.addProvider(new BouncyCastleProvider());
         try {
             digest = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
@@ -39,7 +41,6 @@ public class Utils {
             return digest.digest(first);
         }
     }
-
 
     public static BigInteger hexBig(String hex) {
         return new BigInteger(1, Hex.decode(hex));
