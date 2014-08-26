@@ -3,8 +3,8 @@ package com.ripple.cli.shamapanalysis;
 import com.ripple.config.Config;
 import com.ripple.core.coretypes.Vector256;
 import com.ripple.core.coretypes.hash.Hash256;
-import com.ripple.core.types.shamap.ShaMapInnerNode;
-import com.ripple.core.types.shamap.ShaMapLeafNode;
+import com.ripple.core.types.shamap.ShaMapInner;
+import com.ripple.core.types.shamap.ShaMapLeaf;
 import com.ripple.core.types.shamap.ShaMapNode;
 import com.ripple.encodings.common.B16;
 import org.json.JSONArray;
@@ -158,8 +158,8 @@ public class ShamapInnerNodeAnalysis {
         return System.nanoTime();
     }
 
-    private ShaMapLeafNode.Item createItem(final Hash256 id1) {
-        return new ShaMapLeafNode.Item() {
+    private ShaMapLeaf.Item createItem(final Hash256 id1) {
+        return new ShaMapLeaf.Item() {
             @Override
             public byte[] bytes() {
                 return id1.bytes();
@@ -219,7 +219,7 @@ public class ShamapInnerNodeAnalysis {
                     int randomKeyIndex = randomness.nextInt(whichRandom.size() - 1);
                     Hash256 keyToUpdate = whichRandom.get(randomKeyIndex);
                     // invalidating ;)
-                    ShaMapLeafNode leaf = ledger.getLeafForUpdating(keyToUpdate);
+                    ShaMapLeaf leaf = ledger.getLeafForUpdating(keyToUpdate);
                     // so the hash is actually different ;0
                     leaf.setBlob(createItem(randomHash()));
                 }
@@ -406,7 +406,7 @@ public class ShamapInnerNodeAnalysis {
     }
 }
 
-class InstrumentedInnerNode extends ShaMapInnerNode {
+class InstrumentedInnerNode extends ShaMapInner {
     // Annoyingly we need to init this
     static {
         Config.initBouncy();
@@ -414,14 +414,14 @@ class InstrumentedInnerNode extends ShaMapInnerNode {
 
 
     public interface TreeWalker {
-        public void onInnerNode(ShaMapInnerNode node);
+        public void onInnerNode(ShaMapInner node);
     }
 
     public static class ChuckNorris implements InstrumentedInnerNode.TreeWalker {
         ShamapInnerNodeAnalysis.Counter<Integer> depthHistoGram = new ShamapInnerNodeAnalysis.Counter<Integer>();
 
         @Override
-        public void onInnerNode(ShaMapInnerNode node) {
+        public void onInnerNode(ShaMapInner node) {
             depthHistoGram.count(node.depth);
         }
 
@@ -451,7 +451,7 @@ class InstrumentedInnerNode extends ShaMapInnerNode {
     }
 
     @Override
-    public ShaMapInnerNode makeInnerChild() {
+    public ShaMapInner makeInnerChild() {
         return new InstrumentedInnerNode(depth + 1);
     }
     @Override

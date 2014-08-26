@@ -4,11 +4,11 @@ import com.ripple.core.coretypes.hash.HalfSha512;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 
-public class ShaMapLeafNode extends ShaMapNode {
+public class ShaMapLeaf extends ShaMapNode {
     public Hash256 index;
     private Item blob;
 
-    public ShaMapLeafNode() {
+    public ShaMapLeaf() {
     }
 
     public Item getBlob() {
@@ -21,8 +21,10 @@ public class ShaMapLeafNode extends ShaMapNode {
 
     public interface Item {
         public byte[] bytes();
-        // TODO
-//        public void toBytesSink(BytesSink to);
+    }
+
+    public void copyItemFrom(ShaMapLeaf other) {
+        setBlob(other.getBlob());
     }
 
     @Override
@@ -44,7 +46,7 @@ public class ShaMapLeafNode extends ShaMapNode {
         return half.finish();
     }
 
-    public ShaMapLeafNode(Hash256 index, NodeType type, Item blob) {
+    public ShaMapLeaf(Hash256 index, NodeType type, Item blob) {
         this.index = index;
         this.type = type;
         this.setBlob(blob);

@@ -10,15 +10,15 @@ abstract public class ShaMapNode {
     public Prefix hashingPrefix;
     abstract public Hash256 hash();
 
-    ShaMapLeafNode firstLeafBelow() {
+    ShaMapLeaf firstLeafBelow() {
         ShaMapNode node = this;
 
         do {
-            if (node instanceof ShaMapLeafNode) {
-                return (ShaMapLeafNode) node;
+            if (node instanceof ShaMapLeaf) {
+                return (ShaMapLeaf) node;
             }
 
-            ShaMapInnerNode innerNode = (ShaMapInnerNode) node;
+            ShaMapInner innerNode = (ShaMapInner) node;
             boolean foundNode = false;
 
             for (int i = 0; i < 16; ++i)
@@ -33,6 +33,18 @@ abstract public class ShaMapNode {
 
         } while (true);
 
+    }
+
+    /**
+     * Walk any leaves, possibly this node itself, if it's terminal.
+     */
+    public void walkAnyLeaves(LeafWalker leafWalker) {
+        if (this instanceof ShaMapLeaf) {
+            leafWalker.onLeaf((ShaMapLeaf) this);
+
+        } else {
+            ((ShaMapInner) this).walkItems(leafWalker);
+        }
     }
 
     public static enum NodeType

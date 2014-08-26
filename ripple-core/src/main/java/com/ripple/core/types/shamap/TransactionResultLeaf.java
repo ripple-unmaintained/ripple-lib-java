@@ -6,7 +6,7 @@ import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.serialized.BinarySerializer;
 import com.ripple.core.types.known.tx.result.TransactionResult;
 
-public class TransactionResultLeaf extends ShaMapLeafNode {
+public class TransactionResultLeaf extends ShaMapLeaf {
     TransactionResult result;
 
     public TransactionResultLeaf(TransactionResult result) {
@@ -16,6 +16,14 @@ public class TransactionResultLeaf extends ShaMapLeafNode {
         this.result = result;
     }
 
+    @Override
+    public void copyItemFrom(ShaMapLeaf other) {
+        if (other instanceof TransactionResultLeaf) {
+            result = ((TransactionResultLeaf) other).result;
+        } else {
+            super.copyItemFrom(other);
+        }
+    }
     @Override
     public Hash256 hash() {
         HalfSha512 hasher = HalfSha512.prefixed256(HashPrefix.txNode);
