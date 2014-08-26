@@ -25,6 +25,14 @@ public class Request extends Publisher<Request.events> {
     public abstract static class OnError    extends events<Response> {}
     public abstract static class OnResponse extends events<Response> {}
 
+    public static abstract class Manager<T> {
+        abstract public void cb(Response response, T t) throws JSONException;
+        public boolean onUnsuccessful(Response r) {
+            return false;
+        }
+        public void beforeRequest(Request r) {}
+    }
+
     Client client;
     public Command           cmd;
     public Response     response;

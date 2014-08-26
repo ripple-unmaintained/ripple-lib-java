@@ -7,17 +7,21 @@ import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.subscriptions.AccountRoot;
-import com.ripple.client.subscriptions.TransactionSubscriptionManager;
 import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.client.subscriptions.SubscriptionManager;
-import com.ripple.core.types.known.tx.result.TransactionResult;
+import com.ripple.client.subscriptions.TransactionSubscriptionManager;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transport.TransportEventHandler;
 import com.ripple.client.transport.WebSocketTransport;
 import com.ripple.client.wallet.Wallet;
-import com.ripple.core.coretypes.*;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Issue;
+import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.types.known.sle.LedgerEntry;
+import com.ripple.core.types.known.sle.entries.Offer;
+import com.ripple.core.types.known.tx.result.TransactionResult;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
 import org.json.JSONArray;
@@ -27,10 +31,16 @@ import org.json.JSONObject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
+import java.text.MessageFormat;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.ripple.client.requests.Request.Manager;
 
 public class Client extends Publisher<Client.events> implements TransportEventHandler {
     public static final Logger logger = Logger.getLogger(Client.class.getName());
@@ -43,9 +53,56 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     private long lastConnection = -1; // -1 means null
 
     public static void log(Level level, String fmt, Object... args) {
+        // System.out.println(MessageFormat.format(fmt, args));
         if (logger.isLoggable(level)) {
             logger.log(level, fmt, args);
         }
+    }
+
+    public Request requestLedgerEntry(final Hash256 index, Number ledger_index, final Manager<LedgerEntry> cb) {
+        Request request = newRequest(Command.ledger_entry);
+        request.json("ledger_index", ledger_index.longValue());
+        request.json("index", index.toJSON());
+        request.once(Request.OnResponse.class, new Request.OnResponse() {
+            @Override
+            public void called(Response response) {
+                try {
+                    if (response.succeeded) {
+                        STObject node = STObject.translate.fromHex(response.result.getString("node_binary"));
+                        node.put(Hash256.index, index);
+                        cb.cb(response, (LedgerEntry) node);
+                    } else {
+                        cb.cb(response, null);
+                    }
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+        request.request();
+        return request;
+    }
+
+    public Request requestLedger(Number ledger_index, final Manager<JSONObject> cb) {
+        Request request = newRequest(Command.ledger);
+        request.json("ledger_index", ledger_index.longValue());
+        request.once(Request.OnResponse.class, new Request.OnResponse() {
+            @Override
+            public void called(Response response) {
+                try {
+                    if (response.succeeded) {
+                       cb.cb(response, response.result.optJSONObject("ledger"));
+                    } else {
+                       cb.cb(response, null);
+                    }
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+        cb.beforeRequest(request);
+        request.request();
+        return request;
     }
 
     public static abstract class events<T>      extends Publisher.Callback<T> {}
@@ -144,7 +201,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public Client(WebSocketTransport ws) {
 //        once(OnConnected.class, new OnConnected() {
 //            @Override
-//            public void called(Client client) {
+//            public void cb(Client client) {
 //                ;
 //            }
 //        });
@@ -235,6 +292,70 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         Request request = newRequest(Command.book_offers);
         request.json("taker_gets", get.toJSON());
         request.json("taker_pays", pay.toJSON());
+        return request;
+    }
+
+
+    public Request requestBookOffers(Number ledger_index, Issue get, Issue pay, final Manager<ArrayList<Offer>> cb) {
+        Request request = newRequest(Command.book_offers);
+        request.json("taker_gets", get.toJSON());
+        request.json("taker_pays", pay.toJSON());
+
+        if (ledger_index != null) {
+            request.json("ledger_index", ledger_index);
+        }
+
+        request.once(Request.OnResponse.class, new Request.OnResponse() {
+            @Override
+            public void called(Response response) {
+                try {
+                    if (response.succeeded) {
+                        ArrayList<Offer> offers = new ArrayList<Offer>();
+                        JSONArray offers1 = response.result.getJSONArray("offers");
+                        for (int i = 0; i < offers1.length(); i++) {
+                            JSONObject jsonObject = offers1.getJSONObject(i);
+                            STObject object = STObject.fromJSONObject(jsonObject);
+                            offers.add((Offer) object);
+                        }
+                        cb.cb(response, offers);
+                    } else {
+                        cb.cb(response, null);
+                    }
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+        request.request();
+        return request;
+    }
+
+    public Request requestTransaction(Hash256 hash, final Manager<TransactionResult> cb) {
+        return requestTransaction(hash.toHex(), cb);
+    }
+
+    public Request requestTransaction(String hash, final Manager<TransactionResult> cb) {
+        final Request request = newRequest(Command.tx);
+        request.json("binary", true);
+        request.json("transaction", hash);
+        request.once(Request.OnResponse.class, new Request.OnResponse() {
+            @Override
+            public void called(Response response) {
+                try {
+                    if (response.succeeded) {
+                        TransactionResult tr = new TransactionResult(response.result,
+                                TransactionResult.Source.request_tx_binary);
+                        cb.cb(response, tr);
+                    } else {
+                        // you can look at request.response if this is null ;)
+                        cb.cb(response, null);
+                    }
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+        request.request();
         return request;
     }
 
