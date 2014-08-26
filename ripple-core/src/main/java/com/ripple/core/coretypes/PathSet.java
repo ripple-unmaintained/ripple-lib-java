@@ -70,6 +70,9 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         public static byte TYPE_ACCOUNT  = (byte) 0x01;
         public static byte TYPE_CURRENCY = (byte) 0x10;
         public static byte TYPE_ISSUER   = (byte) 0x20;
+        public static final int TYPE_ACCOUNT_CURRENCY_ISSUER = TYPE_CURRENCY | TYPE_ACCOUNT | TYPE_ISSUER;
+        public static final int TYPE_ACCOUNT_CURRENCY = TYPE_CURRENCY | TYPE_ACCOUNT;
+        public static int VALID_TYPE_MASK =  ~(TYPE_ACCOUNT | TYPE_CURRENCY | TYPE_ISSUER);
 
         public int getType() {
             if (type == 0) {
