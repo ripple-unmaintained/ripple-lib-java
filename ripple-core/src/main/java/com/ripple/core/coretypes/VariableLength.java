@@ -22,7 +22,7 @@ public class VariableLength implements SerializedType {
 
     @Override
     public byte[] toBytes() {
-        return translate.toBytes(this);
+        return buffer;
     }
 
     @Override
@@ -38,6 +38,7 @@ public class VariableLength implements SerializedType {
         @Override
         public VariableLength fromParser(BinaryParser parser, Integer hint) {
             if (hint == null) {
+                // TODO, just read what's left of the parser, rather than all
                 hint = parser.getSize();
             }
             return new VariableLength(parser.read(hint));
