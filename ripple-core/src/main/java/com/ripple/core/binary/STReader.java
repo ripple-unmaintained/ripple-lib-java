@@ -1,5 +1,6 @@
 package com.ripple.core.binary;
 
+import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.coretypes.*;
 import com.ripple.core.coretypes.hash.Hash128;
@@ -10,12 +11,16 @@ import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
 
+import java.util.Arrays;
 import java.util.Date;
 
-public class BinaryReader {
+public class STReader {
     protected BinaryParser parser;
-    public BinaryReader(BinaryParser parser) {
+    public STReader(BinaryParser parser) {
         this.parser = parser;
+    }
+    public STReader(String hex) {
+        this.parser = new BinaryParser(hex);
     }
     public UInt8 uInt8() {
         return UInt8.translate.fromParser(parser);
@@ -57,9 +62,24 @@ public class BinaryReader {
     public PathSet pathSet() {
         return PathSet.translate.fromParser(parser);
     }
+
     public STObject stObject() {
         return STObject.translate.fromParser(parser);
     }
+    public STObject vlStObject() {
+        return STObject.translate.fromParser(parser, parser.readVLLength());
+    }
+
+    public HashPrefix hashPrefix() {
+        byte[] read = parser.read(4);
+        for (HashPrefix hashPrefix : HashPrefix.values()) {
+            if (Arrays.equals(read, hashPrefix.bytes)) {
+                return hashPrefix;
+            }
+        }
+        return null;
+    }
+
     public STArray stArray() {
         return STArray.translate.fromParser(parser);
     }
@@ -67,7 +87,7 @@ public class BinaryReader {
         return RippleDate.fromParser(parser);
     }
 
-    public BinaryParser getParser() {
+    public BinaryParser parser() {
         return parser;
     }
 }

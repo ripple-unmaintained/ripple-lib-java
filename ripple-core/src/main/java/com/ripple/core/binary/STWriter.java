@@ -4,10 +4,10 @@ import com.ripple.core.serialized.BinarySerializer;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.SerializedType;
 
-public class BinaryWriter {
+public class STWriter {
     BytesSink sink;
     BinarySerializer serializer;
-    public BinaryWriter(BytesSink bytesSink) {
+    public STWriter(BytesSink bytesSink) {
         serializer = new BinarySerializer(bytesSink);
         sink = bytesSink;
     }

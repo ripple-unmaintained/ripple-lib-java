@@ -3,30 +3,40 @@ package com.ripple.core.serialized;
 import com.ripple.core.fields.Field;
 import com.ripple.encodings.common.B16;
 
-/**
- * This class should parse headers and object markers
- * TODO: Add capability for working with byte[] and offsets
- */
 public class BinaryParser {
+    protected final int size;
     protected byte[] bytes;
     protected int cursor = 0;
-    protected final int size;
 
     public BinaryParser(byte[] bytes) {
-        size = bytes.length;
+        this.size = bytes.length;
         this.bytes = bytes;
+    }
+
+    public BinaryParser(int size) {
+        this.size = size;
     }
 
     public BinaryParser(String hex) {
         this(B16.decode(hex));
     }
 
-    public byte[] peek(int n) {
-        return read(n, false);
+    public void skip(int n) {
+        cursor += n;
     }
-    public byte peekOne() {
-        return bytes[cursor];
+
+    public byte readOne() {
+        return bytes[cursor++];
     }
+    protected byte[] read(int n, boolean advance) {
+        byte[] ret = new byte[n];
+        System.arraycopy(bytes, cursor, ret, 0, n);
+        if (advance) {
+            cursor += n;
+        }
+        return ret;
+    }
+
     public byte[] read(int n) {
         return read(n, true);
     }
@@ -38,6 +48,7 @@ public class BinaryParser {
             throw new IllegalStateException("Couldn't parse field from " +
                     Integer.toHexString(fieldCode));
         }
+
         return field;
     }
 
@@ -84,27 +95,6 @@ public class BinaryParser {
 
         return result;
     }
-
-    public void skip(int n) {
-        cursor += n;
-    }
-
-    public byte readOne() {
-        return bytes[cursor++];
-    }
-    private byte[] read(int n, boolean advance) {
-        byte[] ret = new byte[n];
-        System.arraycopy(bytes, cursor, ret, 0, n);
-        if (advance) {
-            cursor += n;
-        }
-        return ret;
-    }
-
-/*    public void read(int n, byte[] to, int offset) {
-        System.arraycopy(bytes, cursor, to, offset, n);
-        cursor += n;
-    }*/
 
     public int getSize() {
         return size;
