@@ -7,6 +7,7 @@ import com.ripple.core.serialized.BytesSink;
 import com.ripple.encodings.common.B16;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.MathContext;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -18,6 +19,9 @@ import java.util.concurrent.TimeUnit;
  * https://gist.github.com/justmoon/8597643
  */
 public class Currency extends Hash160 {
+    public static final Currency NEUTRAL = new Currency(BigInteger.ONE.toByteArray());
+    public static final Currency XRP = new Currency(BigInteger.ZERO.toByteArray());
+
     @Override
     public Object toJSON() {
         return translate.toJSON(this);
@@ -39,7 +43,11 @@ public class Currency extends Hash160 {
     }
 
     public boolean isNative() {
-        return this == Currency.XRP;
+        return this == Currency.XRP || equals(Currency.XRP);
+    }
+
+    public boolean isIOU() {
+        return !isNative();
     }
 
     public static enum Type {
@@ -99,7 +107,7 @@ public class Currency extends Hash160 {
     public Demurrage demurrage = null;
     public Currency(byte[] bytes) {
         super(bytes);
-        type = Type.fromByte(bytes[0]);
+        type = Type.fromByte(this.hash[0]);
         if (type == Type.DEMURRAGE) {
             demurrage = new Demurrage(bytes);
         }
@@ -127,7 +135,8 @@ public class Currency extends Hash160 {
             } else if (value.equals("XRP")) {
                 return XRP;
             } else {
-                if (!value.matches("[A-Z0-9]{3}")) {
+                if (!(value.length() == 3)) {
+//                if (!value.matches("[A-Z0-9]{3}")) {
                     throw new RuntimeException("Currency code must be 3 characters");
                 }
                 return newInstance(encodeCurrency(value));
@@ -188,10 +197,6 @@ public class Currency extends Hash160 {
     }
 
     public static CurrencyTranslator translate = new CurrencyTranslator();
-
-    // This is used to represent a native currency
-    public static final byte[] ZERO = new byte[20];
-    public static final Currency XRP = new Currency(ZERO);
 
     /*
     * The following are static methods, legacy from when there was no

@@ -28,7 +28,7 @@ public class Issue implements Comparable<Issue> {
         if (split.length == 2) {
             return new Issue(Currency.fromString(split[0]), AccountID.fromString(split[1]));
         } else if (split[0].equals("XRP")) {
-            return new Issue(Currency.XRP, AccountID.ZERO);
+            return new Issue(Currency.XRP, AccountID.XRP_ISSUER);
         } else {
             throw new RuntimeException("Issue string must be XRP or $currency/$issuer");
         }
