@@ -58,6 +58,7 @@ public class TransactionResult implements Comparable<TransactionResult>{
         return txn.transactionType();
     }
 
+
     public AccountID createdAccount() {
         AccountID destination    =  null;
         Hash256   destinationIndex =  null;
@@ -70,7 +71,7 @@ public class TransactionResult implements Comparable<TransactionResult>{
                     if (STObject.ledgerEntryType(created) == LedgerEntryType.AccountRoot) {
                         if (destination == null) {
                             destination = txn.get(AccountID.Destination);
-                            destinationIndex = Index.accountID(destination);
+                            destinationIndex = Index.accountRoot(destination);
                         }
                         if (destinationIndex.equals(created.get(Hash256.LedgerIndex))) {
                             return destination;

@@ -2,13 +2,14 @@ package com.ripple.core.types.known.tx.result;
 
 import com.ripple.core.coretypes.STArray;
 import com.ripple.core.coretypes.STObject;
-import com.ripple.core.coretypes.uint.UInt;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt8;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.enums.TransactionEngineResult;
-import com.ripple.core.fields.Field;
 import com.ripple.core.types.known.sle.LedgerEntry;
+import com.ripple.core.types.known.sle.entries.AccountRoot;
+import com.ripple.core.types.known.sle.entries.DirectoryNode;
+import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.sle.entries.RippleState;
 
 import java.util.Iterator;
@@ -34,6 +35,13 @@ public class TransactionMeta extends STObject {
         };
     }
 
+    public void walkPrevious(LedgerEntry.OnLedgerEntry cb) {
+        for (AffectedNode affectedNode : affectedNodes()) {
+            if (affectedNode.wasPreviousNode()) {
+                cb.onObject(affectedNode.nodeAsPrevious());
+            }
+        }
+    }
     public static Iterator<AffectedNode> iterateAffectedNodes(final Iterator<STObject> iterator) {
         return new Iterator<AffectedNode>() {
             @Override
