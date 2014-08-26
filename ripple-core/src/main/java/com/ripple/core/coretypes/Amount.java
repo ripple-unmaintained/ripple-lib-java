@@ -21,6 +21,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 {
 
     private static BigDecimal TAKER_PAYS_FOR_THAT_DAMN_OFFER = new BigDecimal("1000000000000.000100");
+//    public static final Amount NEUTRAL_ZERO = new Amount(Currency.NEUTRAL, AccountID.NEUTRAL);
 
     /**
      * Thrown when an Amount is constructed with an invalid value
@@ -92,6 +93,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         this.issuer = issuer;
     }
 
+    public Amount(Currency currency, AccountID account) {
+        this(BigDecimal.ZERO, currency, account);
+    }
+
     // Private constructors
     Amount(BigDecimal newValue, Currency currency, AccountID issuer, boolean isNative) {
         this(newValue, currency, issuer, isNative, false);
@@ -104,7 +109,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
-    private Amount(BigDecimal value, String currency) {
+    public Amount(BigDecimal value, String currency) {
         isNative = false;
         this.currency = Currency.fromString(currency);
         this.setAndCheckValue(value);
@@ -117,7 +122,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     private void initialize() {
         if (isNative()) {
-            issuer = AccountID.ZERO;
+            issuer = AccountID.XRP_ISSUER;
             if (!unbounded) {
                 checkXRPBounds(value);
             }
@@ -127,7 +132,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             if (value.precision() > MAXIMUM_IOU_PRECISION && !unbounded) {
                 throw new PrecisionError("Overflow Error!");
             }
-            issuer = AccountID.ONE;
+            issuer = AccountID.NEUTRAL;
             offset = calculateOffset();
         }
     }
@@ -262,7 +267,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     // Maybe you want !isNegative()
     // Any amount that !isNegative() isn't necessarily positive
     // Is a zero amount strictly positive? no
-    private boolean isPositive() {
+    public boolean isPositive() {
         return value.signum() == 1;
     }
 
