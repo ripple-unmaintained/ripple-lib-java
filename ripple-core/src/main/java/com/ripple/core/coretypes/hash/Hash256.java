@@ -5,6 +5,7 @@ import com.ripple.core.coretypes.hash.prefixes.Prefix;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BytesSink;
+import com.ripple.core.types.known.sle.LedgerEntry;
 
 import java.math.BigInteger;
 import java.util.TreeMap;
@@ -12,7 +13,14 @@ import java.util.TreeMap;
 public class Hash256 extends Hash<Hash256> {
 
     public static final BigInteger bookBaseSize = new BigInteger("10000000000000000", 16);
-    public static class Hash256Map<Value> extends TreeMap<Hash256, Value> {}
+    public static class Hash256Map<Value> extends TreeMap<Hash256, Value> {
+        public Hash256Map(Hash256Map<Value> cache) {
+            super(cache);
+        }
+        public Hash256Map() {
+
+        }
+    }
     public static final Hash256 ZERO_256 = new Hash256(new byte[32]);
 
     @Override
@@ -33,6 +41,14 @@ public class Hash256 extends Hash<Hash256> {
     @Override
     public void toBytesSink(BytesSink to) {
         translate.toBytesSink(this, to);
+    }
+
+    public boolean isZero() {
+        return equals(Hash256.ZERO_256);
+    }
+
+    public boolean isNonZero() {
+        return !isZero();
     }
 
     public static Hash256 fromHex(String s) {
