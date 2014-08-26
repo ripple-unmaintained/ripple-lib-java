@@ -1,7 +1,9 @@
 package com.ripple.core.coretypes.hash;
 
 import com.ripple.core.coretypes.hash.prefixes.Prefix;
+import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.serialized.BytesSink;
+import com.ripple.core.serialized.SerializedType;
 
 import java.security.MessageDigest;
 
@@ -62,5 +64,10 @@ public class HalfSha512 implements BytesSink {
 
     public void update(Prefix prefix) {
         messageDigest.update(prefix.bytes());
+    }
+
+    public HalfSha512 add(SerializedType st) {
+        st.toBytesSink(this);
+        return this;
     }
 }
