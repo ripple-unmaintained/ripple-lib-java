@@ -22,6 +22,10 @@ public class Seed {
         }
     }
 
+    public static IKeyPair createKeyPairFromSeedString(String seedStr) {
+        return createKeyPairFromSeedBytes(getB58IdentiferCodecs().decodeFamilySeed(seedStr));
+    }
+
     public static IKeyPair createKeyPairFromAccountNumber(String seedStr, int accountNumber) {
         BigInteger privateGen = createPrivateGen(passPhraseToSeedBytes(seedStr));
         byte[] publicGenBytes = SECP256K1.basePointMultipliedBy(privateGen);
@@ -105,13 +109,5 @@ public class Seed {
         out[in.length + 3] = (byte) ((i)       & 0xFF);
 
         return out;
-    }
-
-    public static IKeyPair getKeyPair(byte[] master_seed) {
-        return createKeyPairFromSeedBytes(master_seed);
-    }
-
-    public static IKeyPair getKeyPair(String master_seed) {
-        return createKeyPairFromSeedBytes(getB58IdentiferCodecs().decodeFamilySeed(master_seed));
     }
 }
