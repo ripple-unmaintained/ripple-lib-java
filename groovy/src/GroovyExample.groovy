@@ -1,5 +1,4 @@
 import com.ripple.client.Client
-import com.ripple.client.ClientLogger
 import com.ripple.client.blobvault.BlobVault
 import com.ripple.client.transactions.TransactionManager
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl
@@ -8,18 +7,9 @@ import com.ripple.core.types.known.tx.txns.Payment
 import org.json.JSONObject
 
 // Events
-import com.ripple.client.transactions.ManagedTxn.OnSubmitSuccess
-import com.ripple.client.transactions.ManagedTxn.OnSubmitFailure
-import com.ripple.client.transactions.ManagedTxn.OnSubmitError
-import com.ripple.client.transactions.ManagedTxn.OnTransactionValidated
-import com.ripple.client.Client.OnConnected
-
 // Fields
 import static com.ripple.core.coretypes.AccountID.Destination
 import static com.ripple.core.coretypes.Amount.Amount
-
-// Quiet the logging
-ClientLogger.quiet = true
 
 // run the main ;)
 main()

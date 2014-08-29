@@ -1,19 +1,19 @@
 
 package com.ripple.client;
 
+import static junit.framework.TestCase.assertEquals;
 import com.ripple.client.transactions.ManagedTxn;
-import com.ripple.core.enums.TransactionType;
-import com.ripple.core.fields.Field;
-import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.fields.Field;
 import com.ripple.core.types.known.tx.txns.Payment;
+import com.ripple.crypto.ecdsa.IKeyPair;
+import com.ripple.crypto.ecdsa.Seed;
 import org.json.JSONObject;
 import org.junit.Test;
-
-import static junit.framework.TestCase.assertEquals;
 
 public class TransactionTest {
 
@@ -42,7 +42,7 @@ public class TransactionTest {
                 "}";
         STObject tx = STObject.fromJSONObject(new JSONObject(tx_json));
         Hash256 hash = (Hash256) tx.remove(Field.hash);
-        Hash256 rehashed = Hash256.transactionID(tx.toBytes());
+        Hash256 rehashed = Index.transactionID(tx.toBytes());
 //        System.out.printf("hash: %s rehashed: %s \n", hash, rehashed);
         assertEquals(hash, rehashed);
     }
@@ -63,7 +63,7 @@ public class TransactionTest {
         Hash256 expected = Hash256.translate
                 .fromString("78794CD91D01F144FBEBE3ECB0690B159E04829CE576B75B7E8ABF8B8FA7DD97");
         STObject tx = STObject.fromJSONObject(new JSONObject(tx_json));
-        Hash256 rehashed = Hash256.transactionID(tx.toBytes());
+        Hash256 rehashed = Index.transactionID(tx.toBytes());
         assertEquals(expected, rehashed);
 
     }
@@ -71,11 +71,11 @@ public class TransactionTest {
     @Test
     public void testCreatePaymentTransaction() throws Exception {
         final String niqwit1Seed = "snSq7dKr5v39hJ8Enb45RpXFJL25h";
-        final AccountID niqwit1 = AccountID.fromSeedString(niqwit1Seed);
+        IKeyPair kp = Seed.createKeyPairFromSeedString(niqwit1Seed);
 
         ManagedTxn transaction = new ManagedTxn(new Payment());
         transaction.prepare(
-                niqwit1.getKeyPair(),
+                kp,
                 Amount.fromString("15"),
                 new UInt32(1), null );
     }

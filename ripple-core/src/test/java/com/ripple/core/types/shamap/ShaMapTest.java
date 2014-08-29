@@ -40,9 +40,9 @@ public class ShaMapTest {
         assertEquals(null, arr[15]);
 
         ShaMapNode[] nodes = new ShaMapNode[16];
-        ShaMapLeafNode.Item item = createItem(ShaMapInnerNode.ZERO_256);
+        ShaMapLeafNode.Item item = createItem(Hash256.ZERO_256);
 
-        ShaMapLeafNode leaf = new ShaMapLeafNode(ShaMapInnerNode.ZERO_256, tnTRANSACTION_MD, item);
+        ShaMapLeafNode leaf = new ShaMapLeafNode(Hash256.ZERO_256, tnTRANSACTION_MD, item);
         nodes[1] = leaf;
     }
 

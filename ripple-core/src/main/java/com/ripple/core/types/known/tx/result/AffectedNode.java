@@ -4,6 +4,7 @@ import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
+import com.ripple.core.serialized.SerializedType;
 
 // TODO: fix up this nonsense
 public class AffectedNode extends STObject {
@@ -69,6 +70,10 @@ public class AffectedNode extends STObject {
         Field finalFields = created ? Field.NewFields :
                 Field.FinalFields;
 
+        if (!wrapped.has(finalFields)) {
+            return STObject.formatted(new STObject(wrapped.getFields()));
+        }
+
         STObject finals = (STObject) wrapped.get(finalFields);
         for (Field field : finals) {
             mixed.put(field, finals.get(field));
@@ -93,7 +98,12 @@ public class AffectedNode extends STObject {
                 case FinalFields:
                     continue;
                 default:
-                    mixed.put(field, wrapped.get(field));
+                    SerializedType value = wrapped.get(field);
+
+                    if (field == Field.LedgerIndex) {
+                        field = Field.index;
+                    }
+                    mixed.put(field, value);
 
             }
         }
@@ -101,8 +111,9 @@ public class AffectedNode extends STObject {
     }
 
     public static boolean isAffectedNode(STObject source) {
-        return (source.size() == 1 && source.has(DeletedNode) ||
+        return (source.size() == 1 && (
+                source.has(DeletedNode) ||
                 source.has(CreatedNode) ||
-                source.has(ModifiedNode));
+                source.has(ModifiedNode)));
     }
 }

@@ -56,9 +56,16 @@ public class Request extends Publisher<Request.events> {
     public void request() {
         Client.OnConnected onConnected = new Client.OnConnected() {
             @Override
-            public void called(Client client) {
+            public void called(final Client client) {
                 client.requests.put(id, Request.this);
                 client.sendMessage(toJSON());
+                // TODO
+                client.schedule(60000, new Runnable() {
+                    @Override
+                    public void run() {
+                        client.requests.remove(id);
+                    }
+                });
             }
         };
 

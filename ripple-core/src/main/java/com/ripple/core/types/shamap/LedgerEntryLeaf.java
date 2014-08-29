@@ -1,22 +1,23 @@
 package com.ripple.core.types.shamap;
 
+import com.ripple.core.coretypes.hash.HalfSha512;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.types.known.sle.LedgerEntry;
 
-public class LedgerEntryLeafNode extends ShaMapLeafNode {
-    LedgerEntry sle;
+public class LedgerEntryLeaf extends ShaMapLeafNode {
+    public LedgerEntry le;
 
-    public LedgerEntryLeafNode(LedgerEntry so) {
+    public LedgerEntryLeaf(LedgerEntry so) {
         this.index = so.index();
-        this.sle = so;
+        this.le = so;
     }
 
     @Override
     public Hash256 hash() {
-        Hash256.HalfSha512 half = new Hash256.HalfSha512();
+        HalfSha512 half = new HalfSha512();
         half.update(HashPrefix.leafNode);
-        sle.toBytesSink(half);
+        le.toBytesSink(half);
         half.update(index);
         return half.finish();
     }

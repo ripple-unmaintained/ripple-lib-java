@@ -41,11 +41,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
 
-import static com.ripple.client.ClientLogger.log;
+import static com.ripple.client.Client.log;
 
 public class PaymentAlternatives extends Activity {
     private final Client.OnSendMessage onClientSendMessage = new Client.OnSendMessage() {
@@ -146,7 +146,7 @@ public class PaymentAlternatives extends Activity {
             Button button = same.get(alternative);
 
             if (button != null) {
-                log("Reusing existing button for alternative");
+                log(Level.INFO, "Reusing existing button for alternative");
             }
 
             if (button == null) {
@@ -257,8 +257,9 @@ public class PaymentAlternatives extends Activity {
 
     @Override
     protected void onNewIntent(Intent intent) {
-        log(intent.getAction());
+        log(Level.INFO, intent.getAction());
         super.onNewIntent(intent);
+
         Uri data = intent.getData();
         if (data != null) {
             if (data.getPath().matches("^/+contact.*")) {
@@ -433,13 +434,11 @@ public class PaymentAlternatives extends Activity {
     }
 
     private void normalizeDestinationAmount() {
-        // TODO: automatically round to nearest bounds
-        // TODO: create Amount static helpers for this
-//        destinationAmountInput.setMax
-        if (destinationCurrency.equals(Currency.XRP)) {
-            if (destinationAmountValue.scale() > 6) {
-                BigDecimal bigDecimal = destinationAmountValue.setScale(6, RoundingMode.UP);
-                String text = bigDecimal.stripTrailingZeros().toPlainString();
+        if (destinationCurrency != null && destinationAmountValue != null) {
+            BigDecimal normalized = Amount.roundValue(destinationAmountValue, destinationCurrency.isNative());
+
+            if (destinationAmountValue.stripTrailingZeros().compareTo(normalized.stripTrailingZeros()) != 0) {
+                String text = normalized.stripTrailingZeros().toPlainString();
                 destinationAmountInput.setText(text);
                 destinationAmountInput.setSelection(text.length());
             }
@@ -681,7 +680,7 @@ public class PaymentAlternatives extends Activity {
                         handleUnfundedAccount();
                     }
                     else {
-                        flow.setSource(account.id());
+                        flow.setSource(account);
 
                         flow.on(PaymentFlow.OnAlternatives.class,      activityLifeCycled, onAlternatives);
                         flow.on(PaymentFlow.OnAlternativesStale.class, activityLifeCycled, onAlternativesStale);

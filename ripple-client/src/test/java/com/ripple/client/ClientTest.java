@@ -11,10 +11,6 @@ import org.junit.Test;
 import static junit.framework.TestCase.*;
 
 public class ClientTest {
-    static {
-        ClientLogger.quiet = true;
-    }
-
     @Test
     public void testMockPairSubscription() throws JSONException {
         MockPair pair              = new MockPair().connect();

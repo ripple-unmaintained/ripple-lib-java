@@ -10,6 +10,31 @@ abstract public class ShaMapNode {
     public Prefix hashingPrefix;
     abstract public Hash256 hash();
 
+    ShaMapLeafNode firstLeafBelow() {
+        ShaMapNode node = this;
+
+        do {
+            if (node instanceof ShaMapLeafNode) {
+                return (ShaMapLeafNode) node;
+            }
+
+            ShaMapInnerNode innerNode = (ShaMapInnerNode) node;
+            boolean foundNode = false;
+
+            for (int i = 0; i < 16; ++i)
+                if (!innerNode.branchIsEmpty(i)) {
+                    node = innerNode.getBranch(i);
+                    foundNode = true;
+                    break;
+                }
+
+            if (!foundNode)
+                return null;
+
+        } while (true);
+
+    }
+
     public static enum NodeType
     {
         tnERROR,

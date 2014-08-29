@@ -13,7 +13,7 @@ import com.ripple.core.coretypes.uint.UInt8;
 import java.util.Date;
 
 public class BinaryReader {
-    BinaryParser parser;
+    protected BinaryParser parser;
     public BinaryReader(BinaryParser parser) {
         this.parser = parser;
     }
@@ -65,5 +65,9 @@ public class BinaryReader {
     }
     public Date rippleDate() {
         return RippleDate.fromParser(parser);
+    }
+
+    public BinaryParser getParser() {
+        return parser;
     }
 }

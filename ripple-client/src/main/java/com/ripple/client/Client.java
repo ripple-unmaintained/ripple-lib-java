@@ -1,5 +1,22 @@
 package com.ripple.client;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.ripple.client.enums.Command;
 import com.ripple.client.enums.Message;
 import com.ripple.client.enums.RPCErr;
@@ -9,25 +26,39 @@ import com.ripple.client.responses.Response;
 import com.ripple.client.subscriptions.AccountRoot;
 import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.client.subscriptions.SubscriptionManager;
-import com.ripple.core.types.known.tx.result.TransactionResult;
+import com.ripple.client.subscriptions.TransactionSubscriptionManager;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transport.TransportEventHandler;
 import com.ripple.client.transport.WebSocketTransport;
 import com.ripple.client.wallet.Wallet;
-import com.ripple.core.coretypes.*;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Issue;
+import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.types.known.tx.result.TransactionResult;
+import com.ripple.crypto.ecdsa.IKeyPair;
+import com.ripple.crypto.ecdsa.Seed;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.URI;
-import java.util.*;
-import java.util.concurrent.*;
-
 public class Client extends Publisher<Client.events> implements TransportEventHandler {
+    public static final Logger logger = Logger.getLogger(Client.class.getName());
+
+    private int reconnectDormantAfter = 20000; // ms
+    public void setReconnectDormantAfter(int reconnectDormantAfter) {
+        this.reconnectDormantAfter = reconnectDormantAfter;
+    }
+
+    private long lastConnection = -1; // -1 means null
+
+    public static void log(Level level, String fmt, Object... args) {
+        if (logger.isLoggable(level)) {
+            logger.log(level, fmt, args);
+        }
+    }
+
     public static abstract class events<T>      extends Publisher.Callback<T> {}
     public abstract static class OnLedgerClosed extends events<ServerInfo> {}
     public abstract static class OnConnected    extends events<Client> {}
@@ -37,6 +68,22 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public abstract static class OnSendMessage extends events<JSONObject> {}
     public abstract static class OnStateChange extends events<Client> {}
     public abstract static class OnPathFind extends events<JSONObject> {}
+    public abstract static class OnValidatedTransaction extends events<TransactionResult> {}
+
+    private boolean manuallyDisconnected = false;
+
+    public boolean isManuallyDisconnected() {
+        return manuallyDisconnected;
+    }
+
+    public void disconnect() {
+        manuallyDisconnected = true;
+        ws.disconnect();
+    }
+
+    public void dispose() {
+        ws = null;
+    }
 
     protected ScheduledExecutorService service;
     public Thread clientThread;
@@ -88,10 +135,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     protected void onException(Exception e) {
-        String stackTrace = getStackTrace(e);
-        ClientLogger.log(stackTrace);
-        // TODO: exit on exceptions ?
-        System.out.println(stackTrace);
+        log(Level.WARNING, e.getLocalizedMessage(), e);
     }
 
     private String getStackTrace(Exception e) {
@@ -106,17 +150,29 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     public boolean connected = false;
     private HashMap<AccountID, Account> accounts = new HashMap<AccountID, Account>();
-    SubscriptionManager subscriptions = new SubscriptionManager();
+    public SubscriptionManager subscriptions = new SubscriptionManager();
 
     public Client(WebSocketTransport ws) {
-        prepareExecutor();
+//        once(OnConnected.class, new OnConnected() {
+//            @Override
+//            public void called(Client client) {
+//                ;
+//            }
+//        });
+
 
         this.ws = ws;
         ws.setHandler(this);
 
+
+        prepareExecutor();
+        // requires executor, so call after prepareExecutor
+        pollLastConnectionTimeAndReconnectWhenIDLE();
+
         on(OnLedgerClosed.class, new OnLedgerClosed() {
             @Override
             public void called(ServerInfo serverInfo) {
+                log(Level.INFO, "Requests: {0}", requests.size());
                 Iterator<LedgerClosedCallback> iterator = ledgerClosedCallbacks.iterator();
 
                 while (iterator.hasNext()) {
@@ -126,6 +182,45 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                         next.callback.run();
                     }
                 }
+            }
+        });
+
+        subscriptions.on(SubscriptionManager.OnSubscribed.class, new SubscriptionManager.OnSubscribed() {
+            @Override
+            public void called(JSONObject subscription) {
+                if (!connected) return;
+                subscribe(subscription);
+            }
+        });
+    }
+
+    /**
+     * This will detect stalled connections
+     * When connected we are subscribed to a ledger, and ledgers should be at most
+     * 20 seconds apart.
+     */
+    private void pollLastConnectionTimeAndReconnectWhenIDLE() {
+        final int ms = reconnectDormantAfter;
+
+        schedule(ms, new Runnable() {
+            @Override
+            public void run() {
+                int defaultValue = -1;
+
+                if (!manuallyDisconnected) {
+                    if (connected && lastConnection != defaultValue) {
+                        long time = new Date().getTime();
+                        long msSince = time - lastConnection;
+                        if (msSince > ms) {
+                            // we don't call disconnect, cause that will set the
+                            lastConnection = defaultValue;
+                            ws.disconnect();
+                            connect(previousUri);
+                        }
+                    }
+                }
+
+                pollLastConnectionTimeAndReconnectWhenIDLE();
             }
         });
     }
@@ -149,12 +244,28 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     public Request requestBookOffers(Issue get, Issue pay) {
         Request request = newRequest(Command.book_offers);
-        request.json("taker_pays", pay.toJSON());
         request.json("taker_gets", get.toJSON());
+        request.json("taker_pays", pay.toJSON());
         return request;
     }
 
-    public Account account(final AccountID id) {
+
+    public Request subscribeBookOffers(Issue get, Issue pay) {
+        Request request = newRequest(Command.subscribe);
+        JSONObject book = new JSONObject();
+        JSONArray books = new JSONArray(Arrays.asList(book));
+        try {
+            book.put("snapshot", true);
+            book.put("taker_gets", get.toJSON());
+            book.put("taker_pays", pay.toJSON());
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+        request.json("books", books);
+        return request;
+    }
+
+    public Account account(final AccountID id, IKeyPair keyPair) {
         if (accounts.containsKey(id)) {
             return accounts.get(id);
         }
@@ -162,9 +273,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             AccountRoot accountRoot = accountRoot(id);
             Account account = new Account(
                     id,
+                    keyPair,
                     accountRoot,
                     new Wallet(),
-                    new TransactionManager(this, accountRoot, id, id.getKeyPair())
+                    new TransactionManager(this, accountRoot, id, keyPair)
             );
             accounts.put(id, account);
             subscriptions.addAccount(id);
@@ -173,7 +285,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         }
     }
     public Account accountFromSeed(String masterSeed) {
-        return account(AccountID.fromSeedString(masterSeed));
+        IKeyPair kp = Seed.createKeyPairFromSeedString(masterSeed);
+        return account(AccountID.fromKeyPair(kp), kp);
     }
 
     private AccountRoot accountRoot(AccountID id) {
@@ -194,7 +307,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                     if (response.succeeded) {
                         accountRoot.setFromJSON(response.result.getJSONObject("node"));
                     } else if (response.rpcerr == RPCErr.entryNotFound) {
-                        ClientLogger.log("Unfunded account: %s", response.message);
+                        log(Level.INFO, "Unfunded account: {0}", response.message);
                         accountRoot.setUnfundedAccount(id);
                     } else {
                         if (attempt < 5) {
@@ -212,6 +325,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     public ServerInfo serverInfo = new ServerInfo();
+    // TODO: clean up timedout requests
     public TreeMap<Integer, Request> requests = new TreeMap<Integer, Request>();
 
     WebSocketTransport ws;
@@ -219,10 +333,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
 
     String previousUri;
-    // TODO: reconnect if we go 60s without any message from the server
 
     public void doConnect(String uri) {
-        ClientLogger.log("Connecting to " + uri);
+        log(Level.INFO, "Connecting to " + uri);
         // XXX: connect to other uris ... just parameterise connect here ??
         previousUri = uri;
         ws.connect(URI.create(uri));
@@ -237,6 +350,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
      * @see #onMessage(org.json.JSONObject)
      */
     public void connect(final String uri) {
+        manuallyDisconnected = false;
 
         run(new Runnable() {
             @Override
@@ -250,6 +364,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
      */
     @Override
     public void onMessage(final JSONObject msg) {
+        resetReconnectStatus();
         run(new Runnable() {
             @Override
             public void run() {
@@ -258,19 +373,29 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         });
     }
 
+    private void resetReconnectStatus() {
+        lastConnection = new Date().getTime();
+//        reconnectIndex = 0;
+    }
 
-//    @Override
+
+    //    @Override
     public void onMessageInClientThread(JSONObject msg) {
+        Message type = Message.valueOf(msg.optString("type", null));
+
         try {
             emit(OnMessage.class, msg);
-            ClientLogger.log("Receive: %s", prettyJSON(msg));
+            if (logger.isLoggable(Level.FINER)) {
+                log(Level.FINER, "Receive `{0}`: {1}", type, prettyJSON(msg));
+            }
 
-            switch (Message.valueOf(msg.optString("type", null))) {
+            switch (type) {
                 case serverStatus:
                     updateServerInfo(msg);
                     break;
                 case ledgerClosed:
                     updateServerInfo(msg);
+                    // TODO
                     emit(OnLedgerClosed.class, serverInfo);
                     break;
                 case response:
@@ -287,57 +412,71 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                     break;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
             // This seems to be swallowed higher up, (at least by the Java-WebSocket transport implementation)
-            throw new RuntimeException(e); // TODO
+            throw new RuntimeException(e);
         } finally {
             emit(OnStateChange.class, this);
         }
     }
 
+    public void setTransactionSubscriptionManager(TransactionSubscriptionManager transactionSubscriptionManager) {
+        this.transactionSubscriptionManager = transactionSubscriptionManager;
+    }
+
+    TransactionSubscriptionManager transactionSubscriptionManager;
+
     void onTransaction(JSONObject msg) {
         TransactionResult tr = new TransactionResult(msg, TransactionResult
                                                             .Source
                                                             .transaction_subscription_notification);
-
         if (tr.validated) {
-            ClientLogger.log("Transaction %s is validated", tr.hash);
-            Map<AccountID, STObject> affected = tr.modifiedRoots();
-
-            if (affected != null) {
-                Hash256 transactionHash = tr.hash;
-                UInt32 transactionLedgerIndex = tr.ledgerIndex;
-
-                for (Map.Entry<AccountID, STObject> entry : affected.entrySet()) {
-                    Account account = accounts.get(entry.getKey());
-                    if (account != null) {
-                        STObject rootUpdates = entry.getValue();
-                        account.getAccountRoot()
-                               .updateFromTransaction(
-                                       transactionHash, transactionLedgerIndex, rootUpdates);
-                    }
-                }
-            }
-
-            Account initator = accounts.get(tr.initiatingAccount());
-            if (initator != null) {
-                ClientLogger.log("Found initiator %s, notifying transactionManager", initator);
-                initator.transactionManager().notifyTransactionResult(tr);
+            if (transactionSubscriptionManager != null) {
+                transactionSubscriptionManager.notifyTransactionResult(tr);
             } else {
-                ClientLogger.log("Can't find initiating account!");
+                onTransactionResult(tr);
             }
-
         }
     }
 
+    public void onTransactionResult(TransactionResult tr) {
+        log(Level.INFO, "Transaction {0} is validated", tr.hash);
+        Map<AccountID, STObject> affected = tr.modifiedRoots();
+
+        if (affected != null) {
+            Hash256 transactionHash = tr.hash;
+            UInt32 transactionLedgerIndex = tr.ledgerIndex;
+
+            for (Map.Entry<AccountID, STObject> entry : affected.entrySet()) {
+                Account account = accounts.get(entry.getKey());
+                if (account != null) {
+                    STObject rootUpdates = entry.getValue();
+                    account.getAccountRoot()
+                           .updateFromTransaction(
+                                   transactionHash, transactionLedgerIndex, rootUpdates);
+                }
+            }
+        }
+
+        Account initator = accounts.get(tr.initiatingAccount());
+        if (initator != null) {
+            log(Level.INFO, "Found initiator {0}, notifying transactionManager", initator);
+            initator.transactionManager().notifyTransactionResult(tr);
+        } else {
+            log(Level.INFO, "Can't find initiating account!");
+        }
+        emit(OnValidatedTransaction.class, tr);
+    }
+
     void unhandledMessage(JSONObject msg) {
-        throw new RuntimeException("Unhandled message: " + msg);
+        log(Level.WARNING, "Unhandled message: " + msg);
     }
 
     void onResponse(JSONObject msg) {
-        Request request = requests.get(msg.optInt("id", -1));
+        Request request = requests.remove(msg.optInt("id", -1));
+
         if (request == null) {
-            // TODO: should warn?
+            log(Level.WARNING, "Response without a request: {0}",  msg);
             return;
         }
 
@@ -421,17 +560,28 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     private void doOnDisconnected() {
+        logger.entering(getClass().getName(), "doOnDisconnected");
         connected = false;
-        ClientLogger.log("onDisconnected");
-        emit(OnDisconnected.class, this);
-        // TODO: scheduled reconnect ;)
-        // Client abstract (Runable run, int ms) badboy
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+
+        if (!manuallyDisconnected) {
+            // Reconnect in 50ms
+            schedule(reconnectDelay(), new Runnable() {
+                @Override
+                public void run() {
+                    connect(previousUri);
+                }
+            });
+        } else {
+            logger.fine("Currently disconnecting, so will not reconnect");
         }
-        connect(previousUri);
+
+        emit(OnDisconnected.class, this);
+        logger.entering(getClass().getName(), "doOnDisconnected");
+    }
+
+
+    private int reconnectDelay() {
+            return 1000;
     }
 
     @Override
@@ -445,17 +595,14 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     private void doOnConnected() {
+        resetReconnectStatus();
+
+//        logger.entering(getClass().getName(), "doOnConnected");
         connected = true;
-        ClientLogger.log("onConnected");
         emit(OnConnected.class, this);
+
         subscribe(prepareSubscription());
-        subscriptions.on(SubscriptionManager.OnSubscribed.class, new SubscriptionManager.OnSubscribed() {
-            @Override
-            public void called(JSONObject subscription) {
-                if (!connected) return;
-                subscribe(subscription);
-            }
-        });
+//        logger.exiting(getClass().getName(), "doOnConnected");
     }
 
     private void subscribe(JSONObject subscription) {
@@ -474,8 +621,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     private JSONObject prepareSubscription() {
+        subscriptions.pauseEventEmissions();
         subscriptions.addStream(SubscriptionManager.Stream.ledger);
         subscriptions.addStream(SubscriptionManager.Stream.server);
+        subscriptions.unpauseEventEmissions();
         return subscriptions.allSubscribed();
     }
 
@@ -492,7 +641,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     public void sendMessage(JSONObject object) {
-        ClientLogger.log("Send: %s", prettyJSON(object));
+        if (logger.isLoggable(Level.FINER)) {
+            logger.log(Level.FINER, "Send: {0}", prettyJSON(object));
+        }
         emit(OnSendMessage.class, object);
         ws.sendMessage(object);
     }
