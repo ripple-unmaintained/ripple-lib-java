@@ -1,5 +1,9 @@
 package com.ripple.core.coretypes;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.ripple.config.Config.getB58IdentiferCodecs;
 import com.ripple.core.coretypes.hash.Hash160;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.fields.Field;
@@ -10,11 +14,6 @@ import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
 import com.ripple.encodings.common.B16;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.ripple.config.Config.getB58IdentiferCodecs;
 
 public class AccountID extends Hash160 {
     final public String address;
@@ -48,12 +47,12 @@ public class AccountID extends Hash160 {
 
     @Deprecated
     static public AccountID fromSeedString(String seed) {
-        return fromKeyPair(Seed.getKeyPair(seed));
+        return fromKeyPair(Seed.createKeyPairFromSeedString(seed));
     }
 
     @Deprecated
     static public AccountID fromSeedBytes(byte[] seed) {
-        return fromKeyPair(Seed.getKeyPair(seed));
+        return fromKeyPair(Seed.createKeyPairFromSeedBytes(seed));
     }
 
     public static AccountID fromKeyPair(IKeyPair kp) {

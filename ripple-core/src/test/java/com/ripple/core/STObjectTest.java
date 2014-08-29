@@ -1,12 +1,29 @@
 package com.ripple.core;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.Iterator;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-import com.ripple.core.coretypes.*;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Amount;
+import com.ripple.core.coretypes.STArray;
+import com.ripple.core.coretypes.STObject;
+import com.ripple.core.coretypes.VariableLength;
 import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.uint.UInt16;
+import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.coretypes.uint.UInt64;
+import com.ripple.core.coretypes.uint.UInt8;
+import com.ripple.core.enums.LedgerEntryType;
+import com.ripple.core.enums.TransactionEngineResult;
+import com.ripple.core.fields.Field;
+import com.ripple.core.formats.TxFormat;
+import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.sle.entries.AccountRoot;
 import com.ripple.core.types.known.sle.entries.Offer;
@@ -20,19 +37,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.Test;
-
-import com.ripple.core.enums.LedgerEntryType;
-import com.ripple.core.enums.TransactionEngineResult;
-import com.ripple.core.fields.Field;
-import com.ripple.core.formats.TxFormat;
-import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.coretypes.uint.UInt16;
-import com.ripple.core.coretypes.uint.UInt32;
-import com.ripple.core.coretypes.uint.UInt64;
-import com.ripple.core.coretypes.uint.UInt8;
-
-import java.io.*;
-import java.util.Iterator;
 
 public class STObjectTest {
     @Test
@@ -464,7 +468,7 @@ public class STObjectTest {
     public void testSerializedPaymentTransaction() throws JSONException {
         String expectedSerialization = "120000240000000561D4C44364C5BB00000000000000000000000000005553440000000000B5F762798A53D543A014CAF8B297CFF8F2F937E868400000000000000F73210330E7FC9D56BB25D6893BA3F317AE5BCF33B3291BD63DB32654A313222F7FD0208114B5F762798A53D543A014CAF8B297CFF8F2F937E88314FD94A75318DE40B1D513E6764ECBCB6F1E7056ED";
 
-        IKeyPair kp = Seed.getKeyPair(TestFixtures.master_seed);
+        IKeyPair kp = Seed.createKeyPairFromSeedString(TestFixtures.master_seed);
         AccountID ac = AccountID.fromKeyPair(kp);
         STObject fromSO = STObject.newInstance();
 

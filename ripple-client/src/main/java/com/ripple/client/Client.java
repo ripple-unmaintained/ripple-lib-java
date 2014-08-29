@@ -1,5 +1,22 @@
 package com.ripple.client;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.ripple.client.enums.Command;
 import com.ripple.client.enums.Message;
 import com.ripple.client.enums.RPCErr;
@@ -7,30 +24,24 @@ import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.subscriptions.AccountRoot;
-import com.ripple.client.subscriptions.TransactionSubscriptionManager;
 import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.client.subscriptions.SubscriptionManager;
-import com.ripple.core.types.known.tx.result.TransactionResult;
+import com.ripple.client.subscriptions.TransactionSubscriptionManager;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transport.TransportEventHandler;
 import com.ripple.client.transport.WebSocketTransport;
 import com.ripple.client.wallet.Wallet;
-import com.ripple.core.coretypes.*;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Issue;
+import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.types.known.tx.result.TransactionResult;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.URI;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Client extends Publisher<Client.events> implements TransportEventHandler {
     public static final Logger logger = Logger.getLogger(Client.class.getName());
@@ -274,7 +285,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         }
     }
     public Account accountFromSeed(String masterSeed) {
-        IKeyPair kp = Seed.getKeyPair(masterSeed);
+        IKeyPair kp = Seed.createKeyPairFromSeedString(masterSeed);
         return account(AccountID.fromKeyPair(kp), kp);
     }
 

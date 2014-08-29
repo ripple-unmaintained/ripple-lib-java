@@ -1,19 +1,19 @@
 package com.ripple.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.io.FileReader;
 import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import com.ripple.crypto.ecdsa.IKeyPair;
+import com.ripple.crypto.ecdsa.KeyPair;
+import com.ripple.crypto.ecdsa.Seed;
+import com.ripple.encodings.common.B16;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONTokener;
 import org.junit.Test;
 import org.ripple.bouncycastle.util.encoders.Hex;
-import com.ripple.crypto.ecdsa.IKeyPair;
-import com.ripple.crypto.ecdsa.KeyPair;
-import com.ripple.crypto.ecdsa.Seed;
-import com.ripple.encodings.common.B16;
 
 public class KeyPairTest {
     IKeyPair keyPair = Seed.createKeyPairFromSeedBytes(TestFixtures.master_seed_bytes);
@@ -38,7 +38,7 @@ public class KeyPairTest {
 
     @Test
     public void testDerivationFromString() {
-        IKeyPair keyPairFromSeed = Seed.getKeyPair(TestFixtures.master_seed);
+        IKeyPair keyPairFromSeed = Seed.createKeyPairFromSeedString(TestFixtures.master_seed);
         assertEquals("0330E7FC9D56BB25D6893BA3F317AE5BCF33B3291BD63DB32654A313222F7FD020", keyPairFromSeed.pubHex());
         assertEquals("1ACAAEDECE405B2A958212629E16F2EB46B153EEE94CDD350FDEFF52795525B7", keyPairFromSeed.privHex());
     }
@@ -53,7 +53,7 @@ public class KeyPairTest {
     public void testRippleLibGarbage() throws Exception {
         JSONArray array = getJSONArray("/home/nick/ripple-lib/dumps.json");
 
-        IKeyPair kp = Seed.getKeyPair(Seed.passPhraseToSeedBytes("root"));
+        IKeyPair kp = Seed.createKeyPairFromSeedBytes(Seed.passPhraseToSeedBytes("root"));
         byte[] zeros = new byte[32];
 
         for (int i = 0; i < array.length(); i++) {

@@ -15,13 +15,14 @@ import org.junit.Test;
 public class SeedTest {
 
     private static final String[] ADDRESS_ARRAY = new String[] {
-            "masterpassphrase", "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh", /*INDEX*/ "0", "0330E7FC9D56BB25D6893BA3F317AE5BCF33B3291BD63DB32654A313222F7FD020",
-            "masterpassphrase", "r4bYF7SLUMD7QgSLLpgJx38WJSY12ViRjP", /*INDEX*/ "1", "02CD8C4CE87F86AAD1D9D18B03DE28E6E756F040BD72A9C127862833EB90D60BAD",
-            "masterpassphrase", "rLpAd4peHUMBPbVJASMYK5GTBUSwXRD9nx", /*INDEX*/ "2", "0259A57642A6F4AEFC9B8062AF453FDEEEAC5572BA602BB1DBD5EF011394C6F9FC",
-            "otherpassphrase", "rpe3YWSVwGU2PmUzebAPg2deBXHtmba7hJ", /*INDEX*/ "0", "022235A3DB2CAE57C60B7831929611D58867F86D28C0AD3C82473CC4A84990D01B",
-            "otherpassphrase", "raAPC2gALSmsTkXR4wUwQcPgX66kJuLv2S", /*INDEX*/ "5", "03F0619AFABE08D22D98C8721895FE3673B6174168949976F2573CE1138C124994",
-            "yetanotherpassphrase", "rKnM44fS48qrGiDxB5fB5u64vHVJwjDPUo", /*INDEX*/ "0", "0385AD049327EF7E5EC429350A15CEB23955037DE99660F6E70C11C5ABF4407036",
-            "yetanotherpassphrase", "rMvkT1RHPfsZwTFbKDKBEisa5U4d2a9V8n", /*INDEX*/ "1", "023A2876EA130CBE7BBA0573C2DB4C4CEB9A7547666915BD40366CDC6150CF54DC"
+            "masterpassphrase", "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh", "0", "0330E7FC9D56BB25D6893BA3F317AE5BCF33B3291BD63DB32654A313222F7FD020",
+            "masterpassphrase", "r4bYF7SLUMD7QgSLLpgJx38WJSY12ViRjP", "1", "02CD8C4CE87F86AAD1D9D18B03DE28E6E756F040BD72A9C127862833EB90D60BAD",
+            "masterpassphrase", "rLpAd4peHUMBPbVJASMYK5GTBUSwXRD9nx", "2", "0259A57642A6F4AEFC9B8062AF453FDEEEAC5572BA602BB1DBD5EF011394C6F9FC",
+            "otherpassphrase", "rpe3YWSVwGU2PmUzebAPg2deBXHtmba7hJ", "0", "022235A3DB2CAE57C60B7831929611D58867F86D28C0AD3C82473CC4A84990D01B",
+            "otherpassphrase", "raAPC2gALSmsTkXR4wUwQcPgX66kJuLv2S", "5", "03F0619AFABE08D22D98C8721895FE3673B6174168949976F2573CE1138C124994",
+            "yetanotherpassphrase", "rKnM44fS48qrGiDxB5fB5u64vHVJwjDPUo", "0", "0385AD049327EF7E5EC429350A15CEB23955037DE99660F6E70C11C5ABF4407036",
+            "yetanotherpassphrase", "rMvkT1RHPfsZwTFbKDKBEisa5U4d2a9V8n", "1", "023A2876EA130CBE7BBA0573C2DB4C4CEB9A7547666915BD40366CDC6150CF54DC"
+            // seedStr, addressBytes, accountNumber, keypair pub hex
     };
 
     private static final int ADDRESS_LINE_SIZE = ADDRESS_ARRAY.length / 7;
@@ -37,6 +38,14 @@ public class SeedTest {
         assertEquals("snsBvdoBXhMYYUnabGieeBFWEdqRM", phraseToFamilySeed("bitstamp"));
         assertEquals("saDGZcfdL21t9gtoa3JiNUmMVReaS", phraseToFamilySeed("mtgox"));
         assertEquals("spigbKN5chn5wWyE8dvTN9wH36Ff1", phraseToFamilySeed("amazon"));
+    }
+
+    @Test
+    public void testCreateKeypairFromAccountNumber() {
+        for (int i = 0; i < ADDRESS_ARRAY.length; i=i+ADDRESS_LINE_SIZE) {
+            IKeyPair keyPair = Seed.createKeyPairFromAccountNumber(ADDRESS_ARRAY[i], Integer.parseInt(ADDRESS_ARRAY[i+2]));
+            assertEquals(ADDRESS_ARRAY[i+3], keyPair.pubHex());
+        }
     }
 
     @Test
