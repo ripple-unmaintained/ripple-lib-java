@@ -1,5 +1,6 @@
 package com.ripple.core.enums;
 
+// Transaction Specific Flags
 public class TSF {
     public static long
     FullyCanonicalSig = 0x80000000,

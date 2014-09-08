@@ -1,6 +1,6 @@
 package com.ripple.client;
 
-import com.ripple.client.subscriptions.AccountRoot;
+import com.ripple.client.subscriptions.TrackedAccountRoot;
 import com.ripple.core.coretypes.Amount;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,7 +22,7 @@ public class ServerAccountInfoTest {
                 "\"index\": \"D66D0EC951FD5707633BEBE74DB18B6D2DDA6771BA0FBF079AD08BFDE6066056\"}";
 
         JSONObject json = new JSONObject(info);
-        AccountRoot accountRoot = new AccountRoot(json);
+        TrackedAccountRoot accountRoot = new TrackedAccountRoot(json);
         assertEquals(accountRoot.getBalance(), Amount.fromDropString("99249214166"));
     }
 }

@@ -1,5 +1,6 @@
 package com.ripple.core.enums;
 
+// Ledger Specific Flags
 public class LSF {
     // ltACCOUNT_ROOT
     public static int

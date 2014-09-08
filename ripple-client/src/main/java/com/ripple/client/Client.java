@@ -6,7 +6,7 @@ import com.ripple.client.enums.RPCErr;
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
-import com.ripple.client.subscriptions.AccountRoot;
+import com.ripple.client.subscriptions.TrackedAccountRoot;
 import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.client.subscriptions.SubscriptionManager;
 import com.ripple.client.subscriptions.TransactionSubscriptionManager;
@@ -14,12 +14,12 @@ import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transport.TransportEventHandler;
 import com.ripple.client.transport.WebSocketTransport;
 import com.ripple.client.wallet.Wallet;
-import com.ripple.core.coretypes.AccountID;
-import com.ripple.core.coretypes.Issue;
-import com.ripple.core.coretypes.STObject;
+import com.ripple.core.coretypes.*;
+import com.ripple.core.coretypes.Currency;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.types.known.sle.LedgerEntry;
+import com.ripple.core.types.known.sle.entries.AccountRoot;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.tx.result.TransactionResult;
 import com.ripple.crypto.ecdsa.IKeyPair;
@@ -30,8 +30,8 @@ import org.json.JSONObject;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.math.BigDecimal;
 import java.net.URI;
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -53,7 +53,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     private long lastConnection = -1; // -1 means null
 
     public static void log(Level level, String fmt, Object... args) {
-        // System.out.println(MessageFormat.format(fmt, args));
         if (logger.isLoggable(level)) {
             logger.log(level, fmt, args);
         }
@@ -79,6 +78,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 }
             }
         });
+        cb.beforeRequest(request);
         request.request();
         return request;
     }
@@ -103,6 +103,81 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         cb.beforeRequest(request);
         request.request();
         return request;
+    }
+
+    public <T> Request makeManagedRequest(final Command cmd, final Manager<T> manager, final Request.Builder<T> builder) {
+        Request request = newRequest(cmd);
+        request.once(Request.OnResponse.class, new Request.OnResponse() {
+            @Override
+            public void called(Response response) {
+                try {
+                    if (response.succeeded) {
+                        T t = builder.buildTypedResponse(response);
+                        manager.cb(response, t);
+
+                    } else {
+                        if (manager.retryOnUnsuccessful(response)) {
+                            makeManagedRequest(cmd, manager, builder);
+                        } else {
+                            manager.cb(response, null);
+                        }
+                    }
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+        builder.beforeRequest(request);
+        manager.beforeRequest(request);
+        request.request();
+        return request;
+    }
+
+    public Request requestAccountInfo(final AccountID addy, final Manager<AccountRoot> manager) {
+        return makeManagedRequest(Command.account_info, manager, new Request.Builder<AccountRoot>() {
+            @Override
+            public void beforeRequest(Request request) {
+                request.json("account", addy);
+            }
+            @Override
+            public AccountRoot buildTypedResponse(Response response) {
+                JSONObject root = response.result.optJSONObject("account_data");
+                return (AccountRoot) STObject.fromJSONObject(root);
+            }
+        });
+    }
+
+    public Request requestAccountLines(final AccountID addy, final Manager<ArrayList<Amount>> manager) {
+        return makeManagedRequest(Command.account_lines, manager, new Request.Builder<ArrayList<Amount>>() {
+            @Override
+            public void beforeRequest(Request request) {
+                request.json("account", addy);
+            }
+            @Override
+            public ArrayList<Amount> buildTypedResponse(Response response) {
+                ArrayList<Amount> amounts = new ArrayList<Amount>();
+                JSONArray array = response.result.optJSONArray("lines");
+                for (int i = 0; i < array.length(); i++) {
+                    JSONObject line = array.optJSONObject(i);
+                    try {
+                        BigDecimal balance = new BigDecimal(line.getString("balance"));
+                        AccountID issuer = AccountID.fromString(line.getString("account"));
+                        Currency currency = Currency.fromString(line.getString("currency"));
+
+                        amounts.add(new Amount(balance, currency, issuer));
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }
+                return amounts;
+            }
+        });
+    }
+
+    public void connect(String s, OnConnected onConnected) {
+        connect(s);
+        once(OnConnected.class, onConnected);
     }
 
     public static abstract class events<T>      extends Publisher.Callback<T> {}
@@ -380,7 +455,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             return accounts.get(id);
         }
         else {
-            AccountRoot accountRoot = accountRoot(id);
+            TrackedAccountRoot accountRoot = accountRoot(id);
             Account account = new Account(
                     id,
                     keyPair,
@@ -399,13 +474,13 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         return account(AccountID.fromKeyPair(kp), kp);
     }
 
-    private AccountRoot accountRoot(AccountID id) {
-        AccountRoot accountRoot = new AccountRoot();
+    private TrackedAccountRoot accountRoot(AccountID id) {
+        TrackedAccountRoot accountRoot = new TrackedAccountRoot();
         requestAccountRoot(id, accountRoot, 0);
         return accountRoot;
     }
 
-    private void requestAccountRoot(final AccountID id, final AccountRoot accountRoot, final int attempt) {
+    private void requestAccountRoot(final AccountID id, final TrackedAccountRoot accountRoot, final int attempt) {
         Request req = newRequest(Command.ledger_entry);
         req.json("account_root", id);
 

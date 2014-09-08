@@ -40,11 +40,6 @@ public class Utils {
         }
     }
 
-
-    public static BigInteger hexBig(String hex) {
-        return new BigInteger(1, Hex.decode(hex));
-    }
-
     public static byte[] halfSha512(byte[] bytes) {
         byte[] hash = new byte[32];
         System.arraycopy(sha512(bytes), 0, hash, 0, 32);

@@ -6,7 +6,7 @@ import com.ripple.client.pubsub.CallbackContext;
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
-import com.ripple.client.subscriptions.AccountRoot;
+import com.ripple.client.subscriptions.TrackedAccountRoot;
 import com.ripple.client.subscriptions.ServerInfo;
 import com.ripple.core.enums.TransactionEngineResult;
 import com.ripple.core.coretypes.AccountID;
@@ -26,14 +26,14 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     public static abstract class OnValidatedSequence extends events<UInt32> {}
 
     Client client;
-    AccountRoot accountRoot;
+    TrackedAccountRoot accountRoot;
     AccountID accountID;
     IKeyPair keyPair;
     AccountTransactionsRequester txnRequester;
 
     private ArrayList<ManagedTxn> pending = new ArrayList<ManagedTxn>();
 
-    public TransactionManager(Client client, final AccountRoot accountRoot, AccountID accountID, IKeyPair keyPair) {
+    public TransactionManager(Client client, final TrackedAccountRoot accountRoot, AccountID accountID, IKeyPair keyPair) {
         this.client = client;
         this.accountRoot = accountRoot;
         this.accountID = accountID;
@@ -86,9 +86,9 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         if (accountRoot.primed()) {
             queue(tx, locallyPreemptedSubmissionSequence());
         } else {
-            accountRoot.once(AccountRoot.OnUpdate.class, new AccountRoot.OnUpdate() {
+            accountRoot.once(TrackedAccountRoot.OnUpdate.class, new TrackedAccountRoot.OnUpdate() {
                 @Override
-                public void called(AccountRoot accountRoot) {
+                public void called(TrackedAccountRoot accountRoot) {
                     queue(tx, locallyPreemptedSubmissionSequence());
                 }
             });

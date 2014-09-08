@@ -1,6 +1,5 @@
 package com.ripple.client.subscriptions;
 
-import com.ripple.client.Client;
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
@@ -15,10 +14,10 @@ import java.util.logging.Logger;
  * This should probably be an STObject extending class
  * Publisher should probably be an inner (non static) class
  */
-public class AccountRoot extends Publisher<AccountRoot.events> {
-    static final protected Logger logger = Logger.getLogger(AccountRoot.class.getName());
+public class TrackedAccountRoot extends Publisher<TrackedAccountRoot.events> {
+    static final protected Logger logger = Logger.getLogger(TrackedAccountRoot.class.getName());
     public static abstract class events<T> extends Publisher.Callback<T> {}
-    public static abstract class OnUpdate extends events<AccountRoot> {}
+    public static abstract class OnUpdate extends events<TrackedAccountRoot> {}
     boolean updated = false;
 
     public boolean primed() {
@@ -53,9 +52,9 @@ public class AccountRoot extends Publisher<AccountRoot.events> {
     public Hash256       PreviousTxnID;
     public UInt32        PreviousTxnLgrSeq;
 
-    public AccountRoot(JSONObject object){setFromJSON(object);    }
-    public AccountRoot(STObject   object){setFromSTObject(object);}
-    public AccountRoot()   {}
+    public TrackedAccountRoot(JSONObject object){setFromJSON(object);    }
+    public TrackedAccountRoot(STObject object){setFromSTObject(object);}
+    public TrackedAccountRoot()   {}
 
     public void setFromJSON(JSONObject jsonObject) {
         setFromSTObject(STObject.translate.fromJSONObject(jsonObject));

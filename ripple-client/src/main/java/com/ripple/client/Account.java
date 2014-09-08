@@ -2,7 +2,7 @@
 package com.ripple.client;
 
 import com.ripple.client.pubsub.Publisher;
-import com.ripple.client.subscriptions.AccountRoot;
+import com.ripple.client.subscriptions.TrackedAccountRoot;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.wallet.Wallet;
 import com.ripple.core.coretypes.AccountID;
@@ -25,7 +25,7 @@ public class Account {
     public static abstract class events<T> extends Publisher.Callback<T> {}
     public static abstract class OnServerInfo extends events {}
 
-    private AccountRoot accountRoot;
+    private TrackedAccountRoot accountRoot;
     private Wallet wallet;
     private TransactionManager tm;
     public IKeyPair keyPair;
@@ -34,11 +34,11 @@ public class Account {
         return id;
     }
 
-    public AccountRoot getAccountRoot() {
+    public TrackedAccountRoot getAccountRoot() {
         return accountRoot;
     }
 
-    public void setAccountRoot(AccountRoot accountRoot) {
+    public void setAccountRoot(TrackedAccountRoot accountRoot) {
         Account.this.accountRoot = accountRoot;
     }
 
@@ -53,7 +53,7 @@ public class Account {
     private AccountID id;
 
     public Account(AccountID id,
-                   IKeyPair keyPair, AccountRoot root,
+                   IKeyPair keyPair, TrackedAccountRoot root,
                    Wallet wallet,
                    TransactionManager tm) {
         this.id = id;
