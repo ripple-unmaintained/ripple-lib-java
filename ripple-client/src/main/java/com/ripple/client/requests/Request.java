@@ -73,7 +73,7 @@ public class Request extends Publisher<Request.events> {
             public void called(final Client client) {
                 client.requests.put(id, Request.this);
                 client.sendMessage(toJSON());
-                // TODO
+                // TODO: use an LRU map or something
                 client.schedule(60000, new Runnable() {
                     @Override
                     public void run() {

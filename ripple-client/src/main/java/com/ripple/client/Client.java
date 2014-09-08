@@ -13,7 +13,6 @@ import com.ripple.client.subscriptions.TransactionSubscriptionManager;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transport.TransportEventHandler;
 import com.ripple.client.transport.WebSocketTransport;
-import com.ripple.client.wallet.Wallet;
 import com.ripple.core.coretypes.*;
 import com.ripple.core.coretypes.Currency;
 import com.ripple.core.coretypes.hash.Hash256;
@@ -460,7 +459,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                     id,
                     keyPair,
                     accountRoot,
-                    new Wallet(),
                     new TransactionManager(this, accountRoot, id, keyPair)
             );
             accounts.put(id, account);

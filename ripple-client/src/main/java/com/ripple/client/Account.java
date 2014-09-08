@@ -4,7 +4,6 @@ package com.ripple.client;
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.subscriptions.TrackedAccountRoot;
 import com.ripple.client.transactions.TransactionManager;
-import com.ripple.client.wallet.Wallet;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.crypto.ecdsa.IKeyPair;
 
@@ -26,7 +25,6 @@ public class Account {
     public static abstract class OnServerInfo extends events {}
 
     private TrackedAccountRoot accountRoot;
-    private Wallet wallet;
     private TransactionManager tm;
     public IKeyPair keyPair;
 
@@ -42,23 +40,13 @@ public class Account {
         Account.this.accountRoot = accountRoot;
     }
 
-    public Wallet getWallet() {
-        return wallet;
-    }
-
-    public void setWallet(Wallet wallet) {
-        Account.this.wallet = wallet;
-    }
-
     private AccountID id;
 
     public Account(AccountID id,
                    IKeyPair keyPair, TrackedAccountRoot root,
-                   Wallet wallet,
                    TransactionManager tm) {
         this.id = id;
         this.accountRoot = root;
-        this.wallet = wallet;
         this.tm = tm;
         this.keyPair = keyPair;
     }

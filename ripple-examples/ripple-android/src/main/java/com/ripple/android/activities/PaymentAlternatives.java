@@ -26,7 +26,7 @@ import com.ripple.client.payments.Alternatives;
 import com.ripple.client.payments.PaymentFlow;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
-import com.ripple.client.subscriptions.AccountRoot;
+import com.ripple.client.subscriptions.TrackedAccountRoot;
 import com.ripple.client.transactions.ManagedTxn;
 import com.ripple.core.types.known.tx.result.TransactionResult;
 import com.ripple.core.coretypes.AccountID;
@@ -673,9 +673,9 @@ public class PaymentAlternatives extends Activity {
         @Override
         public void run() {
             account = client.accountFromSeed(masterSeed);
-            account.getAccountRoot().once(AccountRoot.OnUpdate.class, new AccountRoot.OnUpdate() {
+            account.getAccountRoot().once(TrackedAccountRoot.OnUpdate.class, new TrackedAccountRoot.OnUpdate() {
                 @Override
-                public void called(AccountRoot accountRoot) {
+                public void called(TrackedAccountRoot accountRoot) {
                     if (accountIsUnfunded()) {
                         handleUnfundedAccount();
                     }
