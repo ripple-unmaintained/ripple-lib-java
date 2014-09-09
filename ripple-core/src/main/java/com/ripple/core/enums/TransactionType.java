@@ -14,9 +14,10 @@ public enum TransactionType {
     OfferCreate (7),
     OfferCancel (8),
     Contract (9),
-    RemoveContract(10),  // can we use the same msg as offer cancel
+    TicketCreate(10),
+    TicketCancel(11),
     TrustSet (20),
-    EnableFeature(100),
+    Amendment(100),
     SetFee(101);
 
     public int asInteger() {

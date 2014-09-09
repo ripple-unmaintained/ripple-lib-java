@@ -5,7 +5,6 @@ import com.ripple.core.coretypes.hash.prefixes.Prefix;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BytesSink;
-import com.ripple.core.types.known.sle.LedgerEntry;
 
 import java.math.BigInteger;
 import java.util.TreeMap;
@@ -109,7 +108,8 @@ public class Hash256 extends Hash<Hash256> {
     static public TypedFields.Hash256Field BookDirectory = hash256Field(Field.BookDirectory);
     static public TypedFields.Hash256Field InvoiceID = hash256Field(Field.InvoiceID);
     static public TypedFields.Hash256Field Nickname = hash256Field(Field.Nickname);
-    static public TypedFields.Hash256Field Feature = hash256Field(Field.Feature);
+    static public TypedFields.Hash256Field Amendment = hash256Field(Field.Amendment);
+    static public TypedFields.Hash256Field TicketID = hash256Field(Field.TicketID);
 
     static public TypedFields.Hash256Field hash = hash256Field(Field.hash);
     static public TypedFields.Hash256Field index = hash256Field(Field.index);

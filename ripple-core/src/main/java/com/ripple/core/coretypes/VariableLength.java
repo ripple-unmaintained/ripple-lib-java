@@ -1,6 +1,7 @@
 
 package com.ripple.core.coretypes;
 
+import com.ripple.core.fields.Type;
 import com.ripple.core.serialized.*;
 import org.ripple.bouncycastle.util.encoders.Hex;
 
@@ -88,4 +89,7 @@ public class VariableLength implements SerializedType {
     static public TypedFields.VariableLengthField ExpireCode = variablelengthField(Field.ExpireCode);
     static public TypedFields.VariableLengthField CreateCode = variablelengthField(Field.CreateCode);
 
+    static public TypedFields.VariableLengthField MemoType = variablelengthField(Field.MemoType);
+    static public TypedFields.VariableLengthField MemoData = variablelengthField(Field.MemoData);
+    static public TypedFields.VariableLengthField MemoFormat = variablelengthField(Field.MemoFormat);
 }

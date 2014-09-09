@@ -109,13 +109,9 @@ public class TxFormat extends Format {
             Field.RemoveCode,      Requirement.OPTIONAL,
             Field.ExpireCode,      Requirement.OPTIONAL);
 
-    static public TxFormat RemoveContract = new TxFormat(
-            TransactionType.RemoveContract,
-            Field.Target,          Requirement.REQUIRED);
-
-    static public TxFormat EnableFeature = new TxFormat(
-            TransactionType.EnableFeature,
-            Field.Feature,         Requirement.REQUIRED);
+    static public TxFormat Amendment = new TxFormat(
+            TransactionType.Amendment,
+            Field.Amendment,         Requirement.REQUIRED);
 
     static public TxFormat SetFee = new TxFormat(
             TransactionType.SetFee,

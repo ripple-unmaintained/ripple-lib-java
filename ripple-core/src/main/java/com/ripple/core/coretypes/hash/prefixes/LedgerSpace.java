@@ -6,15 +6,19 @@ public enum LedgerSpace implements Prefix {
     account('a'),
     dirNode('d'),
     generator('g'),
-    nickname('n'),
+
     ripple('r'),
     offer('o'),  // Entry for an offer.
     ownerDir('O'),  // Directory of things owned by an account.
     bookDir('B'),  // Directory of order books.
     contract('c'),
     skipList('s'),
-    feature('f'),
-    fee('e');
+    amendment('f'),
+    fee('e'),
+    spaceTicket('T'),
+
+    // no longer used
+    nickname('n'),;
 
     UInt16 uInt16;
     public byte[] bytes;

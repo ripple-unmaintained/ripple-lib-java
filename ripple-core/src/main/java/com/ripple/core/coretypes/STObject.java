@@ -28,7 +28,6 @@ import com.ripple.core.types.known.tx.txns.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.TreeMap;
 
@@ -122,12 +121,10 @@ public class STObject implements SerializedType, Iterable<Field> {
                 break;
             case Contract:
                 break;
-            case RemoveContract:
-                break;
             case TrustSet:
                 constructed = new TrustSet();
                 break;
-            case EnableFeature:
+            case Amendment:
                 break;
             case SetFee:
                 break;

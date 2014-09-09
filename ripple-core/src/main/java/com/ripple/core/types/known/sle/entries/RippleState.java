@@ -8,7 +8,7 @@ import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
-import com.ripple.core.enums.LSF;
+import com.ripple.core.enums.LedgerFlag;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
@@ -109,7 +109,7 @@ public class RippleState extends ThreadedLedgerEntry {
     @Deprecated() // "not deprecated but needs fixing"
     public boolean authorizedBy(AccountID account) {
         UInt32 flags = flags();
-        return flags == null || flags.testBit(isHighAccount(account) ? LSF.HighAuth : LSF.LowAuth);
+        return flags == null || flags.testBit(isHighAccount(account) ? LedgerFlag.HighAuth : LedgerFlag.LowAuth);
     }
 
     private boolean isBitSet(int flags, int flag) {

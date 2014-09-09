@@ -3,6 +3,7 @@ package com.ripple.core.types.known.tx;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.hash.HalfSha512;
 import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
+import com.ripple.core.enums.TransactionFlag;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.fields.Field;
 import com.ripple.core.formats.TxFormat;
@@ -14,8 +15,8 @@ import com.ripple.core.coretypes.uint.UInt16;
 import com.ripple.core.coretypes.uint.UInt32;
 
 public class Transaction extends STObject {
-    public static final boolean CANONICAL_FLAG_DEPLOYED = false;
-    public static final UInt32 CANONICAL_SIGNATURE = new UInt32(0x80000000L);
+    public static final boolean CANONICAL_FLAG_DEPLOYED = true;
+    public static final UInt32 CANONICAL_SIGNATURE = new UInt32(TransactionFlag.FullyCanonicalSig);
 
     public Transaction(TransactionType type) {
         setFormat(TxFormat.formats.get(type));
