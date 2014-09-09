@@ -143,7 +143,7 @@ An example of an inner node's `contents`
   1894E389AE4A63BA99C2D0546A58A976ECDAB14C09B98F532999B464696E29E5
   ```
  
-What about those `index` thingies again? Remeber, the `index` can't be used to
+What about those `index` thingies again? Remember, the `index` can't be used to
 query something directly in the NodeStore.
  
 First you need a known point in time, which we learned could be defined by a
@@ -155,7 +155,7 @@ First you need a known point in time, which we learned could be defined by a
 Imagine we have those above. First we query the nodestore with `E49843...`
  
 What do we expect back? A ShaMap hash is the hash of the binary representation
-of the root node (which is an `inner node`) of the tree, So we'd expect
+of the root node (which is an `inner node`) of the tree, so we'd expect
 something in the form shown earlier, with 16 256 bit hashes.
  
 From the nodestore we retrieve:
@@ -301,7 +301,7 @@ Links
 -----
 
 * [ShamapInnerNodeAnalyis](../../../../../../../../../ripple-examples/ripple-cli/src/main/java/com/ripple/cli/shamapanalysis/ShamapInnerNodeAnalysis.java)
-* [Rippled Hash Prefixe declarations](https://github.com/ripple/rippled/blob/develop/src/ripple_data/protocol/HashPrefix.h#L54-L58)
+* [Rippled Hash Prefix declarations](https://github.com/ripple/ripple-lib-java/blob/master/ripple-core/src/main/java/com/ripple/core/coretypes/hash/prefixes/HashPrefix.java)
 
 Annoyingly verbose ascii art
 ----------------------------
