@@ -3,9 +3,7 @@ package com.ripple.cli.shamapanalysis;
 import com.ripple.config.Config;
 import com.ripple.core.coretypes.Vector256;
 import com.ripple.core.coretypes.hash.Hash256;
-import com.ripple.core.types.shamap.ShaMapInner;
-import com.ripple.core.types.shamap.ShaMapLeaf;
-import com.ripple.core.types.shamap.ShaMapNode;
+import com.ripple.core.types.shamap.*;
 import com.ripple.encodings.common.B16;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -151,20 +149,15 @@ public class ShamapInnerNodeAnalysis {
     }
 
     public void addKeyAsValueItem(InstrumentedShaMap ledger, Hash256 key) {
-        ledger.addItem(key, ShaMapNode.NodeType.tnTRANSACTION_MD, createItem(key));
+        ledger.addItem(key, createItem(key));
     }
 
     public double now() {
         return System.nanoTime();
     }
 
-    private ShaMapLeaf.Item createItem(final Hash256 id1) {
-        return new ShaMapLeaf.Item() {
-            @Override
-            public byte[] bytes() {
-                return id1.bytes();
-            }
-        };
+    private ShaMapItem createItem(final Hash256 id1) {
+        return new BytesItem(id1.bytes());
     }
 
     private Hash256 randomHash() {
@@ -219,9 +212,8 @@ public class ShamapInnerNodeAnalysis {
                     int randomKeyIndex = randomness.nextInt(whichRandom.size() - 1);
                     Hash256 keyToUpdate = whichRandom.get(randomKeyIndex);
                     // invalidating ;)
-                    ShaMapLeaf leaf = ledger.getLeafForUpdating(keyToUpdate);
                     // so the hash is actually different ;0
-                    leaf.setBlob(createItem(randomHash()));
+                    ledger.updateItem(keyToUpdate, createItem(randomHash()));
                 }
             }
             double nsForModding = now() - pta;
@@ -454,9 +446,27 @@ class InstrumentedInnerNode extends ShaMapInner {
     public ShaMapInner makeInnerChild() {
         return new InstrumentedInnerNode(depth + 1);
     }
-    @Override
-    public void onHash(Hash256 hash, int fullBranches) {
-        hashes.put(hash, fullBranches);
+
+    public Hash256 hash() {
+        if (hash == null) {
+            hash = createHash();
+            onHash(hash);
+        }
+        return hash;
+    }
+
+    public void onHash(Hash256 hash) {
+        hashes.put(hash, countFullBranches());
+    }
+
+    private int countFullBranches() {
+        int n = 0;
+        for (ShaMapNode branch : branches) {
+            if (branch != null) {
+                n++;
+            }
+        }
+        return n;
     }
 
     public int depth() {

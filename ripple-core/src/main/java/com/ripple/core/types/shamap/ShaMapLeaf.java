@@ -1,54 +1,33 @@
 package com.ripple.core.types.shamap;
 
-import com.ripple.core.coretypes.hash.HalfSha512;
 import com.ripple.core.coretypes.hash.Hash256;
-import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
+import com.ripple.core.coretypes.hash.prefixes.Prefix;
+import com.ripple.core.serialized.BytesSink;
 
 public class ShaMapLeaf extends ShaMapNode {
     public Hash256 index;
-    private Item blob;
+    public ShaMapItem item;
 
-    public ShaMapLeaf() {
+    protected ShaMapLeaf(Hash256 index, ShaMapItem item) {
+        this.index = index;
+        this.item = item;
     }
 
-    public Item getBlob() {
-        return blob;
-    }
+    @Override public boolean isLeaf() {return true;}
+    @Override public boolean isInner() {return false;}
 
-    public void setBlob(Item blob) {
-        this.blob = blob;
-    }
-
-    public interface Item {
-        public byte[] bytes();
-    }
-
-    public void copyItemFrom(ShaMapLeaf other) {
-        setBlob(other.getBlob());
+    @Override
+    Prefix hashPrefix() {
+        return item.hashPrefix();
     }
 
     @Override
-    public Hash256 hash() {
-        HalfSha512 half = new HalfSha512();
-        HashPrefix prefix;
-
-        if (type == NodeType.tnTRANSACTION_MD)
-            prefix = HashPrefix.txNode;
-        else if (type == NodeType.tnACCOUNT_STATE)
-            prefix = HashPrefix.leafNode;
-        else
-            throw new UnsupportedOperationException("No support for " + type);
-
-        half.update(prefix.bytes);
-        half.update(getBlob().bytes());
-        half.update(index);
-
-        return half.finish();
+    public void toBytesSink(BytesSink sink) {
+        item.toBytesSink(sink);
+        index.toBytesSink(sink);
     }
 
-    public ShaMapLeaf(Hash256 index, NodeType type, Item blob) {
-        this.index = index;
-        this.type = type;
-        this.setBlob(blob);
+    public ShaMapLeaf copy() {
+        return new ShaMapLeaf(index, item.copy());
     }
 }

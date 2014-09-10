@@ -1,21 +1,17 @@
 package com.ripple.core.types.shamap;
 
-import com.ripple.core.binary.STWriter;
 import com.ripple.core.coretypes.hash.Hash256;
-import com.ripple.core.coretypes.uint.UInt32;
-import com.ripple.core.serialized.BytesSink;
 
 import java.util.TreeSet;
 
-
-public class ShamapDiff {
+public class ShaMapDiff {
     ShaMap one, two;
 
     public TreeSet<Hash256> modified = new TreeSet<Hash256>();
     public TreeSet<Hash256> deleted = new TreeSet<Hash256>();
     public TreeSet<Hash256> added = new TreeSet<Hash256>();
 
-    public ShamapDiff(ShaMap one, ShaMap two) {
+    public ShaMapDiff(ShaMap one, ShaMap two) {
         this.one = one;
         this.two = two;
     }
@@ -26,37 +22,18 @@ public class ShamapDiff {
 
     public void apply(ShaMap sa) {
         for (Hash256 mod : modified) {
-            ShaMapLeaf leafForUpdating = sa.getLeafForUpdating(mod);
-            leafForUpdating.copyItemFrom(two.getLeaf(mod));
+            sa.updateItem(mod, two.getItem(mod).copy());
         }
 
         for (Hash256 add : added) {
-            sa.addLeaf(add, two.getLeaf(add));
+            boolean added = sa.addItem(add, two.getItem(add).copy());
+            if (!added) throw new AssertionError();
         }
         for (Hash256 delete : deleted) {
             boolean b = sa.removeLeaf(delete);
             if (!b) throw new AssertionError();
         }
     }
-
-    public void toBytesSink(BytesSink sink) {
-        STWriter bw = new STWriter(sink);
-        bw.write(new UInt32(added.size()));
-        for (Hash256 add : added) {
-            bw.write(add);
-            bw.writeVl(two.getLedgerEntry(add));
-        }
-        bw.write(new UInt32(modified.size()));
-        for (Hash256 mv : modified) {
-            bw.write(mv);
-            bw.writeVl(two.getLedgerEntry(mv));
-        }
-        bw.write(new UInt32(deleted.size()));
-        for (Hash256 rm : deleted) {
-            bw.write(rm);
-        }
-    }
-
     private void compare(ShaMapInner a, ShaMapInner b) {
         for (int i = 0; i < 16; i++) {
             ShaMapNode aChild = a.getBranch(i);
@@ -117,7 +94,6 @@ public class ShamapDiff {
             }
         }
     }
-
     private void trackRemoved(ShaMapNode child) {
         child.walkAnyLeaves(new LeafWalker() {
             @Override

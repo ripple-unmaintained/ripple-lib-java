@@ -2,6 +2,7 @@ package com.ripple.core;
 
 import com.ripple.core.coretypes.*;
 import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt16;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
@@ -30,6 +31,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Iterator;
 
+import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.*;
 
 public class STObjectTest {
@@ -546,5 +548,69 @@ public class STObjectTest {
         assertEquals(object.get("TransactionResult"), "tesSUCCESS");
         assertEquals(object.get("TransactionType"), "Payment");
 
+    }
+
+    @Test
+    public void testTransactionIDCreation() throws Exception {
+        String tx_json = "{"+
+                "    \"Account\": \"rwMyB1diFJ7xqEKYGYgk9tKrforvTr33M5\","+
+                "    \"Amount\": \"1\","+
+                "    \"Destination\": \"rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH\","+
+                "    \"Fee\": \"12\","+
+                "    \"Sequence\": 88," +
+                "    \"SigningPubKey\": \"02EEAF2C95B668D411FC490746C52071514F6D3A7B742D91D82CB591B5443D1C59\","+
+                "    \"TransactionType\": \"Payment\","+
+                "    \"TxnSignature\": \"304602210099A6999CD967ADD1E5A96EE62B2701AF57AA44191FE755D4976BCAFD95484238022100CAF57DB851B1AE174005CABECCBDF418AC33EF0C87C9BB4DEC2A9407F829207B\","+
+                "    \"hash\": \"B01AC8EBCE6029AB1159258D249CBDCA139C4C6346592494D0E3C0DE6247219D\"}";
+        STObject tx = STObject.fromJSON(tx_json);
+        Hash256 hash = (Hash256) tx.remove(Field.hash);
+        Hash256 rehashed = Index.transactionID(tx.toBytes());
+        assertEquals(hash, rehashed);
+    }
+
+    @Test
+    public void testTransactionIDCreation2() throws Exception {
+        String tx_json = "{" +
+                "    \"Account\": \"rwMyB1diFJ7xqEKYGYgk9tKrforvTr33M5\"," +
+                "    \"Amount\": \"1\"," +
+                "    \"Destination\": \"rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH\"," +
+                "    \"Fee\": \"12\"," +
+                "    \"Sequence\": 91," +
+                "    \"SigningPubKey\": \"02eeaf2c95b668d411fc490746c52071514f6d3a7b742d91d82cb591b5443d1c59\"," +
+                "    \"TransactionType\": \"Payment\"," +
+                "    \"TxnSignature\": \"3045022100f1b54ed137dc491240b93c4b34a97ca6063490cca784c9c2f5d5b8593f10f0410220338e9e0f6dfacc739172d0473b5023f068c5fbbcbd66e65ed5ec6f4421781194\"" +
+                "}";
+
+        Hash256 expected = Hash256.fromHex("78794CD91D01F144FBEBE3ECB0690B159E04829CE576B75B7E8ABF8B8FA7DD97");
+        STObject tx = STObject.fromJSON(tx_json);
+        Hash256 rehashed = Index.transactionID(tx.toBytes());
+        assertEquals(expected, rehashed);
+    }
+
+    @Test
+    public void testSigningHashCreation() throws Exception {
+        String tx = "{\"Account\": \"rwMyB1diFJ7xqEKYGYgk9tKrforvTr33M5\"," +
+                " \"Amount\": \"1\"," +
+                " \"Destination\": \"rP1coskQzayaQ9geMdJgAV5f3tNZcHghzH\"," +
+                " \"Fee\": \"15\"," +
+                " \"Flags\": 0," +
+                " \"Sequence\": 35," +
+                " \"SigningPubKey\": \"02EEAF2C95B668D411FC490746C52071514F6D3A7B742D91D82CB591B5443D1C59\"," +
+                " \"TransactionType\": \"Payment\"," +
+                " \"TxnSignature\": \"3046022100B03C1BCE9AB7304F331B0661B3E9440506AC206F6BD0738EEEF087EC5F0B6175022100A0CF6B2A6B23C57D1471AE77B8C122C5D6CCE68DD78786F355718CB43B7D5E29\"," +
+                " \"hash\": \"F9B68783CDA32F18DB28A5693DF65C5C037477EB7453AB7813051D1CECDEF9FF\"}";
+
+        JSONObject j = new JSONObject(tx);
+        j.remove("TxnSignature");
+        j.remove("hash");
+
+        STObject so = STObject.fromJSONObject(j);
+        byte[] blob = so.toBytes();
+
+        String expected = "1200002200000000240000002361400000000000000168400000000000000F732102EEAF2C95B668D411FC490746C52071514F6D3A7B742D91D82CB591B5443D1C59811466B05AAE728123957EF8411C44B787650C27231D8314FAE571D0D376CC2BFBB7D5C4E21374FA45BB3639";
+        assertEquals(expected, so.toHex());
+
+        Hash256 reHash = Hash256.signingHash(blob);
+        assertEquals("63641BEDC50E9D2C1519042E78CFB53354DE94144ED67ED8C1F05A3621219209", reHash.toHex());
     }
 }

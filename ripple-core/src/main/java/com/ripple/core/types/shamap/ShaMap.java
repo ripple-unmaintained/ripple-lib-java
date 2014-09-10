@@ -6,36 +6,38 @@ import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.sle.LedgerHashes;
-import com.ripple.core.types.known.sle.entries.DirectoryNode;
 import com.ripple.core.types.known.tx.result.TransactionResult;
 
-// TODO, consider an AccountState and Transaction map?
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class ShaMap extends ShaMapInner {
+    private AtomicInteger copies;
+
     public ShaMap() {
         super(0);
+        // This way we can copy the first to the second,
+        // copy the second, then copy the first again ;)
+        copies = new AtomicInteger();
     }
-    public DirectoryNode getDirectoryNode(Hash256 rootIndex) {
-        return (DirectoryNode) getLedgerEntry(rootIndex);
-    }
-
-    public void addTransactionResult(final TransactionResult tr) {
-        addLeaf(tr.hash, new TransactionResultLeaf(tr));
-    }
-
-    public TransactionResult getTransactionResult(Hash256 index) {
-        TransactionResultLeaf leaf = (TransactionResultLeaf) getLeaf(index);
-        if (leaf == null) {
-            return null;
-        }
-        return leaf.result;
+    public ShaMap(boolean isCopy, int depth) {
+        super(isCopy, depth, 0);
     }
 
-    public LedgerEntry getLedgerEntry(Hash256 index) {
-        LedgerEntryLeaf leaf = (LedgerEntryLeaf) getLeaf(index);
-        if (leaf == null) {
-            return null;
-        }
-        return leaf.le;
+    @Override
+    protected ShaMapInner copyInner(int depth) {
+        return new ShaMap(true, depth);
+    }
+
+    public ShaMap copy() {
+        version = copies.incrementAndGet();
+        ShaMap copy = (ShaMap) copy(copies.incrementAndGet());
+        copy.copies = copies;
+        return copy;
+    }
+
+    public void addLE(LedgerEntry entry) {
+        LedgerEntryItem item = new LedgerEntryItem(entry);
+        addItem(entry.index(), item);
     }
 
     public void updateSkipLists(long currentIndex, Hash256 parentHash) {
@@ -43,7 +45,7 @@ public class ShaMap extends ShaMapInner {
 
         if ((prev & 0xFF) == 0) {
             Hash256 skipIndex = Index.ledgerHashes(prev);
-            LedgerHashes skip = createOrUpdateSkipList(this, skipIndex);
+            LedgerHashes skip = createOrUpdateSkipList(skipIndex);
             Vector256 hashes = skip.hashes();
             assert hashes.size() <= 256;
             hashes.add(parentHash);
@@ -51,7 +53,7 @@ public class ShaMap extends ShaMapInner {
         }
 
         Hash256 skipIndex = Index.ledgerHashes();
-        LedgerHashes skip = createOrUpdateSkipList(this, skipIndex);
+        LedgerHashes skip = createOrUpdateSkipList(skipIndex);
         Vector256 hashes = skip.hashes();
 
         if (hashes.size() > 256) throw new AssertionError();
@@ -63,16 +65,21 @@ public class ShaMap extends ShaMapInner {
         skip.put(UInt32.LastLedgerSequence, new UInt32(prev));
     }
 
-    public static LedgerHashes createOrUpdateSkipList(ShaMap state, Hash256 skipIndex) {
-        LedgerHashes skip = (LedgerHashes) state.getLedgerEntry(skipIndex);
+    private LedgerHashes createOrUpdateSkipList(Hash256 skipIndex) {
+        ShaMap state = this;
 
-        if (skip == null) {
-            skip = newSkipList(skipIndex);
-            state.addLE(skip);
+        PathToIndex path = state.pathToIndex(skipIndex);
+        ShaMapInner top = path.dirtyOrCopyInners();
+        LedgerEntryItem item;
+
+        if (path.hasMatchedLeaf()) {
+            item = (LedgerEntryItem) path.leaf.item;
         } else {
-            state.getLeafForUpdating(skipIndex);
+            LedgerHashes hashes = newSkipList(skipIndex);
+            item = new LedgerEntryItem(hashes);
+            top.addLeafToTerminalInner(new ShaMapLeaf(skipIndex, item));
         }
-        return skip;
+        return (LedgerHashes) item.entry;
     }
 
     private static LedgerHashes newSkipList(Hash256 skipIndex) {
@@ -84,4 +91,8 @@ public class ShaMap extends ShaMapInner {
         return skip;
     }
 
+    public void addTransactionResult(TransactionResult tr) {
+        TransactionResultItem item = new TransactionResultItem(tr);
+        addItem(tr.hash, item);
+    }
 }

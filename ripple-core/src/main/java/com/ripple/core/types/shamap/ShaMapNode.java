@@ -1,58 +1,47 @@
 package com.ripple.core.types.shamap;
 
+import com.ripple.core.coretypes.hash.HalfSha512;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.prefixes.Prefix;
+import com.ripple.core.serialized.BytesSink;
 
 abstract public class ShaMapNode {
-    protected ShaMapNode(){}
+    protected Hash256 hash;
 
-    public NodeType type;
-    public Prefix hashingPrefix;
-    abstract public Hash256 hash();
+    // This saves a lot of instanceof checks
+    public abstract boolean isLeaf();
+    public abstract boolean isInner();
 
-    ShaMapLeaf firstLeafBelow() {
-        ShaMapNode node = this;
-
-        do {
-            if (node instanceof ShaMapLeaf) {
-                return (ShaMapLeaf) node;
-            }
-
-            ShaMapInner innerNode = (ShaMapInner) node;
-            boolean foundNode = false;
-
-            for (int i = 0; i < 16; ++i)
-                if (!innerNode.branchIsEmpty(i)) {
-                    node = innerNode.getBranch(i);
-                    foundNode = true;
-                    break;
-                }
-
-            if (!foundNode)
-                return null;
-
-        } while (true);
-
+    public ShaMapLeaf asLeaf() {
+        return (ShaMapLeaf) this;
+    }
+    public ShaMapInner asInner() {
+        return (ShaMapInner) this;
     }
 
+    abstract Prefix hashPrefix();
+    abstract public void toBytesSink(BytesSink sink);
+
+    public void invalidate() {hash = null;}
+    public Hash256 hash() {
+        if (hash == null) {
+            hash = createHash();
+        }
+        return hash;
+    }
+    public Hash256 createHash() {
+        HalfSha512 half = HalfSha512.prefixed256(hashPrefix());
+        toBytesSink(half);
+        return half.finish();
+    }
     /**
      * Walk any leaves, possibly this node itself, if it's terminal.
      */
     public void walkAnyLeaves(LeafWalker leafWalker) {
-        if (this instanceof ShaMapLeaf) {
+        if (this.isLeaf()) {
             leafWalker.onLeaf((ShaMapLeaf) this);
-
         } else {
-            ((ShaMapInner) this).walkItems(leafWalker);
+            this.asInner().walkLeaves(leafWalker);
         }
-    }
-
-    public static enum NodeType
-    {
-        tnERROR,
-        tnINNER,
-        tnTRANSACTION_NM, // transaction, no metadata
-        tnTRANSACTION_MD, // transaction, with metadata
-        tnACCOUNT_STATE
     }
 }

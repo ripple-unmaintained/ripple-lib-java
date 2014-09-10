@@ -1,6 +1,5 @@
 package com.ripple.core.types.shamap;
 
-
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.fields.Field;
 import com.ripple.core.types.known.sle.LedgerEntry;
@@ -20,8 +19,8 @@ public class AccountStateBuilder {
     private long currentTransactionIndex = 0;
     private String currentAccountHash;
 
-    private TreeSet<Hash256> directoriesWithIndexesOutOfOrder = new TreeSet<Hash256>();
-    private TreeSet<Hash256> directoriesModifiedMoreThanOncePerTransaction = new TreeSet<Hash256>();
+    private TreeSet<Hash256> directoriesModifiedMoreThanOnceByTransaction = new TreeSet<Hash256>();
+    private TreeSet<Hash256> directoriesModifiedByTransaction = new TreeSet<Hash256>();
 
     public AccountStateBuilder(ShaMap state, long currentLedgerIndex) {
         this.state = state;
@@ -38,7 +37,7 @@ public class AccountStateBuilder {
     public void onTransaction(TransactionResult tr) {
         if (tr.meta.transactionIndex().longValue() != currentTransactionIndex) throw new AssertionError();
         currentTransactionIndex++;
-        directoriesModifiedMoreThanOncePerTransaction = new TreeSet<Hash256>();
+        directoriesModifiedByTransaction = new TreeSet<Hash256>();
 
         for (AffectedNode an : sortedAffectedNodes(tr)) {
             Hash256 id = an.ledgerIndex();
@@ -77,7 +76,7 @@ public class AccountStateBuilder {
                     tle.setThreadedLedgerEntryDefaults(tr.hash, tr.ledgerIndex);
                 }
             } else if (an.isDeletedNode()) {
-                directoriesWithIndexesOutOfOrder.remove(id);
+                directoriesModifiedMoreThanOnceByTransaction.remove(id);
                 state.removeLeaf(id);
 
                 if (le instanceof Offer) {
@@ -111,8 +110,9 @@ public class AccountStateBuilder {
                     }
                 }
             } else if (an.isModifiedNode()) {
-                LedgerEntryLeaf leaf = (LedgerEntryLeaf) state.getLeafForUpdating(id);
-                LedgerEntry leModded = leaf.le;
+                ShaMapLeaf leaf = state.getLeafForUpdating(id);
+                LedgerEntryItem item = (LedgerEntryItem) leaf.item;
+                LedgerEntry leModded = item.entry;
 
                 if (le instanceof ThreadedLedgerEntry) {
                     ThreadedLedgerEntry tle = (ThreadedLedgerEntry) le;
@@ -162,11 +162,11 @@ public class AccountStateBuilder {
 
     private void onDirectoryModified(DirectoryNode dn) {
         Hash256 index = dn.index();
-        if (directoriesModifiedMoreThanOncePerTransaction.contains(index)) {
-            directoriesWithIndexesOutOfOrder.add(index);
+        if (directoriesModifiedByTransaction.contains(index)) {
+            directoriesModifiedMoreThanOnceByTransaction.add(index);
         }
         else {
-            directoriesModifiedMoreThanOncePerTransaction.add(index);
+            directoriesModifiedByTransaction.add(index);
         }
     }
     private void directoryRemoveStable(DirectoryNode dn, Hash256 index) {
@@ -182,11 +182,12 @@ public class AccountStateBuilder {
         dn.indexes().add(index);
     }
     private DirectoryNode getDirectoryForUpdating(Hash256 directoryIndex) {
-        LedgerEntryLeaf leaf = (LedgerEntryLeaf) state.getLeafForUpdating(directoryIndex);
+        ShaMapLeaf leaf = state.getLeafForUpdating(directoryIndex);
         if (leaf == null) {
             return null;
         }
-        return (DirectoryNode) leaf.le;
+        LedgerEntryItem lei = (LedgerEntryItem) leaf.item;
+        return (DirectoryNode) lei.entry;
     }
 
     public ShaMap state() {
@@ -198,12 +199,11 @@ public class AccountStateBuilder {
     public String currentAccountHash() {
         return currentAccountHash;
     }
-    // TODO
     public Hash256 accountHash() {
         return Hash256.fromHex(currentAccountHash);
     }
     public TreeSet<Hash256> directoriesWithIndexesOutOfOrder() {
-        return directoriesWithIndexesOutOfOrder;
+        return directoriesModifiedMoreThanOnceByTransaction;
     }
 
     public boolean bad() {
