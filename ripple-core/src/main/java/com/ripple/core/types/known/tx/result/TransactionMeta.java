@@ -4,7 +4,7 @@ import com.ripple.core.coretypes.STArray;
 import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt8;
-import com.ripple.core.enums.EngineResult;
+import com.ripple.core.serialized.enums.EngineResult;
 import com.ripple.core.types.known.sle.LedgerEntry;
 
 import java.util.Iterator;

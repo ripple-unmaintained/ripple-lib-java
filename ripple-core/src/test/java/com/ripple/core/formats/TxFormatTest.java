@@ -1,6 +1,6 @@
 package com.ripple.core.formats;
 
-import com.ripple.core.enums.TransactionType;
+import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.fields.Field;
 import org.json.JSONArray;
 import org.json.JSONObject;

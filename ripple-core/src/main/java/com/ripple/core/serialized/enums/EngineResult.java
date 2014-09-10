@@ -1,8 +1,14 @@
-package com.ripple.core.enums;
+package com.ripple.core.serialized.enums;
+
+import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.BytesSink;
+import com.ripple.core.serialized.SerializedType;
+import com.ripple.core.serialized.TypeTranslator;
+import com.ripple.encodings.common.B16;
 
 import java.util.TreeMap;
 
-public enum EngineResult
+public enum EngineResult implements SerializedType
 {
     telLOCAL_ERROR(-399, "Local failure."),
     telBAD_DOMAIN (-398, "Domain too long."),
@@ -104,6 +110,7 @@ public enum EngineResult
 
     int ord;
     String human;
+    EngineResult class_ = null;
 
     EngineResult(int i, String s) {
         human = s;
@@ -123,45 +130,75 @@ public enum EngineResult
         return byCode.get(i.intValue());
     }
 
-    public Class resultClass() {
-        return Class.forResult(this);
+
+    /*Serialized Type implementation*/
+    @Override
+    public byte[] toBytes() {
+        return new byte[]{(byte) ord};
     }
 
-    // TODO, remove this Class class ;)
-    public static enum Class {
-        telLOCAL_ERROR(-399),
-        temMALFORMED(-299),
-        tefFAILURE(-199),
-        terRETRY(-99),
-        tesSUCCESS(0),
-        tecCLAIMED(100);
-
-        int starts;
-
-        Class(int i) {
-            starts = i;
-        }
-
-        public static Class forResult(EngineResult result) {
-            if (result.ord >= telLOCAL_ERROR.starts && result.ord < temMALFORMED.starts) {
-                return telLOCAL_ERROR;
-            }
-            if (result.ord >= temMALFORMED.starts && result.ord < tefFAILURE.starts) {
-                return temMALFORMED;
-            }
-            if (result.ord >= tefFAILURE.starts && result.ord < terRETRY.starts) {
-                return tefFAILURE;
-            }
-            if (result.ord >= terRETRY.starts && result.ord < tesSUCCESS.starts) {
-                return terRETRY;
-            }
-            if (result.ord >= tesSUCCESS.starts && result.ord < tecCLAIMED.starts) {
-                return tesSUCCESS;
-            }
-            return tecCLAIMED;
-        }
-
+    @Override
+    public void toBytesSink(BytesSink to) {
+        to.add((byte) ord);
     }
+
+    @Override
+    public Object toJSON() {
+        return toString();
+    }
+
+    @Override
+    public String toHex() {
+        return B16.toString(toBytes());
+    }
+
+    public static class Translator extends TypeTranslator<EngineResult> {
+        @Override
+        public EngineResult fromParser(BinaryParser parser, Integer hint) {
+            return fromInteger((int) parser.read(1)[0]);
+        }
+
+        @Override
+        public EngineResult fromString(String value) {
+            return EngineResult.valueOf(value);
+        }
+
+        @Override
+        public EngineResult fromInteger(int integer) {
+            return fromNumber(integer);
+        }
+    }
+
+    public static Translator translate = new Translator();
+
+    // Result Classes
+    public static EngineResult resultClass(EngineResult result) {
+        if (result.ord >= telLOCAL_ERROR.ord && result.ord < temMALFORMED.ord) {
+            return telLOCAL_ERROR;
+        }
+        if (result.ord >= temMALFORMED.ord && result.ord < tefFAILURE.ord) {
+            return temMALFORMED;
+        }
+        if (result.ord >= tefFAILURE.ord && result.ord < terRETRY.ord) {
+            return tefFAILURE;
+        }
+        if (result.ord >= terRETRY.ord && result.ord < tesSUCCESS.ord) {
+            return terRETRY;
+        }
+        if (result.ord >= tesSUCCESS.ord && result.ord < tecCLAIM.ord) {
+            return tesSUCCESS;
+        }
+        return tecCLAIM;
+    }
+    public EngineResult resultClass() {
+        return class_;
+    }
+    static {
+        for (EngineResult engineResult : EngineResult.values()) {
+            engineResult.class_ = resultClass(engineResult);
+        }
+    }
+
 }
 
 

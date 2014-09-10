@@ -3,8 +3,8 @@ package com.ripple.cli;
 
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
-import com.ripple.core.enums.EngineResult;
-import com.ripple.core.enums.TransactionType;
+import com.ripple.core.serialized.enums.EngineResult;
+import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.types.known.tx.result.TransactionResult;
 import org.json.JSONArray;
 import org.json.JSONException;

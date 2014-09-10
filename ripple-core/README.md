@@ -82,19 +82,17 @@ Moving on.
 ```
 com
 └── ripple
-    ├── core
-    │   │
-    │   ├── enums
-    │   │   ├── LedgerEntryType
-    │   │   ├── TransactionEngineResult
-    │   │   └── TransactionType
+    ├── serialized
+        ├── core
+            │
+            ├── enums
+            │   ├── LedgerEntryType
+            │   ├── EngineResult
+            │   └── TransactionType
 ```
 
 * In the json above look at the [TransactionResult](src/main/java/com/ripple/core/fields/Field.java#L141) field.
   Note that it has a Type of of UINT8, yet clearly it's represented in json as a string.
-
-  These `field symbolics` are enumerated [here](src/main/java/com/ripple/core/enums) and an
-  abstract interface for dealing with them [here](src/main/java/com/ripple/core/fields/FieldSymbolics.java#L9)
 
 #### com.ripple.core.fields.Type
 
@@ -117,14 +115,6 @@ com
   shifting the type ordinal 16 bits to the left and ORing it with the name.
 
   See: [com.ripple.core.fields.Field#fromCode](src/main/java/com/ripple/core/fields/Field.java)
-
-#### com.ripple.core.fields.FieldSymbolics
-
-  We've already seen the use of FieldSymbolics for
-
-  * TransactionResult
-  * LedgerEntryType
-  * TransactionType
 
 #### com.ripple.core.fields.HasField
 

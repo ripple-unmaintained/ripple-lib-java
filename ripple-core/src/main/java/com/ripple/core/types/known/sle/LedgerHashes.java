@@ -2,7 +2,7 @@ package com.ripple.core.types.known.sle;
 
 import com.ripple.core.coretypes.Vector256;
 import com.ripple.core.coretypes.uint.UInt32;
-import com.ripple.core.enums.LedgerEntryType;
+import com.ripple.core.serialized.enums.LedgerEntryType;
 
 public class LedgerHashes extends LedgerEntry {
     public LedgerHashes() {

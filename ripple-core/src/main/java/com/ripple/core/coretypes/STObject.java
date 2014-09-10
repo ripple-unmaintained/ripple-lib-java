@@ -7,10 +7,13 @@ import com.ripple.core.coretypes.uint.UInt16;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
-import com.ripple.core.enums.LedgerEntryType;
-import com.ripple.core.enums.EngineResult;
-import com.ripple.core.enums.TransactionType;
-import com.ripple.core.fields.*;
+import com.ripple.core.serialized.enums.EngineResult;
+import com.ripple.core.serialized.enums.LedgerEntryType;
+import com.ripple.core.serialized.enums.TransactionType;
+import com.ripple.core.fields.Field;
+import com.ripple.core.fields.HasField;
+import com.ripple.core.fields.Type;
+import com.ripple.core.fields.TypedFields;
 import com.ripple.core.formats.Format;
 import com.ripple.core.formats.LEFormat;
 import com.ripple.core.formats.TxFormat;
@@ -252,26 +255,15 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     public static EngineResult engineResult(STObject obj) {
-        UInt8 uInt8 = obj.get(UInt8.TransactionResult);
-        if (uInt8 == null) {
-            return null;
-        }
-        return EngineResult.fromNumber(uInt8.intValue());
+        return (EngineResult) obj.get(Field.TransactionResult);
     }
 
     static public LedgerEntryType ledgerEntryType(STObject obj) {
-        UInt16 uInt16 = obj.get(UInt16.LedgerEntryType);
-        if (uInt16 == null) {
-            return null;
-        }
-        return LedgerEntryType.fromNumber(uInt16);
+        return (LedgerEntryType) obj.get(Field.LedgerEntryType);
     }
+
     public static TransactionType transactionType(STObject obj) {
-        UInt16 uInt16 = obj.get(UInt16.TransactionType);
-        if (uInt16 == null) {
-            return null;
-        }
-        return TransactionType.fromNumber(uInt16);
+        return (TransactionType) obj.get(Field.TransactionType);
     }
 
     public SerializedType remove(Field f) {
@@ -344,10 +336,6 @@ public class STObject implements SerializedType, Iterable<Field> {
                 try {
                     SerializedType obj1 = obj.get(f);
                     Object object = obj1.toJSON();
-
-                    if (FieldSymbolics.isSymbolicField(f) && object instanceof Number) {
-                        object = FieldSymbolics.asString(f, (Number) object);
-                    }
                     json.put(f.name(), object);
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
@@ -368,12 +356,8 @@ public class STObject implements SerializedType, Iterable<Field> {
                     Object value   = jsonObject.get(key);
                     Field fieldKey = Field.fromString(key);
                     if (fieldKey == null) {
-                        // TODO test for UpperCase key name
-                        // warn about possibly unknown field
+                        // TODO test for UpperCase key name && warn about possibly unknown field
                         continue;
-                    }
-                    if (FieldSymbolics.isSymbolicField(fieldKey) && value instanceof String) {
-                        value = FieldSymbolics.asInteger(fieldKey, (String) value);
                     }
                     so.put(fieldKey, value);
                 } catch (JSONException e) {
@@ -428,17 +412,7 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     private void put(Field f, byte[] bytes) {
-        // TODO, all!!!
         put(f, Translators.forField(f).fromBytes(bytes));
-    }
-
-    public void put(Field f, String s) {
-        if (FieldSymbolics.isSymbolicField(f)) {
-            put(f, FieldSymbolics.asInteger(f, s));
-            return;
-        }
-
-        put(f, Translators.forField(f).fromString(s));
     }
 
     public void put(Field f, SerializedType value) {
@@ -447,14 +421,13 @@ public class STObject implements SerializedType, Iterable<Field> {
 
     public void put(Field f, Object value) {
         TypeTranslator typeTranslator = Translators.forField(f);
-        SerializedType value1 = null;
+        SerializedType st = null;
         try {
-            value1 = typeTranslator.fromValue(value);
+            st = typeTranslator.fromValue(value);
         } catch (Exception e) {
-
             throw new RuntimeException("Couldn't put `" +value+ "` into field `" + f + "`\n" + e.toString());
         }
-        fields.put(f, value1);
+        fields.put(f, st);
     }
 
     public AccountID get(TypedFields.AccountIDField f) {
@@ -505,6 +478,10 @@ public class STObject implements SerializedType, Iterable<Field> {
         return (UInt8) get(f.getField());
     }
 
+    public EngineResult get(TypedFields.EngineResultField f) {
+        return (EngineResult) get(f.getField());
+    }
+
     public Vector256 get(TypedFields.Vector256Field f) {
         return (Vector256) get(f.getField());
     }
@@ -514,7 +491,7 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     public static class Translators {
-        public static TypeTranslator forType(Type type) {
+        private static TypeTranslator forType(Type type) {
             switch (type) {
 
                 case STObject:      return translate;
@@ -538,7 +515,26 @@ public class STObject implements SerializedType, Iterable<Field> {
 
         public static TypeTranslator<SerializedType> forField(Field field) {
             if (field.tag == null) {
-                field.tag = forType(field.getType());
+                switch (field) {
+/*
+                    case CloseTime:
+                    case ParentCloseTime:
+                    case SigningTime:
+                        break;
+*/
+                    case LedgerEntryType:
+                        field.tag = LedgerEntryType.translate;
+                        break;
+                    case TransactionType:
+                        field.tag = TransactionType.translate;
+                        break;
+                    case TransactionResult:
+                        field.tag = EngineResult.translate;
+                        break;
+                    default:
+                        field.tag = forType(field.getType());
+                        break;
+                }
             }
             return getCastedTag(field);
         }

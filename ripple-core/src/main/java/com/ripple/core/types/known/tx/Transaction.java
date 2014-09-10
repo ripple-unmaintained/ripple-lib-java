@@ -4,7 +4,7 @@ import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.hash.HalfSha512;
 import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.enums.TransactionFlag;
-import com.ripple.core.enums.TransactionType;
+import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.fields.Field;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.coretypes.Amount;

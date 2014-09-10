@@ -2,7 +2,7 @@ package com.ripple.core.types.known.tx.result;
 
 import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.hash.Hash256;
-import com.ripple.core.enums.LedgerEntryType;
+import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
 import com.ripple.core.serialized.SerializedType;
 

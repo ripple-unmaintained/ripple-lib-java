@@ -8,7 +8,7 @@ import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.subscriptions.TrackedAccountRoot;
 import com.ripple.client.subscriptions.ServerInfo;
-import com.ripple.core.enums.EngineResult;
+import com.ripple.core.serialized.enums.EngineResult;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.hash.Hash256;
@@ -323,7 +323,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 break;
             default:
                 switch (ter.resultClass()) {
-                    case tecCLAIMED:
+                    case tecCLAIM:
                         // Sequence was consumed, do nothing
                         finalizeTxnAndRemoveFromQueue(txn);
                         txn.emit(ManagedTxn.OnSubmitFailure.class, res);

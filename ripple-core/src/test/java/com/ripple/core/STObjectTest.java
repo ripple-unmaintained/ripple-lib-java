@@ -21,8 +21,8 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.Test;
 
-import com.ripple.core.enums.LedgerEntryType;
-import com.ripple.core.enums.EngineResult;
+import com.ripple.core.serialized.enums.LedgerEntryType;
+import com.ripple.core.serialized.enums.EngineResult;
 import com.ripple.core.fields.Field;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.BinaryParser;

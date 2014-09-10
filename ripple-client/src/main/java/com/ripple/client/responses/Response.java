@@ -2,7 +2,7 @@ package com.ripple.client.responses;
 
 import com.ripple.client.enums.RPCErr;
 import com.ripple.client.requests.Request;
-import com.ripple.core.enums.EngineResult;
+import com.ripple.core.serialized.enums.EngineResult;
 import com.ripple.core.coretypes.uint.UInt32;
 import org.json.JSONException;
 import org.json.JSONObject;

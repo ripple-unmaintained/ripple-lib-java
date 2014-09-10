@@ -1,6 +1,6 @@
 package com.ripple.core.types.known.tx;
 
-import com.ripple.core.enums.TransactionType;
+import com.ripple.core.serialized.enums.TransactionType;
 
 public class TicketCreate extends Transaction {
     public TicketCreate() {

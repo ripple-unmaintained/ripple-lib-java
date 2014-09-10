@@ -6,7 +6,7 @@ import com.ripple.core.coretypes.hash.HalfSha512;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.coretypes.uint.UInt32;
-import com.ripple.core.enums.TransactionType;
+import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.serialized.BytesList;
 import com.ripple.core.serialized.MultiSink;
 import com.ripple.core.types.known.tx.Transaction;

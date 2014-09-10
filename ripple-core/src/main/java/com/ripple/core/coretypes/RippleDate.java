@@ -2,12 +2,15 @@ package com.ripple.core.coretypes;
 
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.BytesSink;
+import com.ripple.core.serialized.SerializedType;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+//public class RippleDate extends Date implements SerializedType {
 public class RippleDate extends Date {
     public static long RIPPLE_EPOCH_SECONDS_OFFSET = 0x386D4380;
     static {
@@ -51,4 +54,24 @@ public class RippleDate extends Date {
     public static RippleDate now() {
         return new RippleDate();
     }
+
+/*    @Override
+    public Object toJSON() {
+        return secondsSinceRippleEpoch();
+    }
+
+    @Override
+    public byte[] toBytes() {
+        return new UInt32(secondsSinceRippleEpoch()).toBytes();
+    }
+
+    @Override
+    public String toHex() {
+        return new UInt32(secondsSinceRippleEpoch()).toHex();
+    }
+
+    @Override
+    public void toBytesSink(BytesSink to) {
+        new UInt32(secondsSinceRippleEpoch()).toBytesSink(to);
+    }*/
 }

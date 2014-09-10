@@ -1,9 +1,7 @@
 package com.ripple.cli;
 
 import com.ripple.core.coretypes.Amount;
-import com.ripple.core.coretypes.STArray;
 import com.ripple.core.coretypes.STObject;
-import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.tx.Transaction;
