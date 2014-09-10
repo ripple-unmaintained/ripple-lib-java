@@ -2,7 +2,7 @@ package com.ripple.core.enums;
 
 import java.util.TreeMap;
 
-public enum TransactionEngineResult
+public enum EngineResult
 {
     telLOCAL_ERROR(-399, "Local failure."),
     telBAD_DOMAIN (-398, "Domain too long."),
@@ -105,21 +105,21 @@ public enum TransactionEngineResult
     int ord;
     String human;
 
-    TransactionEngineResult(int i, String s) {
+    EngineResult(int i, String s) {
         human = s;
         ord = i;
     }
 
-    private static TreeMap<Integer, TransactionEngineResult> byCode;
+    private static TreeMap<Integer, EngineResult> byCode;
 
     static {
-        byCode = new TreeMap<Integer, TransactionEngineResult>();
-        for (TransactionEngineResult ter : TransactionEngineResult.values()) {
+        byCode = new TreeMap<Integer, EngineResult>();
+        for (EngineResult ter : EngineResult.values()) {
             byCode.put(ter.ord, ter);
         }
     }
 
-    public static TransactionEngineResult fromNumber(Number i) {
+    public static EngineResult fromNumber(Number i) {
         return byCode.get(i.intValue());
     }
 
@@ -142,7 +142,7 @@ public enum TransactionEngineResult
             starts = i;
         }
 
-        public static Class forResult(TransactionEngineResult result) {
+        public static Class forResult(EngineResult result) {
             if (result.ord >= telLOCAL_ERROR.starts && result.ord < temMALFORMED.starts) {
                 return telLOCAL_ERROR;
             }

@@ -22,7 +22,7 @@ import org.json.JSONTokener;
 import org.junit.Test;
 
 import com.ripple.core.enums.LedgerEntryType;
-import com.ripple.core.enums.TransactionEngineResult;
+import com.ripple.core.enums.EngineResult;
 import com.ripple.core.fields.Field;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.BinaryParser;
@@ -445,8 +445,8 @@ public class STObjectTest {
         STArray nodes = meta.get(STArray.AffectedNodes);
 
         // Some helper methods to get enum fields
-        assertEquals(TransactionEngineResult.tesSUCCESS,
-                meta.transactionResult());
+        assertEquals(EngineResult.tesSUCCESS,
+                meta.engineResult());
 
         STObject firstAffected = nodes.get(0);
         assertEquals(LedgerEntryType.AccountRoot,

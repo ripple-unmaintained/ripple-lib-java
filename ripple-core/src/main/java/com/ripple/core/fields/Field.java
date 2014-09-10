@@ -256,7 +256,7 @@ public enum Field {
         return signingField;
     }
     private static boolean isSerialized(Field f) {
-        // This should screen out `hash` and `index`
+        // This should screen out `hash` and `index` and the like
         return ((f.type.id > 0) && (f.type.id < 256) && (f.id > 0) && (f.id < 256));
     }
 

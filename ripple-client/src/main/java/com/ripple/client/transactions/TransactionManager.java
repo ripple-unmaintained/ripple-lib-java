@@ -8,7 +8,7 @@ import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.client.subscriptions.TrackedAccountRoot;
 import com.ripple.client.subscriptions.ServerInfo;
-import com.ripple.core.enums.TransactionEngineResult;
+import com.ripple.core.enums.EngineResult;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.hash.Hash256;
@@ -286,7 +286,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         if (txn.finalizedOrResponseIsToPriorSubmission(res)) {
             return;
         }
-        TransactionEngineResult ter = res.engineResult();
+        EngineResult ter = res.engineResult();
         final UInt32 submitSequence = res.getSubmitSequence();
         switch (ter) {
             case tesSUCCESS:

@@ -2,7 +2,7 @@ package com.ripple.client.responses;
 
 import com.ripple.client.enums.RPCErr;
 import com.ripple.client.requests.Request;
-import com.ripple.core.enums.TransactionEngineResult;
+import com.ripple.core.enums.EngineResult;
 import com.ripple.core.coretypes.uint.UInt32;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,9 +40,9 @@ public class Response {
         }
     }
 
-    public TransactionEngineResult engineResult() {
+    public EngineResult engineResult() {
         try {
-            return TransactionEngineResult.valueOf(result.getString("engine_result"));
+            return EngineResult.valueOf(result.getString("engine_result"));
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }

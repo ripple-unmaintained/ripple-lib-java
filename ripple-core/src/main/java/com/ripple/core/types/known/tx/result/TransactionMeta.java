@@ -4,13 +4,8 @@ import com.ripple.core.coretypes.STArray;
 import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt8;
-import com.ripple.core.enums.LedgerEntryType;
-import com.ripple.core.enums.TransactionEngineResult;
+import com.ripple.core.enums.EngineResult;
 import com.ripple.core.types.known.sle.LedgerEntry;
-import com.ripple.core.types.known.sle.entries.AccountRoot;
-import com.ripple.core.types.known.sle.entries.DirectoryNode;
-import com.ripple.core.types.known.sle.entries.Offer;
-import com.ripple.core.types.known.sle.entries.RippleState;
 
 import java.util.Iterator;
 
@@ -20,8 +15,8 @@ public class TransactionMeta extends STObject {
                 source.has(STArray.AffectedNodes);
     }
 
-    public TransactionEngineResult transactionResult() {
-        return transactionResult(this);
+    public EngineResult engineResult() {
+        return engineResult(this);
     }
 
     public Iterable<AffectedNode> affectedNodes() {

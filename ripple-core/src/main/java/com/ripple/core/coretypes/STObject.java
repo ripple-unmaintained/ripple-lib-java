@@ -8,11 +8,11 @@ import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
 import com.ripple.core.enums.LedgerEntryType;
-import com.ripple.core.enums.TransactionEngineResult;
+import com.ripple.core.enums.EngineResult;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.fields.*;
 import com.ripple.core.formats.Format;
-import com.ripple.core.formats.SLEFormat;
+import com.ripple.core.formats.LEFormat;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.*;
 import com.ripple.core.types.known.sle.LedgerEntry;
@@ -21,6 +21,8 @@ import com.ripple.core.types.known.sle.entries.AccountRoot;
 import com.ripple.core.types.known.sle.entries.DirectoryNode;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.sle.entries.RippleState;
+import com.ripple.core.types.known.tx.TicketCancel;
+import com.ripple.core.types.known.tx.TicketCreate;
 import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.core.types.known.tx.result.AffectedNode;
 import com.ripple.core.types.known.tx.result.TransactionMeta;
@@ -121,6 +123,12 @@ public class STObject implements SerializedType, Iterable<Field> {
                 break;
             case Contract:
                 break;
+            case TicketCreate:
+                constructed = new TicketCreate();
+                break;
+            case TicketCancel:
+                constructed = new TicketCancel();
+                break;
             case TrustSet:
                 constructed = new TrustSet();
                 break;
@@ -128,6 +136,7 @@ public class STObject implements SerializedType, Iterable<Field> {
                 break;
             case SetFee:
                 break;
+
         }
         if (constructed == null) {
             constructed = new Transaction(transactionType);
@@ -157,14 +166,12 @@ public class STObject implements SerializedType, Iterable<Field> {
                 break;
             case GeneratorMap:
                 break;
-            case Nickname:
-                break;
             case Contract:
                 break;
             case LedgerHashes:
                 constructed = new LedgerHashes();
                 break;
-            case EnabledFeatures:
+            case EnabledAmendments:
                 break;
             case FeeSettings:
                 break;
@@ -236,7 +243,7 @@ public class STObject implements SerializedType, Iterable<Field> {
         }
         UInt16 let = get(UInt16.LedgerEntryType);
         if (let != null) {
-            setFormat(SLEFormat.fromNumber(let));
+            setFormat(LEFormat.fromNumber(let));
         }
     }
 
@@ -244,15 +251,12 @@ public class STObject implements SerializedType, Iterable<Field> {
         this.format = format;
     }
 
-    // TODO, move these some where more specific
-    // leave these here as static methods
-    // delegate from more specific places
-    public static TransactionEngineResult transactionResult(STObject obj) {
+    public static EngineResult engineResult(STObject obj) {
         UInt8 uInt8 = obj.get(UInt8.TransactionResult);
         if (uInt8 == null) {
             return null;
         }
-        return TransactionEngineResult.fromNumber(uInt8.intValue());
+        return EngineResult.fromNumber(uInt8.intValue());
     }
 
     static public LedgerEntryType ledgerEntryType(STObject obj) {
@@ -512,22 +516,23 @@ public class STObject implements SerializedType, Iterable<Field> {
     public static class Translators {
         public static TypeTranslator forType(Type type) {
             switch (type) {
-                case STObject:     return translate;
 
-                case Amount:     return Amount.translate;
-                case UInt16:     return UInt16.translate;
-                case UInt32:     return UInt32.translate;
-                case UInt64:     return UInt64.translate;
-                case Hash128:    return Hash128.translate;
-                case Hash256:    return Hash256.translate;
-                case VariableLength:         return VariableLength.translate;
-                case AccountID:    return AccountID.translate;
-                case STArray:      return STArray.translate;
-                case UInt8:      return UInt8.translate;
-                case Hash160:    return Hash160.translate;
-                case PathSet:    return PathSet.translate;
-                case Vector256:  return Vector256.translate;
-                default:         throw new RuntimeException("Unknown type");
+                case STObject:      return translate;
+                case Amount:        return Amount.translate;
+                case UInt16:        return UInt16.translate;
+                case UInt32:        return UInt32.translate;
+                case UInt64:        return UInt64.translate;
+                case Hash128:       return Hash128.translate;
+                case Hash256:       return Hash256.translate;
+                case VariableLength:return VariableLength.translate;
+                case AccountID:     return AccountID.translate;
+                case STArray:       return STArray.translate;
+                case UInt8:         return UInt8.translate;
+                case Hash160:       return Hash160.translate;
+                case PathSet:       return PathSet.translate;
+                case Vector256:     return Vector256.translate;
+
+                default:            throw new RuntimeException("Unknown type");
             }
         }
 

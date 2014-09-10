@@ -2,11 +2,9 @@ package com.ripple.core.formats;
 
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.Type;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
-import org.omg.DynamicAny._DynArrayStub;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -14,23 +12,23 @@ import java.util.Set;
 
 import static junit.framework.TestCase.assertNotNull;
 
-public class SLEFormatTest {
+public class LEFormatTest {
     @Test
     public void testFromValue() throws Exception {
 
-        SLEFormat accountRoot = SLEFormat.fromValue("AccountRoot");
+        LEFormat accountRoot = LEFormat.fromValue("AccountRoot");
         assertNotNull(accountRoot);
     }
 
 
 //    @Test
     public void dumpSLEGetters() throws Exception {
-        Set<Map.Entry<LedgerEntryType, SLEFormat>> entries = SLEFormat.formats.entrySet();
+        Set<Map.Entry<LedgerEntryType, LEFormat>> entries = LEFormat.formats.entrySet();
         JSONObject formats = new JSONObject();
 
-        for (Map.Entry<LedgerEntryType, SLEFormat> entry : entries) {
+        for (Map.Entry<LedgerEntryType, LEFormat> entry : entries) {
             LedgerEntryType key = entry.getKey();
-            SLEFormat value = entry.getValue();
+            LEFormat value = entry.getValue();
             JSONArray array = new JSONArray();
             formats.put(key.toString(), array);
             array.put(key.asInteger());
@@ -102,12 +100,12 @@ public class SLEFormatTest {
 
     //    @Test
     public void testDumps() throws Exception {
-        Set<Map.Entry<LedgerEntryType, SLEFormat>> entries = SLEFormat.formats.entrySet();
+        Set<Map.Entry<LedgerEntryType, LEFormat>> entries = LEFormat.formats.entrySet();
         JSONObject formats = new JSONObject();
 
-        for (Map.Entry<LedgerEntryType, SLEFormat> entry : entries) {
+        for (Map.Entry<LedgerEntryType, LEFormat> entry : entries) {
             LedgerEntryType key = entry.getKey();
-            SLEFormat value = entry.getValue();
+            LEFormat value = entry.getValue();
             JSONArray array = new JSONArray();
             formats.put(key.toString(), array);
             array.put(key.asInteger());

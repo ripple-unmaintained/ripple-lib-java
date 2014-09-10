@@ -8,19 +8,17 @@ import com.ripple.core.coretypes.uint.UInt16;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
-import com.ripple.core.formats.SLEFormat;
+import com.ripple.core.formats.LEFormat;
 import com.ripple.core.types.known.sle.entries.AccountRoot;
 import com.ripple.core.types.known.sle.entries.DirectoryNode;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.sle.entries.RippleState;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.TreeSet;
 
 public class LedgerEntry extends STObject {
     public LedgerEntry(LedgerEntryType type) {
-        setFormat(SLEFormat.formats.get(type));
+        setFormat(LEFormat.formats.get(type));
         put(UInt16.LedgerEntryType, type.asInteger());
     }
 

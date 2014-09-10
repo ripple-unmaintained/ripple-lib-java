@@ -15,7 +15,7 @@ public enum LedgerSpace implements Prefix {
     skipList('s'),
     amendment('f'),
     fee('e'),
-    spaceTicket('T'),
+    ticket('T'),
 
     // no longer used
     nickname('n'),;

@@ -1,7 +1,7 @@
 package com.ripple.core.fields;
 
 import com.ripple.core.enums.LedgerEntryType;
-import com.ripple.core.enums.TransactionEngineResult;
+import com.ripple.core.enums.EngineResult;
 import com.ripple.core.enums.TransactionType;
 
 import java.util.EnumMap;
@@ -41,12 +41,12 @@ public class FieldSymbolics {
         lookup.put(Field.TransactionResult, new Enums() {
             @Override
             public String asString(int i) {
-                return TransactionEngineResult.fromNumber(i).name();
+                return EngineResult.fromNumber(i).name();
             }
 
             @Override
             public Integer asInteger(String s) {
-                return TransactionEngineResult.valueOf(s).asInteger();
+                return EngineResult.valueOf(s).asInteger();
             }
         });
     }

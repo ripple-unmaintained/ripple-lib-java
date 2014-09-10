@@ -8,7 +8,7 @@ import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt8;
 import com.ripple.core.enums.LedgerEntryType;
-import com.ripple.core.enums.TransactionEngineResult;
+import com.ripple.core.enums.EngineResult;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.fields.Field;
 import com.ripple.core.types.known.tx.Transaction;
@@ -30,7 +30,7 @@ public class TransactionResult implements Comparable<TransactionResult>{
         transaction_subscription_notification
     }
 
-    public TransactionEngineResult engineResult;
+    public EngineResult engineResult;
     public Hash256 ledgerHash; // TODO, consider just killing this field, as not all have them
     public Hash256 hash;
 
@@ -42,7 +42,7 @@ public class TransactionResult implements Comparable<TransactionResult>{
         this.hash = hash;
         this.txn = txn;
         this.meta = meta;
-        this.engineResult = meta.transactionResult();
+        this.engineResult = meta.engineResult();
         this.validated = true;
     }
 
@@ -187,7 +187,7 @@ public class TransactionResult implements Comparable<TransactionResult>{
         try {
             if (resultMessageSource == Source.transaction_subscription_notification) {
 
-                engineResult = TransactionEngineResult.valueOf(json.getString("engine_result"));
+                engineResult = EngineResult.valueOf(json.getString("engine_result"));
                 validated = json.getBoolean("validated");
                 ledgerHash = Hash256.translate.fromString(json.getString("ledger_hash"));
                 ledgerIndex = new UInt32(json.getLong("ledger_index"));
@@ -210,7 +210,7 @@ public class TransactionResult implements Comparable<TransactionResult>{
                     meta = (TransactionMeta) STObject.translate.fromJSONObject(json.getJSONObject("metaData"));
                     txn = (Transaction) STObject.translate.fromJSONObject(json);
                     hash = txn.get(Hash256.hash);
-                    engineResult = meta.transactionResult();
+                    engineResult = meta.engineResult();
                     ledgerIndex = new UInt32(json.getLong("ledger_index"));
                     ledgerHash = null;
                 }
@@ -222,7 +222,7 @@ public class TransactionResult implements Comparable<TransactionResult>{
                 }
                 if (validated) {
                     meta = (TransactionMeta) STObject.fromJSONObject(json.getJSONObject("meta"));
-                    engineResult = TransactionEngineResult.fromNumber(meta.get(UInt8.TransactionResult));
+                    engineResult = EngineResult.fromNumber(meta.get(UInt8.TransactionResult));
                     txn = (Transaction) STObject.fromJSONObject(json);
                     hash = txn.get(Hash256.hash);
                     ledgerHash = null; // XXXXXX
@@ -235,7 +235,7 @@ public class TransactionResult implements Comparable<TransactionResult>{
                 if (validated) {
                     JSONObject tx = json.getJSONObject("tx");
                     meta = (TransactionMeta) STObject.fromJSONObject(json.getJSONObject("meta"));
-                    engineResult = meta.transactionResult();
+                    engineResult = meta.engineResult();
                     this.txn = (Transaction) STObject.fromJSONObject(tx);
                     hash = this.txn.get(Hash256.hash);
                     ledgerIndex = new UInt32(tx.getLong("ledger_index"));
@@ -269,7 +269,7 @@ public class TransactionResult implements Comparable<TransactionResult>{
                     }
                     this.txn.put(Field.hash, hash);
 
-                    engineResult = meta.transactionResult();
+                    engineResult = meta.engineResult();
                     ledgerIndex = new UInt32(json.getLong("ledger_index"));
                     ledgerHash = null;
                 }

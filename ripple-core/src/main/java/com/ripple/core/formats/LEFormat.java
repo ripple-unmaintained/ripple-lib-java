@@ -5,18 +5,18 @@ import com.ripple.core.fields.Field;
 
 import java.util.EnumMap;
 
-public class SLEFormat extends Format {
-    static public EnumMap<LedgerEntryType, SLEFormat> formats = new EnumMap<LedgerEntryType, SLEFormat>(LedgerEntryType.class);
+public class LEFormat extends Format {
+    static public EnumMap<LedgerEntryType, LEFormat> formats = new EnumMap<LedgerEntryType, LEFormat>(LedgerEntryType.class);
 
-    static public SLEFormat fromString(String name) {
+    static public LEFormat fromString(String name) {
         return getLedgerFormat(LedgerEntryType.valueOf(name));
     }
 
-    static public SLEFormat fromNumber(Number ord) {
+    static public LEFormat fromNumber(Number ord) {
         return getLedgerFormat(LedgerEntryType.fromNumber(ord));
     }
 
-    static public SLEFormat fromValue(Object o) {
+    static public LEFormat fromValue(Object o) {
         if (o instanceof Number) {
             return fromNumber(((Number) o).intValue());
         } else if (o instanceof String){
@@ -27,14 +27,14 @@ public class SLEFormat extends Format {
         }
     }
 
-    public static SLEFormat getLedgerFormat(LedgerEntryType key) {
+    public static LEFormat getLedgerFormat(LedgerEntryType key) {
         if (key == null) return null;
         return formats.get(key);
     }
 
     public final LedgerEntryType ledgerEntryType;
 
-    public SLEFormat(LedgerEntryType type, Object... args) {
+    public LEFormat(LedgerEntryType type, Object... args) {
         super(args);
         ledgerEntryType = type;
         addCommonFields();
@@ -48,7 +48,7 @@ public class SLEFormat extends Format {
         put(Field.Flags,                   Requirement.REQUIRED);
     }
 
-    public static SLEFormat AccountRoot = new SLEFormat(
+    public static LEFormat AccountRoot = new LEFormat(
             LedgerEntryType.AccountRoot,
             Field.Account,             Requirement.REQUIRED,
             Field.Sequence,            Requirement.REQUIRED,
@@ -65,7 +65,7 @@ public class SLEFormat extends Format {
             Field.Domain,              Requirement.OPTIONAL
     );
 
-    public static SLEFormat Contract = new SLEFormat(
+    public static LEFormat Contract = new LEFormat(
             LedgerEntryType.Contract,
             Field.Account,             Requirement.REQUIRED,
             Field.Balance,             Requirement.REQUIRED,
@@ -81,7 +81,7 @@ public class SLEFormat extends Format {
             Field.ExpireCode,          Requirement.OPTIONAL
     );
 
-    public static SLEFormat DirectoryNode = new SLEFormat(
+    public static LEFormat DirectoryNode = new LEFormat(
             LedgerEntryType.DirectoryNode,
             Field.Owner,               Requirement.OPTIONAL,  // for owner directories
             Field.TakerPaysCurrency,   Requirement.OPTIONAL,  // for order book directories
@@ -95,18 +95,12 @@ public class SLEFormat extends Format {
             Field.IndexPrevious,       Requirement.OPTIONAL
     );
 
-    public static SLEFormat GeneratorMap = new SLEFormat(
+    public static LEFormat GeneratorMap = new LEFormat(
             LedgerEntryType.GeneratorMap,
             Field.Generator,           Requirement.REQUIRED
     );
 
-    public static SLEFormat Nickname = new SLEFormat(
-            LedgerEntryType.Nickname,
-            Field.Account,             Requirement.REQUIRED,
-            Field.MinimumOffer,        Requirement.OPTIONAL
-    );
-
-    public static SLEFormat Offer = new SLEFormat(
+    public static LEFormat Offer = new LEFormat(
             LedgerEntryType.Offer,
             Field.Account,             Requirement.REQUIRED,
             Field.Sequence,            Requirement.REQUIRED,
@@ -120,7 +114,18 @@ public class SLEFormat extends Format {
             Field.Expiration,          Requirement.OPTIONAL
     );
 
-    public static SLEFormat RippleState = new SLEFormat(
+    public static LEFormat Ticket = new LEFormat(
+            LedgerEntryType.Ticket,
+            Field.PreviousTxnID,       Requirement.REQUIRED,
+            Field.PreviousTxnLgrSeq,   Requirement.REQUIRED,
+            Field.Account,             Requirement.REQUIRED,
+            Field.Sequence,            Requirement.REQUIRED,
+            Field.OwnerNode,           Requirement.REQUIRED,
+            Field.Target,              Requirement.OPTIONAL,
+            Field.Expiration,          Requirement.OPTIONAL
+    );
+
+    public static LEFormat RippleState = new LEFormat(
             LedgerEntryType.RippleState,
             Field.Balance,             Requirement.REQUIRED,
             Field.LowLimit,            Requirement.REQUIRED,
@@ -135,19 +140,19 @@ public class SLEFormat extends Format {
             Field.HighQualityOut,      Requirement.OPTIONAL
     );
 
-    public static SLEFormat LedgerHashes = new SLEFormat(
+    public static LEFormat LedgerHashes = new LEFormat(
             LedgerEntryType.LedgerHashes,
             Field.FirstLedgerSequence, Requirement.OPTIONAL, // Remove if we do a ledger restart
             Field.LastLedgerSequence,  Requirement.OPTIONAL,
             Field.Hashes,              Requirement.REQUIRED
     );
 
-    public static SLEFormat EnabledFeatures = new SLEFormat(
-            LedgerEntryType.EnabledFeatures,
+    public static LEFormat EnabledAmendments = new LEFormat(
+            LedgerEntryType.EnabledAmendments,
             Field.Features, Requirement.REQUIRED
     );
 
-    public static SLEFormat FeeSettings = new SLEFormat(
+    public static LEFormat FeeSettings = new LEFormat(
             LedgerEntryType.FeeSettings,
             Field.BaseFee,             Requirement.REQUIRED,
             Field.ReferenceFeeUnits,   Requirement.REQUIRED,

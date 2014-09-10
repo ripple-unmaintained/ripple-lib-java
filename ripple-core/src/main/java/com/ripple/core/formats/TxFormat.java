@@ -85,6 +85,15 @@ public class TxFormat extends Format {
             TransactionType.OfferCancel,
             Field.OfferSequence,   Requirement.REQUIRED);
 
+    static public TxFormat TicketCreate = new TxFormat(
+            TransactionType.TicketCreate,
+            Field.Target,     Requirement.OPTIONAL,
+            Field.Expiration, Requirement.OPTIONAL);
+
+    static public TxFormat TicketCancel = new TxFormat(
+            TransactionType.TicketCancel,
+            Field.TicketID,   Requirement.REQUIRED);
+
     static public TxFormat SetRegularKey = new TxFormat(
             TransactionType.SetRegularKey,
             Field.RegularKey,  Requirement.OPTIONAL);

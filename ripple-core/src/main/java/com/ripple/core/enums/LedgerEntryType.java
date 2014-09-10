@@ -8,12 +8,13 @@ public enum LedgerEntryType {
     DirectoryNode('d'),
     GeneratorMap ('g'),
     RippleState ('r'),
-    Nickname ('n'),
+    // Nickname ('n'), // deprecated
     Offer ('o'),
     Contract ('c'),
     LedgerHashes ('h'),
-    EnabledFeatures('f'),
-    FeeSettings ('s');
+    EnabledAmendments('f'),
+    FeeSettings ('s'),
+    Ticket('T');
 
     final int ord;
     LedgerEntryType(int i) {

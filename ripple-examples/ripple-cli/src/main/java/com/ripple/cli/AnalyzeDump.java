@@ -3,7 +3,7 @@ package com.ripple.cli;
 
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
-import com.ripple.core.enums.TransactionEngineResult;
+import com.ripple.core.enums.EngineResult;
 import com.ripple.core.enums.TransactionType;
 import com.ripple.core.types.known.tx.result.TransactionResult;
 import org.json.JSONArray;
@@ -64,7 +64,7 @@ public class AnalyzeDump {
                 TransactionResult tr;
                 tr = new TransactionResult(tx, TransactionResult.Source.request_account_tx_binary);
 
-                if (tr.engineResult      == TransactionEngineResult.tesSUCCESS &&
+                if (tr.engineResult      == EngineResult.tesSUCCESS &&
                     tr.transactionType() == TransactionType.Payment            &&
                     tr.initiatingAccount().equals(giveAwayAccount)) {
                     Amount amount = tr.txn.get(Amount.Amount);
