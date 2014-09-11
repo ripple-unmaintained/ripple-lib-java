@@ -1,13 +1,8 @@
 package com.ripple.core;
 
 import com.ripple.core.coretypes.AccountID;
+import com.ripple.crypto.ecdsa.Seed;
 
-/**
- * Created with IntelliJ IDEA.
- * User: nick
- * Date: 8/10/13
- * Time: 3:25 PM
- */
 public class TestFixtures {
     /*
     * From wallet_propose masterpassphrase
@@ -33,6 +28,6 @@ public class TestFixtures {
             (byte)0x1c };
     public static String singed_master_seed_bytes = "3046022100eb46f96961453219b5e2baa263f01d66c3c7d3ca0672623f13b9a24508d0a56c022100b1b64510c7f415e902f00071d821a112fe489f0fb4fb6f87b411e88a73b40e70";
 
-    public static AccountID root_account = AccountID.fromSeedString(master_seed);
-    public static AccountID bob_account = AccountID.fromSeedString("shn6zJ8zzkaoFSfsEWvJLZf3V344C");
+    public static AccountID root_account = AccountID.fromKeyPair(Seed.fromBase58(master_seed).keyPair());
+    public static AccountID bob_account = AccountID.fromKeyPair(Seed.fromBase58("shn6zJ8zzkaoFSfsEWvJLZf3V344C").keyPair());
 }

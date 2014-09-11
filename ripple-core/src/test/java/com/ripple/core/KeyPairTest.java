@@ -18,7 +18,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class KeyPairTest {
-    IKeyPair keyPair = Seed.createKeyPair(TestFixtures.master_seed_bytes);
+    IKeyPair keyPair = Seed.createKeyPair(TestFixtures.master_seed_bytes, 0);
 
     @Test
     public void testVerify() {

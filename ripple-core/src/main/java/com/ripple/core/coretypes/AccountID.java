@@ -46,12 +46,10 @@ public class AccountID extends Hash160 {
         return address;
     }
 
-    @Deprecated
     static public AccountID fromSeedString(String seed) {
         return fromKeyPair(Seed.getKeyPair(seed));
     }
 
-    @Deprecated
     static public AccountID fromSeedBytes(byte[] seed) {
         return fromKeyPair(Seed.getKeyPair(seed));
     }

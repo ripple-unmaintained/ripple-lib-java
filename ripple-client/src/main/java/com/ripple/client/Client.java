@@ -468,7 +468,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         }
     }
     public Account accountFromSeed(String masterSeed) {
-        IKeyPair kp = Seed.getKeyPair(masterSeed);
+        IKeyPair kp = Seed.fromBase58(masterSeed).keyPair();
         return account(AccountID.fromKeyPair(kp), kp);
     }
 
