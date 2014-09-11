@@ -1,13 +1,9 @@
 package com.ripple.core.types.shamap2;
 
-import com.ripple.core.coretypes.hash.Hash;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.coretypes.hash.prefixes.Prefix;
 import com.ripple.core.serialized.BytesSink;
-
-import java.util.ArrayDeque;
-import java.util.Iterator;
 
 public class ShaMapInner extends ShaMapNode {
     private ShaMapNode[] branches = new ShaMapNode[16];
@@ -45,7 +41,9 @@ public class ShaMapInner extends ShaMapNode {
     }
 
     protected ShaMapInner makeInnerChild() {
-        return new ShaMapInner(doCoW, depth + 1, version);
+        int childDepth = depth + 1;
+        if (childDepth >= 64) throw new AssertionError();
+        return new ShaMapInner(doCoW, childDepth, version);
     }
 
     // Descend into the tree, find the leaf matching this index
@@ -58,126 +56,12 @@ public class ShaMapInner extends ShaMapNode {
         removeBranch(selectBranch(index));
     }
 
-    public static class PathToIndex {
-        Hash256 index;
-        ArrayDeque<ShaMapInner> inners;
-        ShaMapInner[] dirtied;
-
-        ShaMapLeaf leaf = null;
-        boolean matched = false;
-
-        public boolean hasLeaf() {
-            return leaf != null;
-        }
-
-        public boolean leafMatchedIndex() {
-            return matched;
-        }
-
-        // returns the
-        public ShaMapInner dirtyOrCopyInners() {
-            if (maybeCopyOnWrite()) {
-                int ix = 0;
-                // We want to make a uniformly accessed array of the inners
-                dirtied = new ShaMapInner[inners.size()];
-                // from depth 0 to 1, to 2, to 3, don't be fooled by the api
-                Iterator<ShaMapInner> it = inners.descendingIterator();
-
-                // This is actually the root which COULD be the top of the stack
-                // Think about it ;)
-                ShaMapInner top = it.next();
-                dirtied[ix++] = top;
-                top.invalidate();
-                // we set this to true, but we may
-                boolean doCopies = true;
-
-                while (it.hasNext()) {
-                    ShaMapInner next = it.next();
-                    if (ix == 1) {
-                        doCopies = next.version != top.version;
-                    }
-
-                    if (doCopies) {
-                        ShaMapInner copy = next.copy(top.version);
-                        copy.invalidate();
-                        top.setBranch(index, copy);
-                        next = copy;
-                    } else {
-                        next.invalidate();
-                    }
-                    top = next;
-                    dirtied[ix++] = top;
-                }
-                return top;
-            } else {
-                copyInnersToDirtiedArray();
-                return inners.peekFirst();
-            }
-        }
-
-        // So can be used by makeValid etc
-        private void copyInnersToDirtiedArray() {
-            int ix = 0;
-            dirtied = new ShaMapInner[inners.size()];
-            Iterator<ShaMapInner> descending = inners.descendingIterator();
-            while (descending.hasNext()) {
-                dirtied[ix++] = descending.next();
-            }
-        }
-
-        private boolean maybeCopyOnWrite() {
-            return inners.peekLast().doCoW;
-        }
-
-        public PathToIndex(ShaMapInner root, Hash256 index) {
-            this.index = index;
-            inners = makeStack(root, index);
-        }
-
-        private ArrayDeque<ShaMapInner> makeStack(ShaMapInner root, Hash256 index) {
-            ArrayDeque<ShaMapInner> inners = new ArrayDeque<ShaMapInner>();
-            ShaMapInner top = root;
-
-            while (true) {
-                inners.push(top);
-                ShaMapNode existing = top.getBranch(index);
-                if (existing == null) {
-                    break;
-                } else if (existing.isLeaf()) {
-                    leaf = existing.asLeaf();
-                    matched = leaf.index.equals(index);
-                    break;
-                }
-                else if (existing.isInner()) {
-                    top = existing.asInner();
-                }
-            }
-            return inners;
-        }
-
-        public void collapseSingleLeafInners() {
-            ShaMapInner next;
-            ShaMapLeaf singleLeaf = null;
-
-            for (int i = dirtied.length - 1; i >= 0; i--) {
-                next = dirtied[i];
-                if (singleLeaf != null) {
-                    next.setBranch(singleLeaf.index, singleLeaf);
-                }
-                singleLeaf = next.singleLeaf();
-                if (singleLeaf == null) {
-                    break;
-                }
-            }
-        }
-    }
-
-    public interface TreeWalker {
+    public interface HashedTreeWalker {
         public void onLeaf(Hash256 h, ShaMapLeaf le);
         public void onInner(Hash256 h, ShaMapInner inner);
     }
 
-    public void walkTree(TreeWalker walker) {
+    public void walkHashedTree(HashedTreeWalker walker) {
         walker.onInner(hash(), this);
 
         for (ShaMapNode branch : branches) {
@@ -189,16 +73,16 @@ public class ShaMapInner extends ShaMapNode {
                 walker.onLeaf(branch.hash(), ln);
             } else {
                 ShaMapInner childInner = branch.asInner();
-                childInner.walkTree(walker);
+                childInner.walkHashedTree(walker);
             }
         }
     }
 
-    private ShaMapLeaf singleLeaf() {
+    ShaMapLeaf singleLeaf() {
         ShaMapLeaf leaf = null;
         int leaves = 0;
         for (ShaMapNode branch : branches) {
-            if (branch.isLeaf()) {
+            if (branch != null && branch.isLeaf()) {
                 if (++leaves == 1) {
                     leaf = branch.asLeaf();
                 } else {
@@ -209,9 +93,9 @@ public class ShaMapInner extends ShaMapNode {
         return leaf;
     }
 
-    public boolean removeItem(Hash256 index) {
+    public boolean removeLeaf(Hash256 index) {
         PathToIndex stack = pathToIndex(index);
-        if (stack.hasLeaf() && stack.leafMatchedIndex()) {
+        if (stack.hasMatchedLeaf()) {
             ShaMapInner top = stack.dirtyOrCopyInners();
             top.removeBranch(index);
             stack.collapseSingleLeafInners();
@@ -223,11 +107,11 @@ public class ShaMapInner extends ShaMapNode {
 
     public boolean hasLeaf(Hash256 index) {
         PathToIndex stack = pathToIndex(index);
-        return stack.hasLeaf() && stack.leafMatchedIndex();
+        return stack.hasMatchedLeaf();
     }
     public ShaMapLeaf getLeaf(Hash256 index) {
         PathToIndex stack = pathToIndex(index);
-        if (stack.hasLeaf() && stack.leafMatchedIndex()) {
+        if (stack.hasMatchedLeaf()) {
             return stack.leaf;
         } else {
             return null;
@@ -236,7 +120,7 @@ public class ShaMapInner extends ShaMapNode {
 
     public boolean addItem(Hash256 index, ShaMapItem item) {
         PathToIndex stack = pathToIndex(index);
-        if (stack.hasLeaf() && stack.leafMatchedIndex()) {
+        if (stack.hasMatchedLeaf()) {
             return false;
         } else {
             ShaMapInner top = stack.dirtyOrCopyInners();
@@ -251,7 +135,7 @@ public class ShaMapInner extends ShaMapNode {
 
     public boolean updateItem(Hash256 index, ShaMapItem item) {
         PathToIndex stack = pathToIndex(index);
-        if (stack.hasLeaf() && stack.leafMatchedIndex()) {
+        if (stack.hasMatchedLeaf()) {
             ShaMapInner top = stack.dirtyOrCopyInners();
             top.setLeaf(new ShaMapLeaf(index, item));
             return true;
@@ -264,13 +148,13 @@ public class ShaMapInner extends ShaMapNode {
         ShaMapNode branch = getBranch(leaf.index);
         if (branch == null) {
             setLeaf(leaf);
-        } else if (branch instanceof ShaMapInner) {
-            ((ShaMapInner) branch).addLeaf(leaf);
-        } else if (branch instanceof ShaMapLeaf) {
+        } else if (branch.isInner()) {
+            branch.asInner().addLeaf(leaf);
+        } else if (branch.isLeaf()) {
             ShaMapInner inner = makeInnerChild();
             setBranch(leaf.index, inner);
             inner.addLeaf(leaf);
-            inner.addLeaf((ShaMapLeaf) branch);
+            inner.addLeaf(branch.asLeaf());
         }
     }
 
@@ -280,6 +164,10 @@ public class ShaMapInner extends ShaMapNode {
 
     protected ShaMapNode getBranch(Hash256 index) {
         return branches[index.nibblet(depth)];
+    }
+
+    public ShaMapNode branch(int i) {
+        return branches[i];
     }
 
     protected int selectBranch(Hash256 index) {
@@ -292,6 +180,7 @@ public class ShaMapInner extends ShaMapNode {
     public boolean hasInner(int i) {
         return branches[i].isInner();
     }
+    public boolean hasNone(int i) {return branches[i] == null;}
 
     protected void setBranch(int slot, ShaMapNode node) {
         slotBits = slotBits | (1 << slot);
@@ -324,6 +213,21 @@ public class ShaMapInner extends ShaMapNode {
             } else {
                 Hash256.ZERO_256.toBytesSink(sink);
             }
+        }
+    }
+
+    @Override
+    public Hash256 hash() {
+        if (empty()) {
+            // empty inners have a hash of all ZERO
+            // it's only valid for a root node to be empty
+            // any other inner node, must contain at least a
+            // single leaf
+            assert depth == 0;
+            return Hash256.ZERO_256;
+        } else {
+            // hash the hashPrefix() and toBytesSink
+            return super.hash();
         }
     }
 }

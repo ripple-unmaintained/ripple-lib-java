@@ -11,6 +11,7 @@ abstract public class ShaMapNode {
     // This saves a lot of instanceof checks
     public abstract boolean isLeaf();
     public abstract boolean isInner();
+
     public ShaMapLeaf asLeaf() {
         return (ShaMapLeaf) this;
     }
