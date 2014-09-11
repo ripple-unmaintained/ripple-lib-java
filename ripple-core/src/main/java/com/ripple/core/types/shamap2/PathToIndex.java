@@ -65,19 +65,19 @@ public class PathToIndex {
         return hasLeaf() && leafMatchedIndex();
     }
 
-    public void collapseSingleLeafInners() {
+    public void collapseOnlyChildLeafInners() {
         assert dirtied != null;
 
         ShaMapInner next;
-        ShaMapLeaf singleLeaf = null;
+        ShaMapLeaf onlyChild = null;
 
         for (int i = dirtied.length - 1; i >= 0; i--) {
             next = dirtied[i];
-            if (singleLeaf != null) {
-                next.setBranch(singleLeaf.index, singleLeaf);
+            if (onlyChild != null) {
+                next.setBranch(onlyChild.index, onlyChild);
             }
-            singleLeaf = next.singleLeaf();
-            if (singleLeaf == null) {
+            onlyChild = next.onlyChildLeaf();
+            if (onlyChild == null) {
                 break;
             }
         }
@@ -99,11 +99,11 @@ public class PathToIndex {
 
     public PathToIndex(ShaMapInner root, Hash256 index) {
         this.index = index;
-        inners = makeStack(root, index);
+        makeStack(root, index);
     }
 
-    private ArrayDeque<ShaMapInner> makeStack(ShaMapInner root, Hash256 index) {
-        ArrayDeque<ShaMapInner> inners = new ArrayDeque<ShaMapInner>();
+    private void makeStack(ShaMapInner root, Hash256 index) {
+        inners = new ArrayDeque<ShaMapInner>();
         ShaMapInner top = root;
 
         while (true) {
@@ -120,6 +120,5 @@ public class PathToIndex {
                 top = existing.asInner();
             }
         }
-        return inners;
     }
 }

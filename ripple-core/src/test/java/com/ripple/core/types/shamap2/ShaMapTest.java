@@ -2,13 +2,13 @@ package com.ripple.core.types.shamap2;
 
 import com.ripple.config.Config;
 import com.ripple.core.coretypes.hash.Hash256;
-import com.ripple.core.coretypes.hash.prefixes.Prefix;
-import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.BytesSink;
 import junit.framework.TestCase;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.ripple.core.types.shamap2.TestHelpers.Pad256;
+import static com.ripple.core.types.shamap2.TestHelpers.Leaf;
 
 public class ShaMapTest extends TestCase {
     /*
@@ -20,71 +20,11 @@ public class ShaMapTest extends TestCase {
         Config.initBouncy();
     }
 
-    public static class Hash256Item extends ShaMapItem<Hash256> {
-        Hash256 item;
-
-        public Hash256Item(Hash256 item) {
-            this.item = item;
-        }
-
-        @Override
-        void toBytesSink(BytesSink sink) {
-            item.toBytesSink(sink);
-        }
-
-        @Override
-        void fromParser(BinaryParser parser) {
-            item = Hash256.translate.fromParser(parser);
-        }
-
-        @Override
-        void copyFrom(Hash256 other) {
-            item = other;
-        }
-
-        @Override
-        public Prefix hashPrefix() {
-            return new Prefix() {
-                @Override
-                public byte[] bytes() {
-                    return new byte[]{};
-                }
-            };
-        }
-    }
-
-    public static Hash256 H(String hex) {
-        hex = zeroPadAfterTo(hex, 64);
-        return Hash256.fromHex(hex);
-    }
-
-    private static String zeroPadAfterTo(String hex, int i) {
-        if (hex.length() == i) {
-            return hex;
-        }
-        else if (hex.length() > i) {
-            throw new AssertionError();
-        }
-        StringBuilder sb = new StringBuilder();
-
-        for (int j = 0; j < i - hex.length(); j++) {
-            sb.append('0');
-        }
-        String s = hex + sb.toString();
-        if (s.length() != i) throw new AssertionError();
-        return s;
-    }
-
-    public static ShaMapLeaf L(String hex) {
-        Hash256Item hash256Item = new Hash256Item(H(hex));
-        return new ShaMapLeaf(hash256Item.item, hash256Item);
-    }
-
     @Test
     public void testAddLeaf() {
         // After adding this first
         ShaMap sm = new ShaMap();
-        sm.addLeaf(L("000"));
+        sm.addLeaf(Leaf("000"));
         assertTrue(sm.branch(0).isLeaf());
         for (int i = 1; i < 16; i++) sm.hasNone(i);
     }
@@ -92,20 +32,20 @@ public class ShaMapTest extends TestCase {
     @Test
     public void testGetLeaf() {
         ShaMap sm = new ShaMap();
-        sm.addLeaf(L("000"));
+        sm.addLeaf(Leaf("000"));
         String index = "000123";
-        ShaMapLeaf l = L(index);
+        ShaMapLeaf l = Leaf(index);
         sm.addLeaf(l);
-        ShaMapLeaf retrieved = sm.getLeaf(H(index));
+        ShaMapLeaf retrieved = sm.getLeaf(Pad256(index));
         assertTrue(retrieved == l);
     }
 
     @Test
     public void testWalkHashedTree() {
         ShaMap sm = new ShaMap();
-        sm.addLeaf(L("01"));
-        sm.addLeaf(L("03"));
-        sm.addLeaf(L("0345"));
+        sm.addLeaf(Leaf("01"));
+        sm.addLeaf(Leaf("03"));
+        sm.addLeaf(Leaf("0345"));
 
         final AtomicInteger inners = new AtomicInteger();
         final AtomicInteger leaves = new AtomicInteger();
@@ -130,11 +70,15 @@ public class ShaMapTest extends TestCase {
     public void testRemoveLeaf() {
         ShaMap sm = new ShaMap();
         // Add one leaf
-        sm.addLeaf(L("000"));
+        removeLeafTestHelper(sm);
+    }
+
+    public void removeLeafTestHelper(ShaMap sm) {
+        sm.addLeaf(Leaf("000"));
         Hash256 afterOne = sm.hash();
 
         // Add a second down same path/index
-        sm.addLeaf(L("001"));
+        sm.addLeaf(Leaf("001"));
         for (int i = 1; i < 16; i++) sm.hasNone(i);
 
         // Where before this was a leaf, now it's an inner,
@@ -150,18 +94,46 @@ public class ShaMapTest extends TestCase {
         assertTrue(common.branch(1).isLeaf());
         for (int i = 2; i < 16; i++) common.hasNone(i);
 
-        sm.removeLeaf(H("001"));
+        sm.removeLeaf(Pad256("001"));
         assertTrue(sm.branch(0).isLeaf());
         for (int i = 1; i < 16; i++) sm.hasNone(i);
         assertEquals(sm.hash(), afterOne);
 
-        sm.removeLeaf(H("000"));
-        assertEquals(sm.hash(), H("0"));
+        sm.removeLeaf(Pad256("000"));
+        assertEquals(sm.hash(), Pad256("0"));
     }
 
     @Test
     public void testAnEmptyInnerHasAZeroHash() {
         ShaMap sm = new ShaMap();
-        assertEquals(sm.hash(), H("0"));
+        assertEquals(sm.hash(), Pad256("0"));
+    }
+
+    @Test
+    public void testCopyOnWrite() throws Exception {
+        ShaMap sm = new ShaMap();
+        assertEquals(sm.hash(), Pad256("0"));
+        ShaMap copy1 = sm.copy();
+        removeLeafTestHelper(copy1);
+        sm.addLeaf(Leaf("01"));
+        sm.addLeaf(Leaf("02"));
+        sm.addLeaf(Leaf("023"));
+        sm.addLeaf(Leaf("024"));
+        assertEquals(copy1.hash(), Hash256.ZERO_256);
+
+        ShaMap copy2 = sm.copy();
+        Hash256 copy2Hash = copy2.hash();
+        assertEquals(copy2Hash, sm.hash());
+
+        sm.removeLeaf(Pad256("01"));
+        sm.removeLeaf(Pad256("02"));
+        sm.removeLeaf(Pad256("023"));
+        sm.removeLeaf(Pad256("024"));
+
+        assertEquals(sm.hash(), Hash256.ZERO_256);
+        removeLeafTestHelper(sm);
+
+        copy2.invalidate();
+        assertEquals(copy2.hash(), copy2Hash);
     }
 }

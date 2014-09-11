@@ -5,29 +5,31 @@ import com.ripple.core.types.known.sle.LedgerEntry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ShaMap extends ShaMapInner {
-    private AtomicInteger versioner;
+    private AtomicInteger copies;
 
     public ShaMap() {
         super(0);
-        versioner = new AtomicInteger();
+        // This way we can copy the first to the second,
+        // copy the second, then copy the first again ;)
+        copies = new AtomicInteger();
     }
     public ShaMap(boolean isCopy, int depth) {
         super(isCopy, depth, 0);
     }
+
     @Override
     protected ShaMapInner copyInner(int depth) {
         return new ShaMap(true, depth);
     }
 
     public ShaMap copy() {
-        int newVersion = versioner.incrementAndGet();
-        ShaMap copy = (ShaMap) copy(newVersion);
-        copy.versioner = versioner;
+        ShaMap copy = (ShaMap) copy((version = copies.incrementAndGet()) + 1);
+        copy.copies = copies;
         return copy;
     }
 
-    public void addLE(LedgerEntry fromJSON) {
-        LedgerEntryItem item = new LedgerEntryItem(fromJSON);
-        addItem(fromJSON.index(), item);
+    public void addLE(LedgerEntry entry) {
+        LedgerEntryItem item = new LedgerEntryItem(entry);
+        addItem(entry.index(), item);
     }
 }
