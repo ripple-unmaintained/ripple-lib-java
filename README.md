@@ -48,7 +48,6 @@ the basis for various clients/wallets.
   - General cleanup/stabilisation of code / api surface
   - Documentation
   - Complete test coverage
-  - Generate keypair for particular account_id from a master_seed
 
 ### Examples
 
