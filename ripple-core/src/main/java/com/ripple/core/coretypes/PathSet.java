@@ -15,64 +15,28 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
     public PathSet(){}
 
-    @Override
-    public Object toJSON() {
-        return toJSONArray();
-    }
-
-    public JSONArray toJSONArray() {
-        JSONArray array = new JSONArray();
-        for (Path path : this) {
-            array.put(path.toJSONArray());
-        }
-        return array;
-    }
-
-    @Override
-    public void toBytesSink(BytesSink buffer) {
-        int n = 0;
-        for (Path path : this) {
-            if (n++ != 0) {
-                buffer.add(PATH_SEPARATOR_BYTE);
-            }
-            for (Hop hop : path) {
-                int type = hop.getType();
-                buffer.add((byte) type);
-                if (hop.account != null) {
-                    buffer.add(hop.account.bytes());
-                }
-                if (hop.currency != null) {
-                    buffer.add(hop.currency.bytes());
-                }
-                if (hop.issuer != null) {
-                    buffer.add(hop.issuer.bytes());
-                }
-            }
-        }
-        buffer.add(PATHSET_END_BYTE);
-    }
-
-    @Override
-    public String toHex() {
-        return translate.toHex(this);
-    }
-
-    @Override
-    public byte[] toBytes() {
-        return translate.toBytes(this);
-    }
     public static class Hop {
-        public AccountID account;
-        public AccountID issuer;
-        public Currency  currency;
-        public int type;
-
         public static byte TYPE_ACCOUNT  = (byte) 0x01;
         public static byte TYPE_CURRENCY = (byte) 0x10;
         public static byte TYPE_ISSUER   = (byte) 0x20;
         public static final int TYPE_ACCOUNT_CURRENCY_ISSUER = TYPE_CURRENCY | TYPE_ACCOUNT | TYPE_ISSUER;
         public static final int TYPE_ACCOUNT_CURRENCY = TYPE_CURRENCY | TYPE_ACCOUNT;
         public static int VALID_TYPE_MASK =  ~(TYPE_ACCOUNT | TYPE_CURRENCY | TYPE_ISSUER);
+
+        public AccountID account;
+        public AccountID issuer;
+        public Currency  currency;
+        private int type;
+
+        public boolean hasIssuer() {
+            return issuer   != null;
+        }
+        public boolean hasCurrency() {
+            return currency != null;
+        }
+        public boolean hasAccount() {
+            return account != null;
+        }
 
         public int getType() {
             if (type == 0) {
@@ -91,9 +55,8 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
                     hop.issuer = AccountID.fromAddress(json.getString("issuer"));
                 }
                 if (json.has("currency")) {
-                    hop.currency(json.getString("currency"));
+                    hop.currency = Currency.fromString(json.getString("currency"));
                 }
-
                 if (json.has("type")) {
                     hop.type = json.getInt("type");
                 }
@@ -107,9 +70,9 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         public void synthesizeType() {
             type = 0;
 
-            if (account != null) type |= TYPE_ACCOUNT;
-            if (currencyString() != null) type |= TYPE_CURRENCY;
-            if (issuer != null) type |= TYPE_ISSUER;
+            if (hasAccount()) type |= TYPE_ACCOUNT;
+            if (hasCurrency()) type |= TYPE_CURRENCY;
+            if (hasIssuer()) type |= TYPE_ISSUER;
         }
 
         public JSONObject toJSONObject() {
@@ -117,29 +80,14 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
             try {
                 object.put("type", getType());
 
-                if (account  != null) object.put("account", AccountID.translate.toJSON(account));
-                if (issuer   != null) object.put("issuer", AccountID.translate.toJSON(issuer));
-                if (currencyString() != null) object.put("currency", currencyString());
+                if (hasAccount()) object.put("account", account.toJSON());
+                if (hasIssuer()) object.put("issuer", issuer.toJSON());
+                if (hasCurrency()) object.put("currency", currency.toJSON());
 
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
             return object;
-        }
-
-        public void currency(String currency) {
-            this.currency = Currency.translate.fromString(currency);
-        }
-
-        public String currencyString() {
-            if (currency == null) {
-                return null;
-            }
-            return currency.toString();
-        }
-
-        public void setCurrency(byte[] read) {
-            currency = new Currency(read);
         }
     }
     public static class Path extends ArrayList<Hop> {
@@ -165,6 +113,55 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
             return array;
         }
     }
+
+    public JSONArray toJSONArray() {
+        JSONArray array = new JSONArray();
+        for (Path path : this) {
+            array.put(path.toJSONArray());
+        }
+        return array;
+    }
+
+    // SerializedType interface implementation
+    @Override
+    public Object toJSON() {
+        return toJSONArray();
+    }
+
+    @Override
+    public void toBytesSink(BytesSink buffer) {
+        int n = 0;
+        for (Path path : this) {
+            if (n++ != 0) {
+                buffer.add(PATH_SEPARATOR_BYTE);
+            }
+            for (Hop hop : path) {
+                int type = hop.getType();
+                buffer.add((byte) type);
+                if (hop.hasAccount()) {
+                    buffer.add(hop.account.bytes());
+                }
+                if (hop.hasCurrency()) {
+                    buffer.add(hop.currency.bytes());
+                }
+                if (hop.hasIssuer()) {
+                    buffer.add(hop.issuer.bytes());
+                }
+            }
+        }
+        buffer.add(PATHSET_END_BYTE);
+    }
+
+    @Override
+    public String toHex() {
+        return translate.toHex(this);
+    }
+
+    @Override
+    public byte[] toBytes() {
+        return translate.toBytes(this);
+    }
+
 
     public static class Translator extends TypeTranslator<PathSet> {
         @Override
@@ -224,6 +221,5 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
     public static TypedFields.PathSetField pathsetField(final Field f) {
         return new TypedFields.PathSetField(){ @Override public Field getField() {return f;}};
     }
-    
     static public TypedFields.PathSetField Paths = pathsetField(Field.Paths);
 }
