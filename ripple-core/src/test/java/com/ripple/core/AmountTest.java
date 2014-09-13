@@ -1,5 +1,6 @@
 package com.ripple.core;
 
+import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.encodings.base58.EncodingFormatException;
@@ -14,9 +15,12 @@ import static org.junit.Assert.*;
 
 public class AmountTest {
     public String rootAddress = TestFixtures.master_seed_address;
-
     Amount.Translator amounts = Amount.translate;
 
+    static {
+        AccountID.addAliasFromPassPhrase("root", "masterpassphrase");
+        AccountID.addAliasFromPassPhrase("bob", "bob");
+    }
 
 
     @Test

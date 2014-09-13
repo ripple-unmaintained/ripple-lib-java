@@ -16,7 +16,21 @@ import java.util.Map;
 
 import static com.ripple.config.Config.getB58IdentiferCodecs;
 
+/**
+ * Originally it was intended that AccountIDs would be variable length
+ * so that's why they are variable length encoded as top level field objects
+ * Note however, that in practice, all account ids are just 160 bit hashes.
+ * Consider the fields TakerPaysIssuer and fixed length encoding of issuers
+ * as part of amount objects. Thus, we extend Hash160 which affords us some
+ * functionality.
+ */
 public class AccountID extends Hash160 {
+    // We can set aliases, so fromString(x) will return a given AccountID
+    // this is currently only used for tests, and not recommended to be used
+    // elsewhere.
+    public static Map<String, AccountID> aliases = new HashMap<String, AccountID>();
+    //
+    public static AccountID NEUTRAL = fromInteger(1), XRP_ISSUER = fromInteger(0);
     final public String address;
 
     public AccountID(byte[] bytes) {
@@ -28,22 +42,33 @@ public class AccountID extends Hash160 {
         this.address = address;
     }
 
-    @Override
-    public int hashCode() {
-        return address.hashCode();
+    // Static from* constructors
+    public static AccountID fromString(String value) {
+        if (value.length() == 160 / 4) {
+            return fromAddressBytes(B16.decode(value));
+        } else {
+            if (value.startsWith("r") && value.length() >= 26) {
+                return fromAddress(value);
+            }
+            AccountID accountID = accountForAlias(value);
+            if (accountID == null) {
+                throw new UnknownAlias("Alias unset: " + value);
+            }
+            return accountID;
+        }
+    }
+    static public AccountID fromAddress(String address) {
+        byte[] bytes = getB58IdentiferCodecs().decodeAddress(address);
+        return new AccountID(bytes, address);
     }
 
-    public static AccountID NEUTRAL,
-                            XRP_ISSUER;
-
-    static {
-        XRP_ISSUER = fromInteger(0);
-        NEUTRAL = fromInteger(1);
+    public static AccountID fromKeyPair(IKeyPair kp) {
+        byte[] bytes = kp.sha256_Ripemd160_Pub();
+        return new AccountID(bytes, encodeAddress(bytes));
     }
 
-    @Override
-    public String toString() {
-        return address;
+    public static AccountID fromPassPhrase(String phrase) {
+        return fromKeyPair(Seed.fromPassPhrase(phrase).keyPair());
     }
 
     static public AccountID fromSeedString(String seed) {
@@ -54,17 +79,8 @@ public class AccountID extends Hash160 {
         return fromKeyPair(Seed.getKeyPair(seed));
     }
 
-    public static AccountID fromKeyPair(IKeyPair kp) {
-        byte[] bytes = kp.sha256_Ripemd160_Pub();
-        return new AccountID(bytes, encodeAddress(bytes));
-    }
-
-    private static String encodeAddress(byte[] a) {
-        return getB58IdentiferCodecs().encodeAddress(a);
-    }
-
     static public AccountID fromInteger(Integer n) {
-        // The hash160 will extend the address
+        // The hash160 constructor will extend the 4bytes address
         return fromBytes(new Hash160(new UInt32(n).toByteArray()).bytes());
     }
 
@@ -72,19 +88,28 @@ public class AccountID extends Hash160 {
         return new AccountID(bytes, encodeAddress(bytes));
     }
 
-    static public AccountID fromAddress(String address) {
-        byte[] bytes = getB58IdentiferCodecs().decodeAddress(address);
-        return new AccountID(bytes, address);
-    }
-
     static public AccountID fromAddressBytes(byte[] bytes) {
         return fromBytes(bytes);
+    }
+
+    @Override
+    public int hashCode() {
+        return address.hashCode();
+    }
+    @Override
+    public String toString() {
+        return address;
     }
 
     public Issue issue(String code) {
         return new Issue(Currency.fromString(code), this);
     }
 
+    public boolean isNativeIssuer() {
+        return equals(XRP_ISSUER);
+    }
+
+    // SerializedType interface implementation
     @Override
     public Object toJSON() {
         return toString();
@@ -103,10 +128,6 @@ public class AccountID extends Hash160 {
     @Override
     public void toBytesSink(BytesSink to) {
         to.add(bytes());
-    }
-
-    public boolean lessThan(AccountID from) {
-        return compareTo(from) == -1;
     }
 
     public static class Translator extends TypeTranslator<AccountID> {
@@ -128,45 +149,25 @@ public class AccountID extends Hash160 {
             return AccountID.fromString(value);
         }
     }
-
-    public static AccountID fromString(String value) {
-        if (value.length() == 160 / 4) {
-            return fromAddressBytes(B16.decode(value));
-        } else {
-            if (value.startsWith("r") && value.length() >= 26) {
-                return fromAddress(value);
-            }
-            // This is potentially dangerous but fromString in
-            // generic sense is used by Amount for parsing strings
-            return accountForPassPhrase(value);
-        }
-    }
-
-    static public Map<String, AccountID> accounts = new HashMap<String, AccountID>();
-
-    public static AccountID accountForPassPhrase(String value) {
-
-        if (accounts.get(value) == null) {
-            accounts.put(value, accountForPass(value));
-        }
-
-        return accounts.get(value);
-    }
-
-    private static AccountID accountForPass(String value) {
-        return AccountID.fromSeedBytes(Seed.passPhraseToSeedBytes(value));
-    }
-
-    static {
-        accounts.put("root", accountForPass("masterpassphrase"));
-    }
-
-    public boolean isNativeIssuer() {
-        return equals(XRP_ISSUER);
-    }
+    //
 
     static public Translator translate = new Translator();
 
+    // helpers
+
+    private static String encodeAddress(byte[] a) {
+        return getB58IdentiferCodecs().encodeAddress(a);
+    }
+
+    public static AccountID addAliasFromPassPhrase(String n, String n2) {
+        return aliases.put(n, fromPassPhrase(n2));
+    }
+
+    public static AccountID accountForAlias(String value) {
+        return aliases.get(value);
+    }
+
+    // Typed field definitions
     public static TypedFields.AccountIDField accountField(final Field f) {
         return new TypedFields.AccountIDField() {
             @Override
@@ -182,4 +183,11 @@ public class AccountID extends Hash160 {
     static public TypedFields.AccountIDField Issuer = accountField(Field.Issuer);
     static public TypedFields.AccountIDField Target = accountField(Field.Target);
     static public TypedFields.AccountIDField RegularKey = accountField(Field.RegularKey);
+
+    // Exceptions
+    public static class UnknownAlias extends RuntimeException {
+        public UnknownAlias(String s) {
+            super(s);
+        }
+    }
 }
