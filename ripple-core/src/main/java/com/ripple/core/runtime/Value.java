@@ -19,6 +19,7 @@ public enum Value {
     FLOAT,
     INTEGER,
     LONG,
+    BYTE_ARRAY,
     SHORT, BOOLEAN;
 
     static public Value typeOf (Object object) {
@@ -60,6 +61,9 @@ public enum Value {
         }
         else if (object instanceof List) {
             return LIST;
+        }
+        else if (object instanceof byte[]) {
+            return BYTE_ARRAY;
         }
         else {
             return UNKNOWN;

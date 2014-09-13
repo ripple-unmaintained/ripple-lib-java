@@ -359,9 +359,9 @@ public class STObjectTest {
     @Test
     public void testTypeInference() {
 
-        STObject so = STObject.newInstance();
-        so.put(Field.valueOf("LowLimit"), "10.0/USD");
-        so.put(Amount.Balance, "125.0");
+        STObject so = new STObject();
+        so.putTranslated(Field.valueOf("LowLimit"), "10.0/USD");
+        so.putTranslated(Amount.Balance, "125.0");
 
         assertEquals(so.get(Amount.Balance).toDropsString(), "125000000");
         assertEquals(so.get(Amount.LowLimit).currencyString(), "USD");
@@ -430,11 +430,9 @@ public class STObjectTest {
 
     @Test
     public void testFormatted() throws Exception {
-        STObject offer = new STObject();
-        offer.put(UInt16.LedgerEntryType, LedgerEntryType.Offer.asInteger());
-        offer.put(Amount.TakerGets, "1.0");
-        offer.put(Amount.TakerPays, "2.0");
-
+        // Normally the api wouldn't be so awkward.
+        String json = "{\"TakerPays\" : \"2.0\", \"TakerGets\" : \"1.0\", \"LedgerEntryType\" : \"Offer\"}";
+        STObject offer = STObject.fromJSON(json);
         Offer casted = (Offer) STObject.formatted(offer);
         TestCase.assertEquals(casted.askQuality().toPlainString(), "2");
     }
@@ -467,15 +465,15 @@ public class STObjectTest {
 
         IKeyPair kp = Seed.getKeyPair(TestFixtures.master_seed);
         AccountID ac = AccountID.fromKeyPair(kp);
-        STObject fromSO = STObject.newInstance();
+        STObject fromSO = new STObject();
 
-        fromSO.put(Field.TransactionType, "Payment");
-        fromSO.put(AccountID.Account, ac.address);
-        fromSO.put(UInt32.Sequence, 5);
-        fromSO.put(Amount.Fee, "15");
-        fromSO.put(VariableLength.SigningPubKey, kp.pubHex());
-        fromSO.put(AccountID.Destination, TestFixtures.bob_account.address);
-        fromSO.put(Amount.Amount, "12/USD/" + ac.address);
+        fromSO.putTranslated(Field.TransactionType, "Payment");
+        fromSO.putTranslated(AccountID.Account, ac.address);
+        fromSO.putTranslated(UInt32.Sequence, 5);
+        fromSO.putTranslated(Amount.Fee, "15");
+        fromSO.putTranslated(VariableLength.SigningPubKey, kp.pubHex());
+        fromSO.putTranslated(AccountID.Destination, TestFixtures.bob_account.address);
+        fromSO.putTranslated(Amount.Amount, "12/USD/" + ac.address);
 
         assertEquals(expectedSerialization, fromSO.toHex());
     }

@@ -438,7 +438,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
     public ManagedTxn manage(Transaction tt) {
         ManagedTxn txn = new ManagedTxn(tt);
-        tt.put(AccountID.Account, accountID);
+        tt.account(accountID);
         return txn;
     }
 

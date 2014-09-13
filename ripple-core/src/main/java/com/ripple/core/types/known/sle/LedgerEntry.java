@@ -19,7 +19,7 @@ import java.util.TreeSet;
 public class LedgerEntry extends STObject {
     public LedgerEntry(LedgerEntryType type) {
         setFormat(LEFormat.formats.get(type));
-        put(UInt16.LedgerEntryType, type.asInteger());
+        put(Field.LedgerEntryType, type);
     }
 
     public LedgerEntryType ledgerEntryType() {return ledgerEntryType(this);}
@@ -28,7 +28,7 @@ public class LedgerEntry extends STObject {
     public Hash256 ledgerIndex() {return get(Hash256.LedgerIndex);}
 
     public void ledgerEntryType(UInt16 val) {put(Field.LedgerEntryType, val);}
-    public void ledgerEntryType(LedgerEntryType val) {put(Field.LedgerEntryType, val.asInteger());}
+    public void ledgerEntryType(LedgerEntryType val) {put(Field.LedgerEntryType, val);}
     public void flags(UInt32 val) {put(Field.Flags, val);}
     public void ledgerIndex(Hash256 val) {put(Field.LedgerIndex, val);}
 

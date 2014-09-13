@@ -1,8 +1,11 @@
 package com.ripple.core.coretypes;
 
-import com.ripple.core.fields.TypedFields;
-import com.ripple.core.serialized.*;
 import com.ripple.core.fields.Field;
+import com.ripple.core.fields.TypedFields;
+import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.BytesSink;
+import com.ripple.core.serialized.SerializedType;
+import com.ripple.core.serialized.TypeTranslator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -10,11 +13,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class STArray extends ArrayList<STObject> implements SerializedType {
-    @Override
-    public Object toJSON() {
-        return toJSONArray();
-    }
-
     public JSONArray toJSONArray() {
         JSONArray array = new JSONArray();
 
@@ -23,6 +21,11 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
         }
 
         return array;
+    }
+
+    @Override
+    public Object toJSON() {
+        return toJSONArray();
     }
 
     @Override
@@ -53,6 +56,7 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
                     break;
                 }
                 STObject outer = new STObject();
+                // assert field.getType() == Type.STObject;
                 outer.put(field, STObject.translate.fromParser(parser));
                 stArray.add(STObject.formatted(outer));
             }

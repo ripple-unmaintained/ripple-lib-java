@@ -20,13 +20,15 @@ public class SignedTransaction {
     public String  tx_blob;
 
     public void prepare(IKeyPair keyPair, Amount fee, UInt32 Sequence, UInt32 lastLedgerSequence) {
+        VariableLength pubKey = new VariableLength(keyPair.pubBytes());
+
         // This won't always be specified
         if (lastLedgerSequence != null) {
             txn.put(UInt32.LastLedgerSequence, lastLedgerSequence);
         }
         txn.put(UInt32.Sequence, Sequence);
         txn.put(Amount.Fee, fee);
-        txn.put(VariableLength.SigningPubKey, keyPair.pubBytes());
+        txn.put(VariableLength.SigningPubKey, pubKey);
 
         if (Transaction.CANONICAL_FLAG_DEPLOYED) {
             txn.setCanonicalSignatureFlag();
@@ -37,7 +39,7 @@ public class SignedTransaction {
             return;
         }
         try {
-            byte[] signature = keyPair.sign(signingHash.bytes());
+            VariableLength signature = new VariableLength(keyPair.sign(signingHash.bytes()));
             txn.put(VariableLength.TxnSignature, signature);
 
             BytesList blob = new BytesList();

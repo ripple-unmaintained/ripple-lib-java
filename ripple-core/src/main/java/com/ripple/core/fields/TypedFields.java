@@ -15,5 +15,4 @@ public class TypedFields {
     public abstract static class STArrayField implements HasField{}
     public abstract static class AmountField implements HasField {}
     public abstract static class AccountIDField implements HasField {}
-    public abstract static class EngineResultField implements HasField {}
 }

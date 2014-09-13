@@ -20,7 +20,7 @@ public class Transaction extends STObject {
 
     public Transaction(TransactionType type) {
         setFormat(TxFormat.formats.get(type));
-        put(UInt16.TransactionType, type.asInteger());
+        put(Field.TransactionType, type);
     }
 
     public TransactionType transactionType() {

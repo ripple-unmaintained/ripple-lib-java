@@ -18,18 +18,6 @@ import com.ripple.core.formats.Format;
 import com.ripple.core.formats.LEFormat;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.*;
-import com.ripple.core.types.known.sle.LedgerEntry;
-import com.ripple.core.types.known.sle.LedgerHashes;
-import com.ripple.core.types.known.sle.entries.AccountRoot;
-import com.ripple.core.types.known.sle.entries.DirectoryNode;
-import com.ripple.core.types.known.sle.entries.Offer;
-import com.ripple.core.types.known.sle.entries.RippleState;
-import com.ripple.core.types.known.tx.TicketCancel;
-import com.ripple.core.types.known.tx.TicketCreate;
-import com.ripple.core.types.known.tx.Transaction;
-import com.ripple.core.types.known.tx.result.AffectedNode;
-import com.ripple.core.types.known.tx.result.TransactionMeta;
-import com.ripple.core.types.known.tx.txns.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,6 +25,23 @@ import java.util.Iterator;
 import java.util.TreeMap;
 
 public class STObject implements SerializedType, Iterable<Field> {
+    // Internally the fields are stored in a TreeMap
+    public static class FieldsMap extends TreeMap<Field, SerializedType> {}
+    // There's no nice predicates
+    public static interface FieldFilter {
+        boolean evaluate(Field a);
+    }
+
+    protected FieldsMap fields;
+    public Format format;
+
+    public STObject() {
+        fields = new FieldsMap();
+    }
+    public STObject(FieldsMap fieldsMap) {
+        fields = fieldsMap;
+    }
+
     public static STObject fromJSON(String offerJson) {
         try {
             return fromJSONObject(new JSONObject(offerJson));
@@ -44,12 +49,14 @@ public class STObject implements SerializedType, Iterable<Field> {
             throw new RuntimeException(e);
         }
     }
-
-    public FieldsMap getFields() {
-        return fields;
+    public static STObject fromJSONObject(JSONObject json) {
+        return translate.fromJSONObject(json);
     }
 
-    public static class FieldsMap extends TreeMap<Field, SerializedType> {}
+    @Override
+    public Iterator<Field> iterator() {
+        return fields.keySet().iterator();
+    }
 
     public String prettyJSON() {
         try {
@@ -59,184 +66,21 @@ public class STObject implements SerializedType, Iterable<Field> {
         }
     }
 
-    protected FieldsMap fields;
-
-    public Format format;
-    public STObject() {
-        fields = new FieldsMap();
-    }
-
-    public STObject(FieldsMap fieldsMap) {
-        fields = fieldsMap;
-    }
-    public static STObject newInstance() {
-        return new STObject();
-    }
-
+    /**
+     * @return a subclass of STObject using the same fields
+     */
     public static STObject formatted(STObject source) {
-        if (AffectedNode.isAffectedNode(source)) {
-            return new AffectedNode(source);
-        }
+        return STObjectFormatter.doFormatted(source);
 
-        if (TransactionMeta.isTransactionMeta(source)) {
-            TransactionMeta meta = new TransactionMeta();
-            meta.fields = source.fields;
-            return meta;
-        }
-
-        LedgerEntryType ledgerEntryType = ledgerEntryType(source);
-        if (ledgerEntryType != null) {
-            return ledgerFormatted(source, ledgerEntryType);
-        }
-
-        TransactionType transactionType = transactionType(source);
-        if (transactionType != null) {
-            return transactionFormatted(source, transactionType);
-        }
-
-        return source;
-    }
-
-    private static STObject transactionFormatted(STObject source, TransactionType transactionType) {
-        STObject constructed = null;
-        switch (transactionType) {
-            case Invalid:
-                break;
-            case Payment:
-                constructed = new Payment();
-                break;
-            case Claim:
-                break;
-            case WalletAdd:
-                break;
-            case AccountSet:
-                constructed = new AccountSet();
-                break;
-            case PasswordFund:
-                break;
-            case SetRegularKey:
-                break;
-            case NickNameSet:
-                break;
-            case OfferCreate:
-                constructed = new OfferCreate();
-                break;
-            case OfferCancel:
-                constructed = new OfferCancel();
-                break;
-            case Contract:
-                break;
-            case TicketCreate:
-                constructed = new TicketCreate();
-                break;
-            case TicketCancel:
-                constructed = new TicketCancel();
-                break;
-            case TrustSet:
-                constructed = new TrustSet();
-                break;
-            case Amendment:
-                break;
-            case SetFee:
-                break;
-
-        }
-        if (constructed == null) {
-            constructed = new Transaction(transactionType);
-        }
-
-        constructed.fields = source.fields;
-        return constructed;
-
-    }
-
-    private static STObject ledgerFormatted(STObject source, LedgerEntryType ledgerEntryType) {
-        STObject constructed = null;
-        switch (ledgerEntryType) {
-            case Offer:
-                constructed = new Offer();
-                break;
-            case RippleState:
-                constructed = new RippleState();
-                break;
-            case AccountRoot:
-                constructed = new AccountRoot();
-                break;
-            case Invalid:
-                break;
-            case DirectoryNode:
-                constructed = new DirectoryNode();
-                break;
-            case GeneratorMap:
-                break;
-            case Contract:
-                break;
-            case LedgerHashes:
-                constructed = new LedgerHashes();
-                break;
-            case EnabledAmendments:
-                break;
-            case FeeSettings:
-                break;
-        }
-        if (constructed == null) {
-            constructed = new LedgerEntry(ledgerEntryType);
-        }
-        constructed.fields = source.fields;
-        return constructed;
-    }
-
-    @Override
-    public Object toJSON() {
-        return translate.toJSON(this);
-    }
-
-    public JSONObject toJSONObject() {
-        return translate.toJSONObject(this);
-    }
-
-    public byte[] toBytes() {
-        return translate.toBytes(this);
-    }
-
-    @Override
-    public String toHex() {
-        return translate.toHex(this);
-    }
-
-    // There's no nice predicates
-    public static interface FieldFilter {
-        boolean evaluate(Field a);
-    }
-
-    @Override
-    public void toBytesSink(BytesSink to) {
-        toBytesSink(to, new FieldFilter() {
-            @Override
-            public boolean evaluate(Field field) {
-                return field.isSerialized();
-            }
-        });
-    }
-
-    public void toBytesSink(BytesSink to, FieldFilter p) {
-        BinarySerializer serializer = new BinarySerializer(to);
-
-        for (Field field : this) {
-            if (p.evaluate(field)) {
-                SerializedType value = fields.get(field);
-                serializer.add(field, value);
-            }
-        }
-    }
-
-    public static STObject fromJSONObject(JSONObject json) {
-        return translate.fromJSONObject(json);
     }
 
     public Format getFormat() {
         if (format == null) computeFormat();
         return format;
+    }
+
+    public void setFormat(Format format) {
+        this.format = format;
     }
 
     private void computeFormat() {
@@ -250,8 +94,12 @@ public class STObject implements SerializedType, Iterable<Field> {
         }
     }
 
-    public void setFormat(Format format) {
-        this.format = format;
+    public FieldsMap getFields() {
+        return fields;
+    }
+
+    public SerializedType get(Field field) {
+        return fields.get(field);
     }
 
     public static EngineResult engineResult(STObject obj) {
@@ -278,17 +126,133 @@ public class STObject implements SerializedType, Iterable<Field> {
         return has(hf.getField());
     }
 
-    public void validate() throws RuntimeException {
+    public void put (TypedFields.UInt8Field f, UInt8 o) {put(f.getField(), o);}
+    public void put (TypedFields.Vector256Field f, Vector256 o) {put(f.getField(), o);}
+    public void put (TypedFields.VariableLengthField f, VariableLength o) {put(f.getField(), o);}
+    public void put (TypedFields.UInt64Field f, UInt64 o) {put(f.getField(), o);}
+    public void put (TypedFields.UInt32Field f, UInt32 o) {put(f.getField(), o);}
+    public void put (TypedFields.UInt16Field f, UInt16 o) {put(f.getField(), o);}
+    public void put (TypedFields.PathSetField f, PathSet o) {put(f.getField(), o);}
+    public void put (TypedFields.STObjectField f, STObject o) {put(f.getField(), o);}
+    public void put (TypedFields.Hash256Field f, Hash256 o) {put(f.getField(), o);}
+    public void put (TypedFields.Hash160Field f, Hash160 o) {put(f.getField(), o);}
+    public void put (TypedFields.Hash128Field f, Hash128 o) {put(f.getField(), o);}
+    public void put (TypedFields.STArrayField f, STArray o) {put(f.getField(), o);}
+    public void put (TypedFields.AmountField f, Amount o) {put(f.getField(), o);}
+    public void put (TypedFields.AccountIDField f, AccountID o) {put(f.getField(), o);}
 
+    public <T extends HasField> void putTranslated(T f, Object value) {
+        putTranslated(f.getField(), value);
+    }
+
+    public void put(Field f, SerializedType value) {
+        fields.put(f, value);
+    }
+
+    public void putTranslated(Field f, Object value) {
+        TypeTranslator typeTranslator = Translators.forField(f);
+        SerializedType st = null;
+        try {
+            st = typeTranslator.fromValue(value);
+        } catch (Exception e) {
+            throw new RuntimeException("Couldn't put `" +value+ "` into field `" + f + "`\n" + e.toString());
+        }
+        fields.put(f, st);
+    }
+
+    public AccountID get(TypedFields.AccountIDField f) {
+        return (AccountID) get(f.getField());
+    }
+
+    public Amount get(TypedFields.AmountField f) {
+        return (Amount) get(f.getField());
+    }
+
+    public STArray get(TypedFields.STArrayField f) {
+        return (STArray) get(f.getField());
+    }
+
+    public Hash128 get(TypedFields.Hash128Field f) {
+        return (Hash128) get(f.getField());
+    }
+
+    public Hash160 get(TypedFields.Hash160Field f) {
+        return (Hash160) get(f.getField());
+    }
+
+    public Hash256 get(TypedFields.Hash256Field f) {
+        return (Hash256) get(f.getField());
+    }
+
+    public STObject get(TypedFields.STObjectField f) {
+        return (STObject) get(f.getField());
+    }
+
+    public PathSet get(TypedFields.PathSetField f) {
+        return (PathSet) get(f.getField());
+    }
+
+    public UInt16 get(TypedFields.UInt16Field f) {
+        return (UInt16) get(f.getField());
+    }
+
+    public UInt32 get(TypedFields.UInt32Field f) {
+        return (UInt32) get(f.getField());
+    }
+
+    public UInt64 get(TypedFields.UInt64Field f) {
+        return (UInt64) get(f.getField());
+    }
+
+    public UInt8 get(TypedFields.UInt8Field f) {
+        return (UInt8) get(f.getField());
+    }
+
+    public Vector256 get(TypedFields.Vector256Field f) {
+        return (Vector256) get(f.getField());
+    }
+
+    public VariableLength get(TypedFields.VariableLengthField f) {
+        return (VariableLength) get(f.getField());
+    }
+
+    // SerializedTypes implementation
+    @Override
+    public Object toJSON() {
+        return translate.toJSON(this);
+    }
+
+    public JSONObject toJSONObject() {
+        return translate.toJSONObject(this);
+    }
+
+    public byte[] toBytes() {
+        return translate.toBytes(this);
     }
 
     @Override
-    public Iterator<Field> iterator() {
-        return fields.keySet().iterator();
+    public String toHex() {
+        return translate.toHex(this);
     }
 
-    public SerializedType get(Field field) {
-        return fields.get(field);
+    public void toBytesSink(BytesSink to, FieldFilter p) {
+        BinarySerializer serializer = new BinarySerializer(to);
+
+        for (Field field : this) {
+            if (p.evaluate(field)) {
+                SerializedType value = fields.get(field);
+                serializer.add(field, value);
+            }
+        }
+    }
+    @Override
+    public void toBytesSink(BytesSink to) {
+        toBytesSink(to, new FieldFilter() {
+            @Override
+            public boolean evaluate(Field field) {
+                return field.isSerialized();
+            }
+        });
     }
 
     public static class Translator extends TypeTranslator<STObject> {
@@ -356,10 +320,9 @@ public class STObject implements SerializedType, Iterable<Field> {
                     Object value   = jsonObject.get(key);
                     Field fieldKey = Field.fromString(key);
                     if (fieldKey == null) {
-                        // TODO test for UpperCase key name && warn about possibly unknown field
                         continue;
                     }
-                    so.put(fieldKey, value);
+                    so.putTranslated(fieldKey, value);
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }            }
@@ -385,110 +348,6 @@ public class STObject implements SerializedType, Iterable<Field> {
     static public TypedFields.STObjectField FinalFields = stobjectField(Field.FinalFields);
     static public TypedFields.STObjectField NewFields = stobjectField(Field.NewFields);
     static public TypedFields.STObjectField TemplateEntry = stobjectField(Field.TemplateEntry);
-
-    public <T extends HasField> void put(T f, Object value) {
-        if (value instanceof String) {
-            put(f, (String) value);
-        } else {
-            put(f.getField(), value);
-        }
-    }
-
-    public <T extends HasField> void put(T hf, Integer i) {
-        put(hf.getField(), i);
-    }
-
-    public void put(Field f, Integer i) {
-        put(f, Translators.forField(f).fromInteger(i));
-    }
-
-    public <T extends HasField> void put(T hf, String s) {
-        put(hf.getField(), s);
-    }
-
-    public <T extends HasField> void put(T hf, byte [] bytes) {
-        Field f = hf.getField();
-        put(f, bytes);
-    }
-
-    private void put(Field f, byte[] bytes) {
-        put(f, Translators.forField(f).fromBytes(bytes));
-    }
-
-    public void put(Field f, SerializedType value) {
-        fields.put(f, value);
-    }
-
-    public void put(Field f, Object value) {
-        TypeTranslator typeTranslator = Translators.forField(f);
-        SerializedType st = null;
-        try {
-            st = typeTranslator.fromValue(value);
-        } catch (Exception e) {
-            throw new RuntimeException("Couldn't put `" +value+ "` into field `" + f + "`\n" + e.toString());
-        }
-        fields.put(f, st);
-    }
-
-    public AccountID get(TypedFields.AccountIDField f) {
-        return (AccountID) get(f.getField());
-    }
-
-    public Amount get(TypedFields.AmountField f) {
-        return (Amount) get(f.getField());
-    }
-
-    public STArray get(TypedFields.STArrayField f) {
-        return (STArray) get(f.getField());
-    }
-
-    public Hash128 get(TypedFields.Hash128Field f) {
-        return (Hash128) get(f.getField());
-    }
-
-    public Hash160 get(TypedFields.Hash160Field f) {
-        return (Hash160) get(f.getField());
-    }
-
-    public Hash256 get(TypedFields.Hash256Field f) {
-        return (Hash256) get(f.getField());
-    }
-
-    public STObject get(TypedFields.STObjectField f) {
-        return (STObject) get(f.getField());
-    }
-
-    public PathSet get(TypedFields.PathSetField f) {
-        return (PathSet) get(f.getField());
-    }
-
-    public UInt16 get(TypedFields.UInt16Field f) {
-        return (UInt16) get(f.getField());
-    }
-
-    public UInt32 get(TypedFields.UInt32Field f) {
-        return (UInt32) get(f.getField());
-    }
-
-    public UInt64 get(TypedFields.UInt64Field f) {
-        return (UInt64) get(f.getField());
-    }
-
-    public UInt8 get(TypedFields.UInt8Field f) {
-        return (UInt8) get(f.getField());
-    }
-
-    public EngineResult get(TypedFields.EngineResultField f) {
-        return (EngineResult) get(f.getField());
-    }
-
-    public Vector256 get(TypedFields.Vector256Field f) {
-        return (Vector256) get(f.getField());
-    }
-
-    public VariableLength get(TypedFields.VariableLengthField f) {
-        return (VariableLength) get(f.getField());
-    }
 
     public static class Translators {
         private static TypeTranslator forType(Type type) {
@@ -516,12 +375,6 @@ public class STObject implements SerializedType, Iterable<Field> {
         public static TypeTranslator<SerializedType> forField(Field field) {
             if (field.tag == null) {
                 switch (field) {
-/*
-                    case CloseTime:
-                    case ParentCloseTime:
-                    case SigningTime:
-                        break;
-*/
                     case LedgerEntryType:
                         field.tag = LedgerEntryType.translate;
                         break;

@@ -84,8 +84,8 @@ public class MakePayment {
         // Tx is an STObject subclass, an associative container of Field to
         // SerializedType. Here conversion from Object is done automatically.
         // TODO: rename translate
-        payment.put(AccountID.Destination, destination);
-        payment.put(Amount.Amount, amt);
+        payment.putTranslated(AccountID.Destination, destination);
+        payment.putTranslated(Amount.Amount, amt);
 
         tx.once(ManagedTxn.OnSubmitSuccess.class, new ManagedTxn.OnSubmitSuccess() {
             @Override

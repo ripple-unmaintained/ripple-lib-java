@@ -31,6 +31,8 @@ public abstract class TypeTranslator<T extends SerializedType> {
                 return fromJSONArray((JSONArray) object);
             case JSON_OBJECT:
                 return fromJSONObject((JSONObject) object);
+            case BYTE_ARRAY:
+                return fromBytes((byte[]) object);
             case UNKNOWN:
             default:
                 return (T) object;
