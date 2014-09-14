@@ -1,44 +1,42 @@
 package com.ripple.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import com.ripple.core.coretypes.*;
 import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.uint.UInt16;
+import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.coretypes.uint.UInt64;
+import com.ripple.core.coretypes.uint.UInt8;
+import com.ripple.core.fields.Field;
+import com.ripple.core.formats.TxFormat;
+import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.enums.EngineResult;
+import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.sle.entries.AccountRoot;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.tx.result.TransactionMeta;
+import com.ripple.core.types.known.tx.txns.Payment;
 import com.ripple.core.types.shamap.ShaMap;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
-import junit.framework.TestCase;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.Test;
 
-import com.ripple.core.serialized.enums.LedgerEntryType;
-import com.ripple.core.serialized.enums.EngineResult;
-import com.ripple.core.fields.Field;
-import com.ripple.core.formats.TxFormat;
-import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.coretypes.uint.UInt16;
-import com.ripple.core.coretypes.uint.UInt32;
-import com.ripple.core.coretypes.uint.UInt64;
-import com.ripple.core.coretypes.uint.UInt8;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.Iterator;
+
+import static org.junit.Assert.*;
 
 public class STObjectTest {
     @Test
     public void binaryParsingSerializingSanityTest2() throws FileNotFoundException, JSONException {
 //        File f = new File("/home/nick/dumps/ledger-full-120000.json");
-        File f = new File("/home/nick/dumps/ledger-full-6220000.json");
+        File f = new File("/home/nick/dumps/ledger-full-6230000.json");
         if (!f.exists()) {
             return;
         }
@@ -53,13 +51,13 @@ public class STObjectTest {
         while (i < accountState.length()) {
             final STObject fromJSON;
             stateObject = accountState.getJSONObject(i);
+            assertEncodeable(stateObject);
             fromJSON = STObject.fromJSONObject(stateObject);
             sm.addLE((LedgerEntry) fromJSON);
             i++;
         }
         Hash256 hash = sm.hash();
-        System.out.println(hash);
-        System.out.println(ledgerJSON.getString("account_hash"));
+        assertEquals(hash.toHex(), ledgerJSON.getString("account_hash"));
     }
 
 
@@ -67,7 +65,6 @@ public class STObjectTest {
     public void binaryParsingSerializingSanityTest() throws FileNotFoundException, JSONException {
         // TODO, add this as a zipfile to the repo, so can test from it
         File f = new File("ripple-core/src/test/java/com/ripple/resources/ledgers-full.json");
-//        File f = new File("/home/nick/dumps/ledger-full-120000.json");
         if (!f.exists()) {
             return;
         }
@@ -83,22 +80,9 @@ public class STObjectTest {
             int i = 0;
             while (i < accountState.length()) {
                 try {
-                    STObject fromJSON;
-                    JSONObject stateObject;
-                    stateObject = accountState.getJSONObject(i);
-                    stateObject.remove("index");
-                    fromJSON = STObject.fromJSONObject(stateObject);
-                    String hexFromJSON = fromJSON.toHex();
-                    JSONObject fromJsonToJson = fromJSON.toJSONObject();
-                    STObject fromJsonToJsonAndBack = STObject.fromJSONObject(fromJsonToJson);
-                    String hexFromJsonToToJsonToHex = fromJsonToJsonAndBack.toHex();
-                    STObject rebuiltFromHex = STObject.translate.fromHex(hexFromJSON);
-                    assertEquals(hexFromJSON, rebuiltFromHex.toHex());
-                    assertEquals(hexFromJSON, hexFromJsonToToJsonToHex);
-                    assertEquals(fromJsonToJsonAndBack.toJSONObject().toString(), fromJsonToJson.toString());
-                    assertEquals(stateObject.length(), fromJsonToJson.length());
+                    assertEncodeable(accountState.getJSONObject(i));
                 } catch (RuntimeException e) {
-                    // There's one annoying value, that we'll need to find a way to accomodate
+                    // See `TAKER_PAYS_FOR_THAT_DAMN_OFFER`
                     if (!e.getMessage().split("\n")[0].equals(
                             "Couldn't put `1000000000000000100` into field `TakerPays`")) {
                         throw e;
@@ -109,6 +93,27 @@ public class STObjectTest {
             }
         }
 
+    }
+
+    public void assertEncodeable(JSONObject stateObject) {
+        STObject fromJSON;
+
+        Object index = stateObject.remove("index");
+        fromJSON = STObject.fromJSONObject(stateObject);
+        String hexFromJSON = fromJSON.toHex();
+        JSONObject fromJsonToJson = fromJSON.toJSONObject();
+        STObject fromJsonToJsonAndBack = STObject.fromJSONObject(fromJsonToJson);
+        String hexFromJsonToToJsonToHex = fromJsonToJsonAndBack.toHex();
+        STObject rebuiltFromHex = STObject.fromHex(hexFromJSON);
+        assertEquals(hexFromJSON, rebuiltFromHex.toHex());
+        assertEquals(hexFromJSON, hexFromJsonToToJsonToHex);
+        assertEquals(fromJsonToJsonAndBack.toJSONObject().toString(), fromJsonToJson.toString());
+        assertEquals(stateObject.length(), fromJsonToJson.length());
+        try {
+            stateObject.put("index", index);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
@@ -327,35 +332,6 @@ public class STObjectTest {
         assertEquals(rippledMetaHex, meta.toHex());
     }
 
-//    private void debugObject(String patterns, STObject meta, int starting) {
-//        for (Field field : meta) {
-//            if (!field.isSerialized()) {
-//                continue;
-//            }
-//
-//            SerializedType serializedType = meta.get(field);
-//            TypeTranslator<SerializedType> tr = STObject.Translators.forField(field);
-//
-//            BinarySerializer bn = new BinarySerializer();
-//            bn.add(field, serializedType, tr);
-//            String hex = B16.toString(bn.bytes());
-//
-//            if (field.getType() == Type.ARRAY) {
-//                STArray array = (STArray) serializedType;
-//                for (STObject stObject : array) {
-//                    debugObject(patterns, stObject, starting);
-//                }
-//            } else if (field.getType() == Type.OBJECT) {
-//                debugObject(patterns, (STObject) serializedType, starting);
-//            } else {
-//                int ix = patterns.indexOf(hex.toUpperCase(), starting);
-//                starting = (ix + hex.length());
-//                boolean contains = ix != 1;
-//                assertTrue(contains);
-//            }
-//        }
-//    }
-
     @Test
     public void testTypeInference() {
 
@@ -370,7 +346,6 @@ public class STObjectTest {
         assertNull(so.get(Amount.HighLimit));
     }
 
-
     @Test
     /**
      * We just testing this won't blow up due to unknown `date` field!
@@ -379,11 +354,10 @@ public class STObjectTest {
 
         String json = "{\"date\": 434707820,\n" +
                 "\"hash\": \"66347806574036FD3D3E9FDA20A411FA8B2D26AA3C3725A107FCF0050F1E4B86\"}";
-
-        STObject so = STObject.fromJSONObject(new JSONObject(json));
+        STObject.fromJSON(json);
     }
 
-    String metaString = "{\"AffectedNodes\": [{\"ModifiedNode\": {\"FinalFields\": {\"Account\": \"rwMyB1diFJ7xqEKYGYgk9tKrforvTr33M5\"," +
+    String metaJson = "{\"AffectedNodes\": [{\"ModifiedNode\": {\"FinalFields\": {\"Account\": \"rwMyB1diFJ7xqEKYGYgk9tKrforvTr33M5\"," +
             "\"Balance\": \"286000447\"," +
             "\"Flags\": 0," +
             "\"OwnerCount\": 4," +
@@ -408,10 +382,10 @@ public class STObjectTest {
             "\"TransactionResult\": \"tesSUCCESS\"}";
 
     @Test
-    public void testParsing() throws Exception {
+    public void testDryWetDry() throws Exception {
         String jsonHexed = "201C00000001F8E511006125003136FA55610A3178D0A69167DF32E28990FD60D50F5610A5CF5C832CBF0C7FCC0913516B5656091AD066271ED03B106812AD376D48F126803665E3ECBFDBBB7A3FFEB474B2E62400113FCF2D000000456240000000768913E4E1E722000000002400113FD02D000000446240000000768913DA8114E0E893E991B2142E74486F7D3331CF711EA84213E1E1E5110064565943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919AE7220000000036561993D688DA919A585943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919A01110000000000000000000000004C54430000000000021192D705968936C419CE614BF264B5EEB1CEA47FF403110000000000000000000000004254430000000000041192D705968936C419CE614BF264B5EEB1CEA47FF4E1E1E411006F5678812E6E2AB80D5F291F8033D7BC23F0A6E4EA80C998BFF38E80E2A09D2C4D93E722000000002400113F32250031361633000000000000000034000000000000329255C7D1671589B1B4AB1071E38299B8338632DAD19A7D0F8D28388F40845AF0BCC550105943CB2C05B28743AADF0AE47E9C57E9C15BD23284CF6DA9561993D688DA919A64D4C7A75562493C000000000000000000000000004C5443000000000092D705968936C419CE614BF264B5EEB1CEA47FF465D44AA183A77ECF80000000000000000000000000425443000000000092D705968936C419CE614BF264B5EEB1CEA47FF48114E0E893E991B2142E74486F7D3331CF711EA84213E1E1E511006456F78A0FFA69890F27C2A79C495E1CEB187EE8E677E3FDFA5AD0B8FCFC6E644E38E72200000000310000000000003293320000000000000000582114A41BB356843CE99B2858892C8F1FEF634B09F09AF2EB3E8C9AA7FD0E3A1A8214E0E893E991B2142E74486F7D3331CF711EA84213E1E1F1031000";
 
-        STObject meta = STObject.translate.fromParser(new BinaryParser(jsonHexed));
+        STObject meta = STObject.fromHex(jsonHexed);
         String actual = meta.toHex();
         assertEquals(jsonHexed.length(), actual.length());
         assertEquals(jsonHexed, actual);
@@ -421,38 +395,35 @@ public class STObjectTest {
     public void testParsingVector256() throws Exception {
         // This was a test case for a bug found in ripple-lib js
         String jsonHexed = "110064220000000058000360186E008422E06B72D5B275E29EE3BE9D87A370F424E0E7BF613C4659098214289D19799C892637306AAAF03805EDFCDF6C28B8011320081342A0AB45459A54D8E4FA1842339A102680216CF9A152BCE4F4CE467D8246";
-        STObject meta = STObject.translate.fromHex(jsonHexed);
+        STObject meta = STObject.fromHex(jsonHexed);
         String expectedJSON;
         expectedJSON = ("{\"LedgerEntryType\":\"DirectoryNode\",\"Indexes\":[\"081342A0AB45459A54D8E4FA1842339A102680216CF9A152BCE4F4CE467D8246\"],\"Owner\":\"rh6kN9s7spSb3vdv6H8ZGYzsddSLeEUGmc\",\"RootIndex\":\"000360186E008422E06B72D5B275E29EE3BE9D87A370F424E0E7BF613C465909\",\"Flags\":0}");
         assertEquals(new JSONObject(expectedJSON).toString(), new JSONObject(meta.toJSONObject().toString()).toString());
-
     }
 
     @Test
     public void testFormatted() throws Exception {
-        // Normally the api wouldn't be so awkward.
         String json = "{\"TakerPays\" : \"2.0\", \"TakerGets\" : \"1.0\", \"LedgerEntryType\" : \"Offer\"}";
         STObject offer = STObject.fromJSON(json);
         Offer casted = (Offer) STObject.formatted(offer);
-        TestCase.assertEquals(casted.askQuality().toPlainString(), "2");
     }
 
     @Test
-    public void test_parsing_transaction_meta_with_STArray() throws Exception {
-        TransactionMeta meta = (TransactionMeta) STObject.fromJSONObject(new JSONObject(metaString));
+    public void testParsingTransactionMetaWithSTArray() throws Exception {
+        TransactionMeta meta = (TransactionMeta) STObject.fromJSON(metaJson);
         STArray nodes = meta.get(STArray.AffectedNodes);
 
         // Some helper methods to get enum fields
-        assertEquals(EngineResult.tesSUCCESS,
-                meta.engineResult());
+        assertEquals(EngineResult.tesSUCCESS, meta.engineResult());
 
         STObject firstAffected = nodes.get(0);
+        STObject secondAffected = nodes.get(1);
         assertEquals(LedgerEntryType.AccountRoot,
                 ((AccountRoot) firstAffected.get(STObject.ModifiedNode)).ledgerEntryType());
 
         assertTrue(firstAffected.has(STObject.ModifiedNode));
-        assertEquals(new UInt32(35), finalSequence(firstAffected));
-        assertEquals(new UInt32(177), finalSequence(nodes.get(1)));
+        assertEquals(35, finalSequence(firstAffected).longValue());
+        assertEquals(177, finalSequence(secondAffected).longValue());
     }
 
     private UInt32 finalSequence(STObject affected) {
@@ -465,17 +436,18 @@ public class STObjectTest {
 
         IKeyPair kp = Seed.getKeyPair(TestFixtures.master_seed);
         AccountID ac = AccountID.fromKeyPair(kp);
-        STObject fromSO = new STObject();
 
-        fromSO.putTranslated(Field.TransactionType, "Payment");
-        fromSO.putTranslated(AccountID.Account, ac.address);
-        fromSO.putTranslated(UInt32.Sequence, 5);
-        fromSO.putTranslated(Amount.Fee, "15");
-        fromSO.putTranslated(VariableLength.SigningPubKey, kp.pubHex());
-        fromSO.putTranslated(AccountID.Destination, TestFixtures.bob_account.address);
-        fromSO.putTranslated(Amount.Amount, "12/USD/" + ac.address);
+        Payment payment = new Payment();
 
-        assertEquals(expectedSerialization, fromSO.toHex());
+        payment.put(AccountID.Account, ac);
+        payment.put(AccountID.Destination, TestFixtures.bob_account);
+
+        payment.putTranslated(UInt32.Sequence, 5);
+        payment.putTranslated(Amount.Fee, "15");
+        payment.putTranslated(VariableLength.SigningPubKey, kp.pubHex());
+        payment.putTranslated(Amount.Amount, "12/USD/" + ac.address);
+
+        assertEquals(expectedSerialization, payment.toHex());
     }
 
     @Test
@@ -498,9 +470,6 @@ public class STObjectTest {
 
         STObject fromJSON = STObject.fromJSONObject(new JSONObject(tx_json));
         assertEquals(expectedSerialization, fromJSON.toHex());
-//        for (Field field : fromJSON) {
-//            System.out.println(field);
-//        }
     }
 
     @Test
@@ -544,50 +513,9 @@ public class STObjectTest {
     }
 
     @Test
-    public void testAmountSerializations() throws Exception {
-        rehydrationTest(amt("1/USD/bob"));
-        rehydrationTest(amt("1"));
-        rehydrationTest(amt("10000"));
-        rehydrationTest(amt("9999999999999999"));
-        rehydrationTest(amt("-9999999999999999"));
-        rehydrationTest(amt("-1/USD/bob"));
-        rehydrationTest(amt("-1"));
-        rehydrationTest(amt("-10000"));
-        rehydrationTest(amt("-0.0001"));
-        rehydrationTest(amt("-0.000001"));
-        rehydrationTest(amt("0.0001"));
-        rehydrationTest(amt("0.0001/USD/bob"));
-        rehydrationTest(amt("0.0000000000000001/USD/bob"));
-        rehydrationTest(amt("-0.1234567890123456/USD/bob"));
-        rehydrationTest(amt("0.1234567890123456/USD/bob"));
-        rehydrationTest(amt("-0.0001/USD/bob"));
-
-    }
-
-    @Test(expected = Amount.PrecisionError.class)
-    public void testBlowup() throws Exception {
-        rehydrationTest(amt("-0.12345678901234567/USD/bob"));
-    }
-
-    private void rehydrationTest(Amount positiveIOU) {
-        assertEquals(positiveIOU, driedWet(positiveIOU));
-    }
-
-    private Amount driedWet(Amount amt) {
-        Amount.Translator tran = Amount.translate;
-        String hex = tran.toHex(amt);
-        return tran.fromHex(hex);
-    }
-
-    private Amount amt(String val) {
-        return Amount.fromString(val);
-    }
-
-    @Test
     public void testUINT() throws JSONException {
 
-        JSONObject json = new JSONObject("{\"Expiration\" : 21}");
-        STObject so = STObject.translate.fromJSONObject(json);
+        STObject so = STObject.fromJSON("{\"Expiration\" : 21}");
         assertEquals(21, so.get(UInt32.Expiration).longValue());
 
         byte[] bytes =  (new UInt8 (1)).toBytes();
@@ -605,15 +533,15 @@ public class STObjectTest {
     public void testSymbolics() throws JSONException {
         assertNotNull(TxFormat.fromString("Payment"));
 
-        JSONObject json = new JSONObject("{\"Expiration\"        : 21, " +
+        String json = "{\"Expiration\"        : 21, " +
                 "\"TransactionResult\" : 0,  " +
-                "\"TransactionType\"   : 0  }");
+                "\"TransactionType\"   : 0  }";
 
-        STObject so = STObject.translate.fromJSONObject(json);
+        STObject so = STObject.fromJSON(json);
         assertEquals(so.getFormat(), TxFormat.Payment);
         so.setFormat(null); // Else it (SHOULD) attempt to validate something clearly unFormatted
 
-        JSONObject object = STObject.translate.toJSONObject(so);
+        JSONObject object = so.toJSONObject();
 
         assertEquals(object.get("TransactionResult"), "tesSUCCESS");
         assertEquals(object.get("TransactionType"), "Payment");

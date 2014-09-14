@@ -22,7 +22,6 @@ public class AmountTest {
         AccountID.addAliasFromPassPhrase("bob", "bob");
     }
 
-
     @Test
     public void testXRPFromMantissaBytes() throws Exception {
         byte[] mantissa = new UInt32(99000001).toByteArray();
@@ -31,12 +30,47 @@ public class AmountTest {
     }
 
     @Test
+    public void testAmountSerializations() throws Exception {
+        rehydrationTest(amt("1/USD/bob"));
+        rehydrationTest(amt("1"));
+        rehydrationTest(amt("10000"));
+        rehydrationTest(amt("9999999999999999"));
+        rehydrationTest(amt("-9999999999999999"));
+        rehydrationTest(amt("-1/USD/bob"));
+        rehydrationTest(amt("-1"));
+        rehydrationTest(amt("-10000"));
+        rehydrationTest(amt("-0.0001"));
+        rehydrationTest(amt("-0.000001"));
+        rehydrationTest(amt("0.0001"));
+        rehydrationTest(amt("0.0001/USD/bob"));
+        rehydrationTest(amt("0.0000000000000001/USD/bob"));
+        rehydrationTest(amt("-0.1234567890123456/USD/bob"));
+        rehydrationTest(amt("0.1234567890123456/USD/bob"));
+        rehydrationTest(amt("-0.0001/USD/bob"));
+
+    }
+
+    @Test(expected = Amount.PrecisionError.class)
+    public void testBlowup() throws Exception {
+        rehydrationTest(amt("-0.12345678901234567/USD/bob"));
+    }
+
+    private void rehydrationTest(Amount amt) {
+        assertEquals(amt, driedWet(amt));
+    }
+
+    private Amount driedWet(Amount amt) {
+        String hex = amounts.toHex(amt);
+        return amounts.fromHex(hex);
+    }
+
+    @Test
     public void testFunkyCurrencies() throws Exception {
         String amtJSON = "{\"currency\": \"015841551A748AD23FEFFFFFFFEA028000000000\"," +
                 "\"issuer\": \"rM1oqKtfh1zgjdAgbFmaRm3btfGBX25xVo\"," +
                 "\"value\": \"1000\"}";
 
-        Amount amt = Amount.translate.fromJSONObject(new JSONObject(amtJSON));
+        Amount amt = amounts.fromJSONObject(new JSONObject(amtJSON));
         String expected = "D5438D7EA4C68000015841551A748AD23FEFFFFFFFEA028000000000E4FE687C90257D3D2D694C8531CDEECBE84F3367";
         String hex = amt.toHex();
         assertEquals(expected, hex);
@@ -49,7 +83,6 @@ public class AmountTest {
 
     @Test
     public void testSubtraction() throws Exception {
-//        assertEquals(amt("10"), amt("11").subtract(amt("1")));
         assertEquals(amt("10"), amt("11").subtract(Amount.fromString("0.000001")));
         assertEquals(amt("10"), amt("11").subtract(new BigDecimal("0.000001")));
     }
@@ -89,7 +122,6 @@ public class AmountTest {
                         "}";
 
         Amount amount = amounts.fromJSONObject(new JSONObject(json));
-//        assertEquals("XRP", amount.currencyString());
         assertFalse(amount.isNative());
 
         JSONObject jsonObject = amounts.toJSONObject(amount);
@@ -204,7 +236,7 @@ public class AmountTest {
         assertEquals(String.format("Offset for %s should be %d", s, i),  i, amt.offset());
     }
 
-    public Amount a50 = amt("50/USD/root"); // on the fly, cached, `passphrase to address`
+    public Amount a50 = amt("50/USD/root");
     public Amount b20 = amt("20/USD");
     public Amount c5  = amt("5/USD");
 

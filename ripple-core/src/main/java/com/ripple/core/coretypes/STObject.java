@@ -52,6 +52,9 @@ public class STObject implements SerializedType, Iterable<Field> {
     public static STObject fromJSONObject(JSONObject json) {
         return translate.fromJSONObject(json);
     }
+    public static STObject fromHex(String hex) {
+        return STObject.translate.fromHex(hex);
+    }
 
     @Override
     public Iterator<Field> iterator() {
