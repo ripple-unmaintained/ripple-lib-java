@@ -6,6 +6,7 @@ import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.sle.LedgerHashes;
+import com.ripple.core.types.known.sle.entries.DirectoryNode;
 import com.ripple.core.types.known.tx.result.TransactionResult;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,11 +34,6 @@ public class ShaMap extends ShaMapInner {
         ShaMap copy = (ShaMap) copy(copies.incrementAndGet());
         copy.copies = copies;
         return copy;
-    }
-
-    public void addLE(LedgerEntry entry) {
-        LedgerEntryItem item = new LedgerEntryItem(entry);
-        addItem(entry.index(), item);
     }
 
     public void updateSkipLists(long currentIndex, Hash256 parentHash) {
@@ -73,13 +69,24 @@ public class ShaMap extends ShaMapInner {
         LedgerEntryItem item;
 
         if (path.hasMatchedLeaf()) {
-            item = (LedgerEntryItem) path.leaf.item;
+            if (doCoW) {
+                ShaMapLeaf copied = path.leaf.copy();
+                top.setLeaf(copied);
+                item = (LedgerEntryItem) copied.item;
+            } else {
+                item = (LedgerEntryItem) path.leaf.item;
+            }
         } else {
             LedgerHashes hashes = newSkipList(skipIndex);
             item = new LedgerEntryItem(hashes);
             top.addLeafToTerminalInner(new ShaMapLeaf(skipIndex, item));
         }
         return (LedgerHashes) item.entry;
+    }
+
+    public void addLE(LedgerEntry entry) {
+        LedgerEntryItem item = new LedgerEntryItem(entry);
+        addItem(entry.index(), item);
     }
 
     private static LedgerHashes newSkipList(Hash256 skipIndex) {
@@ -94,5 +101,18 @@ public class ShaMap extends ShaMapInner {
     public void addTransactionResult(TransactionResult tr) {
         TransactionResultItem item = new TransactionResultItem(tr);
         addItem(tr.hash, item);
+    }
+
+    public LedgerEntry getLE(Hash256 index) {
+        LedgerEntryItem item = (LedgerEntryItem) getItem(index);
+        return item == null ? null : item.entry;
+    }
+
+    public DirectoryNode getDirectoryNode(Hash256 index) {
+        return (DirectoryNode) getLE(index);
+    }
+
+    public Hash256 getNextIndex(Hash256 nextIndex, Hash256 bookEnd) {
+        return null;
     }
 }

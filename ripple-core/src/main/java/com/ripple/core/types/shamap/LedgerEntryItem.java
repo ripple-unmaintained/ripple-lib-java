@@ -11,7 +11,7 @@ public class LedgerEntryItem extends ShaMapItem<LedgerEntry> {
         this.entry = entry;
     }
 
-    LedgerEntry entry;
+    public LedgerEntry entry;
 
     @Override
     void toBytesSink(BytesSink sink) {

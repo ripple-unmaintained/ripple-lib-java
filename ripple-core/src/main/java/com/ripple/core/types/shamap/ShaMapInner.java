@@ -5,7 +5,9 @@ import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.coretypes.hash.prefixes.Prefix;
 import com.ripple.core.serialized.BytesSink;
 
-public class ShaMapInner extends ShaMapNode {
+import java.util.Iterator;
+
+public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
     public int depth;
     int slotBits = 0;
     int version = 0;
@@ -45,7 +47,7 @@ public class ShaMapInner extends ShaMapNode {
 
     // Descend into the tree, find the leaf matching this index
     // and if the tree has it.
-    private void setLeaf(ShaMapLeaf leaf) {
+    protected void setLeaf(ShaMapLeaf leaf) {
         setBranch(leaf.index, leaf);
     }
 
@@ -268,10 +270,36 @@ public class ShaMapInner extends ShaMapNode {
         PathToIndex path = pathToIndex(leaf);
         if (path.hasMatchedLeaf()) {
             ShaMapInner top = path.dirtyOrCopyInners();
-            ShaMapLeaf copied = path.leaf.copy();
-            top.setLeaf(copied);
-            return copied;
+            ShaMapLeaf theLeaf = path.leaf;
+
+            if (doCoW) {
+                theLeaf = path.leaf.copy();
+                top.setLeaf(theLeaf);
+            }
+            return theLeaf;
         }
         return null;
+    }
+
+    @Override
+    public Iterator<ShaMapNode> iterator() {
+        return new Iterator<ShaMapNode>() {
+            int ix = 0;
+
+            @Override
+            public boolean hasNext() {
+                return ix != 16;
+            }
+
+            @Override
+            public ShaMapNode next() {
+                return branch(ix++);
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 }
