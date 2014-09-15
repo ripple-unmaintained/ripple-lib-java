@@ -282,7 +282,7 @@ public class STObject implements SerializedType, Iterable<Field> {
                 sizeHint = field.isVLEncoded() ? parser.readVLLength() : null;
                 st = tr.fromParser(parser, sizeHint);
                 if (st == null) {
-                    throw new IllegalStateException("Parsed " + field + "as null");
+                    throw new IllegalStateException("Parsed " + field + " as null");
                 }
                 so.put(field, st);
             }

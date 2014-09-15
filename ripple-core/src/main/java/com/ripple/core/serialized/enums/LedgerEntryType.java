@@ -64,7 +64,7 @@ public enum LedgerEntryType implements SerializedType{
         @Override
         public LedgerEntryType fromParser(BinaryParser parser, Integer hint) {
             byte[] read = parser.read(2);
-            return fromNumber((read[0] << 8) | read[1]);
+            return fromNumber(((read[0] & 0xFF) << 8) | (read[1] & 0xFF));
         }
 
         @Override
