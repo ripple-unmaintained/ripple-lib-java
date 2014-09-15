@@ -2,7 +2,7 @@ package com.ripple.client.subscriptions.ledger;
 
 import com.ripple.client.Client;
 import com.ripple.core.types.known.tx.result.TransactionResult;
-import com.ripple.core.types.shamap.ShaMap;
+import com.ripple.core.types.shamap.TransactionTree;
 
 import java.text.MessageFormat;
 
@@ -32,7 +32,7 @@ public class PendingLedger {
     }
 
     public Status status;
-    ShaMap transactions;
+    TransactionTree transactions;
     // set to -1 when we don't know how many to expect
     // this is just useful for debugging purposes
     int expectedTxns = -1;
@@ -44,7 +44,7 @@ public class PendingLedger {
     public PendingLedger(long ledger_index, Client clientInstance) {
         this.ledger_index = ledger_index;
 
-        transactions = new ShaMap();
+        transactions = new TransactionTree();
         client = clientInstance;
         status = Status.pending;
     }

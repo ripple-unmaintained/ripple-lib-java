@@ -14,7 +14,7 @@ import com.ripple.core.types.known.tx.result.TransactionResult;
 import java.util.*;
 
 public class AccountStateBuilder {
-    private final ShaMap state;
+    private final AccountState state;
     private long currentLedgerIndex;
     private long currentTransactionIndex = 0;
     private String currentAccountHash;
@@ -22,7 +22,7 @@ public class AccountStateBuilder {
     private TreeSet<Hash256> directoriesModifiedMoreThanOnceByTransaction = new TreeSet<Hash256>();
     private TreeSet<Hash256> directoriesModifiedByTransaction = new TreeSet<Hash256>();
 
-    public AccountStateBuilder(ShaMap state, long currentLedgerIndex) {
+    public AccountStateBuilder(AccountState state, long currentLedgerIndex) {
         this.state = state;
         this.currentLedgerIndex = currentLedgerIndex;
     }

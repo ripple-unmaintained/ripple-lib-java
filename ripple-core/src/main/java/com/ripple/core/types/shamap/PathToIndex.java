@@ -12,12 +12,16 @@ public class PathToIndex {
     private ArrayDeque<ShaMapInner> inners;
     private ShaMapInner[] dirtied;
     private boolean matched = false;
+    private boolean doCopies = false;
 
     public boolean hasLeaf() {
         return leaf != null;
     }
     public boolean leafMatchedIndex() {
         return matched;
+    }
+    public boolean copyLeafOnUpdate() {
+        return doCopies;
     }
 
     // returns the
@@ -41,6 +45,7 @@ public class PathToIndex {
                 ShaMapInner next = it.next();
                 if (ix == 1) {
                     doCopies = next.version != top.version;
+                    this.doCopies = doCopies;
                 }
 
                 if (doCopies) {

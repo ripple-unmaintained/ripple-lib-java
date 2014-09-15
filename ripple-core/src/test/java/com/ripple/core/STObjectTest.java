@@ -17,7 +17,7 @@ import com.ripple.core.types.known.sle.entries.AccountRoot;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.tx.result.TransactionMeta;
 import com.ripple.core.types.known.tx.txns.Payment;
-import com.ripple.core.types.shamap.ShaMap;
+import com.ripple.core.types.shamap.AccountState;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
 import org.json.JSONArray;
@@ -46,7 +46,7 @@ public class STObjectTest {
         JSONTokener tok = new JSONTokener(new FileReader(f));
         JSONObject ledgerJSON = new JSONObject(tok);
         JSONArray accountState = ledgerJSON.getJSONArray("accountState");
-        ShaMap sm = new ShaMap();
+        AccountState sm = new AccountState();
         JSONObject stateObject = null;
 
         int i = 0;

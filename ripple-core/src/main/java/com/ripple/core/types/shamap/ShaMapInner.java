@@ -25,7 +25,7 @@ public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
     }
 
     protected ShaMapInner copy(int version) {
-        ShaMapInner copy = copyInner(depth);
+        ShaMapInner copy = makeInnerOfSameClass(depth);
         System.arraycopy(branches, 0, copy.branches, 0, branches.length);
         copy.slotBits = slotBits;
         copy.hash = hash;
@@ -35,7 +35,7 @@ public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
         return copy;
     }
 
-    protected ShaMapInner copyInner(int depth) {
+    protected ShaMapInner makeInnerOfSameClass(int depth) {
         return new ShaMapInner(true, depth, version);
     }
 
@@ -181,7 +181,8 @@ public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
         if (branch == null) {
             setLeaf(leaf);
         } else if (branch.isInner()) {
-            branch.asInner().addLeafToTerminalInner(leaf);
+            // This should never be called
+            throw new AssertionError();
         } else if (branch.isLeaf()) {
             ShaMapInner inner = makeInnerChild();
             setBranch(leaf.index, inner);
@@ -272,7 +273,7 @@ public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
             ShaMapInner top = path.dirtyOrCopyInners();
             ShaMapLeaf theLeaf = path.leaf;
 
-            if (doCoW) {
+            if (path.copyLeafOnUpdate()) {
                 theLeaf = path.leaf.copy();
                 top.setLeaf(theLeaf);
             }
