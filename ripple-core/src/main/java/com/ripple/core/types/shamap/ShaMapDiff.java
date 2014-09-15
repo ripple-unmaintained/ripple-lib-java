@@ -22,7 +22,8 @@ public class ShaMapDiff {
 
     public void apply(ShaMap sa) {
         for (Hash256 mod : modified) {
-            sa.updateItem(mod, two.getItem(mod).copy());
+            boolean modded = sa.updateItem(mod, two.getItem(mod).copy());
+            if (!modded) throw new AssertionError();
         }
 
         for (Hash256 add : added) {
@@ -30,8 +31,8 @@ public class ShaMapDiff {
             if (!added) throw new AssertionError();
         }
         for (Hash256 delete : deleted) {
-            boolean b = sa.removeLeaf(delete);
-            if (!b) throw new AssertionError();
+            boolean removed = sa.removeLeaf(delete);
+            if (!removed) throw new AssertionError();
         }
     }
     private void compare(ShaMapInner a, ShaMapInner b) {

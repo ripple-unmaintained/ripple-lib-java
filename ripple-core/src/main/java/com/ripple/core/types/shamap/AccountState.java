@@ -61,16 +61,10 @@ public class AccountState extends ShaMap {
         LedgerEntryItem item;
 
         if (path.hasMatchedLeaf()) {
-            if (path.copyLeafOnUpdate()) {
-                ShaMapLeaf copied = path.leaf.copy();
-                top.setLeaf(copied);
-                item = (LedgerEntryItem) copied.item;
-            } else {
-                item = (LedgerEntryItem) path.leaf.item;
-            }
+            ShaMapLeaf leaf = path.invalidatedPossiblyCopiedleafForUpdating();
+            item = (LedgerEntryItem) leaf.item;
         } else {
-            LedgerHashes hashes = newSkipList(skipIndex);
-            item = new LedgerEntryItem(hashes);
+            item = new LedgerEntryItem(newSkipList(skipIndex));
             top.addLeafToTerminalInner(new ShaMapLeaf(skipIndex, item));
         }
         return (LedgerHashes) item.entry;

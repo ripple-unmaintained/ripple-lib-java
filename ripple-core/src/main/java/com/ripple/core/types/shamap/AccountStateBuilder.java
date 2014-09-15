@@ -15,22 +15,22 @@ import java.util.*;
 
 public class AccountStateBuilder {
     private final AccountState state;
-    private long currentLedgerIndex;
+    private long targetLedgerIndex;
     private long currentTransactionIndex = 0;
-    private String currentAccountHash;
+    private Hash256 targetAccountHash;
 
     private TreeSet<Hash256> directoriesModifiedMoreThanOnceByTransaction = new TreeSet<Hash256>();
     private TreeSet<Hash256> directoriesModifiedByTransaction = new TreeSet<Hash256>();
 
-    public AccountStateBuilder(AccountState state, long currentLedgerIndex) {
+    public AccountStateBuilder(AccountState state, long targetLedgerIndex) {
         this.state = state;
-        this.currentLedgerIndex = currentLedgerIndex;
+        this.targetLedgerIndex = targetLedgerIndex;
     }
 
-    public void onLedgerClose(long ledgerIndex, String accountHash, String parentHash) {
-        state.updateSkipLists(ledgerIndex, Hash256.fromHex(parentHash));
-        currentLedgerIndex = ledgerIndex;
-        currentAccountHash = accountHash;
+    public void onLedgerClose(long ledgerIndex, Hash256 accountHash, Hash256 parentHash) {
+        state.updateSkipLists(ledgerIndex, parentHash);
+        targetLedgerIndex = ledgerIndex;
+        targetAccountHash = accountHash;
         currentTransactionIndex = 0;
     }
 
@@ -190,23 +190,25 @@ public class AccountStateBuilder {
         return (DirectoryNode) lei.entry;
     }
 
-    public ShaMap state() {
+    public AccountState state() {
         return state;
     }
+
     public long currentLedgerIndex() {
-        return currentLedgerIndex;
+        return targetLedgerIndex;
     }
-    public String currentAccountHash() {
-        return currentAccountHash;
+
+    public String targetAccountHashHex() {
+        return targetAccountHash.toHex();
     }
-    public Hash256 accountHash() {
-        return Hash256.fromHex(currentAccountHash);
+    public Hash256 targetAccountHash() {
+        return targetAccountHash;
     }
     public TreeSet<Hash256> directoriesWithIndexesOutOfOrder() {
         return directoriesModifiedMoreThanOnceByTransaction;
     }
 
     public boolean bad() {
-        return !state.hash().toHex().equals(currentAccountHash);
+        return !state.hash().equals(targetAccountHash);
     }
 }

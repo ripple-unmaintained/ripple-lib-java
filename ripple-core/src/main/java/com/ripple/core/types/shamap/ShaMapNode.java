@@ -38,10 +38,10 @@ abstract public class ShaMapNode {
      * Walk any leaves, possibly this node itself, if it's terminal.
      */
     public void walkAnyLeaves(LeafWalker leafWalker) {
-        if (this.isLeaf()) {
-            leafWalker.onLeaf((ShaMapLeaf) this);
+        if (isLeaf()) {
+            leafWalker.onLeaf(asLeaf());
         } else {
-            this.asInner().walkLeaves(leafWalker);
+            asInner().walkLeaves(leafWalker);
         }
     }
 }

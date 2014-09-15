@@ -24,6 +24,10 @@ public class PathToIndex {
         return doCopies;
     }
 
+    public ShaMapInner top() {
+        return dirtied[0];
+    }
+
     // returns the
     public ShaMapInner dirtyOrCopyInners() {
         if (maybeCopyOnWrite()) {
@@ -94,7 +98,9 @@ public class PathToIndex {
         dirtied = new ShaMapInner[inners.size()];
         Iterator<ShaMapInner> descending = inners.descendingIterator();
         while (descending.hasNext()) {
-            dirtied[ix++] = descending.next();
+            ShaMapInner next = descending.next();
+            dirtied[ix++] = next;
+            next.invalidate();
         }
     }
 
@@ -125,5 +131,19 @@ public class PathToIndex {
                 top = existing.asInner();
             }
         }
+    }
+
+    public ShaMapLeaf invalidatedPossiblyCopiedleafForUpdating() {
+        if (dirtied == null) {
+            dirtyOrCopyInners();
+        }
+        ShaMapLeaf theLeaf = leaf;
+
+        if (copyLeafOnUpdate()) {
+            theLeaf = leaf.copy();
+            top().setLeaf(theLeaf);
+        }
+        theLeaf.invalidate();
+        return theLeaf;
     }
 }

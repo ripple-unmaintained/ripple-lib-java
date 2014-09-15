@@ -270,14 +270,7 @@ public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
     public ShaMapLeaf getLeafForUpdating(Hash256 leaf) {
         PathToIndex path = pathToIndex(leaf);
         if (path.hasMatchedLeaf()) {
-            ShaMapInner top = path.dirtyOrCopyInners();
-            ShaMapLeaf theLeaf = path.leaf;
-
-            if (path.copyLeafOnUpdate()) {
-                theLeaf = path.leaf.copy();
-                top.setLeaf(theLeaf);
-            }
-            return theLeaf;
+            return path.invalidatedPossiblyCopiedleafForUpdating();
         }
         return null;
     }
