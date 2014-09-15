@@ -21,7 +21,9 @@ public class LedgerEntryItem extends ShaMapItem<LedgerEntry> {
     @Override
     public ShaMapItem<LedgerEntry> copy() {
         STObject object = STObject.translate.fromBytes(entry.toBytes());
-        return new LedgerEntryItem((LedgerEntry) object);
+        LedgerEntry le = (LedgerEntry) object;
+        le.index(entry.index());
+        return new LedgerEntryItem(le);
     }
 
     @Override

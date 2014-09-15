@@ -25,7 +25,7 @@ public class PathToIndex {
     }
 
     public ShaMapInner top() {
-        return dirtied[0];
+        return dirtied[dirtied.length - 1];
     }
 
     // returns the

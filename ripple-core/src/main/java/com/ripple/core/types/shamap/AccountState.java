@@ -87,4 +87,9 @@ public class AccountState extends ShaMap {
     public Hash256 getNextIndex(Hash256 nextIndex, Hash256 bookEnd) {
         return null;
     }
+
+    @Override
+    public AccountState copy() {
+        return (AccountState) super.copy();
+    }
 }

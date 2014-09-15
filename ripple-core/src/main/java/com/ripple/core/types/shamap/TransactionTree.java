@@ -20,4 +20,9 @@ public class TransactionTree extends ShaMap {
         TransactionResultItem item = new TransactionResultItem(tr);
         addItem(tr.hash, item);
     }
+
+    @Override
+    public TransactionTree copy() {
+        return (TransactionTree) super.copy();
+    }
 }

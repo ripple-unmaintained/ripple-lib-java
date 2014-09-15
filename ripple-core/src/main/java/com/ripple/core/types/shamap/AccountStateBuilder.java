@@ -14,7 +14,7 @@ import com.ripple.core.types.known.tx.result.TransactionResult;
 import java.util.*;
 
 public class AccountStateBuilder {
-    private final AccountState state;
+    private AccountState state;
     private long targetLedgerIndex;
     private long currentTransactionIndex = 0;
     private Hash256 targetAccountHash;
@@ -32,6 +32,7 @@ public class AccountStateBuilder {
         targetLedgerIndex = ledgerIndex;
         targetAccountHash = accountHash;
         currentTransactionIndex = 0;
+//        state = state.copy();
     }
 
     public void onTransaction(TransactionResult tr) {
