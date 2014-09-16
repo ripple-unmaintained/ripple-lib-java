@@ -13,6 +13,7 @@ import com.ripple.client.subscriptions.TransactionSubscriptionManager;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.client.transport.TransportEventHandler;
 import com.ripple.client.transport.WebSocketTransport;
+import com.ripple.client.types.AccountLine;
 import com.ripple.core.coretypes.*;
 import com.ripple.core.coretypes.Currency;
 import com.ripple.core.coretypes.hash.Hash256;
@@ -146,30 +147,21 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         });
     }
 
-    public Request requestAccountLines(final AccountID addy, final Manager<ArrayList<Amount>> manager) {
-        return makeManagedRequest(Command.account_lines, manager, new Request.Builder<ArrayList<Amount>>() {
+    public Request requestAccountLines(final AccountID addy, final Manager<ArrayList<AccountLine>> manager) {
+        return makeManagedRequest(Command.account_lines, manager, new Request.Builder<ArrayList<AccountLine>>() {
             @Override
             public void beforeRequest(Request request) {
                 request.json("account", addy);
             }
             @Override
-            public ArrayList<Amount> buildTypedResponse(Response response) {
-                ArrayList<Amount> amounts = new ArrayList<Amount>();
+            public ArrayList<AccountLine> buildTypedResponse(Response response) {
+                ArrayList<AccountLine> lines = new ArrayList<AccountLine>();
                 JSONArray array = response.result.optJSONArray("lines");
                 for (int i = 0; i < array.length(); i++) {
                     JSONObject line = array.optJSONObject(i);
-                    try {
-                        BigDecimal balance = new BigDecimal(line.getString("balance"));
-                        AccountID issuer = AccountID.fromString(line.getString("account"));
-                        Currency currency = Currency.fromString(line.getString("currency"));
-
-                        amounts.add(new Amount(balance, currency, issuer));
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
-
+                    lines.add(AccountLine.fromJSON(addy, line));
                 }
-                return amounts;
+                return lines;
             }
         });
     }
@@ -289,22 +281,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         // requires executor, so call after prepareExecutor
         pollLastConnectionTimeAndReconnectWhenIDLE();
 
-        on(OnLedgerClosed.class, new OnLedgerClosed() {
-            @Override
-            public void called(ServerInfo serverInfo) {
-                log(Level.INFO, "Requests: {0}", requests.size());
-                Iterator<LedgerClosedCallback> iterator = ledgerClosedCallbacks.iterator();
-
-                while (iterator.hasNext()) {
-                    LedgerClosedCallback next = iterator.next();
-                    if (serverInfo.ledger_index >= next.anyLedgerGreaterOrEqual) {
-                        iterator.remove();
-                        next.callback.run();
-                    }
-                }
-            }
-        });
-
         subscriptions.on(SubscriptionManager.OnSubscribed.class, new SubscriptionManager.OnSubscribed() {
             @Override
             public void called(JSONObject subscription) {
@@ -345,30 +321,12 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         });
     }
 
-    ArrayList<LedgerClosedCallback> ledgerClosedCallbacks = new ArrayList<LedgerClosedCallback>();
-    public static class LedgerClosedCallback {
-        public long anyLedgerGreaterOrEqual;
-
-        public Runnable callback;
-        public LedgerClosedCallback(long anyLedgerGreaterOrEqual, Runnable callback) {
-            this.anyLedgerGreaterOrEqual = anyLedgerGreaterOrEqual;
-            this.callback = callback;
-        }
-
-    }
-
-    public void onceOnFirstLedgerClosedGreaterThan(long ledgerIndex, Runnable runnable) {
-        ledgerClosedCallbacks.add(new LedgerClosedCallback(ledgerIndex, runnable));
-    }
-
-
     public Request requestBookOffers(Issue get, Issue pay) {
         Request request = newRequest(Command.book_offers);
         request.json("taker_gets", get.toJSON());
         request.json("taker_pays", pay.toJSON());
         return request;
     }
-
 
     public Request requestBookOffers(Number ledger_index, Issue get, Issue pay, final Manager<ArrayList<Offer>> cb) {
         Request request = newRequest(Command.book_offers);
@@ -385,9 +343,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 try {
                     if (response.succeeded) {
                         ArrayList<Offer> offers = new ArrayList<Offer>();
-                        JSONArray offers1 = response.result.getJSONArray("offers");
-                        for (int i = 0; i < offers1.length(); i++) {
-                            JSONObject jsonObject = offers1.getJSONObject(i);
+                        JSONArray offersJson = response.result.getJSONArray("offers");
+                        for (int i = 0; i < offersJson.length(); i++) {
+                            JSONObject jsonObject = offersJson.getJSONObject(i);
                             STObject object = STObject.fromJSONObject(jsonObject);
                             offers.add((Offer) object);
                         }
