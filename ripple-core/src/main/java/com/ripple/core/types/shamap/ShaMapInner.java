@@ -111,7 +111,7 @@ public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
         if (stack.hasMatchedLeaf()) {
             ShaMapInner top = stack.dirtyOrCopyInners();
             top.removeBranch(index);
-            stack.collapseOnlyChildLeafInners();
+            stack.collapseOnlyLeafChildInners();
             return true;
         } else {
             return false;
@@ -270,7 +270,7 @@ public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
     public ShaMapLeaf getLeafForUpdating(Hash256 leaf) {
         PathToIndex path = pathToIndex(leaf);
         if (path.hasMatchedLeaf()) {
-            return path.invalidatedPossiblyCopiedleafForUpdating();
+            return path.invalidatedPossiblyCopiedLeafForUpdating();
         }
         return null;
     }

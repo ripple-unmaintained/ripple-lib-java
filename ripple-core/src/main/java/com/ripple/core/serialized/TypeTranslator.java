@@ -89,8 +89,6 @@ public abstract class TypeTranslator<T extends SerializedType> {
 
     /**
      * @param hint Using a boxed integer, allowing null for no hint
-     *             This generic parameter can be used to hint the amount of
-     *             bytes (VL) (or for any other purpose desired)
      */
     public abstract T fromParser(BinaryParser parser, Integer hint);
 

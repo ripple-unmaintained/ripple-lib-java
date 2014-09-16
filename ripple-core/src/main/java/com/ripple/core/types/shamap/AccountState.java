@@ -61,7 +61,7 @@ public class AccountState extends ShaMap {
         LedgerEntryItem item;
 
         if (path.hasMatchedLeaf()) {
-            ShaMapLeaf leaf = path.invalidatedPossiblyCopiedleafForUpdating();
+            ShaMapLeaf leaf = path.invalidatedPossiblyCopiedLeafForUpdating();
             item = (LedgerEntryItem) leaf.item;
         } else {
             item = new LedgerEntryItem(newSkipList(skipIndex));

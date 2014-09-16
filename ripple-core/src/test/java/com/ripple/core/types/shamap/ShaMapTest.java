@@ -138,4 +138,43 @@ public class ShaMapTest {
         assertEquals(copy2.hash(), copy2Hash);
         assertEquals(copy1.hash(), Hash256.ZERO_256);
     }
+
+    @Test
+    public void testCopyOnWriteSemanticsUsing_getLeafForUpdating() throws Exception {
+        ShaMap sm = new ShaMap();
+
+        sm.addLeaf(Leaf("01"));
+        sm.addLeaf(Leaf("02"));
+        sm.addLeaf(Leaf("023"));
+        ShaMapLeaf leaf = Leaf("024");
+        sm.addLeaf(leaf);
+
+        // At this point the shamap doesn't do any copy on write
+        assertTrue(leaf == sm.getLeaf(leaf.index));
+        // We can update the leaf in place
+        assertTrue(leaf == sm.getLeafForUpdating(leaf.index));
+        // It's still the same
+        assertTrue(leaf == sm.getLeaf(leaf.index));
+
+        // We make a copy, which means any changes to either
+        // induce a copy on write
+        ShaMap copy = sm.copy();
+
+        // The leaf is still the same
+        assertTrue(leaf == sm.getLeaf(leaf.index));
+        // because we need to make sure we don't mess with our clones ;)
+        assertTrue(leaf != sm.getLeafForUpdating(leaf.index));
+        // now this has been updated via getLeafForUpdating
+        // there is no `commit`
+        assertTrue(leaf != sm.getLeaf(leaf.index));
+
+        // And wow, we didn't mess with the original leaf in the copy ;)
+        assertTrue(leaf == copy.getLeaf(leaf.index));
+        // But now it's different after updating
+        assertTrue(leaf != copy.getLeafForUpdating(leaf.index));
+
+        // We haven't actually caused any substantive changes
+        assertEquals(sm.hash(), copy.hash());
+    }
+
 }

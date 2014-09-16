@@ -42,8 +42,7 @@ public class PathToIndex {
             ShaMapInner top = it.next();
             dirtied[ix++] = top;
             top.invalidate();
-            // we set this to true, but we may
-            boolean doCopies = true;
+            boolean doCopies = false;
 
             while (it.hasNext()) {
                 ShaMapInner next = it.next();
@@ -74,7 +73,7 @@ public class PathToIndex {
         return hasLeaf() && leafMatchedIndex();
     }
 
-    public void collapseOnlyChildLeafInners() {
+    public void collapseOnlyLeafChildInners() {
         assert dirtied != null;
 
         ShaMapInner next;
@@ -92,7 +91,6 @@ public class PathToIndex {
         }
     }
 
-    // So can be used by makeValid etc
     private void copyInnersToDirtiedArray() {
         int ix = 0;
         dirtied = new ShaMapInner[inners.size()];
@@ -133,7 +131,8 @@ public class PathToIndex {
         }
     }
 
-    public ShaMapLeaf invalidatedPossiblyCopiedleafForUpdating() {
+    public ShaMapLeaf invalidatedPossiblyCopiedLeafForUpdating() {
+        assert matched;
         if (dirtied == null) {
             dirtyOrCopyInners();
         }
