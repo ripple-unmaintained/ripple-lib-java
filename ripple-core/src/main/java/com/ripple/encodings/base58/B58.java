@@ -1,6 +1,6 @@
 package com.ripple.encodings.base58;
 
-import com.ripple.utils.Utils;
+import com.ripple.utils.HashUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -43,7 +43,7 @@ public class B58 {
         byte[] buffer = new byte[input.length + 1];
         buffer[0] = (byte) version;
         System.arraycopy(input, 0, buffer, 1, input.length);
-        byte[] checkSum = copyOfRange(Utils.doubleDigest(buffer), 0, 4);
+        byte[] checkSum = copyOfRange(HashUtils.doubleDigest(buffer), 0, 4);
         byte[] output = new byte[buffer.length + checkSum.length];
         System.arraycopy(buffer, 0, output, 0, buffer.length);
         System.arraycopy(checkSum, 0, output, buffer.length, checkSum.length);
@@ -165,7 +165,7 @@ public class B58 {
         }
 
         byte[] toHash = copyOfRange(buffer, 0, buffer.length - 4);
-        byte[] hashed = copyOfRange(Utils.doubleDigest(toHash), 0, 4);
+        byte[] hashed = copyOfRange(HashUtils.doubleDigest(toHash), 0, 4);
         byte[] checksum = copyOfRange(buffer, buffer.length - 4, buffer.length);
 
         if (!Arrays.equals(checksum, hashed))
