@@ -80,7 +80,7 @@ public class STObjectFormatter {
             case TrustSet:
                 constructed = new TrustSet();
                 break;
-            case Amendment:
+            case EnableAmendment:
                 break;
             case SetFee:
                 break;

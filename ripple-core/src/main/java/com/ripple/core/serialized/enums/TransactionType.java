@@ -23,7 +23,7 @@ public enum TransactionType implements SerializedType {
     TicketCreate(10),
     TicketCancel(11),
     TrustSet (20),
-    Amendment(100),
+    EnableAmendment(100),
     SetFee(101);
 
     public int asInteger() {
