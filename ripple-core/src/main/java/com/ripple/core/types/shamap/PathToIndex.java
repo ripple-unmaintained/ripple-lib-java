@@ -42,16 +42,13 @@ public class PathToIndex {
             ShaMapInner top = it.next();
             dirtied[ix++] = top;
             top.invalidate();
-            boolean doCopies = false;
 
             while (it.hasNext()) {
                 ShaMapInner next = it.next();
-                if (ix == 1) {
-                    doCopies = next.version != top.version;
-                    this.doCopies = doCopies;
-                }
+                boolean doCopies = next.version != top.version;
 
                 if (doCopies) {
+                    this.doCopies = true;
                     ShaMapInner copy = next.copy(top.version);
                     copy.invalidate();
                     top.setBranch(index, copy);
@@ -82,7 +79,7 @@ public class PathToIndex {
         for (int i = dirtied.length - 1; i >= 0; i--) {
             next = dirtied[i];
             if (onlyChild != null) {
-                next.setBranch(onlyChild.index, onlyChild);
+                next.setLeaf(onlyChild);
             }
             onlyChild = next.onlyChildLeaf();
             if (onlyChild == null) {
