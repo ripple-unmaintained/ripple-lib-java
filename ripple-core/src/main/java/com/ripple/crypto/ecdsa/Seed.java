@@ -16,8 +16,8 @@ public class Seed {
         this.seedBytes = seedBytes;
     }
 
-    public static Seed fromBase58(String hex) {
-        return new Seed(getB58IdentiferCodecs().decodeFamilySeed(hex));
+    public static Seed fromBase58(String b58) {
+        return new Seed(getB58IdentiferCodecs().decodeFamilySeed(b58));
     }
 
     @Override
@@ -120,12 +120,12 @@ public class Seed {
         return secret;
     }
 
-    public static IKeyPair getKeyPair(byte[] master_seed) {
-        return createKeyPair(master_seed, 0);
+    public static IKeyPair getKeyPair(byte[] seedBytes) {
+        return createKeyPair(seedBytes, 0);
     }
 
-    public static IKeyPair getKeyPair(String master_seed) {
-        return getKeyPair(getB58IdentiferCodecs().decodeFamilySeed(master_seed));
+    public static IKeyPair getKeyPair(String b58) {
+        return getKeyPair(getB58IdentiferCodecs().decodeFamilySeed(b58));
     }
 }
 
