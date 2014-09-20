@@ -7,12 +7,11 @@ import java.util.Iterator;
 
 public class PathToIndex {
     public  Hash256 index;
-    public ShaMapLeaf leaf = null;
+    public ShaMapLeaf leaf;
 
     private ArrayDeque<ShaMapInner> inners;
     private ShaMapInner[] dirtied;
     private boolean matched = false;
-    private boolean doCopies = false;
 
     public boolean hasLeaf() {
         return leaf != null;
@@ -48,7 +47,6 @@ public class PathToIndex {
                 boolean doCopies = next.version != top.version;
 
                 if (doCopies) {
-                    this.doCopies = true;
                     ShaMapInner copy = next.copy(top.version);
                     copy.invalidate();
                     top.setBranch(index, copy);
