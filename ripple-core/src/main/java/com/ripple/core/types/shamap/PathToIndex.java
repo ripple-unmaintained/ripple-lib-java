@@ -21,7 +21,7 @@ public class PathToIndex {
         return matched;
     }
     public boolean copyLeafOnUpdate() {
-        return doCopies;
+        return leaf.version != dirtied[0].version;
     }
 
     public ShaMapInner top() {

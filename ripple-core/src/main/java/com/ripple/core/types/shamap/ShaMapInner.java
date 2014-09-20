@@ -48,6 +48,9 @@ public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
     // Descend into the tree, find the leaf matching this index
     // and if the tree has it.
     protected void setLeaf(ShaMapLeaf leaf) {
+        if (leaf.version == -1) {
+            leaf.version = version;
+        }
         setBranch(leaf.index, leaf);
     }
 
@@ -65,6 +68,22 @@ public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
                 }
             }
         }
+    }
+
+    public void walkTree(TreeWalker treeWalker) {
+        treeWalker.onInner(this);
+        for (ShaMapNode branch : branches) {
+            if (branch != null) {
+                if (branch.isLeaf()) {
+                    ShaMapLeaf ln = branch.asLeaf();
+                    treeWalker.onLeaf(ln);
+                } else if (branch.isInner()) {
+                    ShaMapInner childInner = branch.asInner();
+                    childInner.walkTree(treeWalker);
+                }
+            }
+        }
+
     }
 
     public void walkHashedTree(HashedTreeWalker walker) {
@@ -86,7 +105,7 @@ public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
     /**
      * @return the `only child` leaf or null if other children
      */
-    ShaMapLeaf onlyChildLeaf() {
+    public ShaMapLeaf onlyChildLeaf() {
         ShaMapLeaf leaf = null;
         int leaves = 0;
 
@@ -107,11 +126,11 @@ public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
     }
 
     public boolean removeLeaf(Hash256 index) {
-        PathToIndex stack = pathToIndex(index);
-        if (stack.hasMatchedLeaf()) {
-            ShaMapInner top = stack.dirtyOrCopyInners();
+        PathToIndex path = pathToIndex(index);
+        if (path.hasMatchedLeaf()) {
+            ShaMapInner top = path.dirtyOrCopyInners();
             top.removeBranch(index);
-            stack.collapseOnlyLeafChildInners();
+            path.collapseOnlyLeafChildInners();
             return true;
         } else {
             return false;

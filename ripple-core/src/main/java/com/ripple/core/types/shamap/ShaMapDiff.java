@@ -5,7 +5,7 @@ import com.ripple.core.coretypes.hash.Hash256;
 import java.util.TreeSet;
 
 public class ShaMapDiff {
-    ShaMap one, two;
+    public ShaMap one, two;
 
     public TreeSet<Hash256> modified = new TreeSet<Hash256>();
     public TreeSet<Hash256> deleted = new TreeSet<Hash256>();
@@ -17,6 +17,8 @@ public class ShaMapDiff {
     }
 
     public void find() {
+        one.hash();
+        two.hash();
         compare(one, two);
     }
 

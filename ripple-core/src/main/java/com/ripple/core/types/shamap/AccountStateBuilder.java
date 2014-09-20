@@ -15,15 +15,18 @@ import java.util.*;
 
 public class AccountStateBuilder {
     private AccountState state;
+    private AccountState previousState = null;
     private long targetLedgerIndex;
-    private long currentTransactionIndex = 0;
+    public long nextTransactionIndex = 0;
     private Hash256 targetAccountHash;
+    public long totalTransactions = 0;
 
     private TreeSet<Hash256> directoriesModifiedMoreThanOnceByTransaction = new TreeSet<Hash256>();
     private TreeSet<Hash256> directoriesModifiedByTransaction = new TreeSet<Hash256>();
 
     public AccountStateBuilder(AccountState state, long targetLedgerIndex) {
         this.state = state;
+        setStateCheckPoint();
         this.targetLedgerIndex = targetLedgerIndex;
     }
 
@@ -31,13 +34,18 @@ public class AccountStateBuilder {
         state.updateSkipLists(ledgerIndex, parentHash);
         targetLedgerIndex = ledgerIndex;
         targetAccountHash = accountHash;
-        currentTransactionIndex = 0;
-//        state = state.copy();
+        nextTransactionIndex = 0;
+    }
+
+    public void setStateCheckPoint() {
+        previousState = state.copy();
     }
 
     public void onTransaction(TransactionResult tr) {
-        if (tr.meta.transactionIndex().longValue() != currentTransactionIndex) throw new AssertionError();
-        currentTransactionIndex++;
+        if (tr.meta.transactionIndex().longValue() != nextTransactionIndex) throw new AssertionError();
+        if (tr.ledgerIndex.longValue() != targetLedgerIndex + 1) throw new AssertionError();
+        nextTransactionIndex++;
+        totalTransactions++;
         directoriesModifiedByTransaction = new TreeSet<Hash256>();
 
         for (AffectedNode an : sortedAffectedNodes(tr)) {
@@ -79,7 +87,6 @@ public class AccountStateBuilder {
             } else if (an.isDeletedNode()) {
                 directoriesModifiedMoreThanOnceByTransaction.remove(id);
                 state.removeLeaf(id);
-
                 if (le instanceof Offer) {
                     Offer offer = (Offer) le;
                     for (Hash256 directory : offer.directoryIndexes()) {
@@ -205,11 +212,23 @@ public class AccountStateBuilder {
     public Hash256 targetAccountHash() {
         return targetAccountHash;
     }
+
     public TreeSet<Hash256> directoriesWithIndexesOutOfOrder() {
-        return directoriesModifiedMoreThanOnceByTransaction;
+        TreeSet<Hash256> ret = new TreeSet<Hash256>();
+        for (Hash256 hash256 : directoriesModifiedMoreThanOnceByTransaction) {
+            DirectoryNode dn = state.getDirectoryNode(hash256);
+            if (dn.owner() != null) {
+                ret.add(hash256);
+            }
+        }
+        return ret;
     }
 
     public boolean bad() {
         return !state.hash().equals(targetAccountHash);
+    }
+
+    public AccountState previousState() {
+        return previousState;
     }
 }

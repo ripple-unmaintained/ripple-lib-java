@@ -7,6 +7,7 @@ import com.ripple.core.serialized.BytesSink;
 public class ShaMapLeaf extends ShaMapNode {
     public Hash256 index;
     public ShaMapItem item;
+    public long version = -1;
 
     protected ShaMapLeaf(Hash256 index, ShaMapItem item) {
         this.index = index;

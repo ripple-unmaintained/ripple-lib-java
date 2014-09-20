@@ -142,11 +142,20 @@ public class ShaMapTest {
     @Test
     public void testCopyOnWriteSemanticsUsing_getLeafForUpdating() throws Exception {
         ShaMap sm = new ShaMap();
-
         sm.addLeaf(Leaf("01"));
         sm.addLeaf(Leaf("02"));
         sm.addLeaf(Leaf("023"));
-        ShaMapLeaf leaf = Leaf("024");
+        copyOnWriteTestHelper(sm, Leaf("024"));
+    }
+
+    @Test
+    public void testCopyOnWriteSemanticsUsing_getLeafForUpdating2() throws Exception {
+        // Just the one leaf, which makes sure we copy leaves probably
+        ShaMap sm = new ShaMap();
+        copyOnWriteTestHelper(sm, Leaf("0"));
+    }
+
+    public void copyOnWriteTestHelper(ShaMap sm, ShaMapLeaf leaf) {
         sm.addLeaf(leaf);
 
         // At this point the shamap doesn't do any copy on write
