@@ -102,7 +102,7 @@ public class AmountTest {
         Amount amount = amounts.fromJSONObject(new JSONObject(json));
         String hex = amounts.toHex(amount);
 
-        int offset = amount.offset();
+        int offset = amount.exponent();
         assertEquals(-14, offset);
         assertTrue(amount.isNegative());
         assertFalse(amount.isNative());
@@ -233,7 +233,7 @@ public class AmountTest {
 
     private void assertOffset(String s, int i) {
         Amount amt = Amount.fromString(s + "/USD/" + TestFixtures.bob_account.address);
-        assertEquals(String.format("Offset for %s should be %d", s, i),  i, amt.offset());
+        assertEquals(String.format("Offset for %s should be %d", s, i),  i, amt.exponent());
     }
 
     public Amount a50 = amt("50/USD/root");

@@ -11,8 +11,8 @@ import java.math.BigDecimal;
 public class Issue implements Comparable<Issue> {
 
     public static final Issue XRP = fromString("XRP");
-    Currency currency;
-    AccountID issuer;
+    final Currency currency;
+    final AccountID issuer;
 
     public Issue(Currency currency, AccountID issuer) {
         this.currency = currency;
@@ -21,10 +21,10 @@ public class Issue implements Comparable<Issue> {
 
     public static Issue fromString(String pair) {
         String[] split = pair.split("/");
-        return getIssue(split);
+        return fromStringPair(split);
     }
 
-    private static Issue getIssue(String[] split) {
+    private static Issue fromStringPair(String[] split) {
         if (split.length == 2) {
             return new Issue(Currency.fromString(split[0]), AccountID.fromString(split[1]));
         } else if (split[0].equals("XRP")) {

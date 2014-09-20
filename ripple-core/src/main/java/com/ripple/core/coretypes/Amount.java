@@ -67,12 +67,12 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     private AccountID issuer;
 
     // While internally the value is stored as a BigDecimal
-    // the mantissa and offset, as per the binary
+    // the mantissa and exponent, as per the binary
     // format can be computed.
     // The mantissa is computed lazily, then cached
     private UInt64 mantissa = null;
-    // The offset is always calculated.
-    private int offset;
+    // The exponent is always calculated.
+    private int exponent;
 
     public Amount(BigDecimal value, Currency currency, AccountID issuer) {
         this(value, currency, issuer, false);
@@ -127,13 +127,13 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 checkXRPBounds(value);
             }
             // Offset is unused for native amounts
-            offset = -6; // compared to drops.
+            exponent = -6; // compared to drops.
         } else {
             if (value.precision() > MAXIMUM_IOU_PRECISION && !unbounded) {
                 throw new PrecisionError("Overflow Error!");
             }
             issuer = AccountID.NEUTRAL;
-            offset = calculateOffset();
+            exponent = calculateExponent();
         }
     }
 
@@ -178,8 +178,8 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return mantissa;
     }
 
-    public int offset() {
-        return offset;
+    public int exponent() {
+        return exponent;
     }
 
     public boolean isNative() {
@@ -210,12 +210,12 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
-    protected int calculateOffset() {
+    protected int calculateExponent() {
         return -MAXIMUM_IOU_PRECISION + value.precision() - value.scale();
     }
 
     public BigInteger bigIntegerIOUMantissa() {
-        return exactBigIntegerScaledByPowerOfTen(-offset).abs();
+        return exactBigIntegerScaledByPowerOfTen(-exponent).abs();
     }
 
     private BigInteger bigIntegerDrops() {
@@ -413,15 +413,15 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             }
             to.add(man.toByteArray());
         } else {
-            int offset = offset();
+            int exponent = exponent();
             UInt64 packed;
 
             if (isZero()) {
                 packed = BINARY_FLAG_IS_IOU;
             } else if (isNegative()) {
-                packed = man.or(new UInt64(512 + 0 + 97 + offset).shiftLeft(64 - 10));
+                packed = man.or(new UInt64(512 + 0 + 97 + exponent).shiftLeft(64 - 10));
             } else {
-                packed = man.or(new UInt64(512 + 256 + 97 + offset).shiftLeft(64 - 10));
+                packed = man.or(new UInt64(512 + 256 + 97 + exponent).shiftLeft(64 - 10));
             }
 
             to.add(packed.toByteArray());
@@ -450,10 +450,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
                 mantissa[0] = 0;
                 Currency curr = Currency.translate.fromParser(parser);
                 AccountID issuer = AccountID.translate.fromParser(parser);
-                int offset = ((b1 & 0x3F) << 2) + ((b2 & 0xff) >> 6) - 97;
+                int exponent = ((b1 & 0x3F) << 2) + ((b2 & 0xff) >> 6) - 97;
                 mantissa[1] &= 0x3F;
 
-                value = new BigDecimal(new BigInteger(sign, mantissa), -offset);
+                value = new BigDecimal(new BigInteger(sign, mantissa), -exponent);
                 return new Amount(value, curr, issuer, false);
             } else {
                 mantissa[0] &= 0x3F;
