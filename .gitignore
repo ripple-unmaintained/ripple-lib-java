@@ -24,3 +24,4 @@ librocksdbjni.so
 nohup.out
 ripple-core/src/test/java/com/ripple/core/types/paths
 ripple-core/src/test/java/com/ripple/core/types/shamap2
+dirty-in-ledger-*
