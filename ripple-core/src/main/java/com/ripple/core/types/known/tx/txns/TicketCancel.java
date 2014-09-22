@@ -1,7 +1,8 @@
-package com.ripple.core.types.known.tx;
+package com.ripple.core.types.known.tx.txns;
 
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.serialized.enums.TransactionType;
+import com.ripple.core.types.known.tx.Transaction;
 
 public class TicketCancel extends Transaction {
     public TicketCancel() {

@@ -49,8 +49,8 @@ public class ShaMapDiff {
                 trackRemoved(aChild);
                 // removed from B
             } else if (aChild != null && !aChild.hash().equals(bChild.hash())) {
-                boolean aleaf  = (aChild instanceof ShaMapLeaf),
-                        bLeaf  = (bChild instanceof ShaMapLeaf);
+                boolean aleaf  = aChild.isLeaf(),
+                        bLeaf  = bChild.isLeaf();
 
                 if (aleaf && bLeaf) {
                     ShaMapLeaf la = (ShaMapLeaf) aChild;

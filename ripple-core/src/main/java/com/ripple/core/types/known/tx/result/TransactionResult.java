@@ -6,11 +6,10 @@ import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;
-import com.ripple.core.coretypes.uint.UInt8;
-import com.ripple.core.serialized.enums.LedgerEntryType;
-import com.ripple.core.serialized.enums.EngineResult;
-import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.fields.Field;
+import com.ripple.core.serialized.enums.EngineResult;
+import com.ripple.core.serialized.enums.LedgerEntryType;
+import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.encodings.common.B16;
 import org.json.JSONException;
@@ -20,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TransactionResult implements Comparable<TransactionResult>{
-
+    // The json formatting of transaction results is a MESS
     public enum Source {
         request_tx_result,
         request_account_tx,
@@ -31,10 +30,12 @@ public class TransactionResult implements Comparable<TransactionResult>{
     }
 
     public EngineResult engineResult;
-    public Hash256 ledgerHash; // TODO, consider just killing this field, as not all have them
+    public UInt32 ledgerIndex;
     public Hash256 hash;
 
-    public UInt32 ledgerIndex;
+    // TODO, consider just killing this field, as not all have them
+    public Hash256 ledgerHash;
+    // TODO, in practice this class is only for validated results so ...
     public boolean validated;
 
     public TransactionResult(long ledgerIndex, Hash256 hash, Transaction txn, TransactionMeta meta) {
@@ -57,7 +58,6 @@ public class TransactionResult implements Comparable<TransactionResult>{
     public TransactionType transactionType() {
         return txn.transactionType();
     }
-
 
     public AccountID createdAccount() {
         AccountID destination    =  null;
@@ -99,20 +99,11 @@ public class TransactionResult implements Comparable<TransactionResult>{
                         if (finalFields != null) {
                             key = finalFields.get(AccountID.Account);
                             accounts.put(key, node);
-                        } else {
-                            // TODO why the hell is this commented out
-
-//                            key = initiatingAccount();
-//                            Hash256 index = Hash256.accountID(key);
-//                            if (index.equals(node.get(Hash256.LedgerIndex))) {
-//                                accounts.put(key, node);
-//                            }
                         }
                     }
                 }
             }
         }
-
         return accounts;
     }
 
@@ -150,17 +141,23 @@ public class TransactionResult implements Comparable<TransactionResult>{
 
             Transaction txn;
             if (txKey == null) {
+                // This should parse the `hash` field
                 txn = (Transaction) STObject.fromJSONObject(json);
-            } else if (!json.has("hash") && binary) {
-                byte[] decode = B16.decode(json.getString(txKey));
-                txn = (Transaction) STObject.translate.fromBytes(decode);
-                txn.put(Hash256.hash, Index.transactionID(decode));
             } else {
                 txn = (Transaction) parseObject(json, txKey, binary);
+                if (json.has("hash")) {
+                    txn.put(Hash256.hash, Hash256.fromHex(json.getString("hash")));
+                } else if (binary) {
+                    byte[] decode = B16.decode(json.getString(txKey));
+                    txn.put(Hash256.hash, Index.transactionID(decode));
+                }
             }
 
             TransactionMeta meta = (TransactionMeta) parseObject(json, metaKey, binary);
-            long ledger_index = json.getLong("ledger_index");
+            long ledger_index = json.optLong("ledger_index", 0);
+            if (ledger_index == 0 && !binary) {
+                ledger_index = json.getJSONObject(txKey).getLong("ledger_index");
+            }
 
             TransactionResult tr = new TransactionResult(ledger_index, txn.get(Hash256.hash), txn, meta);
             if (json.has("ledger_hash")) {
@@ -177,7 +174,8 @@ public class TransactionResult implements Comparable<TransactionResult>{
         if (binary) {
             return STObject.translate.fromHex(json.getString(key));
         } else {
-            return STObject.translate.fromJSONObject(json.getJSONObject(key));
+            JSONObject tx_json = json.getJSONObject(key);
+            return STObject.translate.fromJSONObject(tx_json);
         }
     }
 
@@ -202,18 +200,13 @@ public class TransactionResult implements Comparable<TransactionResult>{
                 }
             }
             else if (resultMessageSource == Source.ledger_transactions_expanded_with_ledger_index_injected) {
-                validated = json.optBoolean("validated", false);
-                if (validated && !json.has("metaData")) {
-                    throw new IllegalStateException("It's validated, why doesn't it have meta??");
-                }
-                if (validated) {
-                    meta = (TransactionMeta) STObject.translate.fromJSONObject(json.getJSONObject("metaData"));
-                    txn = (Transaction) STObject.translate.fromJSONObject(json);
-                    hash = txn.get(Hash256.hash);
-                    engineResult = meta.engineResult();
-                    ledgerIndex = new UInt32(json.getLong("ledger_index"));
-                    ledgerHash = null;
-                }
+                validated = true;
+                meta = (TransactionMeta) STObject.translate.fromJSONObject(json.getJSONObject("metaData"));
+                txn = (Transaction) STObject.translate.fromJSONObject(json);
+                hash = txn.get(Hash256.hash);
+                engineResult = meta.engineResult();
+                ledgerIndex = new UInt32(json.getLong("ledger_index"));
+                ledgerHash = null;
 
             } else if (resultMessageSource == Source.request_tx_result) {
                 validated = json.optBoolean("validated", false);
@@ -222,10 +215,12 @@ public class TransactionResult implements Comparable<TransactionResult>{
                 }
                 if (validated) {
                     meta = (TransactionMeta) STObject.fromJSONObject(json.getJSONObject("meta"));
-                    engineResult = EngineResult.fromNumber(meta.get(UInt8.TransactionResult));
+                    engineResult = meta.engineResult();
                     txn = (Transaction) STObject.fromJSONObject(json);
                     hash = txn.get(Hash256.hash);
                     ledgerHash = null; // XXXXXX
+                    ledgerIndex = new UInt32(json.getLong("ledger_index"));
+
                 }
             } else if (resultMessageSource == Source.request_account_tx) {
                 validated = json.optBoolean("validated", false);
