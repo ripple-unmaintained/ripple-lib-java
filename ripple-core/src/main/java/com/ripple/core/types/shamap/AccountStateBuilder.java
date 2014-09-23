@@ -52,7 +52,7 @@ public class AccountStateBuilder {
             Hash256 id = an.ledgerIndex();
             LedgerEntry le = (LedgerEntry) an.nodeAsFinal();
             if (an.isCreatedNode()) {
-                le.setLedgerEntryDefaults();
+                le.setDefaults();
                 state.addLE(le);
 
                 if (le instanceof Offer) {
@@ -66,23 +66,16 @@ public class AccountStateBuilder {
                     }
                 } else if (le instanceof RippleState) {
                     RippleState state = (RippleState) le;
-                    state.setRippleStateDefaults();
 
                     for (Hash256 directory : state.directoryIndexes()) {
                         DirectoryNode dn = getDirectoryForUpdating(directory);
                         addToDirectoryNode(dn, state.index());
                     }
-                } else if (le instanceof DirectoryNode) {
-                    DirectoryNode dn = (DirectoryNode) le;
-                    dn.setDirectoryNodeDefaults();
-                } else if (le instanceof AccountRoot) {
-                    AccountRoot ar = (AccountRoot) le;
-                    ar.setAccountRootDefaults();
                 }
-
                 if (le instanceof ThreadedLedgerEntry) {
                     ThreadedLedgerEntry tle = (ThreadedLedgerEntry) le;
-                    tle.setThreadedLedgerEntryDefaults(tr.hash, tr.ledgerIndex);
+                    tle.previousTxnID(tr.hash);
+                    tle.previousTxnLgrSeq(tr.ledgerIndex);
                 }
             } else if (an.isDeletedNode()) {
                 directoriesModifiedMoreThanOnceByTransaction.remove(id);

@@ -52,7 +52,7 @@ public class LedgerEntry extends STObject {
         put(Hash256.index, index);
     }
 
-    public void setLedgerEntryDefaults() {
+    public void setDefaults() {
         if (flags() == null) {
             flags(new UInt32(0));
         }

@@ -66,7 +66,9 @@ public class DirectoryNode extends LedgerEntry {
         }
     }
 
-    public void setDirectoryNodeDefaults() {
+    @Override
+    public void setDefaults() {
+        super.setDefaults();
         if (exchangeRate() != null) {
             setExchangeDefaults();
         }

@@ -44,7 +44,10 @@ public class AccountRoot extends ThreadedLedgerEntry {
         return flags().testBit(LedgerFlag.RequireAuth);
     }
 
-    public void setAccountRootDefaults() {
+
+    @Override
+    public void setDefaults() {
+        super.setDefaults();
         if (ownerCount() == null) {
             ownerCount(new UInt32(0));
         }

@@ -137,7 +137,10 @@ public class RippleState extends ThreadedLedgerEntry {
         return new Hash256[]{lowNodeOwnerDirectory(), highNodeOwnerDirectory()};
     }
 
-    public void setRippleStateDefaults() {
+    @Override
+    public void setDefaults() {
+        super.setDefaults();
+
         if (lowNode() == null) {
             lowNode(new UInt64(0));
         }
