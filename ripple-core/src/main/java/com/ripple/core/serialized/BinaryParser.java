@@ -96,7 +96,7 @@ public class BinaryParser {
         return result;
     }
 
-    public int getSize() {
+    public int size() {
         return size;
     }
 

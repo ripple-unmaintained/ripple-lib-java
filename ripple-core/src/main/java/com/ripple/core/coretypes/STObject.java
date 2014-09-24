@@ -270,6 +270,7 @@ public class STObject implements SerializedType, Iterable<Field> {
 
             // hint, is how many bytes to parse
             if (hint != null) {
+                // end hint
                 hint = parser.pos() + hint;
             }
 
