@@ -1,3 +1,5 @@
+.DS_Store
+*.class
 .idea/*
 out/*
 *.iml
@@ -10,7 +12,6 @@ ripple-examples/ripple-cli/src/main/java/com/ripple/cli/AnalyzeAccountState.java
 binary-transactions.json
 ripple-bouncycastle/target/
 .settings/
-.classpath
 .project
 target/
 *.json
