@@ -174,20 +174,15 @@ From the nodestore we retrieve:
   838777ADAF945A4CB481644B6D0923C807375CF3D7B3DED87268D144D7C09768
   ```
 
-    We see the hashes for 16 nodes clear as day, but what is this `40494E00`
-    prefixed to the front?
+We see the hashes for 16 nodes clear as day, but what is this `40494E00`
+prefixed to the front? Converted to `ascii` letters the hex `40494E00` is 
+`MIN\x00`, meaning sham)ap i)nner n)ode.
 
-    Converted to `ascii` letters the hex `40494E00` is `MIN\x00`, meaning sham)ap
-    i)nner n)ode.
-
-    The prefix `namespaces` the content, so different classes of objects which
-    would otherwise have the same binary representation, will have a different
-    `hash`.
-
-    These `hash prefixes` serve another useful purpose, as we'll see later.
-
-    (Similarly, there are namespacing prefixes for an `index` (created by
-     feeding static components of an identity into a hashing function))
+The prefix `namespaces` the content, so different classes of objects which
+would otherwise have the same binary representation, will have a different
+`hash`. These `hash prefixes` serve another useful purpose, as we'll see later.
+(Similarly, there are namespacing prefixes for an `index` (created by
+ feeding static components of an identity into a hashing function))
 
 Is our value `index` hash amongst those enumerated? No !!! So what do we do with
 it? An index, usually means an ordinal, defining a place in an array. The
@@ -231,11 +226,11 @@ From the nodestore we retrieve:
   272D03DC4D1A559FF23DADA65FFFB652E7A727F5D857BEC83C029BC662F79034
   ```
 
-    There's that 'MIN\x00` hash prefix again.
+There's that 'MIN\x00` hash prefix again.
 
-    In fact, this prefix is how we can deterministically say that this is an
-    `inner node` and that we can interpret the following bytes as 16 more
-    `hash`es.
+In fact, this prefix is how we can deterministically say that this is an
+`inner node` and that we can interpret the following bytes as 16 more
+`hash`es.
 
 We have descended deeper into the tree, but it seems we need to go deeper. We
 are currently at a depth of 2, so to go deeper we need the 2nd nibble.
@@ -269,14 +264,17 @@ From the nodestore we retrieve:
   DF68EE71EE9141E24B87E630976C1F9071F74AD073BD03578083FDD9098B4BD9
   ```
 
-    Well, here's something new. The `hash prefix` is different. This time the
-    hex decodes as `MLN\x00`, meaning sham)ap l)eaf n)ode.
+Well, here's something new. The `hash prefix` is different. This time the
+hex decodes as `MLN\x00`, meaning sham)ap l)eaf n)ode.
 
-    And what's that at the end? Is that our index? It is!!
+And what's that at the end? Is that our index? It is!!
 
-    Why does it need to be stored? We have only used `DF` to traverse to this
-    node. Without storing the `index` identifier in the leaf node contents,
-    there would be no way to be certain that this leaf held the item you wanted.
+Why does it need to be stored? We have only used `DF` to traverse to this
+node. Without storing the `index` identifier in the leaf node contents,
+there would be no way to be certain that this leaf held the item you wanted.
+More importantly, it acts as further name-spacing, to prevent collisions. 
+(Technically, you could synthesize the index, by parsing the contents of
+the object and recreating it)
 
 Takeaways
 ---------
