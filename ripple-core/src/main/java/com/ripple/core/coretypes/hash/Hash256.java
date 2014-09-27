@@ -1,5 +1,6 @@
 package com.ripple.core.coretypes.hash;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.coretypes.hash.prefixes.Prefix;
 import com.ripple.core.fields.Field;
@@ -21,6 +22,11 @@ public class Hash256 extends Hash<Hash256> {
         }
     }
     public static final Hash256 ZERO_256 = new Hash256(new byte[32]);
+
+    @Override
+    public JsonNode toJackson() {
+        return translate.toJackson(this);
+    }
 
     @Override
     public Object toJSON() {

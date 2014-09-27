@@ -1,5 +1,8 @@
 package com.ripple.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ripple.core.coretypes.*;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.Index;
@@ -10,6 +13,8 @@ import com.ripple.core.coretypes.uint.UInt8;
 import com.ripple.core.fields.Field;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.SerializedType;
+import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.core.serialized.enums.EngineResult;
 import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.types.known.sle.LedgerEntry;
@@ -30,6 +35,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.Iterator;
 
 import static junit.framework.TestCase.assertEquals;
@@ -44,23 +50,30 @@ public class STObjectTest {
             return;
         }
 
-        JSONTokener tok = new JSONTokener(new FileReader(f));
-        JSONObject ledgerJSON = new JSONObject(tok);
-        JSONArray accountState = ledgerJSON.getJSONArray("accountState");
+        ObjectNode node;
+        try {
+            node = (ObjectNode) SerializedType.objectMapper.readTree(f);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        ArrayNode accountState = (ArrayNode) node.get("accountState");
         AccountState sm = new AccountState();
-        JSONObject stateObject = null;
+        ObjectNode stateObject = null;
 
         int i = 0;
-        while (i < accountState.length()) {
+        while (i < accountState.size()) {
             final STObject fromJSON;
-            stateObject = accountState.getJSONObject(i);
+            stateObject = (ObjectNode) accountState.get(i);
             assertEncodeable(stateObject);
-            fromJSON = STObject.fromJSONObject(stateObject);
+
+            fromJSON = STObject.translate.fromJacksonObject(stateObject);
+
             sm.addLE((LedgerEntry) fromJSON);
             i++;
         }
         Hash256 hash = sm.hash();
-        assertEquals(hash.toHex(), ledgerJSON.getString("account_hash"));
+        assertEquals(hash.toHex(), node.get("account_hash").asText());
     }
 
 
@@ -97,6 +110,24 @@ public class STObjectTest {
         }
 
     }
+
+    public void assertEncodeable(ObjectNode stateObject) {
+        STObject fromJackson;
+
+        JsonNode index = stateObject.remove("index");
+        fromJackson = STObject.translate.fromJacksonObject(stateObject);
+        String hexFromJackson = fromJackson.toHex();
+        ObjectNode fromJsonToJson = ((ObjectNode) fromJackson.toJackson());
+        STObject fromJsonToJsonAndBack = STObject.translate.fromJacksonObject(fromJsonToJson);
+        String hexFromJsonToToJsonToHex = fromJsonToJsonAndBack.toHex();
+        STObject rebuiltFromHex = STObject.translate.fromHex(hexFromJackson);
+        assertEquals(hexFromJackson, rebuiltFromHex.toHex());
+        assertEquals(hexFromJackson, hexFromJsonToToJsonToHex);
+        assertEquals((fromJsonToJsonAndBack.toJackson()).toString(), fromJsonToJson.toString());
+        assertEquals(stateObject.size(), fromJsonToJson.size());
+        stateObject.put("index",  index);
+    }
+
 
     public void assertEncodeable(JSONObject stateObject) {
         STObject fromJSON;

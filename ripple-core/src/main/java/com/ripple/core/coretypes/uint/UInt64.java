@@ -1,5 +1,6 @@
 package com.ripple.core.coretypes.uint;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BytesSink;
@@ -69,6 +70,11 @@ public class UInt64 extends UInt<UInt64> {
     static public TypedFields.UInt64Field ExchangeRate = int64Field(Field.ExchangeRate);
     static public TypedFields.UInt64Field LowNode = int64Field(Field.LowNode);
     static public TypedFields.UInt64Field HighNode = int64Field(Field.HighNode);
+
+    @Override
+    public JsonNode toJackson() {
+        return translate.toJackson(this);
+    }
 
     @Override
     public Object toJSON() {

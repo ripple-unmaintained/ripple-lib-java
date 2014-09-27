@@ -1,5 +1,7 @@
 package com.ripple.core.coretypes;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.*;
@@ -381,6 +383,15 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         }
     }
 
+    @Override
+    public JsonNode toJackson() {
+        if (isNative()) {
+            return objectMapper.getNodeFactory().textNode(toDropsString());
+        } else {
+            return toJacksonObject();
+        }
+    }
+
     public JSONObject toJSONObject() {
         try {
             JSONObject out = new JSONObject();
@@ -391,6 +402,14 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public ObjectNode toJacksonObject() {
+        ObjectNode out = objectMapper.createObjectNode();
+        out.put("currency", currencyString());
+        out.put("value", valueText());
+        out.put("issuer", issuerString());
+        return out;
     }
 
     @Override
@@ -482,6 +501,14 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        @Override
+        public Amount fromJacksonObject(ObjectNode jsonObject) {
+            String valueString = jsonObject.get("value").asText();
+            String issuerString = jsonObject.get("issuer").asText();
+            String currencyString = jsonObject.get("currency").asText();
+            return new Amount(new BigDecimal(valueString), currencyString, issuerString);
         }
     }
     static public Translator translate = new Translator();

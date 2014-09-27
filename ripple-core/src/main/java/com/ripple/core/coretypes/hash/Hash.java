@@ -1,6 +1,10 @@
 package com.ripple.core.coretypes.hash;
 
-import com.ripple.core.serialized.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.BytesSink;
+import com.ripple.core.serialized.SerializedType;
+import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.encodings.common.B16;
 
 import java.math.BigInteger;
@@ -107,6 +111,11 @@ abstract public class Hash<Subclass extends Hash> implements SerializedType, Com
         @Override
         public Object toJSON(T obj) {
             return B16.toString(obj.hash);
+        }
+
+        @Override
+        public JsonNode toJackson(T obj) {
+            return SerializedType.objectMapper.getNodeFactory().textNode(B16.toString(obj.hash));
         }
 
         @Override

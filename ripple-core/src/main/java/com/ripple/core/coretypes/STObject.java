@@ -1,5 +1,7 @@
 package com.ripple.core.coretypes;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ripple.core.coretypes.hash.Hash128;
 import com.ripple.core.coretypes.hash.Hash160;
 import com.ripple.core.coretypes.hash.Hash256;
@@ -225,6 +227,11 @@ public class STObject implements SerializedType, Iterable<Field> {
         return translate.toJSON(this);
     }
 
+    @Override
+    public JsonNode toJackson() {
+        return translate.toJacksonObject(this);
+    }
+
     public JSONObject toJSONObject() {
         return translate.toJSONObject(this);
     }
@@ -311,6 +318,45 @@ public class STObject implements SerializedType, Iterable<Field> {
             }
 
             return json;
+        }
+
+
+        @Override
+        public ObjectNode toJacksonObject(STObject obj) {
+            ObjectNode nodes = SerializedType.objectMapper.createObjectNode();
+            for (Field field : obj) {
+                SerializedType st = obj.get(field);
+                JsonNode o = st.toJackson();
+                nodes.put(field.toString(), o);
+            }
+            return nodes;
+        }
+
+        @Override
+        public STObject fromJacksonObject(ObjectNode jsonObject) {
+            STObject so = new STObject();
+
+            Iterator keys = jsonObject.fieldNames();
+            while (keys.hasNext()) {
+                String key = (String) keys.next();
+                JsonNode value = jsonObject.get(key);
+                Field fieldKey = Field.fromString(key);
+                if (fieldKey == null) {
+                    continue;
+                }
+                TypeTranslator<SerializedType> trans = Translators.forField(fieldKey);
+                SerializedType st = null;
+                try {
+                    st = trans.fromJackson(value);
+                } catch (Exception e) {
+                    System.out.println("Field was: " + fieldKey);
+                    System.out.println("Value was: " + value);
+                    System.out.println(jsonObject.toString());
+                    throw new RuntimeException(e);
+                }
+                so.putTranslated(fieldKey, st);
+            }
+            return STObject.formatted(so);
         }
 
         @Override

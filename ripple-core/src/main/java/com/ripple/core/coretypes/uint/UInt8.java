@@ -1,5 +1,6 @@
 package com.ripple.core.coretypes.uint;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BytesSink;
@@ -65,6 +66,11 @@ public class UInt8 extends UInt<UInt8> {
     static public TypedFields.UInt8Field CloseResolution = int8Field(Field.CloseResolution);
     static public TypedFields.UInt8Field TemplateEntryType = int8Field(Field.TemplateEntryType);
     static public TypedFields.UInt8Field TransactionResult = int8Field(Field.TransactionResult);
+
+    @Override
+    public JsonNode toJackson() {
+        return translate.toJackson(this);
+    }
 
     @Override
     public Object toJSON() {

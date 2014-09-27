@@ -1,5 +1,6 @@
 package com.ripple.core.coretypes.uint;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BytesSink;
@@ -92,6 +93,11 @@ public class UInt32 extends UInt<UInt32> {
     static public TypedFields.UInt32Field ReserveIncrement = int32Field(Field.ReserveIncrement);
     static public TypedFields.UInt32Field SetFlag = int32Field(Field.SetFlag);
     static public TypedFields.UInt32Field ClearFlag = int32Field(Field.ClearFlag);
+
+    @Override
+    public JsonNode toJackson() {
+        return translate.toJackson(this);
+    }
 
     @Override
     public Object toJSON() {

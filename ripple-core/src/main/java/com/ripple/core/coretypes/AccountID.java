@@ -1,5 +1,6 @@
 package com.ripple.core.coretypes;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ripple.core.coretypes.hash.Hash160;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.fields.Field;
@@ -113,6 +114,11 @@ public class AccountID extends Hash160 {
     @Override
     public Object toJSON() {
         return toString();
+    }
+
+    @Override
+    public JsonNode toJackson() {
+        return objectMapper.getNodeFactory().textNode(toString());
     }
 
     @Override

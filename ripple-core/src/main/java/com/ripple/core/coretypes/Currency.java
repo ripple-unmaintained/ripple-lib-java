@@ -1,5 +1,6 @@
 package com.ripple.core.coretypes;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ripple.core.coretypes.hash.Hash160;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.serialized.BinaryParser;
@@ -24,7 +25,12 @@ public class Currency extends Hash160 {
 
     @Override
     public Object toJSON() {
-        return translate.toJSON(this);
+        return toString();
+    }
+
+    @Override
+    public JsonNode toJackson() {
+        return objectMapper.getNodeFactory().textNode(toString());
     }
 
     @Override

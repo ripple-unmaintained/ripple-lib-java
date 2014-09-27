@@ -1,5 +1,8 @@
 package com.ripple.core.coretypes;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.*;
 import com.ripple.core.fields.Field;
@@ -89,6 +92,34 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
             }
             return object;
         }
+
+        public ObjectNode toJacksonObject() {
+            ObjectNode object = SerializedType.objectMapper.createObjectNode();
+            object.put("type", getType());
+
+            if (hasAccount()) object.put("account", account.toString());
+            if (hasIssuer()) object.put("issuer", issuer.toString());
+            if (hasCurrency()) object.put("currency", currency.toString());
+
+            return object;
+        }
+
+        public static Hop fromJacksonObject(ObjectNode json) {
+            Hop hop = new Hop();
+            if (json.has("account")) {
+                hop.account = AccountID.fromAddress(json.get("account").asText());
+            }
+            if (json.has("issuer")) {
+                hop.issuer = AccountID.fromAddress(json.get("issuer").asText());
+            }
+            if (json.has("currency")) {
+                hop.currency = Currency.fromString(json.get("currency").asText());
+            }
+            if (json.has("type")) {
+                hop.type = json.get("type").asInt();
+            }
+            return hop;
+        }
     }
     public static class Path extends ArrayList<Hop> {
         static public Path fromJSONArray(JSONArray array) {
@@ -105,10 +136,28 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
             return path;
         }
+        static public Path fromJacksonArray(ArrayNode array) {
+            Path path = new Path();
+            int nHops = array.size();
+            for (int i = 0; i < nHops; i++) {
+                ObjectNode hop = (ObjectNode) array.get(i);
+                path.add(Hop.fromJacksonObject(hop));
+            }
+
+            return path;
+        }
         public JSONArray toJSONArray() {
             JSONArray array = new JSONArray();
             for (Hop hop : this) {
                 array.put(hop.toJSONObject());
+            }
+            return array;
+        }
+
+        public ArrayNode toJacksonArray() {
+            ArrayNode array = objectMapper.createArrayNode();
+            for (Hop  hop : this) {
+                array.add(hop.toJacksonObject());
             }
             return array;
         }
@@ -122,10 +171,23 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         return array;
     }
 
+    public ArrayNode toJacksonArray() {
+        ArrayNode array = objectMapper.createArrayNode();
+        for (Path path : this) {
+            array.add(path.toJacksonArray());
+        }
+        return array;
+    }
+
     // SerializedType interface implementation
     @Override
     public Object toJSON() {
         return toJSONArray();
+    }
+
+    @Override
+    public JsonNode toJackson() {
+        return toJacksonArray();
     }
 
     @Override
@@ -196,6 +258,25 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
             }
 
             return pathSet;
+        }
+
+        @Override
+        public PathSet fromJacksonArray(ArrayNode array) {
+            PathSet paths = new PathSet();
+
+            int nPaths = array.size();
+
+            for (int i = 0; i < nPaths; i++) {
+                ArrayNode path = (ArrayNode) array.get(i);
+                paths.add(Path.fromJacksonArray(path));
+            }
+            return paths;
+        }
+
+
+        @Override
+        public ArrayNode toJacksonArray(PathSet obj) {
+            return obj.toJacksonArray();
         }
 
         @Override

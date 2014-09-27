@@ -1,5 +1,7 @@
 package com.ripple.core.coretypes;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.*;
@@ -15,6 +17,19 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
     @Override
     public Object toJSON() {
         return toJSONArray();
+    }
+
+    @Override
+    public JsonNode toJackson() {
+        return toJacksonArray();
+    }
+
+    private ArrayNode toJacksonArray() {
+        ArrayNode arrayNode = objectMapper.createArrayNode();
+        for (Hash256 hash256 : this) {
+            arrayNode.add(hash256.toHex());
+        }
+        return arrayNode;
     }
 
     public JSONArray toJSONArray() {
@@ -91,6 +106,18 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
             }
 
             return vector;
+        }
+
+        @Override
+        public Vector256 fromJacksonArray(ArrayNode array) {
+            Vector256 vector = new Vector256();
+
+            for (int i = 0; i < array.size(); i++) {
+                String hex = array.get(i).asText();
+                vector.add(new Hash256(B16.decode(hex)));
+            }
+            return vector;
+
         }
     }
     static public Translator translate = new Translator();

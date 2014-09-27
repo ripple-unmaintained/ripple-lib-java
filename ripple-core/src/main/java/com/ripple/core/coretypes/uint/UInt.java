@@ -1,5 +1,7 @@
 package com.ripple.core.coretypes.uint;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.ripple.core.serialized.*;
 import com.ripple.encodings.common.B16;
 
@@ -210,6 +212,15 @@ abstract public class UInt<Subclass extends UInt> extends Number implements Seri
                 return obj.longValue();
             } else {
                 return toString(obj);
+            }
+        }
+
+        public JsonNode toJackson(T obj) {
+            JsonNodeFactory factory = objectMapper.getNodeFactory();
+            if (obj.getByteWidth() <= 4) {
+                return factory.numberNode(obj.longValue());
+            } else {
+                return factory.textNode(toString(obj));
             }
         }
 

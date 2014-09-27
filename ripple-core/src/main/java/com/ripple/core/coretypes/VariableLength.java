@@ -1,6 +1,7 @@
 
 package com.ripple.core.coretypes;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BinaryParser;
@@ -20,6 +21,11 @@ public class VariableLength implements SerializedType {
     @Override
     public Object toJSON() {
         return translate.toJSON(this);
+    }
+
+    @Override
+    public JsonNode toJackson() {
+        return translate.toJackson(this);
     }
 
     @Override
@@ -53,6 +59,11 @@ public class VariableLength implements SerializedType {
         @Override
         public Object toJSON(VariableLength obj) {
             return toString(obj);
+        }
+
+        @Override
+        public JsonNode toJackson(VariableLength obj) {
+            return SerializedType.objectMapper.getNodeFactory().textNode(toString(obj));
         }
 
         @Override

@@ -1,5 +1,6 @@
 package com.ripple.core.serialized.enums;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.SerializedType;
@@ -145,6 +146,11 @@ public enum EngineResult implements SerializedType
     @Override
     public Object toJSON() {
         return toString();
+    }
+
+    @Override
+    public JsonNode toJackson() {
+        return objectMapper.getNodeFactory().textNode(toString());
     }
 
     @Override

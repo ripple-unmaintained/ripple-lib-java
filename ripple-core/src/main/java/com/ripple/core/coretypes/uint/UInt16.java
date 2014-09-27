@@ -1,5 +1,6 @@
 package com.ripple.core.coretypes.uint;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BytesSink;
@@ -61,6 +62,11 @@ public class UInt16 extends UInt<UInt16> {
 
     static public TypedFields.UInt16Field LedgerEntryType = int16Field(Field.LedgerEntryType);
     static public TypedFields.UInt16Field TransactionType = int16Field(Field.TransactionType);
+
+    @Override
+    public JsonNode toJackson() {
+        return translate.toJackson(this);
+    }
 
     @Override
     public Object toJSON() {
