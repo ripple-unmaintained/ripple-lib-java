@@ -16,8 +16,8 @@ import java.util.logging.Logger;
  */
 public class TrackedAccountRoot extends Publisher<TrackedAccountRoot.events> {
     static final protected Logger logger = Logger.getLogger(TrackedAccountRoot.class.getName());
-    public static abstract class events<T> extends Publisher.Callback<T> {}
-    public static abstract class OnUpdate extends events<TrackedAccountRoot> {}
+    public static interface events<T> extends Publisher.Callback<T> {}
+    public static interface OnUpdate extends events<TrackedAccountRoot> {}
     boolean updated = false;
 
     public boolean primed() {

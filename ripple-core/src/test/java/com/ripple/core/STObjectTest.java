@@ -14,6 +14,7 @@ import com.ripple.core.serialized.enums.EngineResult;
 import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.sle.entries.AccountRoot;
+import com.ripple.core.types.known.sle.entries.DirectoryNode;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.tx.result.TransactionMeta;
 import com.ripple.core.types.known.tx.txns.Payment;
@@ -397,10 +398,9 @@ public class STObjectTest {
     public void testParsingVector256() throws Exception {
         // This was a test case for a bug found in ripple-lib js
         String jsonHexed = "110064220000000058000360186E008422E06B72D5B275E29EE3BE9D87A370F424E0E7BF613C4659098214289D19799C892637306AAAF03805EDFCDF6C28B8011320081342A0AB45459A54D8E4FA1842339A102680216CF9A152BCE4F4CE467D8246";
-        STObject meta = STObject.fromHex(jsonHexed);
-        String expectedJSON;
-        expectedJSON = ("{\"LedgerEntryType\":\"DirectoryNode\",\"Indexes\":[\"081342A0AB45459A54D8E4FA1842339A102680216CF9A152BCE4F4CE467D8246\"],\"Owner\":\"rh6kN9s7spSb3vdv6H8ZGYzsddSLeEUGmc\",\"RootIndex\":\"000360186E008422E06B72D5B275E29EE3BE9D87A370F424E0E7BF613C465909\",\"Flags\":0}");
-        assertEquals(new JSONObject(expectedJSON).toString(), new JSONObject(meta.toJSONObject().toString()).toString());
+        DirectoryNode dn = (DirectoryNode) STObject.fromHex(jsonHexed);
+        assertEquals("[\"081342A0AB45459A54D8E4FA1842339A102680216CF9A152BCE4F4CE467D8246\"]",
+                      dn.indexes().toJSONArray().toString());
     }
 
     @Test

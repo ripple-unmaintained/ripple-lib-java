@@ -155,7 +155,7 @@ public enum EngineResult implements SerializedType
     public static class Translator extends TypeTranslator<EngineResult> {
         @Override
         public EngineResult fromParser(BinaryParser parser, Integer hint) {
-            return fromInteger((int) parser.read(1)[0] & 0xFF);
+            return fromInteger(parser.readOneInt());
         }
 
         @Override

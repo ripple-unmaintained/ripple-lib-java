@@ -21,9 +21,9 @@ import com.ripple.crypto.ecdsa.IKeyPair;
 import java.util.*;
 
 public class TransactionManager extends Publisher<TransactionManager.events> {
-    public static abstract class events<T> extends Publisher.Callback<T> {}
+    public static interface events<T> extends Publisher.Callback<T> {}
     // This event is emitted with the Sequence of the AccountRoot
-    public static abstract class OnValidatedSequence extends events<UInt32> {}
+    public static interface OnValidatedSequence extends events<UInt32> {}
 
     Client client;
     TrackedAccountRoot accountRoot;

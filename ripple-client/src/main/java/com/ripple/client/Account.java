@@ -21,8 +21,8 @@ public class Account {
         return publisher;
     }
     // events enumeration
-    public static abstract class events<T> extends Publisher.Callback<T> {}
-    public static abstract class OnServerInfo extends events {}
+    public static interface events<T> extends Publisher.Callback<T> {}
+    public static interface OnServerInfo extends events {}
 
     private TrackedAccountRoot accountRoot;
     private TransactionManager tm;

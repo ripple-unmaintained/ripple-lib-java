@@ -15,7 +15,6 @@ import com.ripple.client.transport.TransportEventHandler;
 import com.ripple.client.transport.WebSocketTransport;
 import com.ripple.client.types.AccountLine;
 import com.ripple.core.coretypes.*;
-import com.ripple.core.coretypes.Currency;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.types.known.sle.LedgerEntry;
@@ -30,7 +29,6 @@ import org.json.JSONObject;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
@@ -171,16 +169,16 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         once(OnConnected.class, onConnected);
     }
 
-    public static abstract class events<T>      extends Publisher.Callback<T> {}
-    public abstract static class OnLedgerClosed extends events<ServerInfo> {}
-    public abstract static class OnConnected    extends events<Client> {}
-    public abstract static class OnDisconnected extends events<Client> {}
-    public abstract static class OnSubscribed   extends events<ServerInfo> {}
-    public abstract static class OnMessage extends events<JSONObject> {}
-    public abstract static class OnSendMessage extends events<JSONObject> {}
-    public abstract static class OnStateChange extends events<Client> {}
-    public abstract static class OnPathFind extends events<JSONObject> {}
-    public abstract static class OnValidatedTransaction extends events<TransactionResult> {}
+    public static interface events<T> extends Publisher.Callback<T> {}
+    public static interface OnLedgerClosed extends events<ServerInfo> {}
+    public static interface OnConnected    extends events<Client> {}
+    public static interface OnDisconnected extends events<Client> {}
+    public static interface OnSubscribed   extends events<ServerInfo> {}
+    public static interface OnMessage extends events<JSONObject> {}
+    public static interface OnSendMessage extends events<JSONObject> {}
+    public static interface OnStateChange extends events<Client> {}
+    public static interface OnPathFind extends events<JSONObject> {}
+    public static interface OnValidatedTransaction extends events<TransactionResult> {}
 
     private boolean manuallyDisconnected = false;
 

@@ -15,13 +15,13 @@ import java.util.ArrayList;
 import java.util.TreeSet;
 
 public class ManagedTxn extends SignedTransaction {
-    public static abstract class events<T> extends Publisher.Callback<T> {}
-    public static abstract class OnSubmitSuccess extends events<Response> {}
-    public static abstract class OnSubmitFailure extends events<Response> {}
-    public static abstract class OnSubmitError extends events<Response> {}
-    public static abstract class OnTransactionValidated extends events<TransactionResult> {}
+    public static interface events<T> extends Publisher.Callback<T> {}
+    public static interface OnSubmitSuccess extends events<Response> {}
+    public static interface OnSubmitFailure extends events<Response> {}
+    public static interface OnSubmitError extends events<Response> {}
+    public static interface OnTransactionValidated extends events<TransactionResult> {}
 
-    public <T extends events> boolean removeListener(Class<T> key, Publisher.ICallback cb) {
+    public <T extends events> boolean removeListener(Class<T> key, Publisher.Callback cb) {
         return publisher.removeListener(key, cb);
     }
 
