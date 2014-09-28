@@ -629,12 +629,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             case account_tx:
             case book_offers:
             case connect:
-            case data_delete:
-            case data_fetch:
-            case data_sign:
-            case data_store:
-            case data_verify:
-            case json:
             case ledger:
             case ledger_accept:
             case ledger_closed:
