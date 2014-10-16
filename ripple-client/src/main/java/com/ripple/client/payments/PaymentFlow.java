@@ -16,11 +16,11 @@ import org.json.JSONObject;
 import java.math.BigDecimal;
 
 public class PaymentFlow extends Publisher<PaymentFlow.events> {
-    public static abstract class events<T> extends Publisher.Callback<T> {}
-    abstract static public class OnDestInfo extends events<STObject>{}
-    abstract static public class OnAlternatives extends events<Alternatives> {}
-    abstract static public class OnAlternativesStale extends events<Alternatives> {}
-    abstract static public class OnPathFind extends events<Request> {}
+    public static interface events<T> extends Publisher.Callback<T> {}
+    public static interface OnDestInfo extends events<STObject>{}
+    public static interface OnAlternatives extends events<Alternatives> {}
+    public static interface OnAlternativesStale extends events<Alternatives> {}
+    public static interface OnPathFind extends events<Request> {}
 
     Client client;
 

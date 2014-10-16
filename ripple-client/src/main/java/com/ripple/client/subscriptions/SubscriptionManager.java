@@ -19,10 +19,10 @@ public class SubscriptionManager extends Publisher<SubscriptionManager.events> {
         paused = false;
     }
 
-    public static abstract class events<T>      extends Publisher.Callback<T> {}
+    public static interface events<T>      extends Publisher.Callback<T> {}
 
-    public abstract static class OnSubscribed extends events<JSONObject> {}
-    public abstract static class OnUnSubscribed extends events<JSONObject> {}
+    public static interface OnSubscribed extends events<JSONObject> {}
+    public static interface OnUnSubscribed extends events<JSONObject> {}
 
     public boolean paused = false;
 
@@ -57,7 +57,7 @@ public class SubscriptionManager extends Publisher<SubscriptionManager.events> {
     }
 
     @Override
-    public <T extends events> int emit(Class<T> key, Object... args) {
+    public <T extends events> int emit(Class<T> key, Object args) {
         if (paused) {
             return 0;
         }

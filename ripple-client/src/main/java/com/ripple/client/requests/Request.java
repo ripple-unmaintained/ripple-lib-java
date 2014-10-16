@@ -1,7 +1,6 @@
 package com.ripple.client.requests;
 
 import com.ripple.client.Client;
-import com.ripple.client.async.ComposedOperation;
 import com.ripple.client.responses.Response;
 import com.ripple.client.enums.Command;
 import com.ripple.client.pubsub.Publisher;
@@ -26,10 +25,10 @@ public class Request extends Publisher<Request.events> {
     }
 
     // Base events class and aliases
-    public static abstract class events<T>  extends Publisher.Callback<T> {}
-    public abstract static class OnSuccess  extends events<Response> {}
-    public abstract static class OnError    extends events<Response> {}
-    public abstract static class OnResponse extends events<Response> {}
+    public static interface events<T>  extends Publisher.Callback<T> {}
+    public static interface OnSuccess  extends events<Response> {}
+    public static interface OnError    extends events<Response> {}
+    public static interface OnResponse extends events<Response> {}
 
     public static abstract class Manager<T> {
         abstract public void cb(Response response, T t) throws JSONException;
