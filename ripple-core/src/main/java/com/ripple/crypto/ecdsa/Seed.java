@@ -16,25 +16,32 @@ public class Seed {
         this.seedBytes = seedBytes;
     }
 
-    public static Seed fromBase58(String b58) {
-        return new Seed(getB58IdentiferCodecs().decodeFamilySeed(b58));
-    }
-
     @Override
     public String toString() {
         return getB58IdentiferCodecs().encodeFamilySeed(seedBytes);
     }
 
-    public static Seed fromPassPhrase(String passPhrase) {
-        return new Seed(passPhraseToSeedBytes(passPhrase));
+    public byte[] getBytes() {
+        return seedBytes;
     }
 
     public IKeyPair keyPair() {
         return createKeyPair(seedBytes, 0);
     }
+    public IKeyPair rootKeyPair() {
+        return createKeyPair(seedBytes, -1);
+    }
 
     public IKeyPair keyPair(int account) {
         return createKeyPair(seedBytes, account);
+    }
+
+    public static Seed fromBase58(String b58) {
+        return new Seed(getB58IdentiferCodecs().decodeFamilySeed(b58));
+    }
+
+    public static Seed fromPassPhrase(String passPhrase) {
+        return new Seed(passPhraseToSeedBytes(passPhrase));
     }
 
     public static byte[] passPhraseToSeedBytes(String phrase) {
@@ -54,9 +61,17 @@ public class Seed {
         // The private generator (aka root private key, master private key)
         privateGen = computePrivateGen(seedBytes);
         byte[] publicGenBytes = computePublicGenerator(privateGen);
-        secret = computeSecretKey(privateGen, publicGenBytes, accountNumber);
-        pub = computePublicKey(secret);
-        return new KeyPair(secret, pub);
+
+        if (accountNumber == -1) {
+            // The root keyPair
+            return new KeyPair(privateGen, Utils.uBigInt(publicGenBytes));
+        }
+        else {
+            secret = computeSecretKey(privateGen, publicGenBytes, accountNumber);
+            pub = computePublicKey(secret);
+            return new KeyPair(secret, pub);
+        }
+
     }
 
     /**
