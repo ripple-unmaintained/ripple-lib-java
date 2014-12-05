@@ -37,6 +37,13 @@ public class TransactionMeta extends STObject {
             }
         }
     }
+    public void walkFinal(LedgerEntry.OnLedgerEntry cb) {
+        for (AffectedNode affectedNode : affectedNodes()) {
+            if (affectedNode.isFinalNode()) {
+                cb.onObject(affectedNode.nodeAsPrevious());
+            }
+        }
+    }
     public static Iterator<AffectedNode> iterateAffectedNodes(final Iterator<STObject> iterator) {
         return new Iterator<AffectedNode>() {
             @Override

@@ -105,6 +105,10 @@ public class AccountID extends Hash160 {
         return new Issue(Currency.fromString(code), this);
     }
 
+    public Issue issue(Currency c) {
+        return new Issue(c, this);
+    }
+
     public boolean isNativeIssuer() {
         return equals(XRP_ISSUER);
     }

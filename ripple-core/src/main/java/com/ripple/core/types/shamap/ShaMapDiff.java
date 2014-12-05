@@ -22,6 +22,16 @@ public class ShaMapDiff {
         compare(one, two);
     }
 
+    public ShaMapDiff inverted() {
+        ShaMapDiff shaMapDiff = new ShaMapDiff(two, one);
+
+        shaMapDiff.added = deleted;
+        shaMapDiff.modified = modified;
+        shaMapDiff.deleted = added;
+
+        return shaMapDiff;
+    }
+
     public void apply(ShaMap sa) {
         for (Hash256 mod : modified) {
             boolean modded = sa.updateItem(mod, two.getItem(mod).copy());

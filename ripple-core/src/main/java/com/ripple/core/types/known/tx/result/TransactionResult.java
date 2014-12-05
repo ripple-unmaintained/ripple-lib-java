@@ -19,6 +19,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TransactionResult implements Comparable<TransactionResult>{
+    public TransactionResult copy() {
+        TransactionMeta metaCopy = (TransactionMeta) STObject.translate.fromBytes(meta.toBytes());
+        Transaction txnCopy = (Transaction) STObject.translate.fromBytes(txn.toBytes());
+        return new TransactionResult(ledgerIndex.longValue(), hash, txnCopy, metaCopy);
+    }
+
+    public JSONObject toJSONBinary() {
+        JSONObject o = new JSONObject();
+
+        try {
+            o.put("hash", hash.toHex());
+            o.put("meta", meta.toHex());
+            o.put("tx", txn.toHex());
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        return o;
+    }
+
     // The json formatting of transaction results is a MESS
     public enum Source {
         request_tx_result,

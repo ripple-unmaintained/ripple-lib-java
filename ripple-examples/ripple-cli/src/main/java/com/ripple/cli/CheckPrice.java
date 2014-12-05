@@ -3,9 +3,14 @@ package com.ripple.cli;
 import com.ripple.client.Client;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
+import com.ripple.client.subscriptions.SubscriptionManager;
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
+import com.ripple.core.fields.Field;
+import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.coretypes.*;
+import com.ripple.core.types.known.tx.result.AffectedNode;
+import com.ripple.core.types.known.tx.result.TransactionResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -65,6 +70,7 @@ public class CheckPrice {
             bid    = secondOne.multiply(bidQuality);
 
             spread = ask.subtract(bid).abs();
+
         }
 
         private void requestUpdate() {

@@ -89,6 +89,11 @@ public class Index {
 
     public static Hash256 bookEnd(Hash256 base) {
         byte[] end = base.bigInteger().add(Hash256.bookBaseSize).toByteArray();
+        if (end.length > 32) {
+            byte[] source = end;
+            end = new byte[32];
+            System.arraycopy(source, source.length - 32, end, 0, 32);
+        }
         return new Hash256(end);
     }
 

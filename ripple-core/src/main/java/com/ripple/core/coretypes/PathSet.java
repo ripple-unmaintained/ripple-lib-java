@@ -78,7 +78,7 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
         public JSONObject toJSONObject() {
             JSONObject object = new JSONObject();
             try {
-                object.put("type", getType());
+//                object.put("type", getType());
 
                 if (hasAccount()) object.put("account", account.toJSON());
                 if (hasIssuer()) object.put("issuer", issuer.toJSON());

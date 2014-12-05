@@ -1,13 +1,11 @@
 package com.ripple.core.coretypes;
 
+import com.ripple.core.fields.Field;
 import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.sle.LedgerHashes;
-import com.ripple.core.types.known.sle.entries.AccountRoot;
-import com.ripple.core.types.known.sle.entries.DirectoryNode;
-import com.ripple.core.types.known.sle.entries.Offer;
-import com.ripple.core.types.known.sle.entries.RippleState;
+import com.ripple.core.types.known.sle.entries.*;
 import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.core.types.known.tx.result.AffectedNode;
 import com.ripple.core.types.known.tx.result.TransactionMeta;
@@ -108,7 +106,12 @@ public class STObjectFormatter {
             case Invalid:
                 break;
             case DirectoryNode:
-                constructed = new DirectoryNode();
+                if (source.has(Field.Owner)) {
+                    constructed = new DirectoryNode();
+                } else {
+                    constructed = new OfferDirectory();
+                }
+
                 break;
             case GeneratorMap:
                 break;

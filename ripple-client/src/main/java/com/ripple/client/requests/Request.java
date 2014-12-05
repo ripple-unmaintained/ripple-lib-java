@@ -73,7 +73,7 @@ public class Request extends Publisher<Request.events> {
                 client.requests.put(id, Request.this);
                 client.sendMessage(toJSON());
                 // TODO: use an LRU map or something
-                client.schedule(60000, new Runnable() {
+                client.schedule(60000 * 10, new Runnable() {
                     @Override
                     public void run() {
                         client.requests.remove(id);

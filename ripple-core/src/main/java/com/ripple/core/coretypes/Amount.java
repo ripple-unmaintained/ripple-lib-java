@@ -27,8 +27,15 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
      * Thrown when an Amount is constructed with an invalid value
      */
     public static class PrecisionError extends RuntimeException {
+        public Amount illegal;
+
         public PrecisionError(String s) {
             super(s);
+        }
+
+        public PrecisionError(String s, Amount amount) {
+            super(s);
+            illegal = amount;
         }
     }
 
@@ -124,16 +131,19 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         if (isNative()) {
             issuer = AccountID.XRP_ISSUER;
             if (!unbounded) {
-                checkXRPBounds(value);
+                checkXRPBounds();
             }
             // Offset is unused for native amounts
             exponent = -6; // compared to drops.
         } else {
-            if (value.precision() > MAXIMUM_IOU_PRECISION && !unbounded) {
-                throw new PrecisionError("Overflow Error!");
-            }
             issuer = AccountID.NEUTRAL;
             exponent = calculateExponent();
+
+            if (value.precision() > MAXIMUM_IOU_PRECISION && !unbounded) {
+                String err = "value precision of " + value.precision() + " is greater than maximum " +
+                        "iou precision of " + MAXIMUM_IOU_PRECISION;
+                throw new PrecisionError(err, this);
+            }
         }
     }
 
@@ -382,6 +392,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public JSONObject toJSONObject() {
+        if (isNative()) {
+            throw new RuntimeException("Native amounts must be serialized as a string");
+        }
+
         try {
             JSONObject out = new JSONObject();
             out.put("currency", currencyString());
@@ -611,30 +625,50 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return value.signum() == 0 ? "0" : value().toPlainString();
     }
 
-    public static void checkLowerDropBound(BigDecimal val) {
+    public void checkLowerDropBound(BigDecimal val) {
         if (val.scale() > 6) {
-            throw getOutOfBoundsError(val, "bigger", MIN_NATIVE_VALUE);
+            PrecisionError bigger = getOutOfBoundsError(val,
+                                    "smaller than min native value",
+                                    MIN_NATIVE_VALUE);
+            bigger.illegal = this;
+            throw bigger;
         }
     }
 
-    public static void checkUpperBound(BigDecimal val) {
+    public void checkUpperBound(BigDecimal val) {
         if (val.compareTo(MAX_NATIVE_VALUE) == 1) {
-            throw getOutOfBoundsError(val, "bigger", MAX_NATIVE_VALUE);
+            PrecisionError bigger = getOutOfBoundsError(val,
+                                    "bigger than max native value ",
+                                    MAX_NATIVE_VALUE);
+            bigger.illegal = this;
+            throw bigger;
         }
     }
 
     private static PrecisionError getOutOfBoundsError(BigDecimal abs, String sized, BigDecimal bound) {
-        return new PrecisionError(abs.toPlainString() + " is " + sized + " than bound " + bound);
+        return new PrecisionError(abs.toPlainString() + " absolute XRP is " + sized + bound);
     }
 
-    public static void checkXRPBounds(BigDecimal value) {
+    public void checkXRPBounds() {
+        BigDecimal v = value.abs();
         // This is for that damn offer at index: 6310D78E6AD408892743DD62455694162E758DA283D0E4A2CB3A3C173B7C794A
         if (value.compareTo(TAKER_PAYS_FOR_THAT_DAMN_OFFER) == 0) {
             return;
         }
-        value = value.abs();
-        checkLowerDropBound(value);
-        checkUpperBound(value);
+        checkLowerDropBound(v);
+        checkUpperBound(v);
+    }
+
+
+    private static int significantDigits(BigDecimal input) {
+        input = input.stripTrailingZeros();
+        return input.scale() < 0
+                ? input.precision() - input.scale()
+                : input.precision();
+    }
+
+    public int signifcantDigits() {
+        return significantDigits(value);
     }
 
     public static void checkDropsValueWhole(String drops) {
@@ -655,7 +689,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
         return new BigDecimal(s.replace(",", "")); //# .scaleByPowerOfTen(6);
     }
 
-    public static TypedFields.AmountField amountField(final Field f) {
+    private static TypedFields.AmountField amountField(final Field f) {
         return new TypedFields.AmountField() {
             @Override
             public Field getField() {

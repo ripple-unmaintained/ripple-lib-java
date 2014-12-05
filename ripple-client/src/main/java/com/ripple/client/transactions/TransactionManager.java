@@ -29,7 +29,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     TrackedAccountRoot accountRoot;
     AccountID accountID;
     IKeyPair keyPair;
-    AccountTransactionsRequester txnRequester;
+    AccountTxPager txnRequester;
 
     private ArrayList<ManagedTxn> pending = new ArrayList<ManagedTxn>();
 
@@ -120,9 +120,9 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     public static long ACCOUNT_TX_TIMEOUT = 5;
     private long lastTxnRequesterUpdate = 0;
     private long lastLedgerCheckedAccountTxns = 0;
-    AccountTransactionsRequester.OnPage onTxnsPage = new AccountTransactionsRequester.OnPage() {
+    AccountTxPager.OnPage onTxnsPage = new AccountTxPager.OnPage() {
         @Override
-        public void onPage(AccountTransactionsRequester.Page page) {
+        public void onPage(AccountTxPager.Page page) {
             lastTxnRequesterUpdate = client.serverInfo.ledger_index;
 
             if (page.hasNext()) {
@@ -164,7 +164,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 // else keep waiting ;)
             } else {
                 lastTxnRequesterUpdate = currentLedgerIndex;
-                txnRequester = new AccountTransactionsRequester(client,
+                txnRequester = new AccountTxPager(client,
                                                                 accountID,
                                                                 onTxnsPage,
                                                                 /* for good measure */

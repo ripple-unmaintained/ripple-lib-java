@@ -1,5 +1,6 @@
 package com.ripple.core.coretypes;
 
+import com.ripple.core.coretypes.hash.Hash160;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -32,6 +33,13 @@ public class Issue implements Comparable<Issue> {
         } else {
             throw new RuntimeException("Issue string must be XRP or $currency/$issuer");
         }
+    }
+
+    // Hackery to work around these guys being odd ducks
+    // TODO: better hackery
+    public static Issue from160s(Hash160 hash160, Hash160 hash1601) {
+        return new Issue(new Currency(hash160.bytes()),
+                new AccountID(hash1601.toBytes()));
     }
 
     public Currency currency() {

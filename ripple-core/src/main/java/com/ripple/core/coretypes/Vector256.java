@@ -49,12 +49,18 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
      *  pops off the back, thus preserving contiguity but losing ordering.
      * @param ledgerIndex the ledger entry index to remove
      */
-    public void removeUnstable(Hash256 ledgerIndex) {
+    public boolean removeUnstable(Hash256 ledgerIndex) {
         int i = indexOf(ledgerIndex);
+        if (i == -1) {
+            return false;
+        }
+
         int last = size() - 1;
         Hash256 lastIndex = get(last);
         set(i, lastIndex);
         remove(last);
+
+        return true;
     }
 
     public static class Translator extends TypeTranslator<Vector256> {

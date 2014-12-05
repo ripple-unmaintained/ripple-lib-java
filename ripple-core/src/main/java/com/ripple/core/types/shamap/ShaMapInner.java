@@ -139,7 +139,10 @@ public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
 
     public ShaMapItem getItem(Hash256 index) {
         ShaMapLeaf leaf = getLeaf(index);
-        return leaf == null ? null : leaf.item;
+
+        @SuppressWarnings("unchecked")
+        ShaMapItem shaMapItem = leaf == null ? null : leaf.item;
+        return shaMapItem;
     }
 
     public boolean addItem(Hash256 index, ShaMapItem item) {

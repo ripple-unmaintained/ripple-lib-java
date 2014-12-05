@@ -27,8 +27,8 @@ public class LedgerEntry extends STObject {
     public UInt32 flags() {return get(UInt32.Flags);}
     public Hash256 ledgerIndex() {return get(Hash256.LedgerIndex);}
 
-    public void ledgerEntryType(UInt16 val) {put(Field.LedgerEntryType, val);}
-    public void ledgerEntryType(LedgerEntryType val) {put(Field.LedgerEntryType, val);}
+//    public void ledgerEntryType(UInt16 val) {put(Field.LedgerEntryType, val);}
+//    public void ledgerEntryType(LedgerEntryType val) {put(Field.LedgerEntryType, val);}
     public void flags(UInt32 val) {put(Field.Flags, val);}
     public void ledgerIndex(Hash256 val) {put(Field.LedgerIndex, val);}
 

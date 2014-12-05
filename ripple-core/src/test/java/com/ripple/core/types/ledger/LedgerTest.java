@@ -1,6 +1,7 @@
 package com.ripple.core.types.ledger;
 
 import com.ripple.core.binary.STReader;
+import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.serialized.BinaryParser;
 import org.junit.Test;
 
@@ -26,12 +27,8 @@ public class LedgerTest {
         assertEquals(4403788, reader.uInt32().longValue()); //
         assertEquals(3, parser.readOne()); //
 
-        LedgerHeader ledger = LedgerHeader.fromParser(parser);
-        byte[] o = ledger.version.toByteArray();
+        assertEquals(HashPrefix.ledgerMaster.uInt32, reader.uInt32());
 
-        assertEquals('M',  ((char) o[0]));
-        assertEquals('I',  ((char) o[1]));
-        assertEquals('N',  ((char) o[2]));
-        assertEquals('\0', ((char) o[3]));
+        LedgerHeader ledger = LedgerHeader.fromParser(parser);
     }
 }

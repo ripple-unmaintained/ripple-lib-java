@@ -184,4 +184,8 @@ public class Offer extends ThreadedLedgerEntry {
             ownerNode(new UInt64(0));
         }
     }
+
+    public IssuePair issuePair() {
+        return new IssuePair(takerPays().issue(), takerGets().issue());
+    }
 }

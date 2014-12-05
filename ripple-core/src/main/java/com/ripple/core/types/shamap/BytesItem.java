@@ -21,6 +21,11 @@ public class BytesItem extends ShaMapItem<byte[]> {
     }
 
     @Override
+    public byte[] value() {
+        return item;
+    }
+
+    @Override
     public Prefix hashPrefix() {
         return new Prefix() {
             @Override

@@ -107,12 +107,11 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         Request request = newRequest(cmd);
         request.once(Request.OnResponse.class, new Request.OnResponse() {
             @Override
-            public void called(Response response) {
+            public void called(final Response response) {
                 try {
                     if (response.succeeded) {
-                        T t = builder.buildTypedResponse(response);
+                        final T t = builder.buildTypedResponse(response);
                         manager.cb(response, t);
-
                     } else {
                         if (manager.retryOnUnsuccessful(response)) {
                             makeManagedRequest(cmd, manager, builder);
@@ -141,6 +140,33 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             public AccountRoot buildTypedResponse(Response response) {
                 JSONObject root = response.result.optJSONObject("account_data");
                 return (AccountRoot) STObject.fromJSONObject(root);
+            }
+        });
+    }
+
+    public Request requestLedgerData(final long ledger_index, final Manager<ArrayList<LedgerEntry>> manager) {
+        return makeManagedRequest(Command.ledger_data, manager, new Request.Builder<ArrayList<LedgerEntry>>() {
+            @Override
+            public void beforeRequest(Request request) {
+                request.json("ledger_index", ledger_index);
+                request.json("binary", true);
+            }
+
+            @Override
+            public ArrayList<LedgerEntry> buildTypedResponse(Response response) {
+                try {
+                    JSONArray state = response.result.getJSONArray("state");
+                    ArrayList<LedgerEntry> result = new ArrayList<LedgerEntry>();
+                    for (int i = 0; i < state.length(); i++) {
+                        JSONObject stateObject = state.getJSONObject(i);
+                        LedgerEntry le = (LedgerEntry) STObject.fromHex(stateObject.getString("data"));
+                        le.index(Hash256.fromHex(stateObject.getString("index")));
+                        result.add(le);
+                    }
+                    return result;
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }

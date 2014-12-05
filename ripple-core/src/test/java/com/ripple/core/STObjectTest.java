@@ -1,5 +1,7 @@
 package com.ripple.core;
 
+import com.ripple.core.binary.STReader;
+import com.ripple.core.binary.STWriter;
 import com.ripple.core.coretypes.*;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.Index;
@@ -10,6 +12,8 @@ import com.ripple.core.coretypes.uint.UInt8;
 import com.ripple.core.fields.Field;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.BinarySerializer;
+import com.ripple.core.serialized.BytesList;
 import com.ripple.core.serialized.enums.EngineResult;
 import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.types.known.sle.LedgerEntry;
@@ -116,6 +120,29 @@ public class STObjectTest {
             stateObject.put("index", index);
         } catch (JSONException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+
+    @Test
+    public void testVlEncoding() {
+        for (int i = 0; i < 918744; i++) {
+            byte[] bytes = BinarySerializer.encodeVL(i);
+            BinaryParser parser= new BinaryParser(bytes);
+            int i1 = parser.readVLLength();
+            assertEquals(i1, i);
+        }
+    }
+
+    @Test
+    public void testUintEncoding() {
+        for (int i = 0; i < 10000; i++) {
+            BytesList list = new BytesList();
+            STWriter writer = new STWriter(list);
+            UInt32 obj = new UInt32(i);
+            writer.write(obj);
+            STReader reader = new STReader(list.bytesHex());
+            assertEquals(obj, reader.uInt32());
         }
     }
 
