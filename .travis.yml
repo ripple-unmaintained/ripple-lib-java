@@ -14,20 +14,23 @@ before_install:
 
 - sudo apt-get install expect
 
+- echo $SHELL
+
 # Create our nifty function ;)
 - |
-    function license_accepted_android()
-    {
-        expect -c "$(cat <<DOC
-        set timeout -1;
-        spawn android $@;
-        expect {
-            "Do you accept the license" { exp_send "y\r" ; exp_continue }
-            eof
-        }
-    DOC
-    )"
-    }
+  function license_accepted_android()
+  {
+      expect -c "$(cat <<DOC
+      set timeout -1;
+      spawn android $@;
+      expect {
+          "Do you accept the license" { exp_send "y\r" ; exp_continue }
+          eof
+      }
+  DOC
+  )"
+  }
+  
 
 - license_accepted_android update sdk --force -u -t platform-tools
 
@@ -35,7 +38,7 @@ before_install:
 - android list sdk -a -u -e
 
 # actually get the packages we want
-- license_accepted_android update sdk --force -a -u -t tools,platform-tools,build-tools-19.0.3,android-10,extra-android-support;
+- license_accepted_android update sdk --force -a -u -t tools,platform-tools,build-tools-21.1.1,android-10,extra-android-support;
 
 # useful information to debug problems with previous steps
 - ls -lah ${ANDROID_HOME}
