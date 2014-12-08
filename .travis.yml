@@ -1,58 +1,57 @@
 language: java
 before_install:
 
-# Download the SDK
-- wget http://dl.google.com/android/android-sdk_r22.3-linux.tgz
-- tar -zxf android-sdk_r22.3-linux.tgz
+ # Download the SDK
+ - wget http://dl.google.com/android/android-sdk_r22.3-linux.tgz
+ - tar -zxf android-sdk_r22.3-linux.tgz
 
-- export ANDROID_HOME=`pwd`/android-sdk-linux
+ - export ANDROID_HOME=`pwd`/android-sdk-linux
 
-# Set the $PATH so all the tools like dx,aapt etc work
-- export PATH=$PATH:$ANDROID_HOME/tools
-- export PATH=$PATH:$ANDROID_HOME/platform-tools
-- export PATH=$PATH:$ANDROID_HOME/build-tools
+ # Set the $PATH so all the tools like dx,aapt etc work
+ - export PATH=$PATH:$ANDROID_HOME/tools
+ - export PATH=$PATH:$ANDROID_HOME/platform-tools
+ - export PATH=$PATH:$ANDROID_HOME/build-tools
 
-- sudo apt-get install expect
+ - sudo apt-get install expect
 
-- cat /home/travis/build.sh
-- env
-- echo $SHELL
+ - cat /home/travis/build.sh
+ - env
+ - echo $SHELL
 
-# Create our nifty function ;)
-- |
-  function license_accepted_android()
-  {
-      expect -c "$(cat <<DOC
-      set timeout -1;
-      spawn android $@;
-      expect {
-          "Do you accept the license" { exp_send "y\r" ; exp_continue }
-          eof
-      }
-  DOC
-  )"
-  }
-  
+ # Create our nifty function ;)
+ - |
+   function license_accepted_android()
+   {
+       expect -c "$(cat <<DOC
+       set timeout -1;
+       spawn android $@;
+       expect {
+           "Do you accept the license" { exp_send "y\r" ; exp_continue }
+           eof
+       }
+   DOC
+   )"
+   }
 
-- license_accepted_android update sdk --force -u -t platform-tools
+ - license_accepted_android update sdk --force -u -t platform-tools
 
-# this command requires platform-tools installed first to work
-- android list sdk -a -u -e
+ # this command requires platform-tools installed first to work
+ - android list sdk -a -u -e
 
-# actually get the packages we want
-- license_accepted_android update sdk --force -a -u -t tools,platform-tools,build-tools-21.1.1,android-10,extra-android-support;
+ # actually get the packages we want
+ - license_accepted_android update sdk --force -a -u -t tools,platform-tools,build-tools-21.1.1,android-10,extra-android-support;
 
-# useful information to debug problems with previous steps
-- ls -lah ${ANDROID_HOME}
-- ls -lah ${ANDROID_HOME}/platforms
-- ls -lah ${ANDROID_HOME}/build-tools
-- ls -lah ${ANDROID_HOME}/tools
-- ls -lah ${ANDROID_HOME}/platform-tools
+ # useful information to debug problems with previous steps
+ - ls -lah ${ANDROID_HOME}
+ - ls -lah ${ANDROID_HOME}/platforms
+ - ls -lah ${ANDROID_HOME}/build-tools
+ - ls -lah ${ANDROID_HOME}/tools
+ - ls -lah ${ANDROID_HOME}/platform-tools
 
-# Do this last because it takes so damn long, it's quicker to iterate on
-# refinements to prior section
-- sudo apt-get update
-- sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch
+ # Do this last because it takes so damn long, it's quicker to iterate on
+ # refinements to prior section
+ - sudo apt-get update
+ - sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch
 
-# -e shows full stack trace on errors
+ # -e shows full stack trace on errors
 script: mvn -X -e install
