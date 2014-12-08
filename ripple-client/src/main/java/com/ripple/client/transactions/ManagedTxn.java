@@ -25,7 +25,7 @@ public class ManagedTxn extends SignedTransaction {
         return publisher.removeListener(key, cb);
     }
 
-    public <T extends events> int emit(Class<T> key, Object... args) {
+    public <T extends events> int emit(Class<T> key, Object args) {
         return publisher.emit(key, args);
     }
 
