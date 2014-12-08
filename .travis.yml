@@ -14,7 +14,7 @@ before_install:
  - sudo apt-get install expect
 
  - echo $PWD
- - source ./license_accepted_android.sh
+ - source ./license-accept-android.sh
 
  - license_accepted_android update sdk --force -u -t platform-tools
 
