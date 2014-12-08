@@ -13,13 +13,16 @@ before_install:
 
  - sudo apt-get install expect
 
- - android update sdk --force -u -t platform-tools
+ - echo $PWD
+ - source ./license_accepted_android.sh
+
+ - license_accepted_android update sdk --force -u -t platform-tools
 
  # this command requires platform-tools installed first to work
  - android list sdk -a -u -e
 
  # actually get the packages we want
- - android update sdk --force -a -u -t tools,platform-tools,build-tools-21.1.1,android-10,extra-android-support;
+ - license_accepted_android update sdk --force -a -u -t tools,platform-tools,build-tools-21.1.1,android-10,extra-android-support;
 
  # useful information to debug problems with previous steps
  - ls -lah ${ANDROID_HOME}
