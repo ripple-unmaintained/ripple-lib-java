@@ -185,7 +185,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     public boolean canSubmit() {
         return client.connected  &&
                client.serverInfo.primed() &&
-               client.serverInfo.load_factor < 768 &&
+               client.serverInfo.load_factor < (768 * 1000 ) &&
                accountRoot.primed();
     }
 
