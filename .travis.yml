@@ -2,9 +2,8 @@ language: java
 before_install:
 
  # Download the SDK
- - wget http://dl.google.com/android/android-sdk_r22.3-linux.tgz
- - tar -zxf android-sdk_r22.3-linux.tgz
-
+ - wget http://dl.google.com/android/android-sdk_r23.0.2-linux.tgz
+ - tar -zxf android-sdk_r23.0.2-linux.tgz
  - export ANDROID_HOME=`pwd`/android-sdk-linux
 
  # Set the $PATH so all the tools like dx,aapt etc work
@@ -14,32 +13,13 @@ before_install:
 
  - sudo apt-get install expect
 
- - cat /home/travis/build.sh
- - env
- - echo $SHELL
-
- # Create our nifty function ;)
- - |
-   function license_accepted_android()
-   {
-       expect -c "$(cat <<DOC
-       set timeout -1;
-       spawn android $@;
-       expect {
-           \"Do you accept the license\" { exp_send \"y\r\" ; exp_continue }
-           eof
-       }
-   DOC
-   )"
-   }
-
- - license_accepted_android update sdk --force -u -t platform-tools
+ - android update sdk --force -u -t platform-tools
 
  # this command requires platform-tools installed first to work
  - android list sdk -a -u -e
 
  # actually get the packages we want
- - license_accepted_android update sdk --force -a -u -t tools,platform-tools,build-tools-21.1.1,android-10,extra-android-support;
+ - android update sdk --force -a -u -t tools,platform-tools,build-tools-21.1.1,android-10,extra-android-support;
 
  # useful information to debug problems with previous steps
  - ls -lah ${ANDROID_HOME}
