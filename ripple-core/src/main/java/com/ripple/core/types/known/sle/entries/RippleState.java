@@ -167,6 +167,10 @@ public class RippleState extends ThreadedLedgerEntry {
         return issuedBy(false);
     }
 
+    public Amount issuedTo(AccountID accountID) {
+        return issuedBy(isLowAccount(accountID));
+    }
+
     @Deprecated() // "not deprecated but needs fixing"
     public boolean authorizedBy(AccountID account) {
         UInt32 flags = flags();

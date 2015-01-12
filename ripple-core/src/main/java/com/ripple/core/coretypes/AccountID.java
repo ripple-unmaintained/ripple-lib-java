@@ -1,6 +1,8 @@
 package com.ripple.core.coretypes;
 
 import com.ripple.core.coretypes.hash.Hash160;
+import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
@@ -132,6 +134,11 @@ public class AccountID extends Hash160 {
     @Override
     public void toBytesSink(BytesSink to) {
         to.add(bytes());
+    }
+
+    public Hash256 lineIndex(Issue issue) {
+        if (issue.isNative()) throw new AssertionError();
+        return Index.rippleState(this, issue.issuer(), issue.currency());
     }
 
     public static class Translator extends TypeTranslator<AccountID> {

@@ -21,6 +21,7 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 {
 
     private static BigDecimal TAKER_PAYS_FOR_THAT_DAMN_OFFER = new BigDecimal("1000000000000.000100");
+
 //    public static final Amount NEUTRAL_ZERO = new Amount(Currency.NEUTRAL, AccountID.NEUTRAL);
 
     /**
@@ -531,6 +532,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     public Amount newIssuer(AccountID issuer) {
         return new Amount(value, currency, issuer);
+    }
+
+    public Amount copy() {
+        return new Amount(value, currency, issuer, isNative, unbounded);
     }
 
     // Static constructors
