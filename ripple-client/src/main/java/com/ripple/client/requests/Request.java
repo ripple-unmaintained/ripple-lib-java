@@ -25,10 +25,11 @@ public class Request extends Publisher<Request.events> {
     }
 
     // Base events class and aliases
-    public static interface events<T>  extends Publisher.Callback<T> {}
-    public static interface OnSuccess  extends events<Response> {}
-    public static interface OnError    extends events<Response> {}
-    public static interface OnResponse extends events<Response> {}
+    public static interface events<T>   extends Publisher.Callback<T> {}
+    public static interface OnSuccess   extends events<Response> {}
+    public static interface OnError     extends events<Response> {}
+    public static interface OnResponse  extends events<Response> {}
+    public static interface OnTimeout   extends events<Response> {}
 
     public static abstract class Manager<T> {
         abstract public void cb(Response response, T t) throws JSONException;
@@ -79,6 +80,15 @@ public class Request extends Publisher<Request.events> {
                         client.requests.remove(id);
                     }
                 });
+                client.schedule(60000, new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response == null) {
+                            emit(OnTimeout.class, null);
+                        }
+                    }
+                });
+
             }
         };
 

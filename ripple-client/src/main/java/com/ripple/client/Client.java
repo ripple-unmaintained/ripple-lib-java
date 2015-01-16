@@ -104,11 +104,22 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     public <T> Request makeManagedRequest(final Command cmd, final Manager<T> manager, final Request.Builder<T> builder) {
-        Request request = newRequest(cmd);
+        final Request request = newRequest(cmd);
+        final boolean[] responded = new boolean[]{false};
+        request.once(Request.OnTimeout.class, new Request.OnTimeout() {
+            @Override
+            public void called(Response args) {
+                if (!responded[0] && manager.retryOnUnsuccessful(null)) {
+                    request.clearAllListeners();
+                    makeManagedRequest(cmd, manager, builder);
+                }
+            }
+        });
         final OnDisconnected cb = new OnDisconnected() {
             @Override
-            public void called(Client args) {
+            public void called(Client c) {
                 if (manager.retryOnUnsuccessful(null)) {
+                    request.clearAllListeners();
                     makeManagedRequest(cmd, manager, builder);
                 }
             }
@@ -116,13 +127,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         once(OnDisconnected.class, cb);
         request.once(Request.OnResponse.class, new Request.OnResponse() {
             @Override
-            public void called(Response args) {
-                Client.this.removeListener(OnDisconnected.class, cb);
-            }
-        });
-        request.once(Request.OnResponse.class, new Request.OnResponse() {
-            @Override
             public void called(final Response response) {
+                responded[0] = true;
+                Client.this.removeListener(OnDisconnected.class, cb);
+
                 try {
                     if (response.succeeded) {
                         final T t = builder.buildTypedResponse(response);
@@ -315,7 +323,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     protected void onException(Exception e) {
-        log(Level.WARNING, e.getLocalizedMessage(), e);
+        log(Level.WARNING, "Exception: " + e.getLocalizedMessage(), e);
     }
 
     private String getStackTrace(Exception e) {
