@@ -7,7 +7,6 @@ import com.ripple.client.pubsub.Publisher;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
@@ -73,14 +72,12 @@ public class Request extends Publisher<Request.events> {
     }
 
     public void request() {
-        final Client.OnConnected onConnected = new Client.OnConnected() {
+        client.nowOrWhenConnected(new Client.OnConnected() {
             @Override
             public void called(final Client client_) {
                 doRequest();
             }
-        };
-
-        client.whenConnected(onConnected);
+        });
     }
 
     private void doRequest() {
@@ -105,7 +102,7 @@ public class Request extends Publisher<Request.events> {
             client.sendMessage(toJSON());
         } catch (Exception e) {
             logger.warning("Exception when trying to request: " + e.getLocalizedMessage());
-            client.whenConnected(new Client.OnConnected() {
+            client.nextTickOrWhenConnected(new Client.OnConnected() {
                 @Override
                 public void called(Client args) {
                     doRequest();

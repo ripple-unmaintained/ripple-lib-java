@@ -259,9 +259,18 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         });
     }
 
-    public void whenConnected(OnConnected onConnected) {
+    public void whenConnected(boolean nextTick, final OnConnected onConnected) {
         if (connected) {
-            onConnected.called(this);
+            if (nextTick) {
+                schedule(0, new Runnable() {
+                    @Override
+                    public void run() {
+                        onConnected.called(Client.this);
+                    }
+                });
+            } else {
+                onConnected.called(this);
+            }
         }  else {
             once(OnConnected.class, onConnected);
         }
@@ -269,6 +278,19 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     public void onConnected(OnConnected onConnected) {
         this.on(OnConnected.class, onConnected);
+    }
+
+    public void disconnect(OnDisconnected onDisconnected) {
+        this.once(OnDisconnected.class, onDisconnected);
+        disconnect();
+    }
+
+    public void nowOrWhenConnected(OnConnected onConnected) {
+        whenConnected(false, onConnected);
+    }
+
+    public void nextTickOrWhenConnected(OnConnected onConnected) {
+        whenConnected(true, onConnected);
     }
 
     public static interface events<T> extends Publisher.Callback<T> {
@@ -310,6 +332,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public void disconnect() {
         manuallyDisconnected = true;
         ws.disconnect();
+        emit(OnDisconnected.class, this);
     }
 
     public void dispose() {
