@@ -105,6 +105,21 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     public <T> Request makeManagedRequest(final Command cmd, final Manager<T> manager, final Request.Builder<T> builder) {
         Request request = newRequest(cmd);
+        final OnDisconnected cb = new OnDisconnected() {
+            @Override
+            public void called(Client args) {
+                if (manager.retryOnUnsuccessful(null)) {
+                    makeManagedRequest(cmd, manager, builder);
+                }
+            }
+        };
+        once(OnDisconnected.class, cb);
+        request.once(Request.OnResponse.class, new Request.OnResponse() {
+            @Override
+            public void called(Response args) {
+                Client.this.removeListener(OnDisconnected.class, cb);
+            }
+        });
         request.once(Request.OnResponse.class, new Request.OnResponse() {
             @Override
             public void called(final Response response) {
@@ -193,6 +208,35 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public void connect(String s, OnConnected onConnected) {
         connect(s);
         once(OnConnected.class, onConnected);
+    }
+
+    public void requestHostID(final Callback<String> callback) {
+        makeManagedRequest(Command.server_info, new Manager<String>() {
+            @Override
+            public void cb(Response response, String hostid) throws JSONException {
+                callback.called(hostid);
+            }
+
+            @Override
+            public boolean retryOnUnsuccessful(Response r) {
+                return true;
+            }
+        }, new Request.Builder<String>() {
+            @Override
+            public void beforeRequest(Request request) {
+
+            }
+
+            @Override
+            public String buildTypedResponse(Response response) {
+                try {
+                    JSONObject info = response.result.getJSONObject("info");
+                    return info.getString("hostid");
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
 
     public static interface events<T> extends Publisher.Callback<T> {}
