@@ -44,6 +44,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public static final Logger logger = Logger.getLogger(Client.class.getName());
 
     private int reconnectDormantAfter = 20000; // ms
+
     public void setReconnectDormantAfter(int reconnectDormantAfter) {
         this.reconnectDormantAfter = reconnectDormantAfter;
     }
@@ -89,9 +90,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             public void called(Response response) {
                 try {
                     if (response.succeeded) {
-                       cb.cb(response, response.result.optJSONObject("ledger"));
+                        cb.cb(response, response.result.optJSONObject("ledger"));
                     } else {
-                       cb.cb(response, null);
+                        cb.cb(response, null);
                     }
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
@@ -110,6 +111,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             @Override
             public void called(Response args) {
                 if (!responded[0] && manager.retryOnUnsuccessful(null)) {
+                    logRetry(request, "Request timed out");
                     request.clearAllListeners();
                     makeManagedRequest(cmd, manager, builder);
                 }
@@ -118,7 +120,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         final OnDisconnected cb = new OnDisconnected() {
             @Override
             public void called(Client c) {
-                if (manager.retryOnUnsuccessful(null)) {
+                if (!responded[0] && manager.retryOnUnsuccessful(null)) {
+                    logRetry(request, "Client disconnected");
                     request.clearAllListeners();
                     makeManagedRequest(cmd, manager, builder);
                 }
@@ -153,12 +156,20 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         return request;
     }
 
+    private void logRetry(Request request, String reason) {
+        if (logger.isLoggable(Level.WARNING)) {
+            log(Level.WARNING, previousUri + ": " + reason + ", muting listeners " +
+                    "for " + request.json() + "and trying again");
+        }
+    }
+
     public Request requestAccountInfo(final AccountID addy, final Manager<AccountRoot> manager) {
         return makeManagedRequest(Command.account_info, manager, new Request.Builder<AccountRoot>() {
             @Override
             public void beforeRequest(Request request) {
                 request.json("account", addy);
             }
+
             @Override
             public AccountRoot buildTypedResponse(Response response) {
                 JSONObject root = response.result.optJSONObject("account_data");
@@ -200,6 +211,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             public void beforeRequest(Request request) {
                 request.json("account", addy);
             }
+
             @Override
             public ArrayList<AccountLine> buildTypedResponse(Response response) {
                 ArrayList<AccountLine> lines = new ArrayList<AccountLine>();
@@ -247,16 +259,47 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         });
     }
 
-    public static interface events<T> extends Publisher.Callback<T> {}
-    public static interface OnLedgerClosed extends events<ServerInfo> {}
-    public static interface OnConnected    extends events<Client> {}
-    public static interface OnDisconnected extends events<Client> {}
-    public static interface OnSubscribed   extends events<ServerInfo> {}
-    public static interface OnMessage extends events<JSONObject> {}
-    public static interface OnSendMessage extends events<JSONObject> {}
-    public static interface OnStateChange extends events<Client> {}
-    public static interface OnPathFind extends events<JSONObject> {}
-    public static interface OnValidatedTransaction extends events<TransactionResult> {}
+    public void whenConnected(OnConnected onConnected) {
+        if (connected) {
+            onConnected.called(this);
+        }  else {
+            once(OnConnected.class, onConnected);
+        }
+    }
+
+    public void onConnected(OnConnected onConnected) {
+        this.on(OnConnected.class, onConnected);
+    }
+
+    public static interface events<T> extends Publisher.Callback<T> {
+    }
+
+    public static interface OnLedgerClosed extends events<ServerInfo> {
+    }
+
+    public static interface OnConnected extends events<Client> {
+    }
+
+    public static interface OnDisconnected extends events<Client> {
+    }
+
+    public static interface OnSubscribed extends events<ServerInfo> {
+    }
+
+    public static interface OnMessage extends events<JSONObject> {
+    }
+
+    public static interface OnSendMessage extends events<JSONObject> {
+    }
+
+    public static interface OnStateChange extends events<Client> {
+    }
+
+    public static interface OnPathFind extends events<JSONObject> {
+    }
+
+    public static interface OnValidatedTransaction extends events<TransactionResult> {
+    }
 
     private boolean manuallyDisconnected = false;
 
@@ -278,6 +321,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     public static abstract class ThrowingRunnable implements Runnable {
         public abstract void throwingRun() throws Exception;
+
         @Override
         public void run() {
             try {
@@ -287,6 +331,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             }
         }
     }
+
     public boolean runningOnClientThread() {
         return clientThread != null && Thread.currentThread().getId() == clientThread.getId();
     }
@@ -300,6 +345,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             }
         });
     }
+
     public void run(Runnable runnable) {
         // What if we are already in the client thread?? What happens then ?
         if (runningOnClientThread()) {
@@ -323,7 +369,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     protected void onException(Exception e) {
-        log(Level.WARNING, "Exception: " + e.getLocalizedMessage(), e);
+        if (logger.isLoggable(Level.WARNING)) {
+            log(Level.WARNING, "Exception: " + e.getLocalizedMessage(), e);
+        }
     }
 
     private String getStackTrace(Exception e) {
@@ -341,14 +389,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public SubscriptionManager subscriptions = new SubscriptionManager();
 
     public Client(WebSocketTransport ws) {
-//        once(OnConnected.class, new OnConnected() {
-//            @Override
-//            public void cb(Client client) {
-//                ;
-//            }
-//        });
-
-
         this.ws = ws;
         ws.setHandler(this);
 
@@ -486,8 +526,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public Account account(final AccountID id, IKeyPair keyPair) {
         if (accounts.containsKey(id)) {
             return accounts.get(id);
-        }
-        else {
+        } else {
             TrackedAccountRoot accountRoot = accountRoot(id);
             Account account = new Account(
                     id,
@@ -501,6 +540,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             return account;
         }
     }
+
     public Account accountFromSeed(String masterSeed) {
         IKeyPair kp = Seed.fromBase58(masterSeed).keyPair();
         return account(AccountID.fromKeyPair(kp), kp);
@@ -566,7 +606,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
      *
      * @see #onMessage(org.json.JSONObject)
      */
-    public void connect(final String uri) {
+    public Client connect(final String uri) {
         manuallyDisconnected = false;
 
         run(new Runnable() {
@@ -575,7 +615,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 doConnect(uri);
             }
         });
+        return this;
     }
+
     /**
      * This is to ensure we run everything on the one HandlerThread
      */
@@ -645,8 +687,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     void onTransaction(JSONObject msg) {
         TransactionResult tr = new TransactionResult(msg, TransactionResult
-                                                            .Source
-                                                            .transaction_subscription_notification);
+                .Source
+                .transaction_subscription_notification);
         if (tr.validated) {
             if (transactionSubscriptionManager != null) {
                 transactionSubscriptionManager.notifyTransactionResult(tr);
@@ -669,8 +711,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 if (account != null) {
                     STObject rootUpdates = entry.getValue();
                     account.getAccountRoot()
-                           .updateFromTransaction(
-                                   transactionHash, transactionLedgerIndex, rootUpdates);
+                            .updateFromTransaction(
+                                    transactionHash, transactionLedgerIndex, rootUpdates);
                 }
             }
         }
@@ -693,7 +735,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         Request request = requests.remove(msg.optInt("id", -1));
 
         if (request == null) {
-            log(Level.WARNING, "Response without a request: {0}",  msg);
+            log(Level.WARNING, "Response without a request: {0}", msg);
             return;
         }
 
@@ -758,6 +800,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     @Override
     public void onError(Exception error) {
+        onException(error);
     }
 
     @Override
@@ -786,13 +829,14 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             logger.fine("Currently disconnecting, so will not reconnect");
         }
 
+        logger.warning("Disconnected");
         emit(OnDisconnected.class, this);
         logger.entering(getClass().getName(), "doOnDisconnected");
     }
 
 
     private int reconnectDelay() {
-            return 1000;
+        return 1000;
     }
 
     @Override
@@ -851,15 +895,25 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         }
     }
 
+    Random randomBugs = null;
     public void sendMessage(JSONObject object) {
         if (logger.isLoggable(Level.FINER)) {
             logger.log(Level.FINER, "Send: {0}", prettyJSON(object));
         }
         emit(OnSendMessage.class, object);
         ws.sendMessage(object);
+
+        if (randomBugs != null && randomBugs.nextInt(20) == 5) {
+            disconnect();
+            connect(previousUri);
+            String msg = "I disconnected you, now I'm gonna throw, " +
+                    "deal with it suckah! ;)";
+            logger.warning(msg);
+            throw new RuntimeException(msg);
+        }
     }
 
-    private String prettyJSON(JSONObject object)  {
+    private String prettyJSON(JSONObject object) {
         try {
             return object.toString(4);
         } catch (JSONException e) {
@@ -867,3 +921,4 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         }
     }
 }
+

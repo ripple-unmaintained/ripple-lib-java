@@ -7,10 +7,15 @@ import com.ripple.client.pubsub.Publisher;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.MessageFormat;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 // We can just shift to using delegation
 public class Request extends Publisher<Request.events> {
+    // com.ripple.client.requests.Request // ??
+    public static final Logger logger = Logger.getLogger(Request.class.getName());
+
     public void json(JSONObject jsonObject) {
         Iterator keys = jsonObject.keys();
         while (keys.hasNext()) {
@@ -68,35 +73,46 @@ public class Request extends Publisher<Request.events> {
     }
 
     public void request() {
-        Client.OnConnected onConnected = new Client.OnConnected() {
+        final Client.OnConnected onConnected = new Client.OnConnected() {
             @Override
-            public void called(final Client client) {
-                client.requests.put(id, Request.this);
-                client.sendMessage(toJSON());
-                // TODO: use an LRU map or something
-                client.schedule(60000 * 10, new Runnable() {
-                    @Override
-                    public void run() {
-                        client.requests.remove(id);
-                    }
-                });
-                client.schedule(60000, new Runnable() {
-                    @Override
-                    public void run() {
-                        if (response == null) {
-                            emit(OnTimeout.class, null);
-                        }
-                    }
-                });
-
+            public void called(final Client client_) {
+                doRequest();
             }
         };
 
-        if (client.connected) {
-            onConnected.called(client);
-        }  else {
-            client.once(Client.OnConnected.class, onConnected);
+        client.whenConnected(onConnected);
+    }
+
+    private void doRequest() {
+        client.requests.put(id, this);
+        // TODO: use an LRU map or something
+        client.schedule(60000 * 10, new Runnable() {
+            @Override
+            public void run() {
+                client.requests.remove(id);
+            }
+        });
+        client.schedule(60000, new Runnable() {
+            @Override
+            public void run() {
+                if (response == null) {
+                    logger.warning("Request timed out: " + json);
+                    emit(OnTimeout.class, null);
+                }
+            }
+        });
+        try {
+            client.sendMessage(toJSON());
+        } catch (Exception e) {
+            logger.warning("Exception when trying to request: " + e.getLocalizedMessage());
+            client.whenConnected(new Client.OnConnected() {
+                @Override
+                public void called(Client args) {
+                    doRequest();
+                }
+            });
         }
+
     }
 
     private JSONObject toJSON() {
