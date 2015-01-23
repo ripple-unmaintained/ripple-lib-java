@@ -17,7 +17,7 @@ public class SignedTransaction {
     public Hash256 hash;
     public Hash256 signingHash;
     public Hash256 previousSigningHash;
-    public String  tx_blob;
+    public String tx_blob;
 
     public void prepare(IKeyPair keyPair, Amount fee, UInt32 Sequence, UInt32 lastLedgerSequence) {
         VariableLength pubKey = new VariableLength(keyPair.pubBytes());
@@ -26,8 +26,12 @@ public class SignedTransaction {
         if (lastLedgerSequence != null) {
             txn.put(UInt32.LastLedgerSequence, lastLedgerSequence);
         }
-        txn.put(UInt32.Sequence, Sequence);
-        txn.put(Amount.Fee, fee);
+        if (Sequence != null) {
+            txn.put(UInt32.Sequence, Sequence);
+        }
+        if (fee != null) {
+            txn.put(Amount.Fee, fee);
+        }
         txn.put(VariableLength.SigningPubKey, pubKey);
 
         if (Transaction.CANONICAL_FLAG_DEPLOYED) {
@@ -53,7 +57,7 @@ public class SignedTransaction {
             previousSigningHash = null;
             throw new RuntimeException(e);
         } /*else {*/
-            previousSigningHash = signingHash;
+        previousSigningHash = signingHash;
         // }
     }
 
