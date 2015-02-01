@@ -57,29 +57,21 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         }
     }
 
-    public Request requestLedgerEntry(final Hash256 index, Number ledger_index, final Manager<LedgerEntry> cb) {
-        Request request = newRequest(Command.ledger_entry);
-        request.json("ledger_index", ledger_index.longValue());
-        request.json("index", index.toJSON());
-        request.once(Request.OnResponse.class, new Request.OnResponse() {
+    public Request requestLedgerEntry(final Hash256 index, final Number ledger_index, final Manager<LedgerEntry> cb) {
+        return makeManagedRequest(Command.ledger_entry, cb, new Request.Builder<LedgerEntry>() {
             @Override
-            public void called(Response response) {
-                try {
-                    if (response.succeeded) {
-                        STObject node = STObject.translate.fromHex(response.result.getString("node_binary"));
-                        node.put(Hash256.index, index);
-                        cb.cb(response, (LedgerEntry) node);
-                    } else {
-                        cb.cb(response, null);
-                    }
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
+            public void beforeRequest(Request request) {
+                request.json("ledger_index", ledger_index.longValue());
+                request.json("index", index.toJSON());
+            }
+            @Override
+            public LedgerEntry buildTypedResponse(Response response) {
+                String node_binary = response.result.optString("node_binary");
+                STObject node = STObject.translate.fromHex(node_binary);
+                node.put(Hash256.index, index);
+                return (LedgerEntry) node;
             }
         });
-        cb.beforeRequest(request);
-        request.request();
-        return request;
     }
 
     public Request requestLedger(Number ledger_index, final Manager<JSONObject> cb) {
@@ -113,7 +105,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 if (!responded[0] && manager.retryOnUnsuccessful(null)) {
                     logRetry(request, "Request timed out");
                     request.clearAllListeners();
-                    makeManagedRequest(cmd, manager, builder);
+                    queueRetry(50, cmd, manager, builder);
                 }
             }
         });
@@ -123,7 +115,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 if (!responded[0] && manager.retryOnUnsuccessful(null)) {
                     logRetry(request, "Client disconnected");
                     request.clearAllListeners();
-                    makeManagedRequest(cmd, manager, builder);
+                    queueRetry(50, cmd, manager, builder);
                 }
             }
         };
@@ -140,7 +132,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                         manager.cb(response, t);
                     } else {
                         if (manager.retryOnUnsuccessful(response)) {
-                            makeManagedRequest(cmd, manager, builder);
+                            queueRetry(50, cmd, manager, builder);
                         } else {
                             manager.cb(response, null);
                         }
@@ -154,6 +146,18 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         manager.beforeRequest(request);
         request.request();
         return request;
+    }
+
+    private <T> void queueRetry(int ms,
+                                final Command cmd,
+                                final Manager<T> manager,
+                                final Request.Builder<T> builder) {
+        schedule(ms, new Runnable() {
+            @Override
+            public void run() {
+                makeManagedRequest(cmd, manager, builder);
+            }
+        });
     }
 
     private void logRetry(Request request, String reason) {
@@ -331,6 +335,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     public void disconnect() {
         manuallyDisconnected = true;
+        disconnectSocketAndNotify();
+    }
+
+    private void disconnectSocketAndNotify() {
         ws.disconnect();
         emit(OnDisconnected.class, this);
     }
@@ -631,8 +639,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
      */
     public Client connect(final String uri) {
         manuallyDisconnected = false;
-
-        run(new Runnable() {
+        schedule(50, new Runnable() {
             @Override
             public void run() {
                 doConnect(uri);
