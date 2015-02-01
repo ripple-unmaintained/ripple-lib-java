@@ -20,21 +20,21 @@ public class MockPair {
         private int ms = 0;
 
         public Scheduler() {
-            queue = new PriorityQueue<Callback>(new Comparator<Callback>() {
-                @Override
-                public int compare(Callback o1, Callback o2) {
-                    return o1.when - o2.when;
-                }
-            });
+            queue = new PriorityQueue<Callback>();
         }
 
-        public class Callback {
+        public class Callback implements Comparable<Callback> {
             int when;
 
             Runnable runnable;
             public Callback(Runnable runnable, int delay) {
                 this.when = ms + delay;
                 this.runnable = runnable;
+            }
+
+            @Override
+            public int compareTo(Callback o) {
+                return when - o.when;
             }
         }
 
