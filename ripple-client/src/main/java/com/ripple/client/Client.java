@@ -23,6 +23,7 @@ import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.tx.result.TransactionResult;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,11 +41,13 @@ import java.util.logging.Logger;
 
 import static com.ripple.client.requests.Request.Manager;
 
+@SuppressWarnings("rawtypes")
 public class Client extends Publisher<Client.events> implements TransportEventHandler {
     public static final Logger logger = Logger.getLogger(Client.class.getName());
 
-    private int reconnectDormantAfter = 20000; // ms
-    public void setReconnectDormantAfter(int reconnectDormantAfter) {
+    private long reconnectDormantAfter = 20000; // ms
+
+    public void setReconnectDormantAfter(long reconnectDormantAfter) {
         this.reconnectDormantAfter = reconnectDormantAfter;
     }
 
@@ -89,9 +92,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             public void called(Response response) {
                 try {
                     if (response.succeeded) {
-                       cb.cb(response, response.result.optJSONObject("ledger"));
+                        cb.cb(response, response.result.optJSONObject("ledger"));
                     } else {
-                       cb.cb(response, null);
+                        cb.cb(response, null);
                     }
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
@@ -137,6 +140,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             public void beforeRequest(Request request) {
                 request.json("account", addy);
             }
+
             @Override
             public AccountRoot buildTypedResponse(Response response) {
                 JSONObject root = response.result.optJSONObject("account_data");
@@ -151,6 +155,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             public void beforeRequest(Request request) {
                 request.json("account", addy);
             }
+
             @Override
             public ArrayList<AccountLine> buildTypedResponse(Response response) {
                 ArrayList<AccountLine> lines = new ArrayList<AccountLine>();
@@ -169,16 +174,35 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         once(OnConnected.class, onConnected);
     }
 
-    public static interface events<T> extends Publisher.Callback<T> {}
-    public static interface OnLedgerClosed extends events<ServerInfo> {}
-    public static interface OnConnected    extends events<Client> {}
-    public static interface OnDisconnected extends events<Client> {}
-    public static interface OnSubscribed   extends events<ServerInfo> {}
-    public static interface OnMessage extends events<JSONObject> {}
-    public static interface OnSendMessage extends events<JSONObject> {}
-    public static interface OnStateChange extends events<Client> {}
-    public static interface OnPathFind extends events<JSONObject> {}
-    public static interface OnValidatedTransaction extends events<TransactionResult> {}
+    public static interface events<T> extends Publisher.Callback<T> {
+    }
+
+    public static interface OnLedgerClosed extends events<ServerInfo> {
+    }
+
+    public static interface OnConnected extends events<Client> {
+    }
+
+    public static interface OnDisconnected extends events<Client> {
+    }
+
+    public static interface OnSubscribed extends events<ServerInfo> {
+    }
+
+    public static interface OnMessage extends events<JSONObject> {
+    }
+
+    public static interface OnSendMessage extends events<JSONObject> {
+    }
+
+    public static interface OnStateChange extends events<Client> {
+    }
+
+    public static interface OnPathFind extends events<JSONObject> {
+    }
+
+    public static interface OnValidatedTransaction extends events<TransactionResult> {
+    }
 
     private boolean manuallyDisconnected = false;
 
@@ -201,6 +225,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     public static abstract class ThrowingRunnable implements Runnable {
         public abstract void throwingRun() throws Exception;
+
         @Override
         public void run() {
             try {
@@ -210,6 +235,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             }
         }
     }
+
     public boolean runningOnClientThread() {
         return clientThread != null && Thread.currentThread().getId() == clientThread.getId();
     }
@@ -223,6 +249,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             }
         });
     }
+
     public void run(Runnable runnable) {
         // What if we are already in the client thread?? What happens then ?
         if (runningOnClientThread()) {
@@ -249,13 +276,14 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         log(Level.WARNING, e.getLocalizedMessage(), e);
     }
 
+    @SuppressWarnings("unused")
     private String getStackTrace(Exception e) {
         StringWriter sw = new StringWriter();
         e.printStackTrace(new PrintWriter(sw));
         return sw.toString();
     }
 
-    public void schedule(int ms, Runnable runnable) {
+    public void schedule(long ms, Runnable runnable) {
         service.schedule(errorHandling(runnable), ms, TimeUnit.MILLISECONDS);
     }
 
@@ -264,17 +292,15 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public SubscriptionManager subscriptions = new SubscriptionManager();
 
     public Client(WebSocketTransport ws) {
-//        once(OnConnected.class, new OnConnected() {
-//            @Override
-//            public void cb(Client client) {
-//                ;
-//            }
-//        });
-
+        // once(OnConnected.class, new OnConnected() {
+        // @Override
+        // public void cb(Client client) {
+        // ;
+        // }
+        // });
 
         this.ws = ws;
         ws.setHandler(this);
-
 
         prepareExecutor();
         // requires executor, so call after prepareExecutor
@@ -283,19 +309,19 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         subscriptions.on(SubscriptionManager.OnSubscribed.class, new SubscriptionManager.OnSubscribed() {
             @Override
             public void called(JSONObject subscription) {
-                if (!connected) return;
+                if (!connected)
+                    return;
                 subscribe(subscription);
             }
         });
     }
 
     /**
-     * This will detect stalled connections
-     * When connected we are subscribed to a ledger, and ledgers should be at most
-     * 20 seconds apart.
+     * This will detect stalled connections When connected we are subscribed to
+     * a ledger, and ledgers should be at most 20 seconds apart.
      */
     private void pollLastConnectionTimeAndReconnectWhenIDLE() {
-        final int ms = reconnectDormantAfter;
+        final long ms = reconnectDormantAfter;
 
         schedule(ms, new Runnable() {
             @Override
@@ -375,8 +401,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             public void called(Response response) {
                 try {
                     if (response.succeeded) {
-                        TransactionResult tr = new TransactionResult(response.result,
-                                TransactionResult.Source.request_tx_binary);
+                        TransactionResult tr = new TransactionResult(response.result, TransactionResult.Source.request_tx_binary);
                         cb.cb(response, tr);
                     } else {
                         // you can look at request.response if this is null ;)
@@ -391,18 +416,28 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         return request;
     }
 
+    public Request ping() {
+        Request request = newRequest(Command.ping);
+        return request;
+    }
+
+    public Request subscribeAccount(AccountID... accounts) {
+        Request request = newRequest(Command.subscribe);
+        JSONArray accounts_arr = new JSONArray();
+        for (AccountID acc : accounts) {
+            accounts_arr.put(acc);
+        }
+        request.json("accounts", accounts_arr);
+        return request;
+    }
 
     public Request subscribeBookOffers(Issue get, Issue pay) {
         Request request = newRequest(Command.subscribe);
         JSONObject book = new JSONObject();
-        JSONArray books = new JSONArray(Arrays.asList(book));
-        try {
-            book.put("snapshot", true);
-            book.put("taker_gets", get.toJSON());
-            book.put("taker_pays", pay.toJSON());
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        JSONArray books = new JSONArray(new Object[] { book });
+        book.put("snapshot", true);
+        book.put("taker_gets", get.toJSON());
+        book.put("taker_pays", pay.toJSON());
         request.json("books", books);
         return request;
     }
@@ -410,21 +445,16 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public Account account(final AccountID id, IKeyPair keyPair) {
         if (accounts.containsKey(id)) {
             return accounts.get(id);
-        }
-        else {
+        } else {
             TrackedAccountRoot accountRoot = accountRoot(id);
-            Account account = new Account(
-                    id,
-                    keyPair,
-                    accountRoot,
-                    new TransactionManager(this, accountRoot, id, keyPair)
-            );
+            Account account = new Account(id, keyPair, accountRoot, new TransactionManager(this, accountRoot, id, keyPair));
             accounts.put(id, account);
             subscriptions.addAccount(id);
 
             return account;
         }
     }
+
     public Account accountFromSeed(String masterSeed) {
         IKeyPair kp = Seed.fromBase58(masterSeed).keyPair();
         return account(AccountID.fromKeyPair(kp), kp);
@@ -465,13 +495,26 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         req.request();
     }
 
+    public Request accountLines(AccountID account) {
+        Request req = newRequest(Command.account_lines);
+        req.json("account", account.address);
+        return req;
+
+    }
+
+    public Request accountInfo(AccountID account) {
+        Request req = newRequest(Command.account_info);
+        req.json("account", account.address);
+        return req;
+
+    }
+
     public ServerInfo serverInfo = new ServerInfo();
     // TODO: clean up timedout requests
     public TreeMap<Integer, Request> requests = new TreeMap<Integer, Request>();
 
     WebSocketTransport ws;
     private int cmdIDs;
-
 
     String previousUri;
 
@@ -483,10 +526,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     /**
-     * After calling this method, all subsequent interaction with the api
-     * should be called via posting Runnable() run blocks to the Executor
-     * Essentially, all ripple-lib-java api interaction should happen on
-     * the one thread.
+     * After calling this method, all subsequent interaction with the api should
+     * be called via posting Runnable() run blocks to the Executor Essentially,
+     * all ripple-lib-java api interaction should happen on the one thread.
      *
      * @see #onMessage(org.json.JSONObject)
      */
@@ -500,6 +542,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             }
         });
     }
+
     /**
      * This is to ensure we run everything on the one HandlerThread
      */
@@ -516,11 +559,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     private void resetReconnectStatus() {
         lastConnection = new Date().getTime();
-//        reconnectIndex = 0;
+        // reconnectIndex = 0;
     }
 
-
-    //    @Override
+    // @Override
     public void onMessageInClientThread(JSONObject msg) {
         Message type = Message.valueOf(msg.optString("type", null));
 
@@ -554,7 +596,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
-            // This seems to be swallowed higher up, (at least by the Java-WebSocket transport implementation)
+            // This seems to be swallowed higher up, (at least by the
+            // Java-WebSocket transport implementation)
             throw new RuntimeException(e);
         } finally {
             emit(OnStateChange.class, this);
@@ -568,9 +611,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     TransactionSubscriptionManager transactionSubscriptionManager;
 
     void onTransaction(JSONObject msg) {
-        TransactionResult tr = new TransactionResult(msg, TransactionResult
-                                                            .Source
-                                                            .transaction_subscription_notification);
+        TransactionResult tr = new TransactionResult(msg, TransactionResult.Source.transaction_subscription_notification);
         if (tr.validated) {
             if (transactionSubscriptionManager != null) {
                 transactionSubscriptionManager.notifyTransactionResult(tr);
@@ -592,9 +633,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 Account account = accounts.get(entry.getKey());
                 if (account != null) {
                     STObject rootUpdates = entry.getValue();
-                    account.getAccountRoot()
-                           .updateFromTransaction(
-                                   transactionHash, transactionLedgerIndex, rootUpdates);
+                    account.getAccountRoot().updateFromTransaction(transactionHash, transactionLedgerIndex, rootUpdates);
                 }
             }
         }
@@ -617,57 +656,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         Request request = requests.remove(msg.optInt("id", -1));
 
         if (request == null) {
-            log(Level.WARNING, "Response without a request: {0}",  msg);
+            log(Level.WARNING, "Response without a request: {0}", msg);
             return;
-        }
-
-        switch (request.cmd) {
-            case subscribe:
-                break;
-
-            case account_info:
-            case account_lines:
-            case account_offers:
-            case account_tx:
-            case book_offers:
-            case connect:
-            case ledger:
-            case ledger_accept:
-            case ledger_closed:
-            case ledger_current:
-            case ledger_entry:
-            case log_level:
-            case logrotate:
-            case path_find:
-            case peers:
-            case ping:
-            case proof_create:
-            case proof_solve:
-            case proof_verify:
-            case random:
-            case ripple_path_find:
-            case server_info:
-            case server_state:
-            case sign:
-            case sms:
-            case stop:
-            case submit:
-            case transaction_entry:
-            case tx:
-            case tx_history:
-            case unl_add:
-            case unl_delete:
-            case unl_list:
-            case unl_load:
-            case unl_network:
-            case unl_reset:
-            case unsubscribe:
-            case validation_create:
-            case validation_seed:
-            case wallet_accounts:
-            case wallet_propose:
-            case wallet_seed:
-                break;
         }
         request.handleResponse(msg);
     }
@@ -715,14 +705,12 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         logger.entering(getClass().getName(), "doOnDisconnected");
     }
 
-
     private int reconnectDelay() {
-            return 1000;
+        return 1000;
     }
 
     @Override
-    public void
-    onConnected() {
+    public void onConnected() {
         run(new Runnable() {
             public void run() {
                 doOnConnected();
@@ -733,12 +721,12 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     private void doOnConnected() {
         resetReconnectStatus();
 
-//        logger.entering(getClass().getName(), "doOnConnected");
+        // logger.entering(getClass().getName(), "doOnConnected");
         connected = true;
         emit(OnConnected.class, this);
 
         subscribe(prepareSubscription());
-//        logger.exiting(getClass().getName(), "doOnConnected");
+        // logger.exiting(getClass().getName(), "doOnConnected");
     }
 
     private void subscribe(JSONObject subscription) {
@@ -764,6 +752,41 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         return subscriptions.allSubscribed();
     }
 
+    public Request sign(AccountID account, AccountID destination, Amount amount, String secert) {
+        JSONObject jobj = new JSONObject();
+        jobj.put("TransactionType", "Payment");
+        jobj.put("Account", account.toString());
+        jobj.put("Destination", destination.toString());
+        jobj.put("Amount", amount.toJSON());
+        Request req = newRequest(Command.sign);
+        req.json("tx_json", jobj);
+        req.json("secret", secert);
+        req.json("offline", false);
+        req.json("fee_mult_max", 1000);
+        return req;
+    }
+
+    public Request submit(AccountID account, AccountID destination, Amount amount, String secert) {
+        JSONObject jobj = new JSONObject();
+        jobj.put("TransactionType", "Payment");
+        jobj.put("Account", account.toString());
+        jobj.put("Destination", destination.toString());
+        jobj.put("Amount", amount.toJSON());
+        Request req = newRequest(Command.submit);
+        req.json("tx_json", jobj);
+        req.json("secret", secert);
+        req.json("offline", false);
+        req.json("fee_mult_max", 1000);
+        return req;
+    }
+
+    public Request submit(String tx_blob, boolean fail_hard) {
+        Request req = newRequest(Command.submit);
+        req.json("tx_blob", tx_blob);
+        req.json("fail_hard", fail_hard);
+        return req;
+    }
+
     public Request newRequest(Command cmd) {
         return new Request(cmd, cmdIDs++, this);
     }
@@ -784,7 +807,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         ws.sendMessage(object);
     }
 
-    private String prettyJSON(JSONObject object)  {
+    private String prettyJSON(JSONObject object) {
         try {
             return object.toString(4);
         } catch (JSONException e) {

@@ -12,6 +12,7 @@ import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.encodings.common.B16;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -274,4 +275,9 @@ public class TransactionResult implements Comparable<TransactionResult>{
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+	public String toString() {
+		return message.toString();
+	}
 }

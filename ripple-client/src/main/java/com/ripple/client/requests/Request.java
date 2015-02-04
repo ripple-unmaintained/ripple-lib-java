@@ -59,11 +59,7 @@ public class Request extends Publisher<Request.events> {
     }
 
     public void json(String key, Object value) {
-        try {
-            json.put(key, value);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        json.put(key, value);
     }
 
     public void request() {
@@ -95,15 +91,7 @@ public class Request extends Publisher<Request.events> {
 
 
     public void handleResponse(JSONObject msg) {
-        try {
-            response = new Response(this, msg);
-        } catch (Exception e) {
-            try {
-                System.out.println(msg.toString(4));
-            } catch (JSONException ignored) {
-            }
-            throw new RuntimeException(e);
-        }
+        response = new Response(this, msg);
 
         if (response.succeeded) {
             emit(OnSuccess.class, response);
