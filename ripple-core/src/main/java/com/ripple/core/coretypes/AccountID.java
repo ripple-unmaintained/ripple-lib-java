@@ -17,12 +17,11 @@ import java.util.Map;
 import static com.ripple.config.Config.getB58IdentiferCodecs;
 
 /**
- * Originally it was intended that AccountIDs would be variable length
- * so that's why they are variable length encoded as top level field objects
- * Note however, that in practice, all account ids are just 160 bit hashes.
- * Consider the fields TakerPaysIssuer and fixed length encoding of issuers
- * as part of amount objects. Thus, we extend Hash160 which affords us some
- * functionality.
+ * Originally it was intended that AccountIDs would be variable length so that's
+ * why they are variable length encoded as top level field objects Note however,
+ * that in practice, all account ids are just 160 bit hashes. Consider the
+ * fields TakerPaysIssuer and fixed length encoding of issuers as part of amount
+ * objects. Thus, we extend Hash160 which affords us some functionality.
  */
 public class AccountID extends Hash160 {
     // We can set aliases, so fromString(x) will return a given AccountID
@@ -57,6 +56,7 @@ public class AccountID extends Hash160 {
             return accountID;
         }
     }
+
     static public AccountID fromAddress(String address) {
         byte[] bytes = getB58IdentiferCodecs().decodeAddress(address);
         return new AccountID(bytes, address);
@@ -96,6 +96,7 @@ public class AccountID extends Hash160 {
     public int hashCode() {
         return address.hashCode();
     }
+
     @Override
     public String toString() {
         return address;
@@ -149,6 +150,7 @@ public class AccountID extends Hash160 {
             return AccountID.fromString(value);
         }
     }
+
     //
 
     static public Translator translate = new Translator();
@@ -186,6 +188,11 @@ public class AccountID extends Hash160 {
 
     // Exceptions
     public static class UnknownAlias extends RuntimeException {
+        /**
+         *
+         */
+        private static final long serialVersionUID = -8042838677708510072L;
+
         public UnknownAlias(String s) {
             super(s);
         }
