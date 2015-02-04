@@ -3,6 +3,7 @@ package com.ripple.core;
 import com.ripple.config.Config;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
+import com.ripple.encodings.B58IdentiferCodecs;
 import org.junit.Test;
 
 import static com.ripple.config.Config.getB58IdentiferCodecs;
@@ -36,6 +37,16 @@ public class SeedTest {
         assertEquals("snsBvdoBXhMYYUnabGieeBFWEdqRM", phraseToFamilySeed("bitstamp"));
         assertEquals("saDGZcfdL21t9gtoa3JiNUmMVReaS", phraseToFamilySeed("mtgox"));
         assertEquals("spigbKN5chn5wWyE8dvTN9wH36Ff1", phraseToFamilySeed("amazon"));
+    }
+
+    @Test
+    public void testCreateRootKeyPair()
+    {
+        B58IdentiferCodecs b58 = Config.getB58IdentiferCodecs();
+        Seed seed = Seed.fromPassPhrase("N4");
+        IKeyPair rootPair = seed.rootKeyPair();
+        String s = b58.encodeNodePublic(rootPair.pubBytes());
+        assertEquals("n9JvnFJFCrdeRonKkuQHzE4VxT1QaG8Zo1VoG5okiTZ2S9B7ihsx", s);
     }
 
     @Test

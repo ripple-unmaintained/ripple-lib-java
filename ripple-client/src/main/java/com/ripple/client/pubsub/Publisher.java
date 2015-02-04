@@ -86,7 +86,7 @@ public class Publisher<EventClass extends Publisher.Callback> {
             this.oneShot = oneShot;
         }
 
-        public Runnable runnableWrappedCallback(final Object... args) {
+        public Runnable runnableWrappedCallback(final Object args) {
             return new Runnable() {
                 @Override
                 public void run() {

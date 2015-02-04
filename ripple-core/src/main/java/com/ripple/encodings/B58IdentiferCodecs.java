@@ -20,19 +20,31 @@ public class B58IdentiferCodecs {
         this.b58 = base58encoder;
     }
 
+    public byte[] decode(String d, int version) {
+        return b58.decodeChecked(d, version);
+    }
+
+    public String encode(byte[] d, int version) {
+        return b58.encodeToStringChecked(d, version);
+    }
+
     public byte[] decodeFamilySeed(String master_seed) {
         return b58.decodeChecked(master_seed, VER_FAMILY_SEED);
     }
 
     public String encodeFamilySeed(byte[] bytes) {
-        return b58.encodeToStringChecked(bytes, VER_FAMILY_SEED);
+        return encode(bytes, VER_FAMILY_SEED);
     }
 
     public String encodeAddress(byte[] bytes) {
-        return b58.encodeToStringChecked(bytes, VER_ACCOUNT_ID);
+        return encode(bytes, VER_ACCOUNT_ID);
+    }
+
+    public String encodeNodePublic(byte[] bytes) {
+        return encode(bytes, VER_NODE_PUBLIC);
     }
 
     public byte[] decodeAddress(String address) {
-        return b58.decodeChecked(address, VER_ACCOUNT_ID);
+        return decode(address, VER_ACCOUNT_ID);
     }
 }
