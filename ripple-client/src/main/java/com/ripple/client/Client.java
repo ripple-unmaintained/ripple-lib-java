@@ -396,7 +396,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     public Request subscribeAccount(AccountID... accounts) {
         Request request = newRequest(Command.subscribe);
-        JSONArray accounts_arr = new JSONArray(Arrays.asList(accounts));
+        JSONArray accounts_arr = new JSONArray(accounts);
         request.json("accounts", accounts_arr);
         return request;
     }
@@ -404,7 +404,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public Request subscribeBookOffers(Issue get, Issue pay) {
         Request request = newRequest(Command.subscribe);
         JSONObject book = new JSONObject();
-        JSONArray books = new JSONArray(Arrays.asList(book));
+        JSONArray books = new JSONArray(new Object[]{book});
         book.put("snapshot", true);
         book.put("taker_gets", get.toJSON());
         book.put("taker_pays", pay.toJSON());
