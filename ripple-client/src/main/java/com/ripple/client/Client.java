@@ -43,8 +43,8 @@ import static com.ripple.client.requests.Request.Manager;
 public class Client extends Publisher<Client.events> implements TransportEventHandler {
     public static final Logger logger = Logger.getLogger(Client.class.getName());
 
-    private int reconnectDormantAfter = 20000; // ms
-    public void setReconnectDormantAfter(int reconnectDormantAfter) {
+    private long reconnectDormantAfter = 20000; // ms
+    public void setReconnectDormantAfter(long reconnectDormantAfter) {
         this.reconnectDormantAfter = reconnectDormantAfter;
     }
 
@@ -254,7 +254,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         return sw.toString();
     }
 
-    public void schedule(int ms, Runnable runnable) {
+    public void schedule(long ms, Runnable runnable) {
         service.schedule(errorHandling(runnable), ms, TimeUnit.MILLISECONDS);
     }
 
@@ -294,7 +294,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
      * 20 seconds apart.
      */
     private void pollLastConnectionTimeAndReconnectWhenIDLE() {
-        final int ms = reconnectDormantAfter;
+        final long ms = reconnectDormantAfter;
 
         schedule(ms, new Runnable() {
             @Override
