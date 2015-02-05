@@ -48,7 +48,7 @@ public class AccountStateBuilder {
 
     public void onTransaction(TransactionResult tr) {
         if (tr.meta.transactionIndex().longValue() != nextTransactionIndex) throw new AssertionError();
-        if (tr.ledgerIndex.longValue() != targetLedgerIndex + 1) throw new AssertionError();
+        if (tr.ledgerIndex.longValue() != targetLedgerIndex + 1) throw new AssertionError(String.format("%d != %d", tr.ledgerIndex.longValue(), targetLedgerIndex + 1));
         nextTransactionIndex++;
         totalTransactions++;
         directoriesModifiedByTransaction = new TreeSet<Hash256>();
@@ -281,5 +281,9 @@ public class AccountStateBuilder {
 
     public AccountState previousState() {
         return previousState;
+    }
+
+    public void setState(AccountState map) {
+        state = map;
     }
 }

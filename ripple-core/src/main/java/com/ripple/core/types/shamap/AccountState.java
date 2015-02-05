@@ -254,11 +254,7 @@ public class AccountState extends ShaMap {
         return indexes;
     }
 
-    public static interface EntryWalker {
-        public void onEntry(LedgerEntry entry);
-    }
-
-    public void walkEntries(final EntryWalker walker) {
+    public void walkEntries(final LedgerEntryVisitor walker) {
         walkLeaves(new LeafWalker() {
             @Override
             public void onLeaf(ShaMapLeaf leaf) {
