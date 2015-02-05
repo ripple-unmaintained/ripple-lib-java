@@ -389,6 +389,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         return request;
     }
 
+    public Request ping(){
+        Request request = newRequest(Command.ping);
+        return request;
+    }
 
     public Request subscribeAccount(AccountID... accounts) {
         Request request = newRequest(Command.subscribe);
@@ -401,13 +405,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         Request request = newRequest(Command.subscribe);
         JSONObject book = new JSONObject();
         JSONArray books = new JSONArray(Arrays.asList(book));
-        try {
-            book.put("snapshot", true);
-            book.put("taker_gets", get.toJSON());
-            book.put("taker_pays", pay.toJSON());
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        book.put("snapshot", true);
+        book.put("taker_gets", get.toJSON());
+        book.put("taker_pays", pay.toJSON());
         request.json("books", books);
         return request;
     }
@@ -624,55 +624,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         if (request == null) {
             log(Level.WARNING, "Response without a request: {0}",  msg);
             return;
-        }
-
-        switch (request.cmd) {
-            case subscribe:
-                break;
-
-            case account_info:
-            case account_lines:
-            case account_offers:
-            case account_tx:
-            case book_offers:
-            case connect:
-            case ledger:
-            case ledger_accept:
-            case ledger_closed:
-            case ledger_current:
-            case ledger_entry:
-            case log_level:
-            case logrotate:
-            case path_find:
-            case peers:
-            case ping:
-            case proof_create:
-            case proof_solve:
-            case proof_verify:
-            case random:
-            case ripple_path_find:
-            case server_info:
-            case server_state:
-            case sign:
-            case sms:
-            case stop:
-            case submit:
-            case transaction_entry:
-            case tx:
-            case tx_history:
-            case unl_add:
-            case unl_delete:
-            case unl_list:
-            case unl_load:
-            case unl_network:
-            case unl_reset:
-            case unsubscribe:
-            case validation_create:
-            case validation_seed:
-            case wallet_accounts:
-            case wallet_propose:
-            case wallet_seed:
-                break;
         }
         request.handleResponse(msg);
     }
