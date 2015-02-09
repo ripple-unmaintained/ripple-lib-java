@@ -189,6 +189,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public void disconnect() {
         manuallyDisconnected = true;
         ws.disconnect();
+        emit(OnDisconnected.class, Client.this); 
     }
 
     public void dispose() {
@@ -309,6 +310,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                             // we don't call disconnect, cause that will set the
                             lastConnection = defaultValue;
                             ws.disconnect();
+                            emit(OnDisconnected.class, Client.this); // otherwise the "onDisconnect" callback would only be called after the first failed reconnect attempt. This added line keeps the symmetry of disconnect->reconnect 
                             connect(previousUri);
                         }
                     }
@@ -695,6 +697,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     private void doOnDisconnected() {
         logger.entering(getClass().getName(), "doOnDisconnected");
         connected = false;
+        
+        emit(OnDisconnected.class, this); //this ensures that the callback method onDisconnect is called before a new connection is established this keeps the symmetry of connect-> disconnect -> reconnect 
 
         if (!manuallyDisconnected) {
             // Reconnect in 50ms
@@ -708,7 +712,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             logger.fine("Currently disconnecting, so will not reconnect");
         }
 
-        emit(OnDisconnected.class, this);
         logger.entering(getClass().getName(), "doOnDisconnected");
     }
 
