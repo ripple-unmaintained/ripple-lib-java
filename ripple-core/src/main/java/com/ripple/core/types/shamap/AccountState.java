@@ -278,6 +278,9 @@ public class AccountState extends ShaMap {
         FileReader reader = new FileReader(filePath);
         JSONTokener tokenizer = new JSONTokener(reader);
         JSONObject ledger = new JSONObject(tokenizer);
+        if (ledger.has("result")) {
+            ledger = ledger.getJSONObject("result");
+        }
         if (ledger.has("ledger")) {
             ledger = ledger.getJSONObject("ledger");
         }
