@@ -26,7 +26,6 @@ import com.ripple.core.types.shamap.AccountState;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.Test;
@@ -41,7 +40,7 @@ import static org.junit.Assert.*;
 
 public class STObjectTest {
     @Test
-    public void binaryParsingSerializingSanityTest2() throws FileNotFoundException, JSONException {
+    public void binaryParsingSerializingSanityTest2() throws FileNotFoundException {
 //        File f = new File("/home/nick/dumps/ledger-full-120000.json");
         File f = new File("/home/nick/dumps/ledger-full-6230000.json");
         if (!f.exists()) {
@@ -69,7 +68,7 @@ public class STObjectTest {
 
 
     @Test
-    public void binaryParsingSerializingSanityTest() throws FileNotFoundException, JSONException {
+    public void binaryParsingSerializingSanityTest() throws FileNotFoundException {
         // TODO, add this as a zipfile to the repo, so can test from it
         File f = new File("ripple-core/src/test/java/com/ripple/resources/ledgers-full.json");
         if (!f.exists()) {
@@ -78,7 +77,7 @@ public class STObjectTest {
 
         JSONTokener tok = new JSONTokener(new FileReader(f));
         JSONObject parsed = new JSONObject(tok);
-        Iterator iterator = parsed.sortedKeys();
+        Iterator iterator = parsed.keys();
 
         while (iterator.hasNext()) {
             String next = (String) iterator.next();
@@ -116,11 +115,7 @@ public class STObjectTest {
         assertEquals(hexFromJSON, hexFromJsonToToJsonToHex);
         assertEquals(fromJsonToJsonAndBack.toJSONObject().toString(), fromJsonToJson.toString());
         assertEquals(stateObject.length(), fromJsonToJson.length());
-        try {
-            stateObject.put("index", index);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        stateObject.put("index", index);
     }
 
 
@@ -380,7 +375,7 @@ public class STObjectTest {
     /**
      * We just testing this won't blow up due to unknown `date` field!
      */
-    public void testfromJSONObjectWithUnknownFields() throws JSONException {
+    public void testfromJSONObjectWithUnknownFields() {
 
         String json = "{\"date\": 434707820,\n" +
                 "\"hash\": \"66347806574036FD3D3E9FDA20A411FA8B2D26AA3C3725A107FCF0050F1E4B86\"}";
@@ -460,7 +455,7 @@ public class STObjectTest {
     }
 
     @Test
-    public void testSerializedPaymentTransaction() throws JSONException {
+    public void testSerializedPaymentTransaction() {
         String expectedSerialization = "120000240000000561D4C44364C5BB00000000000000000000000000005553440000000000B5F762798A53D543A014CAF8B297CFF8F2F937E868400000000000000F73210330E7FC9D56BB25D6893BA3F317AE5BCF33B3291BD63DB32654A313222F7FD0208114B5F762798A53D543A014CAF8B297CFF8F2F937E88314FD94A75318DE40B1D513E6764ECBCB6F1E7056ED";
 
         IKeyPair kp = Seed.getKeyPair(TestFixtures.master_seed);
@@ -480,7 +475,7 @@ public class STObjectTest {
     }
 
     @Test
-    public void testSerializedPaymentTransactionFromJSON() throws JSONException {
+    public void testSerializedPaymentTransactionFromJSON() {
         String tx_json = "{\"Amount\":{\"issuer\":\"rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh\"," +
                 "\"value\":\"12\"," +
                 "\"currency\":\"USD\"}," +
@@ -542,7 +537,7 @@ public class STObjectTest {
     }
 
     @Test
-    public void testUINT() throws JSONException {
+    public void testUINT() {
 
         STObject so = STObject.fromJSON("{\"Expiration\" : 21}");
         assertEquals(21, so.get(UInt32.Expiration).longValue());
@@ -559,7 +554,7 @@ public class STObjectTest {
     }
 
     @Test
-    public void testSymbolics() throws JSONException {
+    public void testSymbolics() {
         assertNotNull(TxFormat.fromString("Payment"));
 
         String json = "{\"Expiration\"        : 21, " +

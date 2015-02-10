@@ -73,13 +73,8 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
             STArray arr = new STArray();
 
             for (int i = 0; i < jsonArray.length(); i++) {
-                try {
-                    Object o = jsonArray.get(i);
-                    arr.add(STObject.fromJSONObject((JSONObject) o));
-
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
+                Object o = jsonArray.get(i);
+                arr.add(STObject.fromJSONObject((JSONObject) o));
             }
 
             return arr;

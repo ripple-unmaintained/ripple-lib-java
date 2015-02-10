@@ -37,13 +37,9 @@ class WS extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        try {
-            TransportEventHandler handler = h.get();
-            if (handler != null) {
-                handler.onMessage(new JSONObject(message));
-            }
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
+        TransportEventHandler handler = h.get();
+        if (handler != null) {
+            handler.onMessage(new JSONObject(message));
         }
     }
 

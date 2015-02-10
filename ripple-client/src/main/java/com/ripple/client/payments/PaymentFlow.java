@@ -27,14 +27,10 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
     private final Client.OnPathFind onPathFind = new Client.OnPathFind() {
         @Override
         public void called(JSONObject jsonObject) {
-            try {
-                int id = jsonObject.getInt("id");
-                if (pathFind != null && id == pathFind.id) {
-                    emit(OnAlternatives.class, constructAlternatives(jsonObject.getJSONArray("alternatives"),
-                                                                     alternatives));
-                }
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
+            int id = jsonObject.getInt("id");
+            if (pathFind != null && id == pathFind.id) {
+                emit(OnAlternatives.class, constructAlternatives(jsonObject.getJSONArray("alternatives"),
+                                                                 alternatives));
             }
         }
     };
@@ -171,12 +167,8 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
             @Override
             public void called(Response response) {
                 if (response.succeeded && response.request == pathFind) {
-                    try {
-                        JSONArray alternatives = response.result.getJSONArray("alternatives");
-                        emit(OnAlternatives.class, constructAlternatives(alternatives, null));
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
+                    JSONArray alternatives = response.result.getJSONArray("alternatives");
+                    emit(OnAlternatives.class, constructAlternatives(alternatives, null));
                 }
             }
         });

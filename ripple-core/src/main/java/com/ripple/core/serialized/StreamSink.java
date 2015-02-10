@@ -1,7 +1,5 @@
 package com.ripple.core.serialized;
 
-import com.ripple.core.serialized.BytesSink;
-
 import java.io.IOException;
 import java.io.OutputStream;
 

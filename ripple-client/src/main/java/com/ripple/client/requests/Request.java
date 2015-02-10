@@ -64,11 +64,7 @@ public class Request extends Publisher<Request.events> {
     }
 
     public void json(String key, Object value) {
-        try {
-            json.put(key, value);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        json.put(key, value);
     }
 
     public void request() {

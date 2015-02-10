@@ -47,22 +47,17 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
         static public Hop fromJSONObject(JSONObject json) {
             Hop hop = new Hop();
-            try {
-                if (json.has("account")) {
-                    hop.account = AccountID.fromAddress(json.getString("account"));
-                }
-                if (json.has("issuer")) {
-                    hop.issuer = AccountID.fromAddress(json.getString("issuer"));
-                }
-                if (json.has("currency")) {
-                    hop.currency = Currency.fromString(json.getString("currency"));
-                }
-                if (json.has("type")) {
-                    hop.type = json.getInt("type");
-                }
-
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
+            if (json.has("account")) {
+                hop.account = AccountID.fromAddress(json.getString("account"));
+            }
+            if (json.has("issuer")) {
+                hop.issuer = AccountID.fromAddress(json.getString("issuer"));
+            }
+            if (json.has("currency")) {
+                hop.currency = Currency.fromString(json.getString("currency"));
+            }
+            if (json.has("type")) {
+                hop.type = json.getInt("type");
             }
             return hop;
         }
@@ -77,16 +72,9 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
 
         public JSONObject toJSONObject() {
             JSONObject object = new JSONObject();
-            try {
-//                object.put("type", getType());
-
-                if (hasAccount()) object.put("account", account.toJSON());
-                if (hasIssuer()) object.put("issuer", issuer.toJSON());
-                if (hasCurrency()) object.put("currency", currency.toJSON());
-
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
+            if (hasAccount()) object.put("account", account.toJSON());
+            if (hasIssuer()) object.put("issuer", issuer.toJSON());
+            if (hasCurrency()) object.put("currency", currency.toJSON());
             return object;
         }
     }
@@ -95,12 +83,8 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
             Path path = new Path();
             int nHops = array.length();
             for (int i = 0; i < nHops; i++) {
-                try {
-                    JSONObject hop = array.getJSONObject(i);
-                    path.add(Hop.fromJSONObject(hop));
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
+                JSONObject hop = array.getJSONObject(i);
+                path.add(Hop.fromJSONObject(hop));
             }
 
             return path;
@@ -205,12 +189,8 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
             int nPaths = array.length();
 
             for (int i = 0; i < nPaths; i++) {
-                try {
-                    JSONArray path = array.getJSONArray(i);
-                    paths.add(Path.fromJSONArray(path));
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
+                JSONArray path = array.getJSONArray(i);
+                paths.add(Path.fromJSONArray(path));
             }
 
             return paths;

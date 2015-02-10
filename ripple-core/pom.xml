@@ -20,9 +20,8 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20090211</version>
-        </dependency>
-        <dependency>
+            <version>20141113</version>
+        </dependency>        <dependency>
             <groupId>com.ripple</groupId>
             <artifactId>ripple-bouncycastle</artifactId>
             <version>0.0.1-SNAPSHOT</version>

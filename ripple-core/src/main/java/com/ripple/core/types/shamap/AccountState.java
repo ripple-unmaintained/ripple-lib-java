@@ -274,7 +274,7 @@ public class AccountState extends ShaMap {
         return (AccountState) super.copy();
     }
 
-    public static AccountState loadFromLedgerDump(String filePath) throws IOException, JSONException {
+    public static AccountState loadFromLedgerDump(String filePath) throws IOException {
         FileReader reader = new FileReader(filePath);
         JSONTokener tokenizer = new JSONTokener(reader);
         JSONObject ledger = new JSONObject(tokenizer);
@@ -289,7 +289,7 @@ public class AccountState extends ShaMap {
         return parseShaMap(array);
     }
 
-    public static AccountState parseShaMap(JSONArray array) throws JSONException {
+    public static AccountState parseShaMap(JSONArray array) {
         AccountState map = new AccountState();
         for (int i = 0; i < array.length(); i++) {
             JSONObject jsonItem = array.getJSONObject(i);

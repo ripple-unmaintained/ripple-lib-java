@@ -397,15 +397,11 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             throw new RuntimeException("Native amounts must be serialized as a string");
         }
 
-        try {
-            JSONObject out = new JSONObject();
-            out.put("currency", currencyString());
-            out.put("value", valueText());
-            out.put("issuer", issuerString());
-            return out;
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        JSONObject out = new JSONObject();
+        out.put("currency", currencyString());
+        out.put("value", valueText());
+        out.put("issuer", issuerString());
+        return out;
     }
 
     @Override
@@ -489,14 +485,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
         @Override
         public Amount fromJSONObject(JSONObject jsonObject) {
-            try {
-                String valueString = jsonObject.getString("value");
-                String issuerString = jsonObject.getString("issuer");
-                String currencyString = jsonObject.getString("currency");
-                return new Amount(new BigDecimal(valueString), currencyString, issuerString);
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
+            String valueString = jsonObject.getString("value");
+            String issuerString = jsonObject.getString("issuer");
+            String currencyString = jsonObject.getString("currency");
+            return new Amount(new BigDecimal(valueString), currencyString, issuerString);
         }
     }
     static public Translator translate = new Translator();
@@ -656,10 +648,6 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     public void checkXRPBounds() {
         BigDecimal v = value.abs();
-        // This is for that damn offer at index: 6310D78E6AD408892743DD62455694162E758DA283D0E4A2CB3A3C173B7C794A
-        if (value.compareTo(TAKER_PAYS_FOR_THAT_DAMN_OFFER) == 0) {
-            return;
-        }
         checkLowerDropBound(v);
         checkUpperBound(v);
     }

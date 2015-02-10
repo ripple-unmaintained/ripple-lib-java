@@ -16,6 +16,7 @@ public class ShaMapDiff {
         this.two = two;
     }
 
+    // Find what's added, modified and deleted in `two`
     public void find() {
         one.hash();
         two.hash();

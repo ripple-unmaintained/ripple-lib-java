@@ -18,34 +18,25 @@ public class Response {
     public String error_message;
 
     public Response(Request request, JSONObject message) {
-        try {
-            this.message = message;
-            this.request = request;
-            status = message.getString("status");
-            succeeded = status.equals("success");
-            if (succeeded) {
-                this.result = message.getJSONObject("result");
-                rpcerr = null;
-            } else {
-                try {
-                    error = message.getString("error");
-                    this.rpcerr = RPCErr.valueOf(error);
-                } catch (Exception e) {
-                    rpcerr = RPCErr.unknownError;
-                }
+        this.message = message;
+        this.request = request;
+        status = message.getString("status");
+        succeeded = status.equals("success");
+        if (succeeded) {
+            this.result = message.getJSONObject("result");
+            rpcerr = null;
+        } else {
+            try {
+                error = message.getString("error");
+                this.rpcerr = RPCErr.valueOf(error);
+            } catch (Exception e) {
+                rpcerr = RPCErr.unknownError;
             }
-
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
         }
     }
 
     public EngineResult engineResult() {
-        try {
-            return EngineResult.valueOf(result.getString("engine_result"));
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        return EngineResult.valueOf(result.getString("engine_result"));
     }
 
     public UInt32 getSubmitSequence() {

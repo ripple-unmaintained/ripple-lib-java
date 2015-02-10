@@ -28,13 +28,9 @@ public class TransactionResult implements Comparable<TransactionResult>{
     public JSONObject toJSONBinary() {
         JSONObject o = new JSONObject();
 
-        try {
-            o.put("hash", hash.toHex());
-            o.put("meta", meta.toHex());
-            o.put("tx", txn.toHex());
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        o.put("hash", hash.toHex());
+        o.put("meta", meta.toHex());
+        o.put("tx", txn.toHex());
 
         return o;
     }
@@ -156,41 +152,36 @@ public class TransactionResult implements Comparable<TransactionResult>{
             throw new RuntimeException("This json isn't a transaction " + json);
         }
 
-        try {
-            binary = txKey != null && json.get(txKey) instanceof String;
+        binary = txKey != null && json.get(txKey) instanceof String;
 
-            Transaction txn;
-            if (txKey == null) {
-                // This should parse the `hash` field
-                txn = (Transaction) STObject.fromJSONObject(json);
-            } else {
-                txn = (Transaction) parseObject(json, txKey, binary);
-                if (json.has("hash")) {
-                    txn.put(Hash256.hash, Hash256.fromHex(json.getString("hash")));
-                } else if (binary) {
-                    byte[] decode = B16.decode(json.getString(txKey));
-                    txn.put(Hash256.hash, Index.transactionID(decode));
-                }
+        Transaction txn;
+        if (txKey == null) {
+            // This should parse the `hash` field
+            txn = (Transaction) STObject.fromJSONObject(json);
+        } else {
+            txn = (Transaction) parseObject(json, txKey, binary);
+            if (json.has("hash")) {
+                txn.put(Hash256.hash, Hash256.fromHex(json.getString("hash")));
+            } else if (binary) {
+                byte[] decode = B16.decode(json.getString(txKey));
+                txn.put(Hash256.hash, Index.transactionID(decode));
             }
-
-            TransactionMeta meta = (TransactionMeta) parseObject(json, metaKey, binary);
-            long ledger_index = json.optLong("ledger_index", 0);
-            if (ledger_index == 0 && !binary) {
-                ledger_index = json.getJSONObject(txKey).getLong("ledger_index");
-            }
-
-            TransactionResult tr = new TransactionResult(ledger_index, txn.get(Hash256.hash), txn, meta);
-            if (json.has("ledger_hash")) {
-                tr.ledgerHash = Hash256.fromHex(json.getString("ledger_hash"));
-            }
-            return tr;
-
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
         }
+
+        TransactionMeta meta = (TransactionMeta) parseObject(json, metaKey, binary);
+        long ledger_index = json.optLong("ledger_index", 0);
+        if (ledger_index == 0 && !binary) {
+            ledger_index = json.getJSONObject(txKey).getLong("ledger_index");
+        }
+
+        TransactionResult tr = new TransactionResult(ledger_index, txn.get(Hash256.hash), txn, meta);
+        if (json.has("ledger_hash")) {
+            tr.ledgerHash = Hash256.fromHex(json.getString("ledger_hash"));
+        }
+        return tr;
     }
 
-    private static STObject parseObject(JSONObject json, String key, boolean binary) throws JSONException {
+    private static STObject parseObject(JSONObject json, String key, boolean binary) {
         if (binary) {
             return STObject.translate.fromHex(json.getString(key));
         } else {
@@ -202,96 +193,91 @@ public class TransactionResult implements Comparable<TransactionResult>{
     public TransactionResult(JSONObject json, Source resultMessageSource) {
         message = json;
 
-        try {
-            if (resultMessageSource == Source.transaction_subscription_notification) {
+        if (resultMessageSource == Source.transaction_subscription_notification) {
 
-                engineResult = EngineResult.valueOf(json.getString("engine_result"));
-                validated = json.getBoolean("validated");
-                ledgerHash = Hash256.translate.fromString(json.getString("ledger_hash"));
+            engineResult = EngineResult.valueOf(json.getString("engine_result"));
+            validated = json.getBoolean("validated");
+            ledgerHash = Hash256.translate.fromString(json.getString("ledger_hash"));
+            ledgerIndex = new UInt32(json.getLong("ledger_index"));
+
+            if (json.has("transaction")) {
+                txn = (Transaction) STObject.fromJSONObject(json.getJSONObject("transaction"));
+                hash = txn.get(Hash256.hash);
+            }
+
+            if (json.has("meta")) {
+                meta = (TransactionMeta) STObject.fromJSONObject(json.getJSONObject("meta"));
+            }
+        }
+        else if (resultMessageSource == Source.ledger_transactions_expanded_with_ledger_index_injected) {
+            validated = true;
+            meta = (TransactionMeta) STObject.translate.fromJSONObject(json.getJSONObject("metaData"));
+            txn = (Transaction) STObject.translate.fromJSONObject(json);
+            hash = txn.get(Hash256.hash);
+            engineResult = meta.engineResult();
+            ledgerIndex = new UInt32(json.getLong("ledger_index"));
+            ledgerHash = null;
+
+        } else if (resultMessageSource == Source.request_tx_result) {
+            validated = json.optBoolean("validated", false);
+            if (validated && !json.has("meta")) {
+                throw new IllegalStateException("It's validated, why doesn't it have meta??");
+            }
+            if (validated) {
+                meta = (TransactionMeta) STObject.fromJSONObject(json.getJSONObject("meta"));
+                engineResult = meta.engineResult();
+                txn = (Transaction) STObject.fromJSONObject(json);
+                hash = txn.get(Hash256.hash);
+                ledgerHash = null; // XXXXXX
                 ledgerIndex = new UInt32(json.getLong("ledger_index"));
 
-                if (json.has("transaction")) {
-                    txn = (Transaction) STObject.fromJSONObject(json.getJSONObject("transaction"));
-                    hash = txn.get(Hash256.hash);
-                }
-
-                if (json.has("meta")) {
-                    meta = (TransactionMeta) STObject.fromJSONObject(json.getJSONObject("meta"));
-                }
             }
-            else if (resultMessageSource == Source.ledger_transactions_expanded_with_ledger_index_injected) {
-                validated = true;
-                meta = (TransactionMeta) STObject.translate.fromJSONObject(json.getJSONObject("metaData"));
-                txn = (Transaction) STObject.translate.fromJSONObject(json);
-                hash = txn.get(Hash256.hash);
+        } else if (resultMessageSource == Source.request_account_tx) {
+            validated = json.optBoolean("validated", false);
+            if (validated && !json.has("meta")) {
+                throw new IllegalStateException("It's validated, why doesn't it have meta??");
+            }
+            if (validated) {
+                JSONObject tx = json.getJSONObject("tx");
+                meta = (TransactionMeta) STObject.fromJSONObject(json.getJSONObject("meta"));
+                engineResult = meta.engineResult();
+                this.txn = (Transaction) STObject.fromJSONObject(tx);
+                hash = this.txn.get(Hash256.hash);
+                ledgerIndex = new UInt32(tx.getLong("ledger_index"));
+                ledgerHash = null;
+            }
+        } else if (resultMessageSource == Source.request_account_tx_binary || resultMessageSource == Source.request_tx_binary) {
+            validated = json.optBoolean("validated", false);
+            if (validated && !json.has("meta")) {
+                throw new IllegalStateException("It's validated, why doesn't it have meta??");
+            }
+            if (validated) {
+                /*
+                {
+                  "ledger_index": 3378767,
+                  "meta": "201 ...",
+                  "tx_blob": "120 ...",
+                  "validated": true
+                },
+                */
+                boolean account_tx = resultMessageSource == Source.request_account_tx_binary;
+
+                String tx = json.getString(account_tx ? "tx_blob" : "tx");
+                byte[] decodedTx = B16.decode(tx);
+                meta = (TransactionMeta) STObject.translate.fromHex(json.getString("meta"));
+                this.txn = (Transaction) STObject.translate.fromBytes(decodedTx);
+
+                if (account_tx) {
+                    hash = Index.transactionID(decodedTx);
+                } else {
+                    hash = Hash256.translate.fromHex(json.getString("hash"));
+                }
+                this.txn.put(Field.hash, hash);
+
                 engineResult = meta.engineResult();
                 ledgerIndex = new UInt32(json.getLong("ledger_index"));
                 ledgerHash = null;
-
-            } else if (resultMessageSource == Source.request_tx_result) {
-                validated = json.optBoolean("validated", false);
-                if (validated && !json.has("meta")) {
-                    throw new IllegalStateException("It's validated, why doesn't it have meta??");
-                }
-                if (validated) {
-                    meta = (TransactionMeta) STObject.fromJSONObject(json.getJSONObject("meta"));
-                    engineResult = meta.engineResult();
-                    txn = (Transaction) STObject.fromJSONObject(json);
-                    hash = txn.get(Hash256.hash);
-                    ledgerHash = null; // XXXXXX
-                    ledgerIndex = new UInt32(json.getLong("ledger_index"));
-
-                }
-            } else if (resultMessageSource == Source.request_account_tx) {
-                validated = json.optBoolean("validated", false);
-                if (validated && !json.has("meta")) {
-                    throw new IllegalStateException("It's validated, why doesn't it have meta??");
-                }
-                if (validated) {
-                    JSONObject tx = json.getJSONObject("tx");
-                    meta = (TransactionMeta) STObject.fromJSONObject(json.getJSONObject("meta"));
-                    engineResult = meta.engineResult();
-                    this.txn = (Transaction) STObject.fromJSONObject(tx);
-                    hash = this.txn.get(Hash256.hash);
-                    ledgerIndex = new UInt32(tx.getLong("ledger_index"));
-                    ledgerHash = null;
-                }
-            } else if (resultMessageSource == Source.request_account_tx_binary || resultMessageSource == Source.request_tx_binary) {
-                validated = json.optBoolean("validated", false);
-                if (validated && !json.has("meta")) {
-                    throw new IllegalStateException("It's validated, why doesn't it have meta??");
-                }
-                if (validated) {
-                    /*
-                    {
-                      "ledger_index": 3378767,
-                      "meta": "201 ...",
-                      "tx_blob": "120 ...",
-                      "validated": true
-                    },
-                    */
-                    boolean account_tx = resultMessageSource == Source.request_account_tx_binary;
-
-                    String tx = json.getString(account_tx ? "tx_blob" : "tx");
-                    byte[] decodedTx = B16.decode(tx);
-                    meta = (TransactionMeta) STObject.translate.fromHex(json.getString("meta"));
-                    this.txn = (Transaction) STObject.translate.fromBytes(decodedTx);
-
-                    if (account_tx) {
-                        hash = Index.transactionID(decodedTx);
-                    } else {
-                        hash = Hash256.translate.fromHex(json.getString("hash"));
-                    }
-                    this.txn.put(Field.hash, hash);
-
-                    engineResult = meta.engineResult();
-                    ledgerIndex = new UInt32(json.getLong("ledger_index"));
-                    ledgerHash = null;
-                }
             }
-
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
         }
     }
 }

@@ -101,18 +101,14 @@ public class PendingLedgers {
         requestLedger(ledger_index, true, new Callback<Response>() {
             @Override
             public void called(Response response) {
-                try {
-                    JSONObject ledgerJSON = response.result.getJSONObject("ledger");
-                    final String transaction_hash = ledgerJSON.getString("transaction_hash");
-                    boolean correctHash = ledger.transactionHashEquals(transaction_hash);
-                    if (correctHash) {
-                        clearLedger(ledger_index, "checkHeader");
-                    } else {
-                        LedgerSubscriber.log("Missing transactions, need to fillInLedger: " + ledger);
-                        fillInLedger(ledger);
-                    }
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                JSONObject ledgerJSON = response.result.getJSONObject("ledger");
+                final String transaction_hash = ledgerJSON.getString("transaction_hash");
+                boolean correctHash = ledger.transactionHashEquals(transaction_hash);
+                if (correctHash) {
+                    clearLedger(ledger_index, "checkHeader");
+                } else {
+                    LedgerSubscriber.log("Missing transactions, need to fillInLedger: " + ledger);
+                    fillInLedger(ledger);
                 }
             }
         });
@@ -125,26 +121,22 @@ public class PendingLedgers {
         requestLedger(ledger_index, false, new Callback<Response>() {
             @Override
             public void called(Response response) {
-                try {
-                    JSONObject ledgerJSON = response.result.getJSONObject("ledger");
-                    JSONArray transactions = ledgerJSON.getJSONArray("transactions");
+                JSONObject ledgerJSON = response.result.getJSONObject("ledger");
+                JSONArray transactions = ledgerJSON.getJSONArray("transactions");
 
-                    for (int i = 0; i < transactions.length(); i++) {
-                        JSONObject json = transactions.getJSONObject(i);
-                        // This is kind of nasty
-                        json.put("ledger_index", ledger_index);
-                        json.put("validated",    true);
-                        TransactionResult tr = TransactionResult.fromJSON(json);
-                        ledger.notifyTransaction(tr);
-                    }
-
-                    final String transaction_hash = ledgerJSON.getString("transaction_hash");
-                    boolean correctHash = ledger.transactionHashEquals(transaction_hash);
-                    if (!correctHash) throw new IllegalStateException("We don't handle invalid transactions yet");
-                    clearLedger(ledger_index, "fillInLedger");
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                for (int i = 0; i < transactions.length(); i++) {
+                    JSONObject json = transactions.getJSONObject(i);
+                    // This is kind of nasty
+                    json.put("ledger_index", ledger_index);
+                    json.put("validated",    true);
+                    TransactionResult tr = TransactionResult.fromJSON(json);
+                    ledger.notifyTransaction(tr);
                 }
+
+                final String transaction_hash = ledgerJSON.getString("transaction_hash");
+                boolean correctHash = ledger.transactionHashEquals(transaction_hash);
+                if (!correctHash) throw new IllegalStateException("We don't handle invalid transactions yet");
+                clearLedger(ledger_index, "fillInLedger");
             }
         });
     }
