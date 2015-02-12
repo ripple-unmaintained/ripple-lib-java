@@ -2,7 +2,6 @@ package com.ripple.client.subscriptions.ledger;
 
 import com.ripple.client.Client;
 import com.ripple.client.enums.Command;
-import com.ripple.client.pubsub.Publisher;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.core.types.known.tx.result.TransactionResult;
