@@ -2,8 +2,6 @@ package com.ripple.core.coretypes;
 
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.serialized.BinaryParser;
-import com.ripple.core.serialized.BytesSink;
-import com.ripple.core.serialized.SerializedType;
 
 import java.util.Calendar;
 import java.util.Date;

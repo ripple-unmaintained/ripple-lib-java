@@ -4,7 +4,6 @@ import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.fields.Field;
 import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.sle.ThreadedLedgerEntry;
-import com.ripple.core.types.known.sle.entries.AccountRoot;
 import com.ripple.core.types.known.sle.entries.DirectoryNode;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.sle.entries.RippleState;

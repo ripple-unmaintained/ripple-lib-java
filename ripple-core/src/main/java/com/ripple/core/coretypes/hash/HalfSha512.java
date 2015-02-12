@@ -1,7 +1,6 @@
 package com.ripple.core.coretypes.hash;
 
 import com.ripple.core.coretypes.hash.prefixes.Prefix;
-import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.SerializedType;
 
