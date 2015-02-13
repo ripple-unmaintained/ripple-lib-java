@@ -8,13 +8,66 @@ import org.json.JSONObject;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.PriorityQueue;
 
 public class MockPair {
     RippledMock server = new RippledMock();
 
+    public class Scheduler {
+        private PriorityQueue<Callback> queue;
+        private int ms = 0;
+
+        public Scheduler() {
+            queue = new PriorityQueue<Callback>();
+        }
+
+        public class Callback implements Comparable<Callback> {
+            long when;
+
+            Runnable runnable;
+            public Callback(Runnable runnable, long delay) {
+                this.when = ms + delay;
+                this.runnable = runnable;
+            }
+
+            @Override
+            public int compareTo(Callback o) {
+                return Long.compare(when, o.when);
+            }
+        }
+
+        public void schedule(long delay, Runnable runnable) {
+            queue.add(new Callback(runnable, delay));
+        }
+
+        public void tick(int pass) {
+            ms += pass;
+            Iterator<Callback> iterator = queue.iterator();
+            while (iterator.hasNext()) {
+                Callback next = iterator.next();
+                if (next.when <= ms) {
+                    try {
+                        next.runnable.run();
+                    } catch (Exception ignored) {
+                        throw new RuntimeException(ignored);
+                    } finally {
+                        iterator.remove();
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+
+    }
+
     // TODO a mock ScheduledExecutorService?
     // TODO make client abstract?
     public class MockClient extends Client {
+        public Scheduler scheduler;
+
         public MockClient(WebSocketTransport ws) {
             super(ws);
         }
@@ -33,15 +86,20 @@ public class MockPair {
 
         @Override
         public void schedule(long ms, Runnable runnable) {
-            //
+            // We have to put up with this until we restructure this
+            // a better way
+            if (scheduler == null) {
+                scheduler = new Scheduler();
+            }
+            scheduler.schedule(ms, runnable);
         }
     }
 
-    Client client = new MockClient(server.ws);
-
+    MockClient client = new MockClient(server.ws);
 
     public MockPair connect() {
         client.connect("wss://this.doesnt.matter.com");
+        client.scheduler.tick(50);
         server.connect();
         return this;
     }
