@@ -64,7 +64,7 @@ public class Issue implements Comparable<Issue> {
         return new Amount(value, currency, issuer, isNative());
     }
 
-    private boolean isNative() {
+    public boolean isNative() {
         return this == XRP || currency.equals(Currency.XRP);
     }
 
