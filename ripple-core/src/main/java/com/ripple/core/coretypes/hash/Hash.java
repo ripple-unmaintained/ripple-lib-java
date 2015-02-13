@@ -62,13 +62,29 @@ abstract public class Hash<Subclass extends Hash> implements SerializedType, Com
 
     @Override
     public int compareTo(Subclass another) {
-        int thisLength = bytes().length;
+        byte[] thisBytes = bytes();
         byte[] bytes = another.bytes();
 
-        for (int i = 0; i < thisLength; i++) {
-            int cmp = (hash[i] & 0xFF) - (bytes[i] & 0xFF);
+        return compareBytes(thisBytes, bytes, 0, thisBytes.length);
+    }
+
+    public int compareStartingAt(Subclass another, int start) {
+        byte[] thisBytes = bytes();
+        byte[] bytes = another.bytes();
+
+        return compareBytes(thisBytes, bytes, start, thisBytes.length);
+    }
+
+    public int compareBytes(byte[] thisBytes, byte[] bytes, int start, int numBytes) {
+        int thisLength = thisBytes.length;
+        if (!(bytes.length == thisLength)) {
+            throw new RuntimeException();
+        }
+
+        for (int i = start; i < numBytes; i++) {
+            int cmp = (thisBytes[i] & 0xFF) - (bytes[i] & 0xFF);
             if (cmp != 0) {
-                return cmp;
+                return cmp < 0 ? -1 : 1;
             }
         }
         return 0;
