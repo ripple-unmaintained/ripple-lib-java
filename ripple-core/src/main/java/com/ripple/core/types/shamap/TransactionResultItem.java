@@ -7,7 +7,7 @@ import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.types.known.tx.result.TransactionResult;
 
 public class TransactionResultItem extends ShaMapItem<TransactionResult> {
-    TransactionResult result;
+    public TransactionResult result;
 
     public TransactionResultItem(TransactionResult result) {
         this.result = result;
@@ -24,6 +24,11 @@ public class TransactionResultItem extends ShaMapItem<TransactionResult> {
     public ShaMapItem<TransactionResult> copy() {
         // that's ok right ;) these bad boys are immutable anyway
         return this;
+    }
+
+    @Override
+    public TransactionResult value() {
+        return result;
     }
 
     @Override

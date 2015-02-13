@@ -23,6 +23,10 @@ public class PathToIndex {
         return leaf.version != dirtied[0].version;
     }
 
+    int size() {
+        return inners.size();
+    }
+
     public ShaMapInner top() {
         return dirtied[dirtied.length - 1];
     }

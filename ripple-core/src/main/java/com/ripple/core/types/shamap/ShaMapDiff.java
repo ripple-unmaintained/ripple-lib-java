@@ -16,10 +16,21 @@ public class ShaMapDiff {
         this.two = two;
     }
 
+    // Find what's added, modified and deleted in `two`
     public void find() {
         one.hash();
         two.hash();
         compare(one, two);
+    }
+
+    public ShaMapDiff inverted() {
+        ShaMapDiff shaMapDiff = new ShaMapDiff(two, one);
+
+        shaMapDiff.added = deleted;
+        shaMapDiff.modified = modified;
+        shaMapDiff.deleted = added;
+
+        return shaMapDiff;
     }
 
     public void apply(ShaMap sa) {
