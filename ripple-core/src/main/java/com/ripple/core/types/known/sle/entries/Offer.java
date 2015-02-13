@@ -73,16 +73,34 @@ public class Offer extends ThreadedLedgerEntry {
         return executed;
     }
 
-    private Hash256 lineIndex(Amount amt) {
-        Issue issue = amt.issue();
-        if (amt.isNative()) throw new AssertionError();
-        return Index.rippleState(account(), issue.issuer(), issue.currency());
+    public Hash256 lineIndex(Amount amt) {
+        return account().lineIndex(amt.issue());
+    }
+
+    public Hash256 fundingSource() {
+        Amount takerGets = takerGets();
+        if (account().equals(takerGets.issuer())) {
+            return null;
+        }
+        else if (takerGets.isNative()) {
+            return Index.accountRoot(account());
+        } else {
+            return lineIndex(takerGets);
+        }
     }
 
     public Vector256 lineIndexes() {
         Vector256 ret = new Vector256();
-        for (Amount amt : new Amount[]{takerGets(), takerPays()}) {
-            if (!amt.isNative()){
+
+        Amount takerGets = takerGets();
+        for (Amount amt : new Amount[]{takerGets, takerPays()}) {
+
+            // Actually want to compare by reference here :)
+            if (amt == takerGets()) {
+                // selling own funds
+                continue;
+            }
+            if (!amt.isNative()) {
                 ret.add(lineIndex(amt));
             }
         }
@@ -183,5 +201,15 @@ public class Offer extends ThreadedLedgerEntry {
         if (ownerNode() == null) {
             ownerNode(new UInt64(0));
         }
+    }
+
+    public IssuePair issuePair() {
+        return new IssuePair(takerPays().issue(), takerGets().issue());
+    }
+
+    public Amount payToGet(Amount funded) {
+        BigDecimal quality = directoryAskQuality();
+        // Multiply by one as that will do the rounding operation we want
+        return paysOne().multiply(funded.multiply(quality));
     }
 }
