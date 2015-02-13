@@ -81,14 +81,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         request.once(Request.OnResponse.class, new Request.OnResponse() {
             @Override
             public void called(Response response) {
-                try {
-                    if (response.succeeded) {
-                        cb.cb(response, response.result.optJSONObject("ledger"));
-                    } else {
-                        cb.cb(response, null);
-                    }
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                if (response.succeeded) {
+                    cb.cb(response, response.result.optJSONObject("ledger"));
+                } else {
+                    cb.cb(response, null);
                 }
             }
         });
@@ -459,21 +455,17 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         request.once(Request.OnResponse.class, new Request.OnResponse() {
             @Override
             public void called(Response response) {
-                try {
-                    if (response.succeeded) {
-                        ArrayList<Offer> offers = new ArrayList<Offer>();
-                        JSONArray offersJson = response.result.getJSONArray("offers");
-                        for (int i = 0; i < offersJson.length(); i++) {
-                            JSONObject jsonObject = offersJson.getJSONObject(i);
-                            STObject object = STObject.fromJSONObject(jsonObject);
-                            offers.add((Offer) object);
-                        }
-                        cb.cb(response, offers);
-                    } else {
-                        cb.cb(response, null);
+                if (response.succeeded) {
+                    ArrayList<Offer> offers = new ArrayList<Offer>();
+                    JSONArray offersJson = response.result.getJSONArray("offers");
+                    for (int i = 0; i < offersJson.length(); i++) {
+                        JSONObject jsonObject = offersJson.getJSONObject(i);
+                        STObject object = STObject.fromJSONObject(jsonObject);
+                        offers.add((Offer) object);
                     }
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                    cb.cb(response, offers);
+                } else {
+                    cb.cb(response, null);
                 }
             }
         });
@@ -492,16 +484,12 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         request.once(Request.OnResponse.class, new Request.OnResponse() {
             @Override
             public void called(Response response) {
-                try {
-                    if (response.succeeded) {
-                        TransactionResult tr = new TransactionResult(response.result, TransactionResult.Source.request_tx_binary);
-                        cb.cb(response, tr);
-                    } else {
-                        // you can look at request.response if this is null ;)
-                        cb.cb(response, null);
-                    }
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                if (response.succeeded) {
+                    TransactionResult tr = new TransactionResult(response.result, TransactionResult.Source.request_tx_binary);
+                    cb.cb(response, tr);
+                } else {
+                    // you can look at request.response if this is null ;)
+                    cb.cb(response, null);
                 }
             }
         });
@@ -566,21 +554,17 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             @Override
             public void called(Response response) {
 
-                try {
-                    if (response.succeeded) {
-                        accountRoot.setFromJSON(response.result.getJSONObject("node"));
-                    } else if (response.rpcerr == RPCErr.entryNotFound) {
-                        log(Level.INFO, "Unfunded account: {0}", response.message);
-                        accountRoot.setUnfundedAccount(id);
+                if (response.succeeded) {
+                    accountRoot.setFromJSON(response.result.getJSONObject("node"));
+                } else if (response.rpcerr == RPCErr.entryNotFound) {
+                    log(Level.INFO, "Unfunded account: {0}", response.message);
+                    accountRoot.setUnfundedAccount(id);
+                } else {
+                    if (attempt < 5) {
+                        requestAccountRoot(id, accountRoot, attempt + 1);
                     } else {
-                        if (attempt < 5) {
-                            requestAccountRoot(id, accountRoot, attempt + 1);
-                        } else {
-                            // TODO //
-                        }
+                        // TODO //
                     }
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
                 }
             }
         });
@@ -859,11 +843,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     public static JSONObject parseJSON(String s) {
-        try {
-            return new JSONObject(s);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        return new JSONObject(s);
     }
 
     Random randomBugs = null;
@@ -885,10 +865,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     private String prettyJSON(JSONObject object) {
-        try {
-            return object.toString(4);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        return object.toString(4);
     }
 }

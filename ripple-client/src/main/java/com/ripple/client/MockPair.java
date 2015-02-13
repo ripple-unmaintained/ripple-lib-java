@@ -221,16 +221,12 @@ public class MockPair {
         public void respond(Request request, String status, JSONObject result) {
             JSONObject response = new JSONObject();
 
-            try {
-                response.put("result", result);
-                response.put("id", request.id);
-                response.put("status", status);
-                response.put("type", "response");
+            response.put("result", result);
+            response.put("id", request.id);
+            response.put("status", status);
+            response.put("type", "response");
 
-                sendMessage(response);
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
+            sendMessage(response);
         }
 
         public void respondSuccess(Request request, JSONObject result) {

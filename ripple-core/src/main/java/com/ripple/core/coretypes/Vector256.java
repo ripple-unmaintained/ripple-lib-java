@@ -81,13 +81,8 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
             Vector256 vector = new Vector256();
 
             for (int i = 0; i < jsonArray.length(); i++) {
-                try {
-                    String hex = jsonArray.getString(i);
-                    vector.add(new Hash256(B16.decode(hex)));
-
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
+                String hex = jsonArray.getString(i);
+                vector.add(new Hash256(B16.decode(hex)));
             }
 
             return vector;

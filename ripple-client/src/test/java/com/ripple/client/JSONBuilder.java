@@ -18,12 +18,8 @@ public class JSONBuilder {
     }
 
     public JSONBuilder set(String k, Object v) {
-        try {
-            json.put(k, v);
-            return this;
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        json.put(k, v);
+        return this;
     }
     public JSONBuilder load_base(Object v) { return set("load_base", v); }
     public JSONBuilder ledger_hash(Object v) { return set("ledger_hash", v); }

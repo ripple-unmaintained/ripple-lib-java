@@ -112,11 +112,7 @@ public class STObjectTest {
         assertEquals(hexFromJSON, hexFromJsonToToJsonToHex);
         assertEquals(fromJsonToJsonAndBack.toJSONObject().toString(), fromJsonToJson.toString());
         assertEquals(stateObject.length(), fromJsonToJson.length());
-        try {
-            stateObject.put("index", index);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        stateObject.put("index", index);
     }
 
     @Test

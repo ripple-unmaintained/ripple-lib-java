@@ -43,11 +43,7 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     public static STObject fromJSON(String offerJson) {
-        try {
-            return fromJSONObject(new JSONObject(offerJson));
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        return fromJSONObject(new JSONObject(offerJson));
     }
     public static STObject fromJSONObject(JSONObject json) {
         return translate.fromJSONObject(json);
@@ -62,11 +58,7 @@ public class STObject implements SerializedType, Iterable<Field> {
     }
 
     public String prettyJSON() {
-        try {
-            return translate.toJSONObject(this).toString(4);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        return translate.toJSONObject(this).toString(4);
     }
 
     /**
@@ -301,13 +293,9 @@ public class STObject implements SerializedType, Iterable<Field> {
             JSONObject json = new JSONObject();
 
             for (Field f : obj) {
-                try {
-                    SerializedType obj1 = obj.get(f);
-                    Object object = obj1.toJSON();
-                    json.put(f.name(), object);
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
+                SerializedType obj1 = obj.get(f);
+                Object object = obj1.toJSON();
+                json.put(f.name(), object);
             }
 
             return json;
@@ -320,16 +308,13 @@ public class STObject implements SerializedType, Iterable<Field> {
             Iterator keys = jsonObject.keys();
             while (keys.hasNext()) {
                 String key = (String) keys.next();
-                try {
-                    Object value   = jsonObject.get(key);
-                    Field fieldKey = Field.fromString(key);
-                    if (fieldKey == null) {
-                        continue;
-                    }
-                    so.putTranslated(fieldKey, value);
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }            }
+                Object value   = jsonObject.get(key);
+                Field fieldKey = Field.fromString(key);
+                if (fieldKey == null) {
+                    continue;
+                }
+                so.putTranslated(fieldKey, value);
+            }
             return STObject.formatted(so);
         }
     }

@@ -95,11 +95,7 @@ public class JSONEncrypt {
     }
 
     public JSONObject decrypt(String key, String json) throws InvalidCipherTextException {
-        try {
-            return decrypt(key, new JSONObject(json));
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        return decrypt(key, new JSONObject(json));
     }
 
     public JSONObject decrypt(String key, JSONObject json) throws InvalidCipherTextException {

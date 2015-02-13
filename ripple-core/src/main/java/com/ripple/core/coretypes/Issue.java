@@ -53,13 +53,9 @@ public class Issue implements Comparable<Issue> {
 
     public JSONObject toJSON() {
         JSONObject o = new JSONObject();
-        try {
-            o.put("currency", currency);
-            if (!isNative()) {
-                o.put("issuer", issuer);
-            }
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
+        o.put("currency", currency);
+        if (!isNative()) {
+            o.put("issuer", issuer);
         }
         return o;
     }

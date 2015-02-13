@@ -270,29 +270,21 @@ public class ShamapInnerNodeAnalysis {
         InstrumentedInnerNode.ChuckNorris walker = new InstrumentedInnerNode.ChuckNorris();
         ledger.walkTree(walker);
         System.out.println(walker.height());
-        try {
-            System.out.println(walker.histogram().toString(4));
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        System.out.println(walker.histogram().toString(4));
 
     }
 
     private String ledgerAnalysisStartLog() {
         JSONObject obj = new JSONObject();
 
-        try {
-            obj.put("log_type", "ledger_analysis_start");
-            obj.put("num_ledgers", NUM_LEDGERS);
-            obj.put("new_nodes_per_ledger", NEW_NODES_PER_LEDGER);
-            obj.put("modified_nodes_per_ledger", MODIFIED_NODES_PER_LEDGER);
-            obj.put("info_every_n_ledgers", INFO_EVERY_N_LEDGERS);
-            obj.put("num_prefixes", NUM_PREFIXES);
-            obj.put("create_prefixed", CREATE_PREFIXED);
-            obj.put("prefixed_every", PREFIXED_EVERY);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        obj.put("log_type", "ledger_analysis_start");
+        obj.put("num_ledgers", NUM_LEDGERS);
+        obj.put("new_nodes_per_ledger", NEW_NODES_PER_LEDGER);
+        obj.put("modified_nodes_per_ledger", MODIFIED_NODES_PER_LEDGER);
+        obj.put("info_every_n_ledgers", INFO_EVERY_N_LEDGERS);
+        obj.put("num_prefixes", NUM_PREFIXES);
+        obj.put("create_prefixed", CREATE_PREFIXED);
+        obj.put("prefixed_every", PREFIXED_EVERY);
 
         return obj.toString();
     }
@@ -304,13 +296,9 @@ public class ShamapInnerNodeAnalysis {
 
         public JSONObject json() {
             JSONObject json = new JSONObject();
-            try {
-                json.put("log_type", "ledger_stats");
-                for (LedgerStat stat : this.keySet()) {
-                    json.put(stat.toString(), get(stat));
-                }
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
+            json.put("log_type", "ledger_stats");
+            for (LedgerStat stat : this.keySet()) {
+                json.put(stat.toString(), get(stat));
             }
             return json;
         }

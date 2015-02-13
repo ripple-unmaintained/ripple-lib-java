@@ -15,14 +15,10 @@ public class Alternatives extends ArrayList<Alternative> {
 
     public Alternatives(JSONArray array, Alternatives prior) {
         for (int i = 0; i < array.length(); i++) {
-            try {
-                JSONObject alternativeJson = array.getJSONObject(i);
-                Amount sourceAmount = Amount.translate.fromValue(alternativeJson.get("source_amount"));
-                PathSet paths = PathSet.translate.fromJSONArray(alternativeJson.getJSONArray("paths_computed"));
-                addRecyclingPrior(new Alternative(paths, sourceAmount), prior);
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
+            JSONObject alternativeJson = array.getJSONObject(i);
+            Amount sourceAmount = Amount.translate.fromValue(alternativeJson.get("source_amount"));
+            PathSet paths = PathSet.translate.fromJSONArray(alternativeJson.getJSONArray("paths_computed"));
+            addRecyclingPrior(new Alternative(paths, sourceAmount), prior);
         }
     }
 
