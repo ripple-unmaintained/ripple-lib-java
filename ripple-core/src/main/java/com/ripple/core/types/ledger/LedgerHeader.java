@@ -2,16 +2,21 @@ package com.ripple.core.types.ledger;
 
 import com.ripple.core.binary.STReader;
 import com.ripple.core.coretypes.RippleDate;
+import com.ripple.core.coretypes.hash.HalfSha512;
+import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
+import com.ripple.core.serialized.BytesSink;
 
 import java.util.Date;
 
 public class LedgerHeader {
-    public UInt32  version;         // Always 0x4C475200 (LWR) (Secures signed objects)
+    // Always 0x4C475200 (LWR) (Secures signed objects)
+    public UInt32  version = HashPrefix.ledgerMaster.uInt32;
+
     public UInt32  sequence;        // Ledger Sequence (0 for genesis ledger)
     public UInt64  totalXRP;        //
     public Hash256 previousLedger;  // The hash of the previous ledger (0 for genesis ledger)
@@ -30,7 +35,6 @@ public class LedgerHeader {
     public static LedgerHeader fromReader(STReader reader) {
         LedgerHeader ledger = new LedgerHeader();
 
-        ledger.version = reader.uInt32();
         ledger.sequence = reader.uInt32();
         ledger.totalXRP = reader.uInt64();
         ledger.previousLedger = reader.hash256();
@@ -44,5 +48,23 @@ public class LedgerHeader {
         ledger.closeDate = RippleDate.fromSecondsSinceRippleEpoch(ledger.closeTime);
 
         return ledger;
+    }
+
+    public void toBytesSink(BytesSink sink) {
+        sequence.toBytesSink(sink);
+        totalXRP.toBytesSink(sink);
+        previousLedger.toBytesSink(sink);
+        transactionHash.toBytesSink(sink);
+        stateHash.toBytesSink(sink);
+        parentCloseTime.toBytesSink(sink);
+        closeTime.toBytesSink(sink);
+        closeResolution.toBytesSink(sink);
+        closeFlags.toBytesSink(sink);
+    }
+
+    public Hash256 hash() {
+        HalfSha512 half = HalfSha512.prefixed256(HashPrefix.ledgerMaster);
+        toBytesSink(half);
+        return half.finish();
     }
 }
