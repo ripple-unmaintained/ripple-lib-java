@@ -226,6 +226,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     public void disconnect() {
         manuallyDisconnected = true;
+        disconnectSocketAndNotify();
+    }
+
+    private void disconnectSocketAndNotify() {
         ws.disconnect();
         emit(OnDisconnected.class, Client.this); 
     }
