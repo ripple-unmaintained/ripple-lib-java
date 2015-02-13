@@ -12,7 +12,6 @@ import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.encodings.common.B16;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -171,7 +170,7 @@ public class TransactionResult implements Comparable<TransactionResult>{
         return tr;
     }
 
-    private static STObject parseObject(JSONObject json, String key, boolean binary) throws JSONException {
+    private static STObject parseObject(JSONObject json, String key, boolean binary) {
         if (binary) {
             return STObject.translate.fromHex(json.getString(key));
         } else {
@@ -278,11 +277,34 @@ public class TransactionResult implements Comparable<TransactionResult>{
             return message.toString();
         }
         else {
-            JSONObject object = new JSONObject();
-            object.put("tx", txn.toJSON());
-            object.put("meta", meta.toJSON());
-            object.put("ledger_index", ledgerIndex);
+            JSONObject object = toJSON();
             return object.toString();
         }
+    }
+
+    public JSONObject toJSON() {
+        JSONObject o = new JSONObject();
+        o.put("tx", txn.toJSON());
+        o.put("meta", meta.toJSON());
+        o.put("ledger_index", ledgerIndex);
+        o.put("hash", hash.toHex());
+        return o;
+    }
+
+    public TransactionResult copy() {
+        TransactionMeta metaCopy = (TransactionMeta) STObject.translate.fromBytes(meta.toBytes());
+        Transaction txnCopy = (Transaction) STObject.translate.fromBytes(txn.toBytes());
+        return new TransactionResult(ledgerIndex.longValue(), hash, txnCopy, metaCopy);
+    }
+
+    public JSONObject toJSONBinary() {
+        JSONObject o = new JSONObject();
+
+        o.put("hash", hash.toHex());
+        o.put("meta", meta.toHex());
+        o.put("tx", txn.toHex());
+        o.put("ledger_index", ledgerIndex);
+
+        return o;
     }
 }

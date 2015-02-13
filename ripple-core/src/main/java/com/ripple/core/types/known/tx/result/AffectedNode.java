@@ -21,6 +21,10 @@ public class AffectedNode extends STObject {
         return isDeletedNode() || isModifiedNode();
     }
 
+    public boolean isFinalNode() {
+        return true;
+    }
+
     public boolean isCreatedNode() {
         return field == Field.CreatedNode;
     }
@@ -71,7 +75,9 @@ public class AffectedNode extends STObject {
                 Field.FinalFields;
 
         if (!wrapped.has(finalFields)) {
-            return STObject.formatted(new STObject(wrapped.getFields()));
+            STObject source = new STObject(wrapped.getFields());
+            source.put(Hash256.index, wrapped.get(Hash256.LedgerIndex));
+            return STObject.formatted(source);
         }
 
         STObject finals = (STObject) wrapped.get(finalFields);
