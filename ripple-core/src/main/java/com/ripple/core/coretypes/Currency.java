@@ -129,6 +129,11 @@ public class Currency extends Hash160 {
         }
 
         @Override
+        public Object toJSON(Currency obj) {
+            return obj.toString();
+        }
+
+        @Override
         public Currency fromString(String value) {
             if (value.length() == 40 /* byteWidth() * 2 */) {
                 return newInstance(B16.decode(value));
