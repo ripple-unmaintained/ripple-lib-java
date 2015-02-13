@@ -382,15 +382,11 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
     }
 
     public JSONObject toJSONObject() {
-        try {
-            JSONObject out = new JSONObject();
-            out.put("currency", currencyString());
-            out.put("value", valueText());
-            out.put("issuer", issuerString());
-            return out;
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        JSONObject out = new JSONObject();
+        out.put("currency", currencyString());
+        out.put("value", valueText());
+        out.put("issuer", issuerString());
+        return out;
     }
 
     @Override
@@ -474,14 +470,10 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
         @Override
         public Amount fromJSONObject(JSONObject jsonObject) {
-            try {
-                String valueString = jsonObject.getString("value");
-                String issuerString = jsonObject.getString("issuer");
-                String currencyString = jsonObject.getString("currency");
-                return new Amount(new BigDecimal(valueString), currencyString, issuerString);
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
+            String valueString = jsonObject.getString("value");
+            String issuerString = jsonObject.getString("issuer");
+            String currencyString = jsonObject.getString("currency");
+            return new Amount(new BigDecimal(valueString), currencyString, issuerString);
         }
     }
     static public Translator translate = new Translator();

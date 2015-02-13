@@ -27,14 +27,10 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
     private final Client.OnPathFind onPathFind = new Client.OnPathFind() {
         @Override
         public void called(JSONObject jsonObject) {
-            try {
-                int id = jsonObject.getInt("id");
-                if (pathFind != null && id == pathFind.id) {
-                    emit(OnAlternatives.class, constructAlternatives(jsonObject.getJSONArray("alternatives"),
-                                                                     alternatives));
-                }
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
+            int id = jsonObject.getInt("id");
+            if (pathFind != null && id == pathFind.id) {
+                emit(OnAlternatives.class, constructAlternatives(jsonObject.getJSONArray("alternatives"),
+                                                                 alternatives));
             }
         }
     };

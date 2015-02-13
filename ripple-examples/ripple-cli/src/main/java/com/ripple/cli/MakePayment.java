@@ -117,10 +117,6 @@ public class MakePayment {
 
     }
     private static String prettyJSON(JSONObject message) {
-        try {
-            return message.toString(4);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        return message.toString(4);
     }
 }

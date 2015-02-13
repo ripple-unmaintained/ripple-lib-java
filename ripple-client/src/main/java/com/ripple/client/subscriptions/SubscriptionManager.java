@@ -79,12 +79,8 @@ public class SubscriptionManager extends Publisher<SubscriptionManager.events> {
 
     private JSONObject basicSubscriptionObject(Set<Stream> streams, Set<AccountID> accounts) {
         JSONObject subs = new JSONObject();
-        try {
-            if (streams != null && streams.size() > 0) subs.put("streams", getJsonArray(streams));
-            if (accounts != null && accounts.size() > 0) subs.put("accounts", getJsonArray(accounts));
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        if (streams != null && streams.size() > 0) subs.put("streams", getJsonArray(streams));
+        if (accounts != null && accounts.size() > 0) subs.put("accounts", getJsonArray(accounts));
         return subs;
     }
 
