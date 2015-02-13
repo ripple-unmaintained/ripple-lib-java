@@ -24,21 +24,15 @@ public class BinaryParser {
     public void skip(int n) {
         cursor += n;
     }
-
     public byte readOne() {
         return bytes[cursor++];
     }
-    protected byte[] read(int n, boolean advance) {
+    public byte[] read(int n) {
         byte[] ret = new byte[n];
         System.arraycopy(bytes, cursor, ret, 0, n);
-        if (advance) {
             cursor += n;
-        }
+//        }
         return ret;
-    }
-
-    public byte[] read(int n) {
-        return read(n, true);
     }
 
     public Field readField() {
