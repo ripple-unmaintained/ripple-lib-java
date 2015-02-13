@@ -41,7 +41,6 @@ import java.util.logging.Logger;
 
 import static com.ripple.client.requests.Request.Manager;
 
-@SuppressWarnings("rawtypes")
 public class Client extends Publisher<Client.events> implements TransportEventHandler {
     public static final Logger logger = Logger.getLogger(Client.class.getName());
 
@@ -292,13 +291,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public SubscriptionManager subscriptions = new SubscriptionManager();
 
     public Client(WebSocketTransport ws) {
-        // once(OnConnected.class, new OnConnected() {
-        // @Override
-        // public void cb(Client client) {
-        // ;
-        // }
-        // });
-
         this.ws = ws;
         ws.setHandler(this);
 
@@ -510,7 +502,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     public ServerInfo serverInfo = new ServerInfo();
-    // TODO: clean up timedout requests
     public TreeMap<Integer, Request> requests = new TreeMap<Integer, Request>();
 
     WebSocketTransport ws;
@@ -527,8 +518,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     /**
      * After calling this method, all subsequent interaction with the api should
-     * be called via posting Runnable() run blocks to the Executor Essentially,
-     * all ripple-lib-java api interaction should happen on the one thread.
+     * be called via posting Runnable() run blocks to the Executor.
+     *
+     * Essentially, all ripple-lib-java api interaction
+     * should happen on the one thread.
      *
      * @see #onMessage(org.json.JSONObject)
      */
@@ -559,7 +552,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     private void resetReconnectStatus() {
         lastConnection = new Date().getTime();
-        // reconnectIndex = 0;
     }
 
     // @Override
@@ -633,7 +625,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                 Account account = accounts.get(entry.getKey());
                 if (account != null) {
                     STObject rootUpdates = entry.getValue();
-                    account.getAccountRoot().updateFromTransaction(transactionHash, transactionLedgerIndex, rootUpdates);
+                    account.getAccountRoot()
+                           .updateFromTransaction(
+                                   transactionHash, transactionLedgerIndex, rootUpdates);
                 }
             }
         }
@@ -721,12 +715,12 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     private void doOnConnected() {
         resetReconnectStatus();
 
-        // logger.entering(getClass().getName(), "doOnConnected");
+        logger.entering(getClass().getName(), "doOnConnected");
         connected = true;
         emit(OnConnected.class, this);
 
         subscribe(prepareSubscription());
-        // logger.exiting(getClass().getName(), "doOnConnected");
+        logger.exiting(getClass().getName(), "doOnConnected");
     }
 
     private void subscribe(JSONObject subscription) {
@@ -750,34 +744,6 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         subscriptions.addStream(SubscriptionManager.Stream.server);
         subscriptions.unpauseEventEmissions();
         return subscriptions.allSubscribed();
-    }
-
-    public Request sign(AccountID account, AccountID destination, Amount amount, String secert) {
-        JSONObject jobj = new JSONObject();
-        jobj.put("TransactionType", "Payment");
-        jobj.put("Account", account.toString());
-        jobj.put("Destination", destination.toString());
-        jobj.put("Amount", amount.toJSON());
-        Request req = newRequest(Command.sign);
-        req.json("tx_json", jobj);
-        req.json("secret", secert);
-        req.json("offline", false);
-        req.json("fee_mult_max", 1000);
-        return req;
-    }
-
-    public Request submit(AccountID account, AccountID destination, Amount amount, String secert) {
-        JSONObject jobj = new JSONObject();
-        jobj.put("TransactionType", "Payment");
-        jobj.put("Account", account.toString());
-        jobj.put("Destination", destination.toString());
-        jobj.put("Amount", amount.toJSON());
-        Request req = newRequest(Command.submit);
-        req.json("tx_json", jobj);
-        req.json("secret", secert);
-        req.json("offline", false);
-        req.json("fee_mult_max", 1000);
-        return req;
     }
 
     public Request submit(String tx_blob, boolean fail_hard) {

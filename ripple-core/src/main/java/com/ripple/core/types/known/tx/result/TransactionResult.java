@@ -35,8 +35,10 @@ public class TransactionResult implements Comparable<TransactionResult>{
     public Hash256 hash;
 
     // TODO, consider just killing this field, as not all have them
+    @Deprecated
     public Hash256 ledgerHash;
     // TODO, in practice this class is only for validated results so ...
+    @Deprecated
     public boolean validated;
 
     public TransactionResult(long ledgerIndex, Hash256 hash, Transaction txn, TransactionMeta meta) {
@@ -50,6 +52,9 @@ public class TransactionResult implements Comparable<TransactionResult>{
 
     public Transaction txn;
     public TransactionMeta  meta;
+
+    // This is deprecated because it's not always set.
+    @Deprecated
     public JSONObject       message;
 
     public boolean isPayment() {
@@ -277,7 +282,17 @@ public class TransactionResult implements Comparable<TransactionResult>{
     }
 
     @Override
-	public String toString() {
-		return message.toString();
-	}
+    public String toString() {
+        // message is deprecated
+        if (message != null) {
+            return message.toString();
+        }
+        else {
+            JSONObject object = new JSONObject();
+            object.put("tx", txn.toJSON());
+            object.put("meta", meta.toJSON());
+            object.put("ledger_index", ledgerIndex);
+            return object.toString();
+        }
+    }
 }
