@@ -102,7 +102,10 @@ public enum EngineResult implements SerializedType
     tecNO_TARGET(138, "Target account does not exist."),
     tecNO_PERMISSION(139, "No permission to perform requested operation."),
     tecNO_ENTRY(140, "No matching entry found."),
-    tecINSUFFICIENT_RESERVE(141, "Insufficient reserve to complete requested operation.");
+    tecINSUFFICIENT_RESERVE(141, "Insufficient reserve to complete requested operation."),
+    tecNEED_MASTER_KEY(142, "The operation requires the use of the Master Key."),
+    tecDST_TAG_NEEDED(143, "A destination tag is required."),
+    tecINTERNAL(144, "An internal error has occurred during processing.");
 
     public int asInteger() {
         return ord;

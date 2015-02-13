@@ -46,7 +46,7 @@ public enum LedgerEntryType implements SerializedType{
     // SeralizedType interface
     @Override
     public byte[] toBytes() {
-        return new byte[]{(byte) (ord >> 8), (byte) (ord & 0xFF)};
+        return new byte[]{(byte) ((ord >>> 8) & 0xFF), (byte) (ord & 0xFF)};
     }
     @Override
     public Object toJSON() {
@@ -63,8 +63,7 @@ public enum LedgerEntryType implements SerializedType{
     public static class Translator extends TypeTranslator<LedgerEntryType> {
         @Override
         public LedgerEntryType fromParser(BinaryParser parser, Integer hint) {
-            byte[] read = parser.read(2);
-            return fromNumber(((read[0] & 0xFF) << 8) | (read[1] & 0xFF));
+            return fromNumber(parser.readOneInt() << 8 | parser.readOneInt());
         }
 
         @Override

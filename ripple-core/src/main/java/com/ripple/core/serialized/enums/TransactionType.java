@@ -50,6 +50,7 @@ public enum TransactionType implements SerializedType {
     // SeralizedType interface
     @Override
     public byte[] toBytes() {
+        // TODO: bytes
         return new byte[]{(byte) (ord >> 8), (byte) (ord & 0xFF)};
     }
     @Override
