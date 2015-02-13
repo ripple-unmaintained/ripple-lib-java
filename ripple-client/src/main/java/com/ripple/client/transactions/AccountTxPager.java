@@ -11,15 +11,15 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class AccountTransactionsRequester {
-    public AccountTransactionsRequester(Client client, AccountID account, OnPage onPage) {
+public class AccountTxPager {
+    public AccountTxPager(Client client, AccountID account, OnPage onPage) {
         this(client, account, onPage, -1, -1);
     }
-    public AccountTransactionsRequester(Client client, AccountID account, OnPage onPage, long ledgerMin) {
+    public AccountTxPager(Client client, AccountID account, OnPage onPage, long ledgerMin) {
         this(client, account, onPage, ledgerMin, -1);
     }
 
-    public AccountTransactionsRequester(Client client, AccountID account, OnPage onPage, long ledgerMin, long ledgerMax) {
+    public AccountTxPager(Client client, AccountID account, OnPage onPage, long ledgerMin, long ledgerMax) {
         this.ledgerMax = ledgerMax;
         this.ledgerMin = ledgerMin;
         this.account = account;
@@ -37,8 +37,14 @@ public class AccountTransactionsRequester {
     private boolean aborted = false;
     private boolean forward = false;
 
+    private int limit = 2000;
+
     public void abort() {
         aborted = true;
+    }
+
+    public void setPageSize(int i) {
+        limit = i;
     }
 
     public interface Page {
@@ -72,6 +78,7 @@ public class AccountTransactionsRequester {
         }
         request.json("ledger_index_max", ledgerMax);
         request.json("ledger_index_min", ledgerMin);
+        request.json("limit", limit);
         if (forward) {
             request.json("forward", true);
         }
