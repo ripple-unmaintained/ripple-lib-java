@@ -685,6 +685,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     @Override
     public void onError(Exception error) {
+        onException(error);
     }
 
     @Override
