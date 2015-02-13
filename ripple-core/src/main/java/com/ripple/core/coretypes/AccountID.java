@@ -1,6 +1,8 @@
 package com.ripple.core.coretypes;
 
 import com.ripple.core.coretypes.hash.Hash160;
+import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.TypedFields;
@@ -18,10 +20,13 @@ import static com.ripple.config.Config.getB58IdentiferCodecs;
 
 /**
  * Originally it was intended that AccountIDs would be variable length so that's
- * why they are variable length encoded as top level field objects Note however,
- * that in practice, all account ids are just 160 bit hashes. Consider the
- * fields TakerPaysIssuer and fixed length encoding of issuers as part of amount
- * objects. Thus, we extend Hash160 which affords us some functionality.
+ * why they are variable length encoded as top level field objects.
+ *
+ * Note however, that in practice, all account ids are just 160 bit hashes.
+ * Consider the fields TakerPaysIssuer and fixed length encoding of issuers in
+ * amount serializations.
+ *
+ * Thus, we extend Hash160 which affords us some functionality.
  */
 public class AccountID extends Hash160 {
     // We can set aliases, so fromString(x) will return a given AccountID
@@ -106,6 +111,10 @@ public class AccountID extends Hash160 {
         return new Issue(Currency.fromString(code), this);
     }
 
+    public Issue issue(Currency c) {
+        return new Issue(c, this);
+    }
+
     public boolean isNativeIssuer() {
         return equals(XRP_ISSUER);
     }
@@ -129,6 +138,11 @@ public class AccountID extends Hash160 {
     @Override
     public void toBytesSink(BytesSink to) {
         to.add(bytes());
+    }
+
+    public Hash256 lineIndex(Issue issue) {
+        if (issue.isNative()) throw new AssertionError();
+        return Index.rippleState(this, issue.issuer(), issue.currency());
     }
 
     public static class Translator extends TypeTranslator<AccountID> {
