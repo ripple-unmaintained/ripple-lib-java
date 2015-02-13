@@ -1,5 +1,7 @@
 package com.ripple.core;
 
+import com.ripple.core.binary.STReader;
+import com.ripple.core.binary.STWriter;
 import com.ripple.core.coretypes.*;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.Index;
@@ -10,6 +12,8 @@ import com.ripple.core.coretypes.uint.UInt8;
 import com.ripple.core.fields.Field;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.BinarySerializer;
+import com.ripple.core.serialized.BytesList;
 import com.ripple.core.serialized.enums.EngineResult;
 import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.types.known.sle.LedgerEntry;
@@ -22,7 +26,6 @@ import com.ripple.core.types.shamap.AccountState;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.Test;
@@ -37,7 +40,7 @@ import static org.junit.Assert.*;
 
 public class STObjectTest {
     @Test
-    public void binaryParsingSerializingSanityTest2() throws FileNotFoundException, JSONException {
+    public void binaryParsingSerializingSanityTest2() throws FileNotFoundException {
 //        File f = new File("/home/nick/dumps/ledger-full-120000.json");
         File f = new File("/home/nick/dumps/ledger-full-6230000.json");
         if (!f.exists()) {
@@ -65,7 +68,7 @@ public class STObjectTest {
 
 
     @Test
-    public void binaryParsingSerializingSanityTest() throws FileNotFoundException, JSONException {
+    public void binaryParsingSerializingSanityTest() throws FileNotFoundException {
         // TODO, add this as a zipfile to the repo, so can test from it
         File f = new File("ripple-core/src/test/java/com/ripple/resources/ledgers-full.json");
         if (!f.exists()) {
@@ -113,6 +116,29 @@ public class STObjectTest {
         assertEquals(fromJsonToJsonAndBack.toJSONObject().toString(), fromJsonToJson.toString());
         assertEquals(stateObject.length(), fromJsonToJson.length());
         stateObject.put("index", index);
+    }
+
+
+    @Test
+    public void testVlEncoding() {
+        for (int i = 0; i < 918744; i++) {
+            byte[] bytes = BinarySerializer.encodeVL(i);
+            BinaryParser parser= new BinaryParser(bytes);
+            int i1 = parser.readVLLength();
+            assertEquals(i1, i);
+        }
+    }
+
+    @Test
+    public void testUintEncoding() {
+        for (int i = 0; i < 10000; i++) {
+            BytesList list = new BytesList();
+            STWriter writer = new STWriter(list);
+            UInt32 obj = new UInt32(i);
+            writer.write(obj);
+            STReader reader = new STReader(list.bytesHex());
+            assertEquals(obj, reader.uInt32());
+        }
     }
 
     @Test
@@ -349,7 +375,7 @@ public class STObjectTest {
     /**
      * We just testing this won't blow up due to unknown `date` field!
      */
-    public void testfromJSONObjectWithUnknownFields() throws JSONException {
+    public void testfromJSONObjectWithUnknownFields() {
 
         String json = "{\"date\": 434707820,\n" +
                 "\"hash\": \"66347806574036FD3D3E9FDA20A411FA8B2D26AA3C3725A107FCF0050F1E4B86\"}";
@@ -429,7 +455,7 @@ public class STObjectTest {
     }
 
     @Test
-    public void testSerializedPaymentTransaction() throws JSONException {
+    public void testSerializedPaymentTransaction() {
         String expectedSerialization = "120000240000000561D4C44364C5BB00000000000000000000000000005553440000000000B5F762798A53D543A014CAF8B297CFF8F2F937E868400000000000000F73210330E7FC9D56BB25D6893BA3F317AE5BCF33B3291BD63DB32654A313222F7FD0208114B5F762798A53D543A014CAF8B297CFF8F2F937E88314FD94A75318DE40B1D513E6764ECBCB6F1E7056ED";
 
         IKeyPair kp = Seed.getKeyPair(TestFixtures.master_seed);
@@ -449,7 +475,7 @@ public class STObjectTest {
     }
 
     @Test
-    public void testSerializedPaymentTransactionFromJSON() throws JSONException {
+    public void testSerializedPaymentTransactionFromJSON() {
         String tx_json = "{\"Amount\":{\"issuer\":\"rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh\"," +
                 "\"value\":\"12\"," +
                 "\"currency\":\"USD\"}," +
@@ -511,7 +537,7 @@ public class STObjectTest {
     }
 
     @Test
-    public void testUINT() throws JSONException {
+    public void testUINT() {
 
         STObject so = STObject.fromJSON("{\"Expiration\" : 21}");
         assertEquals(21, so.get(UInt32.Expiration).longValue());
@@ -528,7 +554,7 @@ public class STObjectTest {
     }
 
     @Test
-    public void testSymbolics() throws JSONException {
+    public void testSymbolics() {
         assertNotNull(TxFormat.fromString("Payment"));
 
         String json = "{\"Expiration\"        : 21, " +
