@@ -785,12 +785,22 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         }
     }
 
+    Random randomBugs = null;
     public void sendMessage(JSONObject object) {
         if (logger.isLoggable(Level.FINER)) {
             logger.log(Level.FINER, "Send: {0}", prettyJSON(object));
         }
         emit(OnSendMessage.class, object);
         ws.sendMessage(object);
+
+        if (randomBugs != null && randomBugs.nextInt(20) == 5) {
+            disconnect();
+            connect(previousUri);
+            String msg = "I disconnected you, now I'm gonna throw, " +
+                    "deal with it suckah! ;)";
+            logger.warning(msg);
+            throw new RuntimeException(msg);
+        }
     }
 
     private String prettyJSON(JSONObject object) {
