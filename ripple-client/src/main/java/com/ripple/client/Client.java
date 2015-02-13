@@ -160,8 +160,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         }
     }
 
-    public Request requestAccountInfo(final AccountID addy, final Manager<AccountRoot> manager) {
-        return makeManagedRequest(Command.account_info, manager, new Request.Builder<AccountRoot>() {
+    public void requestAccountInfo(final AccountID addy, final Manager<AccountRoot> manager) {
+        makeManagedRequest(Command.account_info, manager, new Request.Builder<AccountRoot>() {
             @Override
             public void beforeRequest(Request request) {
                 request.json("account", addy);
@@ -198,8 +198,8 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         });
     }
 
-    public Request requestAccountLines(final AccountID addy, final Manager<ArrayList<AccountLine>> manager) {
-        return makeManagedRequest(Command.account_lines, manager, new Request.Builder<ArrayList<AccountLine>>() {
+    public void requestAccountLines(final AccountID addy, final Manager<ArrayList<AccountLine>> manager) {
+        makeManagedRequest(Command.account_lines, manager, new Request.Builder<ArrayList<AccountLine>>() {
             @Override
             public void beforeRequest(Request request) {
                 request.json("account", addy);
@@ -221,6 +221,31 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     public void connect(String s, OnConnected onConnected) {
         connect(s);
         once(OnConnected.class, onConnected);
+    }
+
+    public void requestHostID(final Callback<String> callback) {
+        makeManagedRequest(Command.server_info, new Manager<String>() {
+            @Override
+            public void cb(Response response, String hostid) throws JSONException {
+                callback.called(hostid);
+            }
+
+            @Override
+            public boolean retryOnUnsuccessful(Response r) {
+                return true;
+            }
+        }, new Request.Builder<String>() {
+            @Override
+            public void beforeRequest(Request request) {
+
+            }
+
+            @Override
+            public String buildTypedResponse(Response response) {
+                JSONObject info = response.result.getJSONObject("info");
+                return info.getString("hostid");
+            }
+        });
     }
 
     public void whenConnected(boolean nextTick, final OnConnected onConnected) {
@@ -370,7 +395,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     protected void onException(Exception e) {
-        log(Level.WARNING, e.getLocalizedMessage(), e);
+        if (logger.isLoggable(Level.WARNING)) {
+            log(Level.WARNING, "Exception: " + e.getLocalizedMessage(), e);
+        }
     }
 
     @SuppressWarnings("unused")
@@ -527,7 +554,12 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
             return accounts.get(id);
         } else {
             TrackedAccountRoot accountRoot = accountRoot(id);
-            Account account = new Account(id, keyPair, accountRoot, new TransactionManager(this, accountRoot, id, keyPair));
+            Account account = new Account(
+                    id,
+                    keyPair,
+                    accountRoot,
+                    new TransactionManager(this, accountRoot, id, keyPair)
+            );
             accounts.put(id, account);
             subscriptions.addAccount(id);
 
@@ -688,7 +720,9 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     TransactionSubscriptionManager transactionSubscriptionManager;
 
     void onTransaction(JSONObject msg) {
-        TransactionResult tr = new TransactionResult(msg, TransactionResult.Source.transaction_subscription_notification);
+        TransactionResult tr = new TransactionResult(msg, TransactionResult
+                .Source
+                .transaction_subscription_notification);
         if (tr.validated) {
             if (transactionSubscriptionManager != null) {
                 transactionSubscriptionManager.notifyTransactionResult(tr);
