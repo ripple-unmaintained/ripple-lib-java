@@ -22,6 +22,12 @@ public class AccountStateBuilder {
 
     private TreeSet<Hash256> directoriesModifiedMoreThanOnceByTransaction = new TreeSet<Hash256>();
     private TreeSet<Hash256> directoriesModifiedByTransaction = new TreeSet<Hash256>();
+    public TreeSet<Hash256> modifiedEntries = new TreeSet<Hash256>();
+
+    public void resetModified() {
+        modifiedEntries.clear();
+        directoriesModifiedMoreThanOnceByTransaction.clear();
+    }
 
     public AccountStateBuilder(AccountState state, long targetLedgerIndex) {
         this.state = state;
@@ -42,7 +48,7 @@ public class AccountStateBuilder {
 
     public void onTransaction(TransactionResult tr) {
         if (tr.meta.transactionIndex().longValue() != nextTransactionIndex) throw new AssertionError();
-        if (tr.ledgerIndex.longValue() != targetLedgerIndex + 1) throw new AssertionError();
+        if (tr.ledgerIndex.longValue() != targetLedgerIndex + 1) throw new AssertionError(String.format("%d != %d", tr.ledgerIndex.longValue(), targetLedgerIndex + 1));
         nextTransactionIndex++;
         totalTransactions++;
         directoriesModifiedByTransaction = new TreeSet<Hash256>();
@@ -51,12 +57,13 @@ public class AccountStateBuilder {
             Hash256 id = an.ledgerIndex();
             LedgerEntry le = (LedgerEntry) an.nodeAsFinal();
             if (an.isCreatedNode()) {
+                modifiedEntries.add(id);
                 le.setDefaults();
                 state.addLE(le);
 
                 if (le instanceof Offer) {
                     Offer offer = (Offer) le;
-                    offer.setOfferDefaults();
+                    offer.setOfferDefaults(); // TODO / TODO
 
                     for (Hash256 directory : offer.directoryIndexes()) {
                         DirectoryNode dn = getDirectoryForUpdating(directory);
@@ -77,6 +84,7 @@ public class AccountStateBuilder {
                     tle.previousTxnLgrSeq(tr.ledgerIndex);
                 }
             } else if (an.isDeletedNode()) {
+                modifiedEntries.remove(id);
                 directoriesModifiedMoreThanOnceByTransaction.remove(id);
                 state.removeLeaf(id);
                 if (le instanceof Offer) {
@@ -85,11 +93,11 @@ public class AccountStateBuilder {
                         try {
                             DirectoryNode dn = getDirectoryForUpdating(directory);
                             if (dn != null) {
-                                Hash256 index = offer.index();
+//                                Hash256 index = offer.index();
                                 if (dn.owner() != null) {
-                                    directoryRemoveUnstable(dn, index);
+                                    deleteFromDirectoryUnstable(offer, dn);
                                 } else {
-                                    directoryRemoveStable(dn, index);
+                                    deleteFromDirectoryStable(offer, dn);
                                 }
                             }
                         } catch (Exception e) {
@@ -102,7 +110,7 @@ public class AccountStateBuilder {
                         try {
                             DirectoryNode dn = getDirectoryForUpdating(directory);
                             if (dn != null) {
-                                directoryRemoveUnstable(dn, state.index());
+                                deleteFromDirectoryUnstable(le, dn);
                             }
                         } catch (Exception e) {
                             //
@@ -110,6 +118,7 @@ public class AccountStateBuilder {
                     }
                 }
             } else if (an.isModifiedNode()) {
+                modifiedEntries.add(id);
                 ShaMapLeaf leaf = state.getLeafForUpdating(id);
                 LedgerEntryItem item = (LedgerEntryItem) leaf.item;
                 LedgerEntry leModded = item.entry;
@@ -124,6 +133,56 @@ public class AccountStateBuilder {
                         continue;
                     }
                     leModded.put(field, le.get(field));
+                }
+            }
+        }
+    }
+
+    private void deleteFromDirectoryUnstable(LedgerEntry b4, DirectoryNode dn) {
+        boolean b = directoryRemoveUnstable(dn, b4.index());
+        DirectoryNode cursor = dn;
+
+        if (!b) {
+            while (cursor.indexNext() != null) {
+                cursor = getDirectoryForUpdating(cursor.nextIndex());
+                b  = directoryRemoveUnstable(cursor, b4.index());
+                if (b) {
+                    break;
+                }
+            }
+        }
+//
+        if (!b) {
+            cursor = dn;
+            while (cursor.indexPrevious() != null) {
+                cursor = getDirectoryForUpdating(cursor.prevIndex());
+                b  = directoryRemoveUnstable(cursor, b4.index());
+                if (b) {
+                    break;
+                }
+            }
+        }
+    }
+    private void deleteFromDirectoryStable(LedgerEntry b4, DirectoryNode dn) {
+        boolean b = directoryRemoveStable(dn, b4.index());
+        DirectoryNode cursor = dn;
+
+        if (!b) {
+            cursor = dn;
+            while (cursor.indexPrevious() != null) {
+                cursor = getDirectoryForUpdating(cursor.prevIndex());
+                b  = directoryRemoveStable(cursor, b4.index());
+                if (b) {
+                    break;
+                }
+            }
+        }
+        if (!b) {
+            while (cursor.indexNext() != null) {
+                cursor = getDirectoryForUpdating(cursor.nextIndex());
+                b  = directoryRemoveStable(cursor, b4.index());
+                if (b) {
+                    break;
                 }
             }
         }
@@ -169,13 +228,13 @@ public class AccountStateBuilder {
             directoriesModifiedByTransaction.add(index);
         }
     }
-    private void directoryRemoveStable(DirectoryNode dn, Hash256 index) {
+    private boolean directoryRemoveStable(DirectoryNode dn, Hash256 index) {
         onDirectoryModified(dn);
-        dn.indexes().remove(index);
+        return dn.indexes().remove(index);
     }
-    private void directoryRemoveUnstable(DirectoryNode dn, Hash256 index) {
+    private boolean directoryRemoveUnstable(DirectoryNode dn, Hash256 index) {
         onDirectoryModified(dn);
-        dn.indexes().removeUnstable(index);
+        return dn.indexes().removeUnstable(index);
     }
     private void addToDirectoryNode(DirectoryNode dn, Hash256 index) {
         onDirectoryModified(dn);
@@ -222,5 +281,9 @@ public class AccountStateBuilder {
 
     public AccountState previousState() {
         return previousState;
+    }
+
+    public void setState(AccountState map) {
+        state = map;
     }
 }
