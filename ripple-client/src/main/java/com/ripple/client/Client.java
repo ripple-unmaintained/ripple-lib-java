@@ -140,6 +140,29 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         });
     }
 
+    public void requestLedgerData(final long ledger_index, final Manager<ArrayList<LedgerEntry>> manager) {
+        makeManagedRequest(Command.ledger_data, manager, new Request.Builder<ArrayList<LedgerEntry>>() {
+            @Override
+            public void beforeRequest(Request request) {
+                request.json("ledger_index", ledger_index);
+                request.json("binary", true);
+            }
+
+            @Override
+            public ArrayList<LedgerEntry> buildTypedResponse(Response response) {
+                JSONArray state = response.result.getJSONArray("state");
+                ArrayList<LedgerEntry> result = new ArrayList<LedgerEntry>();
+                for (int i = 0; i < state.length(); i++) {
+                    JSONObject stateObject = state.getJSONObject(i);
+                    LedgerEntry le = (LedgerEntry) STObject.fromHex(stateObject.getString("data"));
+                    le.index(Hash256.fromHex(stateObject.getString("index")));
+                    result.add(le);
+                }
+                return result;
+            }
+        });
+    }
+
     public Request requestAccountLines(final AccountID addy, final Manager<ArrayList<AccountLine>> manager) {
         return makeManagedRequest(Command.account_lines, manager, new Request.Builder<ArrayList<AccountLine>>() {
             @Override
