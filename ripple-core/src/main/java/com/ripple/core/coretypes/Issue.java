@@ -1,5 +1,6 @@
 package com.ripple.core.coretypes;
 
+import com.ripple.core.coretypes.hash.Hash160;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -32,6 +33,19 @@ public class Issue implements Comparable<Issue> {
         } else {
             throw new RuntimeException("Issue string must be XRP or $currency/$issuer");
         }
+    }
+
+    /**
+     * See {@link com.ripple.core.fields.Field#TakerGetsCurrency}
+     * See {@link com.ripple.core.fields.Field#TakerGetsIssuer}
+     *
+     * TODO: better handling of Taker(Gets|Pays)(Issuer|Curency)
+     *       maybe special subclasses of AccountID / Currency
+     *       respectively?
+     */
+    public static Issue from160s(Hash160 currency, Hash160 issuer) {
+        return new Issue(new Currency(currency.bytes()),
+                new AccountID(issuer.toBytes()));
     }
 
     public Currency currency() {
