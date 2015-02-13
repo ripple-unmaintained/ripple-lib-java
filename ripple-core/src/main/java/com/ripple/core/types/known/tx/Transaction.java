@@ -72,4 +72,7 @@ public class Transaction extends STObject {
     public void txnSignature(VariableLength val) {put(Field.TxnSignature, val);}
     public void account(AccountID val) {put(Field.Account, val);}
 
+    public Hash256 hash() {
+        return get(Hash256.hash);
+    }
 }
