@@ -98,24 +98,44 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     public <T> Request makeManagedRequest(final Command cmd, final Manager<T> manager, final Request.Builder<T> builder) {
-        Request request = newRequest(cmd);
+        final Request request = newRequest(cmd);
+        final boolean[] responded = new boolean[]{false};
+        request.once(Request.OnTimeout.class, new Request.OnTimeout() {
+            @Override
+            public void called(Response args) {
+                if (!responded[0] && manager.retryOnUnsuccessful(null)) {
+                    logRetry(request, "Request timed out");
+                    request.clearAllListeners();
+                    queueRetry(50, cmd, manager, builder);
+                }
+            }
+        });
+        final OnDisconnected cb = new OnDisconnected() {
+            @Override
+            public void called(Client c) {
+                if (!responded[0] && manager.retryOnUnsuccessful(null)) {
+                    logRetry(request, "Client disconnected");
+                    request.clearAllListeners();
+                    queueRetry(50, cmd, manager, builder);
+                }
+            }
+        };
+        once(OnDisconnected.class, cb);
         request.once(Request.OnResponse.class, new Request.OnResponse() {
             @Override
-            public void called(Response response) {
-                try {
-                    if (response.succeeded) {
-                        T t = builder.buildTypedResponse(response);
-                        manager.cb(response, t);
+            public void called(final Response response) {
+                responded[0] = true;
+                Client.this.removeListener(OnDisconnected.class, cb);
 
+                if (response.succeeded) {
+                    final T t = builder.buildTypedResponse(response);
+                    manager.cb(response, t);
+                } else {
+                    if (manager.retryOnUnsuccessful(response)) {
+                        queueRetry(50, cmd, manager, builder);
                     } else {
-                        if (manager.retryOnUnsuccessful(response)) {
-                            makeManagedRequest(cmd, manager, builder);
-                        } else {
-                            manager.cb(response, null);
-                        }
+                        manager.cb(response, null);
                     }
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
                 }
             }
         });
@@ -123,6 +143,25 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         manager.beforeRequest(request);
         request.request();
         return request;
+    }
+
+    private <T> void queueRetry(int ms,
+                                final Command cmd,
+                                final Manager<T> manager,
+                                final Request.Builder<T> builder) {
+        schedule(ms, new Runnable() {
+            @Override
+            public void run() {
+                makeManagedRequest(cmd, manager, builder);
+            }
+        });
+    }
+
+    private void logRetry(Request request, String reason) {
+        if (logger.isLoggable(Level.WARNING)) {
+            log(Level.WARNING, previousUri + ": " + reason + ", muting listeners " +
+                    "for " + request.json() + "and trying again");
+        }
     }
 
     public Request requestAccountInfo(final AccountID addy, final Manager<AccountRoot> manager) {
@@ -188,6 +227,40 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
         once(OnConnected.class, onConnected);
     }
 
+    public void whenConnected(boolean nextTick, final OnConnected onConnected) {
+        if (connected) {
+            if (nextTick) {
+                schedule(0, new Runnable() {
+                    @Override
+                    public void run() {
+                        onConnected.called(Client.this);
+                    }
+                });
+            } else {
+                onConnected.called(this);
+            }
+        }  else {
+            once(OnConnected.class, onConnected);
+        }
+    }
+
+    public void onConnected(OnConnected onConnected) {
+        this.on(OnConnected.class, onConnected);
+    }
+
+    public void disconnect(OnDisconnected onDisconnected) {
+        this.once(OnDisconnected.class, onDisconnected);
+        disconnect();
+    }
+
+    public void nowOrWhenConnected(OnConnected onConnected) {
+        whenConnected(false, onConnected);
+    }
+
+    public void nextTickOrWhenConnected(OnConnected onConnected) {
+        whenConnected(true, onConnected);
+    }
+
     public static interface events<T> extends Publisher.Callback<T> {
     }
 
@@ -231,7 +304,17 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     private void disconnectSocketAndNotify() {
         ws.disconnect();
-        emit(OnDisconnected.class, Client.this); 
+        // We need to do this manually
+        // TODO: check for bug in JavaWebSocket
+        // TODO: shouldn't assume this is the case
+        emitOnDisconnected();
+    }
+
+    private void emitOnDisconnected() {
+        // This ensures that the callback method onDisconnect is
+        // called before a new connection is established this keeps
+        // the symmetry of connect-> disconnect -> reconnect
+        emit(OnDisconnected.class, this);
     }
 
     public void dispose() {
@@ -346,8 +429,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
                         if (msSince > ms) {
                             // we don't call disconnect, cause that will set the
                             lastConnection = defaultValue;
-                            ws.disconnect();
-                            emit(OnDisconnected.class, Client.this); // otherwise the "onDisconnect" callback would only be called after the first failed reconnect attempt. This added line keeps the symmetry of disconnect->reconnect 
+                            disconnectSocketAndNotify();
                             connect(previousUri);
                         }
                     }
@@ -428,8 +510,7 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     }
 
     public Request ping() {
-        Request request = newRequest(Command.ping);
-        return request;
+        return newRequest(Command.ping);
     }
 
     public Request subscribeAccount(AccountID... accounts) {
@@ -544,15 +625,16 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
      *
      * @see #onMessage(org.json.JSONObject)
      */
-    public void connect(final String uri) {
+    public Client connect(final String uri) {
         manuallyDisconnected = false;
 
-        run(new Runnable() {
+        schedule(50, new Runnable() {
             @Override
             public void run() {
                 doConnect(uri);
             }
         });
+        return this;
     }
 
     /**
@@ -701,11 +783,10 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
     private void doOnDisconnected() {
         logger.entering(getClass().getName(), "doOnDisconnected");
         connected = false;
-        
-        emit(OnDisconnected.class, this); //this ensures that the callback method onDisconnect is called before a new connection is established this keeps the symmetry of connect-> disconnect -> reconnect 
+        emitOnDisconnected();
+
 
         if (!manuallyDisconnected) {
-            // Reconnect in 50ms
             schedule(reconnectDelay(), new Runnable() {
                 @Override
                 public void run() {

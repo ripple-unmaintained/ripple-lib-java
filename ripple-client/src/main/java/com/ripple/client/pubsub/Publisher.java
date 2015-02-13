@@ -147,4 +147,8 @@ public class Publisher<EventClass extends Publisher.Callback> {
     public <T extends EventClass> boolean removeListener(Class<T> key, Callback cb) {
         return listFor(key).remove(cb);
     }
+
+    public void clearAllListeners() {
+        cbs.clear();
+    }
 }
