@@ -22,6 +22,7 @@ public class BinarySerializer {
     }
 
     public static byte[] encodeVL(int  length) {
+        // TODO: bytes
         byte[] lenBytes = new byte[4];
 
         if (length <= 192)
