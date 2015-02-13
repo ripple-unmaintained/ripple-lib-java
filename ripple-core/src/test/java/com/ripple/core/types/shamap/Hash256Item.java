@@ -22,6 +22,11 @@ public class Hash256Item extends ShaMapItem<Hash256> {
     }
 
     @Override
+    public Hash256 value() {
+        return item;
+    }
+
+    @Override
     public Prefix hashPrefix() {
         return new Prefix() {
             @Override

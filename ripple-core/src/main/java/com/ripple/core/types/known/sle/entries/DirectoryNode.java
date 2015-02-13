@@ -45,11 +45,11 @@ public class DirectoryNode extends LedgerEntry {
     }
 
     public boolean hasPreviousIndex() {
-        return indexPrevious() != null;
+        return indexPrevious() != null && !indexPrevious().isZero();
     }
 
     public boolean hasNextIndex() {
-        return indexNext() != null;
+        return indexNext() != null && !indexNext().isZero();
     }
 
     public boolean isRootIndex() {

@@ -25,4 +25,14 @@ public class TransactionTree extends ShaMap {
     public TransactionTree copy() {
         return (TransactionTree) super.copy();
     }
+
+    public void walkTransactions(final TransactionResultVisitor walker) {
+        walkLeaves(new LeafWalker() {
+            @Override
+            public void onLeaf(ShaMapLeaf leaf) {
+                TransactionResultItem item = (TransactionResultItem) leaf.item;
+                walker.onTransaction(item.result);
+            }
+        });
+    }
 }
