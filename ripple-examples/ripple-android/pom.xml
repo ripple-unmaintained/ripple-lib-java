@@ -44,9 +44,9 @@
         <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
-                <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                <groupId>com.simpligility.maven.plugins</groupId>
                 <artifactId>android-maven-plugin</artifactId>
-                <version>3.8.2</version>
+                <version>4.1.1</version>
                 <configuration>
                     <extractDuplicates>true</extractDuplicates>
                     <androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
@@ -66,7 +66,7 @@
 
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.5.1</version>
+                <version>3.2</version>
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
@@ -116,9 +116,9 @@
                     </plugin>
 
                     <plugin>
-                        <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                        <groupId>com.simpligility.maven.plugins</groupId>
                         <artifactId>android-maven-plugin</artifactId>
-                        <version>3.8.2</version>
+                        <version>4.1.1</version>
                         <inherited>true</inherited>
                         <configuration>
                             <sign>
@@ -150,7 +150,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>1.8</version>
+                        <version>1.9.1</version>
                         <configuration>
                             <artifacts>
                                 <artifact>

@@ -30,19 +30,10 @@ before_install:
  - ls -lah ${ANDROID_HOME}/build-tools
  - ls -lah ${ANDROID_HOME}/tools
  - ls -lah ${ANDROID_HOME}/platform-tools
- 
+
  # Do this last because it takes so damn long, it's quicker to iterate on
  # refinements to prior section
- - sudo rm -rf /usr/local/maven*
- - sudo sed -ie '/M2_HOME/d' /etc/mavenrc
-
- - sudo apt-get update -qq
- - sudo apt-get install -qq python-software-properties
- - sudo add-apt-repository -y ppa:natecarlson/maven3
- - sudo apt-get update -qq
-
- - sudo apt-get install maven3
- - sudo ln -s /usr/share/maven3/bin/mvn /usr/bin/mvn
+ - sudo apt-get update
  - sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch
 
  # -e shows full stack trace on errors
