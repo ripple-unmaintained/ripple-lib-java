@@ -17,5 +17,6 @@
     <modules>
         <module>ripple-android</module>
         <module>ripple-cli</module>
+        <module>ripple-java-8</module>
     </modules>
 </project>
