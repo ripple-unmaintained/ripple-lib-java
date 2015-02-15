@@ -22,7 +22,7 @@ abstract public class Hash<Subclass extends Hash> implements SerializedType, Com
     @Override
     public int hashCode() {
         if (hashCode == -1) {
-            hashCode = new BigInteger(1, hash).hashCode();
+            hashCode = Arrays.hashCode(hash);
         }
         return hashCode;
     }
