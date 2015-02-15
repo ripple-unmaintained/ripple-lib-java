@@ -1,11 +1,10 @@
 
 package com.ripple.core.serialized;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import com.ripple.core.runtime.Value;
 import com.ripple.encodings.common.B16;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * @param <T> The SerializedType class

@@ -3,12 +3,12 @@ package com.ripple.core.types.ledger;
 import com.ripple.core.binary.STReader;
 import com.ripple.core.coretypes.RippleDate;
 import com.ripple.core.coretypes.hash.HalfSha512;
-import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
-import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
+import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesSink;
 
 import java.util.Date;

@@ -6,10 +6,6 @@ import com.ripple.core.types.known.sle.entries.Offer;
 import org.json.JSONObject;
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-
 import static junit.framework.TestCase.assertEquals;
 
 public class OfferTest {

@@ -3,7 +3,6 @@ package com.ripple.client.types;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.Currency;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigDecimal;

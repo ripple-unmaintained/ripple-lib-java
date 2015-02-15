@@ -1,9 +1,12 @@
 package com.ripple.core.coretypes;
 
+import com.ripple.core.fields.Field;
 import com.ripple.core.fields.PathSetField;
 import com.ripple.core.fields.Type;
-import com.ripple.core.serialized.*;
-import com.ripple.core.fields.Field;
+import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.BytesSink;
+import com.ripple.core.serialized.SerializedType;
+import com.ripple.core.serialized.TypeTranslator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

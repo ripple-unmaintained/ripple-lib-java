@@ -1,6 +1,5 @@
 package com.ripple.client;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class JSONBuilder {

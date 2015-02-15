@@ -10,7 +10,6 @@ import com.ripple.core.types.known.sle.LedgerHashes;
 import com.ripple.core.types.known.sle.entries.DirectoryNode;
 import com.ripple.core.types.known.sle.entries.OfferDirectory;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 

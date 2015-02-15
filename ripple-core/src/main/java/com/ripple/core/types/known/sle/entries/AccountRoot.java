@@ -7,9 +7,8 @@ import com.ripple.core.coretypes.hash.Hash128;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.enums.LedgerFlag;
-import com.ripple.core.fields.Type;
-import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
+import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.types.known.sle.ThreadedLedgerEntry;
 
 public class AccountRoot extends ThreadedLedgerEntry {

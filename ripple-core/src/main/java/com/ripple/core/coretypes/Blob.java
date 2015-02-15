@@ -1,8 +1,8 @@
 
 package com.ripple.core.coretypes;
 
-import com.ripple.core.fields.Field;
 import com.ripple.core.fields.BlobField;
+import com.ripple.core.fields.Field;
 import com.ripple.core.fields.Type;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesSink;

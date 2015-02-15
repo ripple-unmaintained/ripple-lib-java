@@ -1,6 +1,9 @@
 package com.ripple.core.types.known.sle.entries;
 
-import com.ripple.core.coretypes.*;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Amount;
+import com.ripple.core.coretypes.Currency;
+import com.ripple.core.coretypes.Issue;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;

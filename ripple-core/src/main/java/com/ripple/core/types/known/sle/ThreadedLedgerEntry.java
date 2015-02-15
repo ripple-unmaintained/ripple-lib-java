@@ -3,8 +3,8 @@ package com.ripple.core.types.known.sle;
 
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt32;
-import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
+import com.ripple.core.serialized.enums.LedgerEntryType;
 
 // this class has a PreviousTxnID and PreviousTxnLgrSeq
 abstract public class ThreadedLedgerEntry extends LedgerEntry {

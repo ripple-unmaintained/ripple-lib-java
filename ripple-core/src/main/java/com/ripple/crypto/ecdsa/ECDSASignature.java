@@ -1,13 +1,13 @@
 package com.ripple.crypto.ecdsa;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigInteger;
-
 import org.ripple.bouncycastle.asn1.ASN1InputStream;
 import org.ripple.bouncycastle.asn1.DERInteger;
 import org.ripple.bouncycastle.asn1.DERSequenceGenerator;
 import org.ripple.bouncycastle.asn1.DLSequence;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.math.BigInteger;
 
 public class ECDSASignature {
     /** The two components of the signature. */

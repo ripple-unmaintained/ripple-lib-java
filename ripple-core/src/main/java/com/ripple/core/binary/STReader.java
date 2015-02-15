@@ -1,15 +1,15 @@
 package com.ripple.core.binary;
 
-import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
-import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.coretypes.*;
 import com.ripple.core.coretypes.hash.Hash128;
 import com.ripple.core.coretypes.hash.Hash160;
 import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.coretypes.uint.UInt16;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
+import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.StreamBinaryParser;
 import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.tx.Transaction;

@@ -6,7 +6,6 @@ import org.junit.Test;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
 public class RippleDateTest extends TestCase {
     @Test

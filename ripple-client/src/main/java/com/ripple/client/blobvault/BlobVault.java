@@ -2,9 +2,9 @@ package com.ripple.client.blobvault;
 
 import com.ripple.crypto.sjcljson.JSONEncrypt;
 import com.ripple.encodings.common.B16;
+import org.json.JSONObject;
 import org.ripple.bouncycastle.crypto.InvalidCipherTextException;
 import org.ripple.bouncycastle.util.encoders.Base64;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -6,7 +6,6 @@ import com.ripple.crypto.ecdsa.Seed;
 import com.ripple.encodings.B58IdentiferCodecs;
 import org.junit.Test;
 
-import static com.ripple.config.Config.getB58IdentiferCodecs;
 import static org.junit.Assert.assertEquals;
 
 public class SeedTest {

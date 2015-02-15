@@ -1,24 +1,23 @@
 package com.ripple.cli;
 
-import static com.ripple.cli.log.Log.log;
-
-import java.io.IOException;
-
+import com.ripple.client.Account;
+import com.ripple.client.Client;
+import com.ripple.client.blobvault.BlobVault;
+import com.ripple.client.responses.Response;
 import com.ripple.client.transactions.ManagedTxn;
+import com.ripple.client.transactions.TransactionManager;
+import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
+import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.coretypes.Amount;
 import com.ripple.core.types.known.tx.result.TransactionResult;
 import com.ripple.core.types.known.tx.txns.Payment;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ripple.bouncycastle.crypto.InvalidCipherTextException;
 
-import com.ripple.client.Account;
-import com.ripple.client.Client;
-import com.ripple.client.blobvault.BlobVault;
-import com.ripple.client.responses.Response;
-import com.ripple.client.transactions.TransactionManager;
-import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
-import com.ripple.core.coretypes.AccountID;
-import com.ripple.core.coretypes.Amount;
+import java.io.IOException;
+
+import static com.ripple.cli.log.Log.log;
 
 public class MakePayment {
     /**

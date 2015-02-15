@@ -1,15 +1,15 @@
 package com.ripple.crypto.sjcljson;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.ripple.bouncycastle.crypto.InvalidCipherTextException;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class JSONEncryptTest {
     @Test

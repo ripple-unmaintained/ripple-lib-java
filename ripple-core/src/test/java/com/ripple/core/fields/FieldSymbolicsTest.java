@@ -1,11 +1,5 @@
 package com.ripple.core.fields;
 
-import org.junit.Test;
-
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
-
 public class FieldSymbolicsTest {
 
 

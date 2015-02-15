@@ -12,7 +12,6 @@ import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.encodings.common.B16;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;

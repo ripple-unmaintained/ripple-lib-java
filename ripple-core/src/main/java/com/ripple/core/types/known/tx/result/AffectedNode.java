@@ -2,9 +2,9 @@ package com.ripple.core.types.known.tx.result;
 
 import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.hash.Hash256;
-import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
 import com.ripple.core.serialized.SerializedType;
+import com.ripple.core.serialized.enums.LedgerEntryType;
 
 // TODO: fix up this nonsense
 public class AffectedNode extends STObject {

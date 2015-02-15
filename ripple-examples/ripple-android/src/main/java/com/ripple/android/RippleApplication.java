@@ -1,9 +1,8 @@
 
 package com.ripple.android;
 
-import com.ripple.android.client.AndroidClient;
-
 import android.app.Application;
+import com.ripple.android.client.AndroidClient;
 
 public class RippleApplication extends Application {
     public AndroidClient client;

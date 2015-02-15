@@ -2,13 +2,13 @@ import com.ripple.client.Client
 import com.ripple.client.blobvault.BlobVault
 import com.ripple.client.transactions.TransactionManager
 import com.ripple.client.transport.impl.JavaWebSocketTransportImpl
-
 import com.ripple.core.types.known.tx.txns.Payment
 import org.json.JSONObject
 
+import static com.ripple.core.coretypes.AccountID.Destination
+
 // Events
 // Fields
-import static com.ripple.core.coretypes.AccountID.Destination
 import static com.ripple.core.coretypes.Amount.Amount
 
 // run the main ;)

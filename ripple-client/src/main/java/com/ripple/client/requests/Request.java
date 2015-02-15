@@ -1,9 +1,9 @@
 package com.ripple.client.requests;
 
 import com.ripple.client.Client;
-import com.ripple.client.responses.Response;
 import com.ripple.client.enums.Command;
 import com.ripple.client.pubsub.Publisher;
+import com.ripple.client.responses.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
 

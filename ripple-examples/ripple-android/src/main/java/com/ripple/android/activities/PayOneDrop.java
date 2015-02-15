@@ -1,32 +1,12 @@
 
 package com.ripple.android.activities;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-
-import android.text.method.ScrollingMovementMethod;
-import com.ripple.client.transactions.ManagedTxn;
-import com.ripple.core.types.known.tx.result.TransactionResult;
-import com.ripple.core.types.known.tx.txns.Payment;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
-
+import android.widget.*;
 import com.ripple.android.JSON;
 import com.ripple.android.Logger;
 import com.ripple.android.R;
@@ -37,9 +17,21 @@ import com.ripple.client.Client;
 import com.ripple.client.blobvault.BlobVault;
 import com.ripple.client.responses.Response;
 import com.ripple.client.subscriptions.TrackedAccountRoot;
+import com.ripple.client.transactions.ManagedTxn;
 import com.ripple.client.transactions.TransactionManager;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
+import com.ripple.core.types.known.tx.result.TransactionResult;
+import com.ripple.core.types.known.tx.txns.Payment;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 public class PayOneDrop extends Activity {
     AndroidClient client;

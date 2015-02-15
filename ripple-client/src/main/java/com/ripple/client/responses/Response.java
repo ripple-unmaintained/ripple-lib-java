@@ -1,11 +1,10 @@
 package com.ripple.client.responses;
 
-import org.json.JSONObject;
-
 import com.ripple.client.enums.RPCErr;
 import com.ripple.client.requests.Request;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.serialized.enums.EngineResult;
+import org.json.JSONObject;
 
 public class Response {
     public JSONObject message;

@@ -3,7 +3,6 @@ package com.ripple.client.subscriptions;
 import com.ripple.client.pubsub.Publisher;
 import com.ripple.core.coretypes.AccountID;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Collection;

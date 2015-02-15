@@ -1,8 +1,8 @@
 package com.ripple.core.coretypes.hash;
 
+import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.Hash160Field;
-import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.fields.Type;
 import com.ripple.core.serialized.BytesSink;
 

@@ -1,9 +1,6 @@
 package com.ripple.core.types.ledger;
 
 import com.ripple.core.binary.STReader;
-import com.ripple.core.coretypes.STObject;
-import com.ripple.core.coretypes.Vector256;
-import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.serialized.BinaryParser;
 import org.junit.Test;

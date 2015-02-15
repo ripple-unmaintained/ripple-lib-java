@@ -1,10 +1,13 @@
 package com.ripple.core.coretypes;
 
+import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.Type;
 import com.ripple.core.fields.Vector256Field;
-import com.ripple.core.serialized.*;
-import com.ripple.core.coretypes.hash.Hash256;
+import com.ripple.core.serialized.BinaryParser;
+import com.ripple.core.serialized.BytesSink;
+import com.ripple.core.serialized.SerializedType;
+import com.ripple.core.serialized.TypeTranslator;
 import com.ripple.encodings.common.B16;
 import org.json.JSONArray;
 

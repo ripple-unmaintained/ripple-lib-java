@@ -4,7 +4,6 @@ import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.PathSet;
 import com.ripple.core.coretypes.hash.Hash256;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;

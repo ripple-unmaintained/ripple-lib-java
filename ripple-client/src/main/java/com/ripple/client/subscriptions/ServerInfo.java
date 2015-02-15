@@ -1,8 +1,8 @@
 package com.ripple.client.subscriptions;
 
 import com.ripple.config.Config;
-import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.core.coretypes.Amount;
+import com.ripple.core.types.known.tx.Transaction;
 import org.json.JSONObject;
 
 // TODO, really want to split this into a few classes

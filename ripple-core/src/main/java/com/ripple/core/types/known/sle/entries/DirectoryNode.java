@@ -7,8 +7,8 @@ import com.ripple.core.coretypes.hash.Hash160;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt64;
-import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.fields.Field;
+import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.types.known.sle.LedgerEntry;
 
 public class DirectoryNode extends LedgerEntry {

@@ -8,13 +8,13 @@ import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
 import com.ripple.core.fields.*;
-import com.ripple.core.serialized.enums.EngineResult;
-import com.ripple.core.serialized.enums.LedgerEntryType;
-import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.formats.Format;
 import com.ripple.core.formats.LEFormat;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.*;
+import com.ripple.core.serialized.enums.EngineResult;
+import com.ripple.core.serialized.enums.LedgerEntryType;
+import com.ripple.core.serialized.enums.TransactionType;
 import org.json.JSONObject;
 
 import java.util.EnumMap;
@@ -388,7 +388,7 @@ public class STObject implements SerializedType, Iterable<Field> {
                 case UInt64:        return UInt64.translate;
                 case Hash128:       return Hash128.translate;
                 case Hash256:       return Hash256.translate;
-                case Blob:return Blob.translate;
+                case Blob:          return Blob.translate;
                 case AccountID:     return AccountID.translate;
                 case STArray:       return STArray.translate;
                 case UInt8:         return UInt8.translate;

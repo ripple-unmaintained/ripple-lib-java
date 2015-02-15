@@ -1,7 +1,6 @@
 package com.ripple.core.coretypes;
 
 import com.ripple.core.coretypes.hash.Hash160;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigDecimal;
