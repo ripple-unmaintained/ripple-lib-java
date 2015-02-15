@@ -196,10 +196,10 @@ public class Offer extends ThreadedLedgerEntry {
 
     public void setOfferDefaults() {
         if (bookNode() == null) {
-            bookNode(new UInt64(0));
+            bookNode(UInt64.ZERO);
         }
         if (ownerNode() == null) {
-            ownerNode(new UInt64(0));
+            ownerNode(UInt64.ZERO);
         }
     }
 

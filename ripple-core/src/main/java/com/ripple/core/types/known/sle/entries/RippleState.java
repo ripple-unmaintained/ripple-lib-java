@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class RippleState extends ThreadedLedgerEntry {
-    /*
+    /**
     The RippleState is a ledger entry which roughly speaking defines the balance and
     trust limits between two accounts.
 
@@ -206,10 +206,10 @@ public class RippleState extends ThreadedLedgerEntry {
         super.setDefaults();
 
         if (lowNode() == null) {
-            lowNode(new UInt64(0));
+            lowNode(UInt64.ZERO);
         }
         if (highNode() == null) {
-            highNode(new UInt64(0));
+            highNode(UInt64.ZERO);
         }
     }
 }

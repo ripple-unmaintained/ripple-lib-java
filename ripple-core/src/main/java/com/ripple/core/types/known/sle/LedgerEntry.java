@@ -54,7 +54,7 @@ public class LedgerEntry extends STObject {
 
     public void setDefaults() {
         if (flags() == null) {
-            flags(new UInt32(0));
+            flags(UInt32.ZERO);
         }
     }
 
