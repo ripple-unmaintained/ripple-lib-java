@@ -8,6 +8,8 @@ import com.ripple.core.serialized.TypeTranslator;
 import java.math.BigInteger;
 
 public class UInt32 extends UInt<UInt32> {
+    public final static UInt32 ZERO = new UInt32(0);
+
     public static TypeTranslator<UInt32> translate = new UINTTranslator<UInt32>() {
         @Override
         public UInt32 newInstance(BigInteger i) {
