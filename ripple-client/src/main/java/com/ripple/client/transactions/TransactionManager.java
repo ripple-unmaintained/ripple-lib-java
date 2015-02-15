@@ -171,7 +171,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                                                                 lastLedgerCheckedAccountTxns - 5);
 
                 // Very important VVVVV
-                txnRequester.setForward(true);
+                txnRequester.forward(true);
                 txnRequester.request();
             }
         }

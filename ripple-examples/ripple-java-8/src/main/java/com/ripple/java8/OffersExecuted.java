@@ -9,10 +9,10 @@ import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.types.known.sle.entries.Offer;
 import com.ripple.core.types.known.tx.result.TransactionResult;
 
-public class Lambdas {
+public class OffersExecuted {
     public static void main(String[] args) {
         new Client(new JavaWebSocketTransportImpl())
-            .connect("wss://s-east.ripple.com", Lambdas::onceConnected);
+            .connect("wss://s-east.ripple.com", OffersExecuted::onceConnected);
     }
 
     private static void onceConnected(Client c) {
