@@ -1,6 +1,7 @@
 package com.ripple.core.coretypes;
 
 import com.ripple.core.fields.Field;
+import com.ripple.core.fields.Type;
 import com.ripple.core.fields.Vector256Field;
 import com.ripple.core.serialized.*;
 import com.ripple.core.coretypes.hash.Hash256;
@@ -41,6 +42,11 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
         for (Hash256 hash256 : this) {
             hash256.toBytesSink(to);
         }
+    }
+
+    @Override
+    public Type type() {
+        return Type.Vector256;
     }
 
     /**

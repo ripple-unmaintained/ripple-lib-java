@@ -1,5 +1,7 @@
 /* DO NOT EDIT, AUTO GENERATED */
 package com.ripple.core.fields;
+import com.ripple.core.coretypes.hash.Hash160;
+
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -13,7 +15,7 @@ public enum Type {
     Hash128(4),
     Hash256(5),
     Amount(6),
-    VariableLength(7),
+    Blob(7),
     AccountID(8),
     STObject(14),
     STArray(15),

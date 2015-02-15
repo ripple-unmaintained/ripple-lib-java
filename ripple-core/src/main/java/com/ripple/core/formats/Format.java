@@ -4,10 +4,16 @@ import com.ripple.core.fields.Field;
 
 import java.util.EnumMap;
 
-public class Format {
+abstract public class Format {
     public void addCommonFields(){}
 
     EnumMap<Field, Requirement> requirementEnumMap = new EnumMap<Field, Requirement>(Field.class);
+
+    public EnumMap<Field, Requirement> requirements() {
+        return requirementEnumMap;
+    }
+
+    abstract  public String name ();
 
     public Format(Object[] args) {
         if ((!(args.length % 2 == 0)) || args.length < 2) {
@@ -31,5 +37,4 @@ public class Format {
         DEFAULT( 2);
         Requirement(int i) {}
     }
-
 }

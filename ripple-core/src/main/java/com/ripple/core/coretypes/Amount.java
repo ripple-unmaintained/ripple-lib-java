@@ -2,6 +2,7 @@ package com.ripple.core.coretypes;
 
 import com.ripple.core.fields.AmountField;
 import com.ripple.core.fields.Field;
+import com.ripple.core.fields.Type;
 import com.ripple.core.serialized.*;
 import com.ripple.core.coretypes.uint.UInt64;
 import org.json.JSONObject;
@@ -437,6 +438,11 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
             to.add(currency.bytes());
             to.add(issuer.bytes());
         }
+    }
+
+    @Override
+    public Type type() {
+        return Type.Amount;
     }
 
     public static class Translator extends TypeTranslator<Amount> {

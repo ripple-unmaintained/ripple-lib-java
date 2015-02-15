@@ -9,7 +9,7 @@ import com.ripple.core.fields.Field;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.STObject;
-import com.ripple.core.coretypes.VariableLength;
+import com.ripple.core.coretypes.Blob;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.uint.UInt16;
 import com.ripple.core.coretypes.uint.UInt32;
@@ -56,8 +56,8 @@ public class Transaction extends STObject {
     public Hash256 previousTxnID() {return get(Hash256.PreviousTxnID);}
     public Hash256 accountTxnID() {return get(Hash256.AccountTxnID);}
     public Amount fee() {return get(Amount.Fee);}
-    public VariableLength signingPubKey() {return get(VariableLength.SigningPubKey);}
-    public VariableLength txnSignature() {return get(VariableLength.TxnSignature);}
+    public Blob signingPubKey() {return get(Blob.SigningPubKey);}
+    public Blob txnSignature() {return get(Blob.TxnSignature);}
     public AccountID account() {return get(AccountID.Account);}
     public void transactionType(UInt16 val) {put(Field.TransactionType, val);}
     public void flags(UInt32 val) {put(Field.Flags, val);}
@@ -68,8 +68,8 @@ public class Transaction extends STObject {
     public void previousTxnID(Hash256 val) {put(Field.PreviousTxnID, val);}
     public void accountTxnID(Hash256 val) {put(Field.AccountTxnID, val);}
     public void fee(Amount val) {put(Field.Fee, val);}
-    public void signingPubKey(VariableLength val) {put(Field.SigningPubKey, val);}
-    public void txnSignature(VariableLength val) {put(Field.TxnSignature, val);}
+    public void signingPubKey(Blob val) {put(Field.SigningPubKey, val);}
+    public void txnSignature(Blob val) {put(Field.TxnSignature, val);}
     public void account(AccountID val) {put(Field.Account, val);}
 
     public Hash256 hash() {

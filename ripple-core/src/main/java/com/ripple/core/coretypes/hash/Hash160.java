@@ -3,6 +3,7 @@ package com.ripple.core.coretypes.hash;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.Hash160Field;
 import com.ripple.core.coretypes.AccountID;
+import com.ripple.core.fields.Type;
 import com.ripple.core.serialized.BytesSink;
 
 public class Hash160 extends Hash<Hash160> {
@@ -28,6 +29,11 @@ public class Hash160 extends Hash<Hash160> {
     @Override
     public void toBytesSink(BytesSink to) {
         translate.toBytesSink(this, to);
+    }
+
+    @Override
+    public Type type() {
+        return Type.Hash160;
     }
 
     public static class Translator extends HashTranslator<Hash160> {

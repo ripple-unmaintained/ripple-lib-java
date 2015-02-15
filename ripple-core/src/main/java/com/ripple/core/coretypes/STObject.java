@@ -17,6 +17,7 @@ import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.*;
 import org.json.JSONObject;
 
+import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.TreeMap;
 
@@ -59,6 +60,10 @@ public class STObject implements SerializedType, Iterable<Field> {
 
     /**
      * @return a subclass of STObject using the same fields
+     *
+     * If the object has a TransactionType or LedgerEntryType
+     * then we can up)grade to a child class, with more specific
+     * helper methods, and we can use `instanceof` to great effect.
      */
     public static STObject formatted(STObject source) {
         return STObjectFormatter.doFormatted(source);
@@ -68,6 +73,35 @@ public class STObject implements SerializedType, Iterable<Field> {
     public Format getFormat() {
         if (format == null) computeFormat();
         return format;
+    }
+
+    public void checkFormat() {
+        Format fmt = getFormat();
+        EnumMap<Field, Format.Requirement> requirements = fmt.requirements();
+        for (Field field : this) {
+            if (!requirements.containsKey(field)) {
+                throw new RuntimeException(fmt.name() + " doesn't have field: " + field);
+            }
+        }
+        for (Field field : requirements.keySet()) {
+            Format.Requirement req = requirements.get(field);
+            if (!has(field)) {
+                if (req == Format.Requirement.REQUIRED) {
+                    throw new RuntimeException(fmt.name() +
+                            " requires " + field + " of type "
+                            + field.getType());
+                }
+            } else {
+                SerializedType type = get(field);
+                if (type.type() != field.getType()) {
+                    if (!(field.getType() == Type.Hash160 &&
+                            type.type() == Type.AccountID)) {
+                        throw new RuntimeException(type.toString() +
+                                " is not " + field.getType());
+                    }
+                }
+            }
+        }
     }
 
     public void setFormat(Format format) {
@@ -119,7 +153,7 @@ public class STObject implements SerializedType, Iterable<Field> {
 
     public void put (UInt8Field f, UInt8 o) {put(f.getField(), o);}
     public void put (Vector256Field f, Vector256 o) {put(f.getField(), o);}
-    public void put (VariableLengthField f, VariableLength o) {put(f.getField(), o);}
+    public void put (BlobField f, Blob o) {put(f.getField(), o);}
     public void put (UInt64Field f, UInt64 o) {put(f.getField(), o);}
     public void put (UInt32Field f, UInt32 o) {put(f.getField(), o);}
     public void put (UInt16Field f, UInt16 o) {put(f.getField(), o);}
@@ -133,6 +167,10 @@ public class STObject implements SerializedType, Iterable<Field> {
     public void put (AccountIDField f, AccountID o) {put(f.getField(), o);}
 
     public <T extends HasField> void putTranslated(T f, Object value) {
+        putTranslated(f.getField(), value);
+    }
+
+    public <T extends HasField> void as(T f, Object value) {
         putTranslated(f.getField(), value);
     }
 
@@ -203,8 +241,8 @@ public class STObject implements SerializedType, Iterable<Field> {
         return (Vector256) get(f.getField());
     }
 
-    public VariableLength get(VariableLengthField f) {
-        return (VariableLength) get(f.getField());
+    public Blob get(BlobField f) {
+        return (Blob) get(f.getField());
     }
 
     // SerializedTypes implementation
@@ -244,6 +282,11 @@ public class STObject implements SerializedType, Iterable<Field> {
                 return field.isSerialized();
             }
         });
+    }
+
+    @Override
+    public Type type() {
+        return Type.STObject;
     }
 
     public static class Translator extends TypeTranslator<STObject> {
@@ -345,7 +388,7 @@ public class STObject implements SerializedType, Iterable<Field> {
                 case UInt64:        return UInt64.translate;
                 case Hash128:       return Hash128.translate;
                 case Hash256:       return Hash256.translate;
-                case VariableLength:return VariableLength.translate;
+                case Blob:return Blob.translate;
                 case AccountID:     return AccountID.translate;
                 case STArray:       return STArray.translate;
                 case UInt8:         return UInt8.translate;

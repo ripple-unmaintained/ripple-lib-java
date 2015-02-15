@@ -48,6 +48,11 @@ public class LEFormat extends Format {
         put(Field.Flags,                   Requirement.REQUIRED);
     }
 
+    @Override
+    public String name() {
+        return ledgerEntryType.toString();
+    }
+
     public static LEFormat AccountRoot = new LEFormat(
             LedgerEntryType.AccountRoot,
             Field.Account,             Requirement.REQUIRED,

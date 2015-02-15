@@ -1,5 +1,6 @@
 package com.ripple.core.coretypes;
 
+import com.ripple.core.fields.Type;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.SerializedType;
 
@@ -25,5 +26,10 @@ public class Flags extends BitSet implements SerializedType {
     @Override
     public void toBytesSink(BytesSink to) {
 
+    }
+
+    @Override
+    public Type type() {
+        return Type.UInt32;
     }
 }

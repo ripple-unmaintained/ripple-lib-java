@@ -1,5 +1,6 @@
 package com.ripple.core.serialized.enums;
 
+import com.ripple.core.fields.Type;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.SerializedType;
@@ -33,6 +34,11 @@ public enum TransactionType implements SerializedType {
     final int ord;
     TransactionType(int i) {
        ord = i;
+    }
+
+    @Override
+    public Type type() {
+        return Type.UInt16;
     }
 
     static private TreeMap<Integer, TransactionType> byCode = new TreeMap<Integer, TransactionType>();

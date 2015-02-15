@@ -1,6 +1,7 @@
 package com.ripple.core.coretypes.uint;
 
 import com.ripple.core.fields.Field;
+import com.ripple.core.fields.Type;
 import com.ripple.core.fields.UInt8Field;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.TypeTranslator;
@@ -86,5 +87,10 @@ public class UInt8 extends UInt<UInt8> {
     @Override
     public void toBytesSink(BytesSink to) {
         translate.toBytesSink(this, to);
+    }
+
+    @Override
+    public Type type() {
+        return Type.UInt8;
     }
 }

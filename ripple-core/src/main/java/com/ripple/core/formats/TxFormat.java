@@ -57,6 +57,11 @@ public class TxFormat extends Format {
         put(Field.LastLedgerSequence,  Requirement.OPTIONAL);
     }
 
+    @Override
+    public String name() {
+        return transactionType.toString();
+    }
+
     static public TxFormat AccountSet = new TxFormat(
             TransactionType.AccountSet,
             Field.EmailHash,       Requirement.OPTIONAL,

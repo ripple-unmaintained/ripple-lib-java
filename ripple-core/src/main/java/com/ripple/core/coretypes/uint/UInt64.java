@@ -1,6 +1,7 @@
 package com.ripple.core.coretypes.uint;
 
 import com.ripple.core.fields.Field;
+import com.ripple.core.fields.Type;
 import com.ripple.core.fields.UInt64Field;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.TypeTranslator;
@@ -90,5 +91,10 @@ public class UInt64 extends UInt<UInt64> {
     @Override
     public void toBytesSink(BytesSink to) {
         translate.toBytesSink(this, to);
+    }
+
+    @Override
+    public Type type() {
+        return Type.UInt64;
     }
 }

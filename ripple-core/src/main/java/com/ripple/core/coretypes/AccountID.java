@@ -6,6 +6,7 @@ import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.fields.AccountIDField;
 import com.ripple.core.fields.Field;
+import com.ripple.core.fields.Type;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.TypeTranslator;
@@ -138,6 +139,11 @@ public class AccountID extends Hash160 {
     @Override
     public void toBytesSink(BytesSink to) {
         to.add(bytes());
+    }
+
+    @Override
+    public Type type() {
+        return Type.AccountID;
     }
 
     public Hash256 lineIndex(Issue issue) {

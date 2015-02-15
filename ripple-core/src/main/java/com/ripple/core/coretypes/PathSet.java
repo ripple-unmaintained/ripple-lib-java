@@ -1,6 +1,7 @@
 package com.ripple.core.coretypes;
 
 import com.ripple.core.fields.PathSetField;
+import com.ripple.core.fields.Type;
 import com.ripple.core.serialized.*;
 import com.ripple.core.fields.Field;
 import org.json.JSONArray;
@@ -135,6 +136,11 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
             }
         }
         buffer.add(PATHSET_END_BYTE);
+    }
+
+    @Override
+    public Type type() {
+        return Type.PathSet;
     }
 
     @Override

@@ -93,20 +93,20 @@ public enum Field {
     taker_gets_funded(258, Type.Amount),
     taker_pays_funded(259, Type.Amount),
 
-    PublicKey(1, Type.VariableLength),
-    MessageKey(2, Type.VariableLength),
-    SigningPubKey(3, Type.VariableLength),
-    TxnSignature(4, Type.VariableLength),
-    Generator(5, Type.VariableLength),
-    Signature(6, Type.VariableLength),
-    Domain(7, Type.VariableLength),
-    FundCode(8, Type.VariableLength),
-    RemoveCode(9, Type.VariableLength),
-    ExpireCode(10, Type.VariableLength),
-    CreateCode(11, Type.VariableLength),
-    MemoType(12, Type.VariableLength),
-    MemoData(13, Type.VariableLength),
-    MemoFormat(14, Type.VariableLength),
+    PublicKey(1, Type.Blob),
+    MessageKey(2, Type.Blob),
+    SigningPubKey(3, Type.Blob),
+    TxnSignature(4, Type.Blob),
+    Generator(5, Type.Blob),
+    Signature(6, Type.Blob),
+    Domain(7, Type.Blob),
+    FundCode(8, Type.Blob),
+    RemoveCode(9, Type.Blob),
+    ExpireCode(10, Type.Blob),
+    CreateCode(11, Type.Blob),
+    MemoType(12, Type.Blob),
+    MemoData(13, Type.Blob),
+    MemoFormat(14, Type.Blob),
 
     Account(1, Type.AccountID),
     Owner(2, Type.AccountID),
@@ -230,7 +230,7 @@ public enum Field {
         isSerialized = isSerialized(this);
     }
 
-    static private Map<Integer, Field> byCode = new TreeMap<Integer, Field>();
+    static private HashMap<Integer, Field> byCode = new HashMap<Integer, Field>();
 
     public static Iterator<Field> sorted(Collection<Field> fields) {
         ArrayList<Field> fieldList = new ArrayList<Field>(fields);
@@ -274,7 +274,7 @@ public enum Field {
             f.signingField = f.isSerialized;
 
             switch (f.type) {
-                case VariableLength:
+                case Blob:
                 case AccountID:
                 case Vector256:
                     f.isVlEncoded = true;

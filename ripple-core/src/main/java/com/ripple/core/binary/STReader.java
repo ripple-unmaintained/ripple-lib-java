@@ -62,9 +62,9 @@ public class STReader {
     public AccountID accountID() {
         return AccountID.translate.fromParser(parser);
     }
-    public VariableLength variableLength() {
+    public Blob variableLength() {
         int hint = parser.readVLLength();
-        return VariableLength.translate.fromParser(parser, hint);
+        return Blob.translate.fromParser(parser, hint);
     }
     public Amount amount() {
         return Amount.translate.fromParser(parser);

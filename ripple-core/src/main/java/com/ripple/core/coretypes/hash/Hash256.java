@@ -4,6 +4,7 @@ import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.coretypes.hash.prefixes.Prefix;
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.Hash256Field;
+import com.ripple.core.fields.Type;
 import com.ripple.core.serialized.BytesSink;
 
 import java.math.BigInteger;
@@ -40,6 +41,11 @@ public class Hash256 extends Hash<Hash256> {
     @Override
     public void toBytesSink(BytesSink to) {
         translate.toBytesSink(this, to);
+    }
+
+    @Override
+    public Type type() {
+        return Type.Hash256;
     }
 
     public boolean isZero() {

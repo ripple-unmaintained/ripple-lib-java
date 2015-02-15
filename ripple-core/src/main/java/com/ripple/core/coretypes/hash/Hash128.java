@@ -2,6 +2,7 @@ package com.ripple.core.coretypes.hash;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.Hash128Field;
+import com.ripple.core.fields.Type;
 import com.ripple.core.serialized.BytesSink;
 
 public class Hash128 extends Hash<Hash128> {
@@ -28,6 +29,12 @@ public class Hash128 extends Hash<Hash128> {
     public void toBytesSink(BytesSink to) {
         translate.toBytesSink(this, to);
     }
+
+    @Override
+    public Type type() {
+        return Type.Hash128;
+    }
+
     public static class Translator extends HashTranslator<Hash128> {
         @Override
         public Hash128 newInstance(byte[] b) {

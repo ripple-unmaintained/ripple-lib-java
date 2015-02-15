@@ -1,5 +1,6 @@
 package com.ripple.core.serialized.enums;
 
+import com.ripple.core.fields.Type;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.SerializedType;
@@ -33,6 +34,11 @@ public enum LedgerEntryType implements SerializedType{
             LedgerEntryType f = (LedgerEntryType) a;
             byCode.put(f.ord, f);
         }
+    }
+
+    @Override
+    public Type type() {
+        return Type.UInt16;
     }
 
     public static LedgerEntryType fromNumber(Number i) {

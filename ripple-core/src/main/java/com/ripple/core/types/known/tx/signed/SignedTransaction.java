@@ -1,22 +1,40 @@
 package com.ripple.core.types.known.tx.signed;
 
 import com.ripple.core.coretypes.Amount;
-import com.ripple.core.coretypes.VariableLength;
+import com.ripple.core.coretypes.Blob;
+import com.ripple.core.coretypes.PathSet;
+import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.hash.HalfSha512;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.fields.Field;
+import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.serialized.BytesList;
 import com.ripple.core.serialized.MultiSink;
 import com.ripple.core.types.known.tx.Transaction;
 import com.ripple.crypto.ecdsa.IKeyPair;
+import com.ripple.crypto.ecdsa.Seed;
 
 public class SignedTransaction {
-    public SignedTransaction(Transaction txn) {
-        this.txn = txn;
+    private SignedTransaction(Transaction of) {
+        // TODO: is this just over kill ?
+        // TODO: do we want to -> binary -> Transaction ?
+        // Shallow copy the transaction. Child fields
+        // are practically immutable, except perhaps PathSet.
+        txn = new Transaction(of.transactionType());
+        for (Field field : of) {
+            SerializedType st = of.get(field);
+            // Deep copy Paths
+            if (field == Field.Paths) {
+                st = PathSet.translate.fromBytes(st.toBytes());
+            }
+            txn.put(field, st);
+        }
     }
 
+    // This will eventually be private
     @Deprecated
     public SignedTransaction() {}
 
@@ -26,12 +44,32 @@ public class SignedTransaction {
     public Hash256 previousSigningHash;
     public String tx_blob;
 
+    public void sign(String base58Secret) {
+        sign(Seed.fromBase58(base58Secret).keyPair());
+    }
+
+    public static SignedTransaction sign(Transaction tx, String secret) {
+        SignedTransaction signed = new SignedTransaction(tx);
+        signed.sign(secret);
+        return signed;
+    }
+
+    public static SignedTransaction sign(Transaction tx, IKeyPair keyPair) {
+        SignedTransaction signed = new SignedTransaction(tx);
+        signed.sign(keyPair);
+        return signed;
+    }
+
+    private void sign(IKeyPair keyPair) {
+        prepare(keyPair, null, null, null);
+    }
+
     public void prepare(IKeyPair keyPair,
                         Amount fee,
                         UInt32 Sequence,
                         UInt32 lastLedgerSequence) {
 
-        VariableLength pubKey = new VariableLength(keyPair.pubBytes());
+        Blob pubKey = new Blob(keyPair.pubBytes());
 
         // This won't always be specified
         if (lastLedgerSequence != null) {
@@ -44,19 +82,19 @@ public class SignedTransaction {
             txn.put(Amount.Fee, fee);
         }
 
-        txn.put(VariableLength.SigningPubKey, pubKey);
+        txn.signingPubKey(pubKey);
 
         if (Transaction.CANONICAL_FLAG_DEPLOYED) {
             txn.setCanonicalSignatureFlag();
         }
 
+        txn.checkFormat();
         signingHash = txn.signingHash();
         if (previousSigningHash != null && signingHash.equals(previousSigningHash)) {
             return;
         }
         try {
-            VariableLength signature = new VariableLength(keyPair.sign(signingHash.bytes()));
-            txn.put(VariableLength.TxnSignature, signature);
+            txn.txnSignature(new Blob(keyPair.sign(signingHash.bytes())));
 
             BytesList blob = new BytesList();
             HalfSha512 id = HalfSha512.prefixed256(HashPrefix.transactionID);

@@ -2,6 +2,7 @@ package com.ripple.core.coretypes;
 
 import com.ripple.core.fields.Field;
 import com.ripple.core.fields.STArrayField;
+import com.ripple.core.fields.Type;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.SerializedType;
@@ -42,6 +43,11 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
         for (STObject stObject : this) {
             stObject.toBytesSink(to);
         }
+    }
+
+    @Override
+    public Type type() {
+        return Type.STArray;
     }
 
     public static class Translator extends TypeTranslator<STArray> {
