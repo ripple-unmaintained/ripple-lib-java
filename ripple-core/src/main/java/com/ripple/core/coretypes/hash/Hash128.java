@@ -1,7 +1,7 @@
 package com.ripple.core.coretypes.hash;
 
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.TypedFields;
+import com.ripple.core.fields.Hash128Field;
 import com.ripple.core.serialized.BytesSink;
 
 public class Hash128 extends Hash<Hash128> {
@@ -41,10 +41,10 @@ public class Hash128 extends Hash<Hash128> {
     }
     public static Translator translate = new Translator();
 
-    public static TypedFields.Hash128Field hash128Field(final Field f) {
-        return new TypedFields.Hash128Field(){ @Override public Field getField() {return f;}};
+    public static Hash128Field hash128Field(final Field f) {
+        return new Hash128Field(){ @Override public Field getField() {return f;}};
     }
 
-    static public TypedFields.Hash128Field EmailHash = hash128Field(Field.EmailHash);
+    static public Hash128Field EmailHash = hash128Field(Field.EmailHash);
 
 }

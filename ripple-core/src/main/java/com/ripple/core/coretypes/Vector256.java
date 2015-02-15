@@ -1,12 +1,11 @@
 package com.ripple.core.coretypes;
 
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.TypedFields;
+import com.ripple.core.fields.Vector256Field;
 import com.ripple.core.serialized.*;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.encodings.common.B16;
 import org.json.JSONArray;
-import org.json.JSONException;
 
 import java.util.ArrayList;
 
@@ -98,11 +97,11 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
 
     public Vector256(){}
 
-    public static TypedFields.Vector256Field vector256Field(final Field f) {
-        return new TypedFields.Vector256Field(){ @Override public Field getField() {return f;}};
+    public static Vector256Field vector256Field(final Field f) {
+        return new Vector256Field(){ @Override public Field getField() {return f;}};
     }
     
-    static public TypedFields.Vector256Field Indexes = vector256Field(Field.Indexes);
-    static public TypedFields.Vector256Field Hashes = vector256Field(Field.Hashes);
-    static public TypedFields.Vector256Field Features = vector256Field(Field.Features);
+    static public Vector256Field Indexes = vector256Field(Field.Indexes);
+    static public Vector256Field Hashes = vector256Field(Field.Hashes);
+    static public Vector256Field Features = vector256Field(Field.Features);
 }

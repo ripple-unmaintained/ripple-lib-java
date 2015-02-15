@@ -1,7 +1,7 @@
 package com.ripple.core.coretypes.uint;
 
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.TypedFields;
+import com.ripple.core.fields.UInt8Field;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.TypeTranslator;
 
@@ -58,13 +58,13 @@ public class UInt8 extends UInt<UInt8> {
     private UInt8() {
     }
 
-    private static TypedFields.UInt8Field int8Field(final Field f) {
-        return new TypedFields.UInt8Field() {@Override public Field getField() {return f; } };
+    private static UInt8Field int8Field(final Field f) {
+        return new UInt8Field() {@Override public Field getField() {return f; } };
     }
 
-    static public TypedFields.UInt8Field CloseResolution = int8Field(Field.CloseResolution);
-    static public TypedFields.UInt8Field TemplateEntryType = int8Field(Field.TemplateEntryType);
-    static public TypedFields.UInt8Field TransactionResult = int8Field(Field.TransactionResult);
+    static public UInt8Field CloseResolution = int8Field(Field.CloseResolution);
+    static public UInt8Field TemplateEntryType = int8Field(Field.TemplateEntryType);
+    static public UInt8Field TransactionResult = int8Field(Field.TransactionResult);
 
     @Override
     public Object toJSON() {

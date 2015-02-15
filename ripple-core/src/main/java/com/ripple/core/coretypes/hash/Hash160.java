@@ -1,7 +1,7 @@
 package com.ripple.core.coretypes.hash;
 
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.TypedFields;
+import com.ripple.core.fields.Hash160Field;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.serialized.BytesSink;
 
@@ -51,12 +51,12 @@ public class Hash160 extends Hash<Hash160> {
     }
     public static Translator translate = new Translator();
 
-    public static TypedFields.Hash160Field hash160Field(final Field f) {
-        return new TypedFields.Hash160Field(){ @Override public Field getField() {return f;}};
+    public static Hash160Field hash160Field(final Field f) {
+        return new Hash160Field(){ @Override public Field getField() {return f;}};
     }
 
-    static public TypedFields.Hash160Field TakerPaysIssuer = hash160Field(Field.TakerPaysIssuer);
-    static public TypedFields.Hash160Field TakerGetsCurrency = hash160Field(Field.TakerGetsCurrency);
-    static public TypedFields.Hash160Field TakerPaysCurrency = hash160Field(Field.TakerPaysCurrency);
-    static public TypedFields.Hash160Field TakerGetsIssuer = hash160Field(Field.TakerGetsIssuer);
+    static public Hash160Field TakerPaysIssuer = hash160Field(Field.TakerPaysIssuer);
+    static public Hash160Field TakerGetsCurrency = hash160Field(Field.TakerGetsCurrency);
+    static public Hash160Field TakerPaysCurrency = hash160Field(Field.TakerPaysCurrency);
+    static public Hash160Field TakerGetsIssuer = hash160Field(Field.TakerGetsIssuer);
 }

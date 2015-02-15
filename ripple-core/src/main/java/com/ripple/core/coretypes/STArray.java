@@ -1,13 +1,12 @@
 package com.ripple.core.coretypes;
 
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.TypedFields;
+import com.ripple.core.fields.STArrayField;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.TypeTranslator;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -84,16 +83,16 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
 
     public STArray(){}
 
-    public static TypedFields.STArrayField starrayField(final Field f) {
-        return new TypedFields.STArrayField(){ @Override public Field getField() {return f;}};
+    public static STArrayField starrayField(final Field f) {
+        return new STArrayField(){ @Override public Field getField() {return f;}};
     }
 
-    static public TypedFields.STArrayField AffectedNodes = starrayField(Field.AffectedNodes);
+    static public STArrayField AffectedNodes = starrayField(Field.AffectedNodes);
 
-    static public TypedFields.STArrayField SigningAccounts = starrayField(Field.SigningAccounts);
-    static public TypedFields.STArrayField TxnSignatures = starrayField(Field.TxnSignatures);
-    static public TypedFields.STArrayField Signatures = starrayField(Field.Signatures);
-    static public TypedFields.STArrayField Template = starrayField(Field.Template);
-    static public TypedFields.STArrayField Necessary = starrayField(Field.Necessary);
-    static public TypedFields.STArrayField Sufficient = starrayField(Field.Sufficient);
+    static public STArrayField SigningAccounts = starrayField(Field.SigningAccounts);
+    static public STArrayField TxnSignatures = starrayField(Field.TxnSignatures);
+    static public STArrayField Signatures = starrayField(Field.Signatures);
+    static public STArrayField Template = starrayField(Field.Template);
+    static public STArrayField Necessary = starrayField(Field.Necessary);
+    static public STArrayField Sufficient = starrayField(Field.Sufficient);
 }

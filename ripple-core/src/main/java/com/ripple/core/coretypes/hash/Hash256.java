@@ -3,7 +3,7 @@ package com.ripple.core.coretypes.hash;
 import com.ripple.core.coretypes.hash.prefixes.HashPrefix;
 import com.ripple.core.coretypes.hash.prefixes.Prefix;
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.TypedFields;
+import com.ripple.core.fields.Hash256Field;
 import com.ripple.core.serialized.BytesSink;
 
 import java.math.BigInteger;
@@ -92,25 +92,25 @@ public class Hash256 extends Hash<Hash256> {
     }
     public static Translator translate = new Translator();
 
-    public static TypedFields.Hash256Field hash256Field(final Field f) {
-        return new TypedFields.Hash256Field(){ @Override public Field getField() {return f;}};
+    public static Hash256Field hash256Field(final Field f) {
+        return new Hash256Field(){ @Override public Field getField() {return f;}};
     }
 
-    static public TypedFields.Hash256Field LedgerHash = hash256Field(Field.LedgerHash);
-    static public TypedFields.Hash256Field ParentHash = hash256Field(Field.ParentHash);
-    static public TypedFields.Hash256Field TransactionHash = hash256Field(Field.TransactionHash);
-    static public TypedFields.Hash256Field AccountHash = hash256Field(Field.AccountHash);
-    static public TypedFields.Hash256Field PreviousTxnID = hash256Field(Field.PreviousTxnID);
-    static public TypedFields.Hash256Field AccountTxnID = hash256Field(Field.AccountTxnID);
-    static public TypedFields.Hash256Field LedgerIndex = hash256Field(Field.LedgerIndex);
-    static public TypedFields.Hash256Field WalletLocator = hash256Field(Field.WalletLocator);
-    static public TypedFields.Hash256Field RootIndex = hash256Field(Field.RootIndex);
-    static public TypedFields.Hash256Field BookDirectory = hash256Field(Field.BookDirectory);
-    static public TypedFields.Hash256Field InvoiceID = hash256Field(Field.InvoiceID);
-    static public TypedFields.Hash256Field Nickname = hash256Field(Field.Nickname);
-    static public TypedFields.Hash256Field Amendment = hash256Field(Field.Amendment);
-    static public TypedFields.Hash256Field TicketID = hash256Field(Field.TicketID);
+    static public Hash256Field LedgerHash = hash256Field(Field.LedgerHash);
+    static public Hash256Field ParentHash = hash256Field(Field.ParentHash);
+    static public Hash256Field TransactionHash = hash256Field(Field.TransactionHash);
+    static public Hash256Field AccountHash = hash256Field(Field.AccountHash);
+    static public Hash256Field PreviousTxnID = hash256Field(Field.PreviousTxnID);
+    static public Hash256Field AccountTxnID = hash256Field(Field.AccountTxnID);
+    static public Hash256Field LedgerIndex = hash256Field(Field.LedgerIndex);
+    static public Hash256Field WalletLocator = hash256Field(Field.WalletLocator);
+    static public Hash256Field RootIndex = hash256Field(Field.RootIndex);
+    static public Hash256Field BookDirectory = hash256Field(Field.BookDirectory);
+    static public Hash256Field InvoiceID = hash256Field(Field.InvoiceID);
+    static public Hash256Field Nickname = hash256Field(Field.Nickname);
+    static public Hash256Field Amendment = hash256Field(Field.Amendment);
+    static public Hash256Field TicketID = hash256Field(Field.TicketID);
 
-    static public TypedFields.Hash256Field hash = hash256Field(Field.hash);
-    static public TypedFields.Hash256Field index = hash256Field(Field.index);
+    static public Hash256Field hash = hash256Field(Field.hash);
+    static public Hash256Field index = hash256Field(Field.index);
 }

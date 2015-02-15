@@ -4,8 +4,8 @@ import com.ripple.core.coretypes.hash.Hash160;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.fields.AccountIDField;
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.TypeTranslator;
@@ -184,8 +184,8 @@ public class AccountID extends Hash160 {
     }
 
     // Typed field definitions
-    public static TypedFields.AccountIDField accountField(final Field f) {
-        return new TypedFields.AccountIDField() {
+    public static AccountIDField accountField(final Field f) {
+        return new AccountIDField() {
             @Override
             public Field getField() {
                 return f;
@@ -193,12 +193,12 @@ public class AccountID extends Hash160 {
         };
     }
 
-    static public TypedFields.AccountIDField Account = accountField(Field.Account);
-    static public TypedFields.AccountIDField Owner = accountField(Field.Owner);
-    static public TypedFields.AccountIDField Destination = accountField(Field.Destination);
-    static public TypedFields.AccountIDField Issuer = accountField(Field.Issuer);
-    static public TypedFields.AccountIDField Target = accountField(Field.Target);
-    static public TypedFields.AccountIDField RegularKey = accountField(Field.RegularKey);
+    static public AccountIDField Account = accountField(Field.Account);
+    static public AccountIDField Owner = accountField(Field.Owner);
+    static public AccountIDField Destination = accountField(Field.Destination);
+    static public AccountIDField Issuer = accountField(Field.Issuer);
+    static public AccountIDField Target = accountField(Field.Target);
+    static public AccountIDField RegularKey = accountField(Field.RegularKey);
 
     // Exceptions
     public static class UnknownAlias extends RuntimeException {

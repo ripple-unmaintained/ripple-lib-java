@@ -1,7 +1,7 @@
 package com.ripple.core.coretypes.uint;
 
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.TypedFields;
+import com.ripple.core.fields.UInt16Field;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.TypeTranslator;
 
@@ -55,12 +55,12 @@ public class UInt16 extends UInt<UInt16> {
         return intValue();
     }
 
-    public static TypedFields.UInt16Field int16Field(final Field f) {
-        return new TypedFields.UInt16Field(){ @Override public Field getField() {return f;}};
+    public static UInt16Field int16Field(final Field f) {
+        return new UInt16Field(){ @Override public Field getField() {return f;}};
     }
 
-    static public TypedFields.UInt16Field LedgerEntryType = int16Field(Field.LedgerEntryType);
-    static public TypedFields.UInt16Field TransactionType = int16Field(Field.TransactionType);
+    static public UInt16Field LedgerEntryType = int16Field(Field.LedgerEntryType);
+    static public UInt16Field TransactionType = int16Field(Field.TransactionType);
 
     @Override
     public Object toJSON() {

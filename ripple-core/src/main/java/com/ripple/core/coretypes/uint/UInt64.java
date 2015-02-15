@@ -1,7 +1,7 @@
 package com.ripple.core.coretypes.uint;
 
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.TypedFields;
+import com.ripple.core.fields.UInt64Field;
 import com.ripple.core.serialized.BytesSink;
 import com.ripple.core.serialized.TypeTranslator;
 
@@ -57,18 +57,18 @@ public class UInt64 extends UInt<UInt64> {
 
     private UInt64(){}
 
-    private static TypedFields.UInt64Field int64Field(final Field f) {
-        return new TypedFields.UInt64Field(){ @Override public Field getField() {return f;}};
+    private static UInt64Field int64Field(final Field f) {
+        return new UInt64Field(){ @Override public Field getField() {return f;}};
     }
 
-    static public TypedFields.UInt64Field IndexNext = int64Field(Field.IndexNext);
-    static public TypedFields.UInt64Field IndexPrevious = int64Field(Field.IndexPrevious);
-    static public TypedFields.UInt64Field BookNode = int64Field(Field.BookNode);
-    static public TypedFields.UInt64Field OwnerNode = int64Field(Field.OwnerNode);
-    static public TypedFields.UInt64Field BaseFee = int64Field(Field.BaseFee);
-    static public TypedFields.UInt64Field ExchangeRate = int64Field(Field.ExchangeRate);
-    static public TypedFields.UInt64Field LowNode = int64Field(Field.LowNode);
-    static public TypedFields.UInt64Field HighNode = int64Field(Field.HighNode);
+    static public UInt64Field IndexNext = int64Field(Field.IndexNext);
+    static public UInt64Field IndexPrevious = int64Field(Field.IndexPrevious);
+    static public UInt64Field BookNode = int64Field(Field.BookNode);
+    static public UInt64Field OwnerNode = int64Field(Field.OwnerNode);
+    static public UInt64Field BaseFee = int64Field(Field.BaseFee);
+    static public UInt64Field ExchangeRate = int64Field(Field.ExchangeRate);
+    static public UInt64Field LowNode = int64Field(Field.LowNode);
+    static public UInt64Field HighNode = int64Field(Field.HighNode);
 
     @Override
     public Object toJSON() {

@@ -6,8 +6,8 @@ import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.enums.LedgerFlag;
+import com.ripple.core.fields.AmountField;
 import com.ripple.core.fields.Field;
-import com.ripple.core.fields.TypedFields;
 import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.types.known.sle.ThreadedLedgerEntry;
 
@@ -116,7 +116,7 @@ public class RippleState extends ThreadedLedgerEntry {
         return Arrays.asList(lowAccount(), highAccount());
     }
 
-    public TypedFields.AmountField limitFieldFor(AccountID source) {
+    public AmountField limitFieldFor(AccountID source) {
         if (lowAccount().equals(source)) {
             return Amount.LowLimit;
         }

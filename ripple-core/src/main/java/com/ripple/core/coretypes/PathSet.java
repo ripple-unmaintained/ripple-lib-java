@@ -1,10 +1,9 @@
 package com.ripple.core.coretypes;
 
-import com.ripple.core.fields.TypedFields;
+import com.ripple.core.fields.PathSetField;
 import com.ripple.core.serialized.*;
 import com.ripple.core.fields.Field;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -200,8 +199,8 @@ public class PathSet extends ArrayList<PathSet.Path> implements SerializedType {
     }
     static public Translator translate = new Translator();
 
-    public static TypedFields.PathSetField pathsetField(final Field f) {
-        return new TypedFields.PathSetField(){ @Override public Field getField() {return f;}};
+    public static PathSetField pathsetField(final Field f) {
+        return new PathSetField(){ @Override public Field getField() {return f;}};
     }
-    static public TypedFields.PathSetField Paths = pathsetField(Field.Paths);
+    static public PathSetField Paths = pathsetField(Field.Paths);
 }
