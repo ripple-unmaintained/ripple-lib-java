@@ -94,4 +94,7 @@ public class BinaryParser {
         return size;
     }
 
+    public boolean end(Integer customEnd) {
+        return cursor >= size || customEnd != null && cursor >= customEnd;
+    }
 }

@@ -262,7 +262,7 @@ public class STObject implements SerializedType, Iterable<Field> {
                 hint = parser.pos() + hint;
             }
 
-            while (!(parser.end() || hint != null && parser.pos() >= hint)) {
+            while (!parser.end(hint)) {
                 field = parser.readField();
                 if (field == Field.ObjectEndMarker) {
                     break;
