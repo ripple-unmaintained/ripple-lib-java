@@ -32,7 +32,7 @@ public class MockPair {
         }
 
         @Override
-        public void schedule(int ms, Runnable runnable) {
+        public void schedule(long ms, Runnable runnable) {
             //
         }
     }

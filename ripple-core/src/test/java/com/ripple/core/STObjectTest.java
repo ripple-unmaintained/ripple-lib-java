@@ -74,7 +74,7 @@ public class STObjectTest {
 
         JSONTokener tok = new JSONTokener(new FileReader(f));
         JSONObject parsed = new JSONObject(tok);
-        Iterator iterator = parsed.sortedKeys();
+        Iterator iterator = parsed.keys();
 
         while (iterator.hasNext()) {
             String next = (String) iterator.next();
