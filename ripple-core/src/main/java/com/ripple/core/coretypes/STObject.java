@@ -177,8 +177,9 @@ public class STObject implements SerializedType, Iterable<Field> {
         putTranslated(f.getField(), value);
     }
 
-    public <T extends HasField> void as(T f, Object value) {
+    public <T extends HasField> STObject as(T f, Object value) {
         putTranslated(f.getField(), value);
+        return this;
     }
 
     public void put(Field f, SerializedType value) {

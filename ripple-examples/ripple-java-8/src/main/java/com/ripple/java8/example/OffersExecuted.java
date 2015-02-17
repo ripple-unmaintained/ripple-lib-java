@@ -51,7 +51,7 @@ public class OffersExecuted {
 
         // Only print trades that executed
         if (!takerGot.isZero()) {
-            print("In {0} tx: {1} Offer owner {2} was paid: {3}, gave: {4} ",
+            print("In {0} tx: {1}, Offer owner {2}, was paid: {3}, gave: {4} ",
                   tr.transactionType(), tr.hash, before.account(),
                     executed.get(Amount.TakerPays), takerGot);
         }
