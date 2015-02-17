@@ -7,13 +7,21 @@ import com.ripple.client.transport.impl.JavaWebSocketTransportImpl;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.types.known.tx.result.TransactionResult;
 
+import static com.ripple.java8.utils.Print.print;
+import static com.ripple.java8.utils.Print.printErr;
+
+/**
+ * This example shows how to page through some old transactions
+ * affecting the BitStamp account.
+ */
 public class AccountTx {
     static final AccountID bitStamp =
             AccountID.fromAddress("rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B");
 
     public static void main(String[] args) {
         new Client(new JavaWebSocketTransportImpl())
-                .connect("wss://s-east.ripple.com", AccountTx::new);
+                .connect("wss://s-east.ripple.com",
+                        AccountTx::new);
     }
 
     public AccountTx(Client client) {
@@ -29,33 +37,30 @@ public class AccountTx {
     }
 
     private void onError(Response response) {
-        log("Oh noes! We had an error");
-        log(response.message.toString(4));
+        printErr("Oh noes! We had an error");
+        // MessageFormat gets confused by the json `{`
+        printErr("{0}", response.message.toString(2));
         System.exit(1);
     }
 
     private void onPage(AccountTxPager.Page page) {
         // There was a rippled bug at time of writing, where each page's
         // ledger span wasn't set properly. Hopefully fixed by `now` :)
-        log("Found %d transactions between %d and %d",
-             page.size(), page.ledgerMin(), page.ledgerMax());
+        print("Found {0} transactions between {1} and {2}",
+                page.size(), page.ledgerMin(), page.ledgerMax());
 
         page.transactionResults().forEach(this::onTransaction);
 
         if (page.hasNext()) {
-            log("requesting next page!");
+            print("requesting next page!");
             page.requestNext();
         } else {
-            log("got all transactions!");
+            print("got all transactions!");
             System.exit(0);
         }
     }
 
     private void onTransaction(TransactionResult result) {
-        log("Found a transaction!%n%s", result.toJSON().toString(2));
-    }
-
-    private static void log(String fmt, Object... args) {
-        System.out.println(String.format(fmt + "\n", args));
+        print("Found a transaction!\n{0}", result.toJSON().toString(2));
     }
 }

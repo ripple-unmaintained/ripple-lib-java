@@ -2,51 +2,68 @@ package com.ripple.java8.example;
 
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
+import com.ripple.core.coretypes.STObject;
 import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.types.known.tx.signed.SignedTransaction;
 import com.ripple.core.types.known.tx.txns.Payment;
 
+import static com.ripple.java8.utils.Print.print;
+
+/**
+ * This example shows how to sign a transaction built using
+ * the ripple-lib-java API and one already built in json.
+ */
 public class SignTransaction {
     public static void main(String[] args) {
-        /**
-         * See also {@link com.ripple.crypto.ecdsa.Seed}
-         * See also {@link com.ripple.crypto.ecdsa.IKeyPair}
-         * See also {@link com.ripple.crypto.ecdsa.KeyPair}
-         */
         String secret = "ssStiMFzkGefDoTqgk9w9WpYkTepQ";
-        // Make a new Payment transaction
-
-        /**
-         * We can make these from JSON.
-         *
-         * See also {@link com.ripple.core.coretypes.STObject#fromJSON}
-         * See also {@link com.ripple.core.coretypes.STObject#formatted}
-         */
         Payment payment = new Payment();
 
         // Put `as` AccountID field Account, `Object` o
         payment.as(AccountID.Account,     "rGZG674DSZJfoY8abMPSgChxZTJZEhyMRm");
         payment.as(AccountID.Destination, "rPMh7Pi9ct699iZUTWaytJUoHcJ7cgyziK");
         payment.as(Amount.Amount,         "1000000000");
-        payment.as(Amount.Fee,            "10000");
         payment.as(UInt32.Sequence,       10);
+        payment.as(Amount.Fee,            "10000");
 
-        SignedTransaction signed = SignedTransaction.sign(payment, secret);
-
+        // Try commenting out the Fee, you'll get STObject.FormatException
+        SignedTransaction signed = payment.sign(secret);
+        // Sign doesn't mutate the original transaction
         // `txn` is a shallow copy
-        if (signed.txn == payment) throw new AssertionError();
+        if (signed.txn == payment)
+            throw new AssertionError();
 
-        // The tx_json with SigningPubKey and TxnSignature populated
-        print(signed.txn.prettyJSON());
-        // The signingHash is what's signed
-        print(signed.signingHash);
-        // The transaction id
-        print(signed.hash);
-        // The blob to submit to rippled
+        // MessageFormat which does the heavy lifting for print gets confused
+        // by the `{` and `}` in the json.
+        print("The original transaction:");
+        print("{0}", payment.prettyJSON());
+        print("The signed transaction, with SigningPubKey and TxnSignature:");
+        print("{0}", signed.txn.prettyJSON());
+        print("The signing hash:   {0}", signed.signingHash);
+        print("The transaction id: {0}", signed.hash);
+        print("The blob to submit to rippled:");
         print(signed.tx_blob);
+
+        // What if we just have some JSON as a string we want to sign?
+        // That's pretty easy to do as well!
+        String tx_json = payment.prettyJSON();
+        signAgain(tx_json, secret, signed);
     }
 
-    private static void print(Object fmt, Object... args) {
-        System.out.println(String.format(String.valueOf(fmt), args));
+    private static void signAgain(String tx_json,
+                                  String secret,
+                                  SignedTransaction signedAlready) {
+        // fromJSON will give us a payment object but we must cast it
+        Payment txn = (Payment) STObject.fromJSON(tx_json);
+        SignedTransaction signedAgain = txn.sign(secret);
+
+        // The signing hash will be the same
+        if (!signedAgain.signingHash.equals(signedAlready.signingHash))
+            throw new AssertionError();
+
+        // There's a random component to TxnSignature which
+        // is a component of the `transaction id` but not the
+        // signing hash.
+        if (signedAgain.hash.equals(signedAlready.hash))
+            throw new AssertionError();
     }
 }

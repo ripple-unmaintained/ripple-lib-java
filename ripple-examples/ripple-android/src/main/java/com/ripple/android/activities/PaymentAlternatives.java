@@ -680,7 +680,7 @@ public class PaymentAlternatives extends Activity {
                         handleUnfundedAccount();
                     }
                     else {
-                        flow.setSource(account);
+                        flow.source(account);
 
                         flow.on(PaymentFlow.OnAlternatives.class,      activityLifeCycled, onAlternatives);
                         flow.on(PaymentFlow.OnAlternativesStale.class, activityLifeCycled, onAlternativesStale);
@@ -729,7 +729,7 @@ public class PaymentAlternatives extends Activity {
     Runnable setFlowDestination = new Runnable() {
         @Override
         public void run() {
-            flow.setDestination(destination);
+            flow.destination(destination);
         }
     };
 
@@ -739,7 +739,7 @@ public class PaymentAlternatives extends Activity {
     Runnable setFlowCurrency = new Runnable() {
         @Override
         public void run() {
-            flow.setDestinationAmountCurrency(destinationCurrency);
+            flow.destinationAmountCurrency(destinationCurrency);
         }
     };
 
@@ -749,7 +749,7 @@ public class PaymentAlternatives extends Activity {
     Runnable setFlowAmount = new Runnable() {
         @Override
         public void run() {
-            flow.setDestinationAmountValue(destinationAmountValue);
+            flow.destinationAmountValue(destinationAmountValue);
         }
     };
 
@@ -761,14 +761,16 @@ public class PaymentAlternatives extends Activity {
          * Thread: ui thread
          */
         @Override
-        protected void onPostExecute(final JSONObject blob) {
+        protected void onPostExecute(JSONObject blob) {
             // null means there's no download active
             blobDownloadTask = null;
             if (blob == null) {
                 threadSafeSetStatus("Failed to retrieve blob!");
                 showOnlyLogin();
                 return;
+
             }
+
             threadSafeSetStatus("Retrieved blob!");
 
             try {
@@ -799,6 +801,7 @@ public class PaymentAlternatives extends Activity {
                 String password = credentials[1];
                 return blobVault.getBlob(username, password);
             } catch (Exception e) {
+                log(Level.WARNING, "Couldn't find blob: {0}", e);
                 return null;
             }
         }
