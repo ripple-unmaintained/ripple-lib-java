@@ -94,6 +94,11 @@ public class JavaWebSocketTransportImpl implements WebSocketTransport {
     @Override
     public void disconnect() {
         if (client != null) {
+            TransportEventHandler handler = this.handler.get();
+            // Before we mute the handler, call disconnect
+            if (handler != null) {
+                handler.onDisconnected(false);
+            }
             client.muteEventHandler();
             client = null;
         }
