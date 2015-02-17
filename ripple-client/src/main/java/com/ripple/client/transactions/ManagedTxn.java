@@ -2,6 +2,7 @@ package com.ripple.client.transactions;
 
 import com.ripple.client.pubsub.CallbackContext;
 import com.ripple.client.pubsub.Publisher;
+import com.ripple.client.pubsub.Publisher.Callback;
 import com.ripple.client.requests.Request;
 import com.ripple.client.responses.Response;
 import com.ripple.core.coretypes.Amount;
@@ -15,13 +16,42 @@ import java.util.ArrayList;
 import java.util.TreeSet;
 
 public class ManagedTxn extends SignedTransaction {
-    public static interface events<T> extends Publisher.Callback<T> {}
+    public static interface events<T> extends Callback<T> {}
     public static interface OnSubmitSuccess extends events<Response> {}
     public static interface OnSubmitFailure extends events<Response> {}
     public static interface OnSubmitError extends events<Response> {}
     public static interface OnTransactionValidated extends events<TransactionResult> {}
 
-    public <T extends events> boolean removeListener(Class<T> key, Publisher.Callback cb) {
+    public TransactionResult result;
+
+    public ManagedTxn onValidated(final Callback<ManagedTxn> handler) {
+        on(OnTransactionValidated.class, new OnTransactionValidated() {
+            @Override
+            public void called(TransactionResult args) {
+                result = args;
+                handler.called(ManagedTxn.this);
+            }
+        });
+        return this;
+    }
+
+    public ManagedTxn onError(final Callback<ManagedTxn> cb) {
+        on(OnSubmitFailure.class, new OnSubmitFailure() {
+            @Override
+            public void called(Response args) {
+                cb.called(ManagedTxn.this);
+            }
+        });
+        on(OnSubmitError.class, new OnSubmitError() {
+            @Override
+            public void called(Response args) {
+                cb.called(ManagedTxn.this);
+            }
+        });
+        return this;
+    }
+
+    public <T extends events> boolean removeListener(Class<T> key, Callback cb) {
         return publisher.removeListener(key, cb);
     }
 
@@ -87,7 +117,7 @@ public class ManagedTxn extends SignedTransaction {
         return isFinalized() || !responseWasToLastSubmission(res);
     }
 
-    ArrayList<Submission> submissions = new ArrayList<Submission>();
+    public ArrayList<Submission> submissions = new ArrayList<Submission>();
 
     public Submission lastSubmission() {
         if (submissions.isEmpty()) {

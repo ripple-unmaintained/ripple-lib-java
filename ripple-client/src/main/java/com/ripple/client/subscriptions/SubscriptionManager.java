@@ -84,6 +84,8 @@ public class SubscriptionManager extends Publisher<SubscriptionManager.events> {
     }
 
     private JSONArray getJsonArray(Collection<?> streams) {
+        // Yes, JSONArray has a Collection constructor, but it doesn't play
+        // so nicely on android.
         JSONArray jsonArray = new JSONArray();
         for (Object obj : streams) {
             jsonArray.put(obj);

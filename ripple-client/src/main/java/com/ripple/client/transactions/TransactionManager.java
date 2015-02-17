@@ -29,11 +29,15 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     TrackedAccountRoot accountRoot;
     AccountID accountID;
     IKeyPair keyPair;
-    AccountTxPager txnRequester;
+    AccountTxPager txnPager;
 
     private ArrayList<ManagedTxn> pending = new ArrayList<ManagedTxn>();
+    private ArrayList<ManagedTxn> failedTransactions = new ArrayList<ManagedTxn>();
 
-    public TransactionManager(Client client, final TrackedAccountRoot accountRoot, AccountID accountID, IKeyPair keyPair) {
+    public TransactionManager(Client client,
+                              final TrackedAccountRoot accountRoot,
+                              AccountID accountID,
+                              IKeyPair keyPair) {
         this.client = client;
         this.accountRoot = accountRoot;
         this.accountID = accountID;
@@ -44,6 +48,8 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             @Override
             public void called(ServerInfo serverInfo) {
                 checkAccountTransactions(serverInfo.ledger_index);
+
+                clearFailed(serverInfo.ledger_index);
 
                 if (!canSubmit() || getPending().isEmpty()) {
                     return;
@@ -61,6 +67,33 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 }
             }
         });
+    }
+
+    private void clearFailed(long ledger_index) {
+        // TODO: make sure each and every ledger has been checked
+        int safety = 1;
+
+        for (ManagedTxn failed : failedTransactions) {
+            int expired = 0;
+            for (Submission submission : failed.submissions) {
+                if (ledger_index - safety > submission.lastLedgerSequence.longValue()) {
+                    expired++;
+                }
+            }
+            if (expired == failed.submissions.size()) {
+                // The last response our submissions
+                Response response = failed.lastSubmission().request.response;
+
+                if (response != null) {
+                    if (response.rpcerr != null) {
+                        failed.emit(ManagedTxn.OnSubmitError.class, response);
+                    } else {
+                        failed.emit(ManagedTxn.OnSubmitFailure.class, response);
+                    }
+                }
+            }
+
+        }
     }
 
 
@@ -129,7 +162,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                 page.requestNext();
             } else {
                 lastLedgerCheckedAccountTxns = Math.max(lastLedgerCheckedAccountTxns, page.ledgerMax());
-                txnRequester = null;
+                txnPager = null;
             }
 
             for (TransactionResult tr : page.transactionResults()) {
@@ -139,7 +172,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     };
 
     private void checkAccountTransactions(long currentLedgerIndex) {
-        if (pending.size() == 0) {
+        if (pending.size() == 0 && failedTransactions.size() == 0) {
             lastLedgerCheckedAccountTxns = 0;
             return;
         }
@@ -154,25 +187,28 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                         lastLedgerCheckedAccountTxns = Math.min(lastLedgerCheckedAccountTxns, submission.ledgerSequence);
                     }
                 }
+                for (ManagedTxn txn : failedTransactions) {
+                    for (Submission submission : txn.submissions) {
+                        lastLedgerCheckedAccountTxns = Math.min(lastLedgerCheckedAccountTxns, submission.ledgerSequence);
+                    }
+                }
                 return; // and wait for next ledger close
             }
-            if (txnRequester != null) {
+            if (txnPager != null) {
                 if ((currentLedgerIndex - lastTxnRequesterUpdate) >= ACCOUNT_TX_TIMEOUT) {
-                    txnRequester.abort(); // no more OnPage
-                    txnRequester = null; // and wait for next ledger close
+                    txnPager.abort(); // no more OnPage
+                    txnPager = null; // and wait for next ledger close
                 }
                 // else keep waiting ;)
             } else {
                 lastTxnRequesterUpdate = currentLedgerIndex;
-                txnRequester = new AccountTxPager(client,
-                                                                accountID,
-                                                                onTxnsPage,
-                                                                /* for good measure */
-                                                                lastLedgerCheckedAccountTxns - 5);
+                txnPager = new AccountTxPager(client, accountID, onTxnsPage,
+                                                        /* for good measure */
+                                                        lastLedgerCheckedAccountTxns - 5);
 
                 // Very important VVVVV
-                txnRequester.forward(true);
-                txnRequester.request();
+                txnPager.forward(true);
+                txnPager.request();
             }
         }
     }
@@ -185,6 +221,8 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     public boolean canSubmit() {
         return client.connected  &&
                client.serverInfo.primed() &&
+                // ledger close could have given us
+               client.serverInfo.fee_base != 0 &&
                client.serverInfo.load_factor < (768 * 1000 ) &&
                accountRoot.primed();
     }
@@ -260,20 +298,24 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
         return req;
     }
 
-    public void handleSubmitError(ManagedTxn txn, Response res) {
+    public void handleSubmitError(final ManagedTxn txn, Response res) {
         if (txn.finalizedOrResponseIsToPriorSubmission(res)) {
             return;
         }
         switch (res.rpcerr) {
             case noNetwork:
-                resubmitWithSameSequence(txn);
+                client.schedule(500, new Runnable() {
+                    @Override
+                    public void run() {
+                        resubmitWithSameSequence(txn);
+                    }
+                });
                 break;
             default:
                 // TODO, what other cases should this retry?
                 // TODO, what if this actually eventually clears?
                 // TOOD, need to use LastLedgerSequence
-                finalizeTxnAndRemoveFromQueue(txn);
-                txn.emit(ManagedTxn.OnSubmitError.class, res);
+                awaitLastLedgerSequenceExpiry(txn);
                 break;
         }
     }
@@ -324,18 +366,16 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
             default:
                 switch (ter.resultClass()) {
                     case tecCLAIM:
-                        // Sequence was consumed, do nothing
-                        finalizeTxnAndRemoveFromQueue(txn);
-                        txn.emit(ManagedTxn.OnSubmitFailure.class, res);
+                        // Sequence was consumed, may even succeed
+                        // so do nothing, just wait until it clears or expires.
+                        awaitLastLedgerSequenceExpiry(txn);
                         break;
                     // These are, according to the wiki, all of a final disposition
                     case temMALFORMED:
                     case tefFAILURE:
-                    // TODO: Handle these with more panache
                     case telLOCAL_ERROR:
                     case terRETRY:
-                        // TODO: txn.setAbortedAwaitingFinal();
-                        finalizeTxnAndRemoveFromQueue(txn);
+                        awaitLastLedgerSequenceExpiry(txn);
                         if (getPending().isEmpty()) {
                             sequence--;
                         } else {
@@ -345,12 +385,15 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
                             queueSequencePlugTxn(submitSequence);
                             resubmitGreaterThan(submitSequence);
                         }
-                        txn.emit(ManagedTxn.OnSubmitFailure.class, res);
                         break;
-
                 }
                 break;
         }
+    }
+
+    private void awaitLastLedgerSequenceExpiry(ManagedTxn txn) {
+        finalizeTxnAndRemoveFromQueue(txn);
+        failedTransactions.add(txn);
     }
 
     private void resubmitGreaterThan(UInt32 submitSequence) {
@@ -369,7 +412,7 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
     public void finalizeTxnAndRemoveFromQueue(ManagedTxn transaction) {
         transaction.setFinalized();
-        getPending().remove(transaction);
+        pending.remove(transaction);
     }
 
     private void resubmitFirstTransactionWithTakenSequence(UInt32 sequence) {
@@ -451,15 +494,11 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
 
         ManagedTxn txn = submittedTransactionForHash(tr.hash);
         if (txn != null) {
-            // TODO: icky
-            // A result doesn't have a ManagedTxn
-            // a ManagedTxn has a result
-//            tr.submittedTransaction = txn;
             finalizeTxnAndRemoveFromQueue(txn);
+            failedTransactions.remove(txn);
             txn.emit(ManagedTxn.OnTransactionValidated.class, tr);
         } else {
             // TODO Check for transaction malleability, by computing a signing hash
-            // for each.
             // preempt the terPRE_SEQ
             resubmitFirstTransactionWithTakenSequence(txnSequence);
             // Some transactions are waiting on this event before resubmission
@@ -468,9 +507,14 @@ public class TransactionManager extends Publisher<TransactionManager.events> {
     }
 
     private ManagedTxn submittedTransactionForHash(Hash256 hash) {
-        for (ManagedTxn transaction : getPending()) {
-            if (transaction.wasSubmittedWith(hash)) {
-                return transaction;
+        for (ManagedTxn pending : getPending()) {
+            if (pending.wasSubmittedWith(hash)) {
+                return pending;
+            }
+        }
+        for (ManagedTxn markedAsFailed : failedTransactions) {
+            if (markedAsFailed.wasSubmittedWith(hash)) {
+                return markedAsFailed;
             }
         }
         return null;

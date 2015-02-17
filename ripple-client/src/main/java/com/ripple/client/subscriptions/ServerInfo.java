@@ -5,6 +5,10 @@ import com.ripple.core.coretypes.Amount;
 import com.ripple.core.types.known.tx.Transaction;
 import org.json.JSONObject;
 
+import java.util.Date;
+
+import static com.ripple.core.coretypes.RippleDate.fromSecondsSinceRippleEpoch;
+
 // TODO, really want to split this into a few classes
 // ServerStatus / LedgerClosed events.
 public class ServerInfo {
@@ -61,6 +65,10 @@ public class ServerInfo {
         server_status     = json.optString(  "server_status",     server_status);
 
         updated = true;
+    }
+
+    public Date date() {
+        return fromSecondsSinceRippleEpoch(ledger_time);
     }
 
     public boolean primed() {

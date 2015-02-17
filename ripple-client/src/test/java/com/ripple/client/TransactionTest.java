@@ -4,7 +4,6 @@ package com.ripple.client;
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.uint.UInt32;
-import com.ripple.core.types.known.tx.signed.SignedTransaction;
 import com.ripple.core.types.known.tx.txns.Payment;
 import org.junit.Test;
 
@@ -22,6 +21,6 @@ public class TransactionTest {
         payment.as(Amount.Fee,            "10000");
         payment.as(UInt32.Sequence,       10);
 
-        SignedTransaction.sign(payment, secret);
+        payment.sign(secret);
     }
 }

@@ -43,7 +43,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         }
     };
 
-    public PaymentFlow(Client client) {
+    public PaymentFlow(final Client client) {
         this.client = client;
 
         client.on(Client.OnConnected.class, onConnected);
@@ -101,7 +101,7 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         return request;
     }
 
-    public void setSource(final Account account) {
+    public PaymentFlow source(final Account account) {
         AccountID id = account.id();
         if (src == null|| !src.equals(id)) {
             requestAccountInfo(id);
@@ -109,21 +109,24 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
             src = srcAccount.id();
             makePathFindRequestIfCan();
         }
+        return this;
     }
 
-    public void setDestination(final AccountID id) {
+    public PaymentFlow destination(final AccountID id) {
         if (dest == null || !dest.equals(id)) {
             requestAccountInfo(id);
             dest = id;
             makePathFindRequestIfCan();
         }
+        return this;
     }
 
-    public void setDestinationAmountValue(final BigDecimal amt) {
+    public PaymentFlow destinationAmountValue(final BigDecimal amt) {
         if (destAmountValue == null || amt == null || amt.compareTo(destAmountValue) != 0) {
             destAmountValue = amt;
             makePathFindRequestIfCan();
         }
+        return this;
     }
     public void makePathFindRequestIfNoneAlready() {
         if (pathFind == null) {
@@ -226,11 +229,12 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         // TODO invalidate existing alternatives
     }
 
-    public void setDestinationAmountCurrency(final Currency currency) {
+    public PaymentFlow destinationAmountCurrency(final Currency currency) {
         if (destAmountCurrency == null || !currency.equals(destAmountCurrency)) {
             destAmountCurrency = currency;
             makePathFindRequestIfCan();
         }
+        return this;
     }
 
     public void abort() {
@@ -264,9 +268,15 @@ public class PaymentFlow extends Publisher<PaymentFlow.events> {
         return managed;
     }
 
-    public void requestPathFindClose() {
+    private void requestPathFindClose() {
         Request request = client.newRequest(Command.path_find);
         request.json("subcommand", "close");
         request.request();
     }
+
+    public PaymentFlow onAlternatives(OnAlternatives handler) {
+        on(OnAlternatives.class, handler);
+        return this;
+    }
+
 }

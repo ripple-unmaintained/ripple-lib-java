@@ -4,6 +4,7 @@ import com.ripple.core.coretypes.Amount;
 import com.ripple.core.coretypes.PathSet;
 import com.ripple.core.coretypes.hash.HalfSha512;
 import com.ripple.core.coretypes.hash.Hash256;
+import org.json.JSONObject;
 
 public class Alternative implements Comparable<Alternative> {
 
@@ -35,5 +36,18 @@ public class Alternative implements Comparable<Alternative> {
 
     boolean hasPaths() {
         return paths.size() > 0;
+    }
+
+    @Override
+    public String toString() {
+        JSONObject o = toJSON();
+        return o.toString(2);
+    }
+
+    public JSONObject toJSON() {
+        JSONObject o = new JSONObject();
+        o.put("source_amount", sourceAmount.toJSON());
+        o.put("paths", paths.toJSON());
+        return o;
     }
 }

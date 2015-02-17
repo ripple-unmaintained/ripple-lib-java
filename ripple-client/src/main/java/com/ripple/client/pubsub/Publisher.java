@@ -33,38 +33,36 @@ public class Publisher<EventClass extends Publisher.Callback> {
     }
 
     public <T extends EventClass> int emit(Class<T> key, Object args) {
-        log(Level.FINE, "Emitting {0} from thread: {1}", key.getSimpleName(), Thread.currentThread());
-
-        CallbackList callbacks = cbs.get(key);
-        if (callbacks == null) {
-            return 0;
+        if (logger.isLoggable(Level.FINE)) {
+            log(Level.FINE, "Emitting {0} from thread: {1}", key.getSimpleName(), Thread.currentThread());
         }
 
-        Iterator<ContextedCallback> iterator = callbacks.iterator();
-        boolean removed;
         int executed = 0;
+        CallbackList callbacks = (cbs.get(key));
 
-        while (iterator.hasNext()) {
-            removed = false;
+        if (callbacks != null) {
+            CallbackList copy = new CallbackList(callbacks);
 
-            ContextedCallback pair = iterator.next();
-            CallbackContext context = pair.context;
-            if (context == null) {
-                execute(args, pair);
-                executed++;
-            } else {
-                if (context.shouldExecute()) {
-                    context.execute(pair.runnableWrappedCallback(args));
+            for (ContextedCallback pair : copy) {
+                boolean removed = false;
+
+                CallbackContext context = pair.context;
+                if (context == null) {
+                    execute(args, pair);
                     executed++;
+                } else {
+                    if (context.shouldExecute()) {
+                        context.execute(pair.runnableWrappedCallback(args));
+                        executed++;
+                    } else if (context.shouldRemove()) {
+                        callbacks.remove(pair);
+                        removed = true;
+                    }
                 }
-                else if (context.shouldRemove()) {
-                    iterator.remove();
-                    removed = true;
+                // we only want to call remove once
+                if (pair.oneShot && !removed) {
+                    callbacks.remove(pair);
                 }
-            }
-            // we only want to call remove once
-            if (pair.oneShot && !removed) {
-                iterator.remove();
             }
         }
         return executed;
@@ -95,7 +93,18 @@ public class Publisher<EventClass extends Publisher.Callback> {
             };
         }
     }
+
     private static class CallbackList extends ArrayList<ContextedCallback> {
+        public CallbackList() {}
+        public CallbackList(CallbackList callbacks) {
+            super(callbacks);
+        }
+
+        @Override
+        public ContextedCallback get(int index) {
+            return super.get(index);
+        }
+
         public boolean remove(Callback t) {
             Iterator<ContextedCallback> iter = iterator();
             while (iter.hasNext()) {
@@ -140,7 +149,7 @@ public class Publisher<EventClass extends Publisher.Callback> {
         add(key, executor, cb, false);
     }
 
-    private <T extends EventClass> void add(Class<T> key, CallbackContext executor, Callback cb, boolean b) {
+    private <T extends EventClass> void add(Class<T> key, CallbackContext executor, final Callback cb, boolean b) {
         listFor(key).add(executor, cb, b);
     }
 

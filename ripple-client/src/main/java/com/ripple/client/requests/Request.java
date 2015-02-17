@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 public class Request extends Publisher<Request.events> {
     // com.ripple.client.requests.Request // ??
     public static final Logger logger = Logger.getLogger(Request.class.getName());
+    public static final long TIME_OUT = 60000;
 
     public void json(JSONObject jsonObject) {
         Iterator keys = jsonObject.keys();
@@ -48,6 +49,7 @@ public class Request extends Publisher<Request.events> {
     public Response     response;
     private JSONObject      json;
     public int                id;
+    public long         sendTime;
 
     public Request(Command command, int assignedId, Client client) {
         this.client = client;
@@ -71,46 +73,28 @@ public class Request extends Publisher<Request.events> {
         client.nowOrWhenConnected(new Client.OnConnected() {
             @Override
             public void called(final Client client_) {
-                doRequest();
+                client.sendRequest(Request.this);
             }
         });
     }
 
-    private void doRequest() {
-        client.requests.put(id, this);
-        // TODO: use an LRU map or something
-        client.schedule(60000 * 10, new Runnable() {
-            @Override
-            public void run() {
-                client.requests.remove(id);
-            }
-        });
-        client.schedule(60000, new Runnable() {
-            @Override
-            public void run() {
-                if (response == null) {
-                    logger.warning("Request timed out: " + json);
-                    emit(OnTimeout.class, null);
-                }
-            }
-        });
-        try {
-            client.sendMessage(toJSON());
-        } catch (Exception e) {
-            logger.warning("Exception when trying to request: " + e.getLocalizedMessage());
-            client.nextTickOrWhenConnected(new Client.OnConnected() {
-                @Override
-                public void called(Client args) {
-                    doRequest();
-                }
-            });
-        }
+    public  void bumpSendTime() {
+        sendTime = System.currentTimeMillis();
     }
 
-    private JSONObject toJSON() {
+    public JSONObject toJSON() {
         return json();
     }
 
+    public JSONObject jsonRepr() {
+        JSONObject repr = new JSONObject();
+        if (response != null) {
+            repr.put("response", response.message);
+        }
+        // Copy this
+        repr.put("request", new JSONObject(json.toString()));
+        return repr;
+    }
 
     public void handleResponse(JSONObject msg) {
         response = new Response(this, msg);
