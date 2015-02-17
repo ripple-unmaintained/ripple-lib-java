@@ -5,6 +5,7 @@ import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.fields.Field;
 import com.ripple.core.serialized.SerializedType;
 import com.ripple.core.serialized.enums.LedgerEntryType;
+import com.ripple.core.types.known.sle.LedgerEntry;
 
 // TODO: fix up this nonsense
 public class AffectedNode extends STObject {
@@ -15,6 +16,22 @@ public class AffectedNode extends STObject {
         fields = source.getFields();
         field = getField();
         nested = getNested();
+    }
+
+    public boolean isOffer() {
+        return ledgerEntryType() == LedgerEntryType.Offer;
+    }
+
+    public boolean isAccountRoot() {
+        return ledgerEntryType() == LedgerEntryType.AccountRoot;
+    }
+
+    public boolean isRippleState() {
+        return ledgerEntryType() == LedgerEntryType.RippleState;
+    }
+
+    public boolean isDirectoryNode() {
+        return ledgerEntryType() == LedgerEntryType.DirectoryNode;
     }
 
     public boolean wasPreviousNode() {
@@ -53,12 +70,12 @@ public class AffectedNode extends STObject {
         return (STObject) get(getField());
     }
 
-    public STObject nodeAsPrevious() {
-        return rebuildFromMeta(true);
+    public LedgerEntry nodeAsPrevious() {
+        return (LedgerEntry) rebuildFromMeta(true);
     }
 
-    public STObject nodeAsFinal() {
-        return rebuildFromMeta(false);
+    public LedgerEntry nodeAsFinal() {
+        return (LedgerEntry) rebuildFromMeta(false);
     }
 
     public STObject rebuildFromMeta(boolean layerPrevious) {

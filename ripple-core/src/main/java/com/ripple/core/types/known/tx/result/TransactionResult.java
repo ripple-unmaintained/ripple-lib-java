@@ -117,13 +117,12 @@ public class TransactionResult implements Comparable<TransactionResult>{
 
     public int compareTo(TransactionResult o2) {
         TransactionResult o1 = this;
-        int i = o1.ledgerIndex.subtract(o2.ledgerIndex).intValue();
+        int i = o1.ledgerIndex.compareTo(o2.ledgerIndex);
         if (i != 0) {
             return i;
         } else {
-            UInt32 o1_tix = o1.meta.transactionIndex();
-            UInt32 o2_tix = o2.meta.transactionIndex();
-            return o1_tix.subtract(o2_tix).intValue();
+            return o1.meta.transactionIndex()
+                        .compareTo(o2.meta.transactionIndex());
         }
     }
 

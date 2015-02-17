@@ -1,4 +1,4 @@
-package com.ripple.java8;
+package com.ripple.java8.example;
 
 import com.ripple.core.coretypes.AccountID;
 import com.ripple.core.coretypes.Amount;

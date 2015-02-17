@@ -47,19 +47,11 @@ public class SignedTransaction {
         sign(Seed.fromBase58(base58Secret).keyPair());
     }
 
-    public static SignedTransaction sign(Transaction tx, String secret) {
-        SignedTransaction signed = new SignedTransaction(tx);
-        signed.sign(secret);
-        return signed;
+    public static SignedTransaction fromTx(Transaction tx) {
+        return new SignedTransaction(tx);
     }
 
-    public static SignedTransaction sign(Transaction tx, IKeyPair keyPair) {
-        SignedTransaction signed = new SignedTransaction(tx);
-        signed.sign(keyPair);
-        return signed;
-    }
-
-    private void sign(IKeyPair keyPair) {
+    public void sign(IKeyPair keyPair) {
         prepare(keyPair, null, null, null);
     }
 

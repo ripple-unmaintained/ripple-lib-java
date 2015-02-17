@@ -13,6 +13,8 @@ import com.ripple.core.enums.TransactionFlag;
 import com.ripple.core.fields.Field;
 import com.ripple.core.formats.TxFormat;
 import com.ripple.core.serialized.enums.TransactionType;
+import com.ripple.core.types.known.tx.signed.SignedTransaction;
+import com.ripple.crypto.ecdsa.IKeyPair;
 
 public class Transaction extends STObject {
     public static final boolean CANONICAL_FLAG_DEPLOYED = true;
@@ -21,6 +23,18 @@ public class Transaction extends STObject {
     public Transaction(TransactionType type) {
         setFormat(TxFormat.formats.get(type));
         put(Field.TransactionType, type);
+    }
+
+    public SignedTransaction sign(String secret) {
+        SignedTransaction signed = SignedTransaction.fromTx(this);
+        signed.sign(secret);
+        return signed;
+    }
+
+    public SignedTransaction sign(IKeyPair keyPair) {
+        SignedTransaction signed = SignedTransaction.fromTx(this);
+        signed.sign(keyPair);
+        return signed;
     }
 
     public TransactionType transactionType() {

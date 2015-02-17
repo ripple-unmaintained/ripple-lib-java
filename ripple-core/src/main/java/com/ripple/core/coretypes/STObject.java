@@ -75,19 +75,26 @@ public class STObject implements SerializedType, Iterable<Field> {
         return format;
     }
 
+    public static class FormatException extends RuntimeException {
+        public FormatException(String s) {
+            super(s);
+        }
+    }
+
     public void checkFormat() {
         Format fmt = getFormat();
         EnumMap<Field, Format.Requirement> requirements = fmt.requirements();
         for (Field field : this) {
             if (!requirements.containsKey(field)) {
-                throw new RuntimeException(fmt.name() + " doesn't have field: " + field);
+                throw new FormatException(fmt.name() +
+                        " doesn't have field: " + field);
             }
         }
         for (Field field : requirements.keySet()) {
             Format.Requirement req = requirements.get(field);
             if (!has(field)) {
                 if (req == Format.Requirement.REQUIRED) {
-                    throw new RuntimeException(fmt.name() +
+                    throw new FormatException(fmt.name() +
                             " requires " + field + " of type "
                             + field.getType());
                 }
@@ -96,7 +103,7 @@ public class STObject implements SerializedType, Iterable<Field> {
                 if (type.type() != field.getType()) {
                     if (!(field.getType() == Type.Hash160 &&
                             type.type() == Type.AccountID)) {
-                        throw new RuntimeException(type.toString() +
+                        throw new FormatException(type.toString() +
                                 " is not " + field.getType());
                     }
                 }

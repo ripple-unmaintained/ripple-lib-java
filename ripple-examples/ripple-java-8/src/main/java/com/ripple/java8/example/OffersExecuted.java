@@ -1,4 +1,4 @@
-package com.ripple.java8;
+package com.ripple.java8.example;
 
 import com.ripple.client.Client;
 import com.ripple.client.subscriptions.SubscriptionManager;
