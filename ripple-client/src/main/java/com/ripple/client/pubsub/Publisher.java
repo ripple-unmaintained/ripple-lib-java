@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Publisher<EventClass extends Publisher.Callback> {
+public class Publisher<CompatHack extends Publisher.Callback> {
     static final Logger logger = Logger.getLogger(Publisher.class.getName());
     private void log(Level level, String message, Object... params) {
         logger.log(level, message, params);
@@ -16,23 +16,27 @@ public class Publisher<EventClass extends Publisher.Callback> {
         public void called(T args);
     }
 
-    public <T extends EventClass> void on(Class<T> key, T cb) {
+    public static interface ErrBack<T> extends Callback<T> {
+        public void erred(RuntimeException args);
+    }
+
+    public <A, T extends Callback<A>> void on(Class<T> key, T cb) {
         add(key, cb);
     }
 
-    public <T extends EventClass> void on(Class<T> key, CallbackContext executor, T cb) {
+    public <A, T extends Callback<A>> void on(Class<T> key, CallbackContext executor, T cb) {
         add(key, executor, cb);
     }
 
-    public <T extends EventClass> void once(final Class<T> key, final T cb) {
+    public <A, T extends Callback<A>> void once(final Class<T> key, final T cb) {
         once(key, null, cb);
     }
 
-    public <T extends EventClass> void once(final Class<T> key, CallbackContext executor, final T cb) {
+    public <A, T extends Callback<A>> void once(final Class<T> key, CallbackContext executor, final T cb) {
         add(key, executor, cb, true);
     }
 
-    public <T extends EventClass> int emit(Class<T> key, Object args) {
+    public <A, T extends Callback<A>> int emit(Class<T> key, A args) {
         if (logger.isLoggable(Level.FINE)) {
             log(Level.FINE, "Emitting {0} from thread: {1}", key.getSimpleName(), Thread.currentThread());
         }
@@ -122,8 +126,8 @@ public class Publisher<EventClass extends Publisher.Callback> {
         }
     }
 
-    private class DefaultCallbackListMap extends HashMap<Class<? extends EventClass>, CallbackList> {
-        public CallbackList getDefault(Class<? extends EventClass> key) {
+    private class DefaultCallbackListMap extends HashMap<Class<? extends Callback>, CallbackList> {
+        public CallbackList getDefault(Class<? extends Callback> key) {
             CallbackList list = super.get(key);
             if (list == null) {
                 CallbackList newList = new CallbackList();
@@ -137,23 +141,23 @@ public class Publisher<EventClass extends Publisher.Callback> {
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private final DefaultCallbackListMap cbs = new DefaultCallbackListMap();
 
-    private CallbackList listFor(Class<? extends EventClass> key) {
+    private CallbackList listFor(Class<? extends Callback> key) {
         return cbs.getDefault(key);
     }
 
-    private <T extends EventClass> void add(Class<T> key, Callback cb) {
+    private <A, T extends Callback<A>> void add(Class<T> key, Callback<A> cb) {
         add(key, null, cb, false);
     }
 
-    private <T extends EventClass> void add(Class<T> key, CallbackContext executor, Callback cb) {
+    private <A, T extends Callback<A>> void add(Class<T> key, CallbackContext executor, Callback<A> cb) {
         add(key, executor, cb, false);
     }
 
-    private <T extends EventClass> void add(Class<T> key, CallbackContext executor, final Callback cb, boolean b) {
+    private <A, T extends Callback<A>> void add(Class<T> key, CallbackContext executor, final Callback<A> cb, boolean b) {
         listFor(key).add(executor, cb, b);
     }
 
-    public <T extends EventClass> boolean removeListener(Class<T> key, Callback cb) {
+    public <A, T extends Callback<A>> boolean removeListener(Class<T> key, Callback<A> cb) {
         return listFor(key).remove(cb);
     }
 

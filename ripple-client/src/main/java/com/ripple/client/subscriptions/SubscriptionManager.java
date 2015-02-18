@@ -56,7 +56,7 @@ public class SubscriptionManager extends Publisher<SubscriptionManager.events> {
     }
 
     @Override
-    public <T extends events> int emit(Class<T> key, Object args) {
+    public <A, T extends Callback<A>> int emit(Class<T> key, A args) {
         if (paused) {
             return 0;
         }
