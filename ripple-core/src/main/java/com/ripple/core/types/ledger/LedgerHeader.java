@@ -10,6 +10,7 @@ import com.ripple.core.coretypes.uint.UInt64;
 import com.ripple.core.coretypes.uint.UInt8;
 import com.ripple.core.serialized.BinaryParser;
 import com.ripple.core.serialized.BytesSink;
+import org.json.JSONWriter;
 
 import java.util.Date;
 
@@ -66,5 +67,24 @@ public class LedgerHeader {
         HalfSha512 half = HalfSha512.prefixed256(HashPrefix.ledgerMaster);
         toBytesSink(half);
         return half.finish();
+    }
+
+    public void writeObjectFields(JSONWriter writer) {
+        writer.key("ledger_index");
+        writer.value(sequence.toJSON());
+        writer.key("total_coins");
+        writer.value(totalXRP.toString(10));
+        writer.key("parent_hash");
+        writer.value(previousLedger.toJSON());
+        writer.key("transaction_hash");
+        writer.value(transactionHash.toJSON());
+        writer.key("account_hash");
+        writer.value(stateHash.toJSON());
+        writer.key("close_time");
+        writer.value(closeTime.toJSON());
+        writer.key("close_time_resolution");
+        writer.value(closeResolution.toJSON());
+        writer.key("close_flags");
+        writer.value(closeFlags.toJSON());
     }
 }

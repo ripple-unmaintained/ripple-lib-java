@@ -12,6 +12,7 @@ import com.ripple.core.types.known.sle.entries.OfferDirectory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.json.JSONWriter;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -122,6 +123,17 @@ public class AccountState extends ShaMap {
                 };
             }
         };
+    }
+
+    public void writeEntriesArray(final JSONWriter writer) {
+        writer.array();
+        walkEntries(new LedgerEntryVisitor() {
+            @Override
+            public void onEntry(LedgerEntry entry) {
+                writer.value(entry.toJSON());
+            }
+        });
+        writer.endArray();
     }
 
     // Assumes shamap won't be modified during iteration, not unusual for an
