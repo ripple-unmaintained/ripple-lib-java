@@ -657,6 +657,9 @@ public class Amount extends Number implements SerializedType, Comparable<Amount>
 
     public void checkXRPBounds() {
         BigDecimal v = value.abs();
+        if (v.compareTo(TAKER_PAYS_FOR_THAT_DAMN_OFFER) == 0) {
+            return;
+        }
         checkLowerDropBound(v);
         checkUpperBound(v);
     }
