@@ -17,16 +17,18 @@ import static java.util.Collections.sort;
 
 public class Index {
     private static Hash256 createBookBase(Issue pays, Issue gets) {
-        HalfSha512 hasher = prefixed256(LedgerSpace.bookDir);
-
-        pays.currency().toBytesSink(hasher);
-        gets.currency().toBytesSink(hasher);
-        pays.issuer().toBytesSink(hasher);
-        gets.issuer().toBytesSink(hasher);
-
-        return hasher.finish();
+        return prefixed256(LedgerSpace.bookDir)
+                .add(pays.currency())
+                .add(gets.currency())
+                .add(pays.issuer())
+                .add(gets.issuer())
+                .finish();
     }
 
+    /**
+     *
+     * @return a copy of index, with quality overlaid in lowest 8 bytes
+     */
     public static Hash256 quality(Hash256 index, UInt64 quality) {
         byte[] qi = new byte[32];
         System.arraycopy(index.bytes(), 0, qi, 0, 24);
@@ -34,14 +36,19 @@ public class Index {
         return new Hash256(qi);
     }
 
+    /**
+     * @return A copy of index, with the lowest 8 bytes all zeroed.
+     */
     private static Hash256 zeroQuality(Hash256 fullIndex) {
         return quality(fullIndex, null);
     }
+
     public static Hash256 rippleState(AccountID a1, AccountID a2, Currency currency) {
         List<AccountID> accounts = Arrays.asList(a1, a2);
         sort(accounts);
         return rippleState(accounts, currency);
     }
+
     public static Hash256 rippleState(List<AccountID> accounts, Currency currency) {
         HalfSha512 hasher = prefixed256(LedgerSpace.ripple);
         // Low then High
@@ -52,23 +59,29 @@ public class Index {
         return hasher.finish();
     }
 
-    public static Hash256 directoryNode(Hash256 base, UInt64 nodeIndex) {
+    /**
+     *
+     * @param rootIndex The RootIndex index for the directory node
+     * @param nodeIndex nullable LowNode, HighNode, OwnerNode, BookNode etc
+     *                  defining a `page` number.
+     *
+     * @return  A hash of rootIndex and nodeIndex when nodeIndex is non default
+     *          else the rootIndex. This hash is used as an index for the next
+     *          DirectoryNode page.
+     */
+    public static Hash256 directoryNode(Hash256 rootIndex, UInt64 nodeIndex) {
         if (nodeIndex == null || nodeIndex.isZero()) {
-            return base;
+            return rootIndex;
         }
 
-        HalfSha512 hash = prefixed256(LedgerSpace.dirNode);
-
-        for (SerializedType component : new SerializedType[]{base, nodeIndex})
-            component.toBytesSink(hash);
-
-        return hash.finish();
+        return prefixed256(LedgerSpace.dirNode)
+                .add(rootIndex)
+                .add(nodeIndex)
+                .finish();
     }
 
     public static Hash256 accountRoot(AccountID accountID) {
-        HalfSha512 hash = prefixed256(LedgerSpace.account);
-        accountID.toBytesSink(hash);
-        return hash.finish();
+        return prefixed256(LedgerSpace.account).add(accountID).finish();
     }
 
     public static Hash256 ownerDirectory(AccountID account) {
