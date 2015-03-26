@@ -262,18 +262,19 @@ public class Client extends Publisher<Client.events> implements TransportEventHa
 
     void manageTimedOutRequests() {
         long now = System.currentTimeMillis();
+        ArrayList<Request> timedOut = new ArrayList<Request>();
 
-        for (Integer id : requests.keySet()) {
-            Request request = requests.get(id);
+        for (Request request : requests.values()) {
             if (request.sendTime != 0) {
                 long since = now - request.sendTime;
                 if (since >= Request.TIME_OUT) {
-                    request.emit(Request.OnTimeout.class,
-                            request.response);
-                    // TODO: request.clearAllListeners(); ?
-                    requests.remove(id);
+                    timedOut.add(request);
                 }
             }
+        }
+        for (Request request : timedOut) {
+            request.emit(Request.OnTimeout.class, request.response);
+            requests.remove(request.id);
         }
     }
 
