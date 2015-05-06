@@ -5,9 +5,9 @@ import java.security.SecureRandom;
 
 import org.ripple.bouncycastle.crypto.CryptoException;
 import org.ripple.bouncycastle.crypto.Digest;
-import org.ripple.bouncycastle.crypto.agreement.jpake.JPAKEParticipant;
 import org.ripple.bouncycastle.crypto.agreement.jpake.JPAKEPrimeOrderGroup;
 import org.ripple.bouncycastle.crypto.agreement.jpake.JPAKEPrimeOrderGroups;
+import org.ripple.bouncycastle.crypto.agreement.jpake.JPAKEParticipant;
 import org.ripple.bouncycastle.crypto.agreement.jpake.JPAKERound1Payload;
 import org.ripple.bouncycastle.crypto.agreement.jpake.JPAKERound2Payload;
 import org.ripple.bouncycastle.crypto.agreement.jpake.JPAKERound3Payload;

@@ -30,7 +30,7 @@ public class BCRSAPrivateCrtKey
     private BigInteger  crtCoefficient;
 
     /**
-     * construct a private key from it's org.bouncycastle.crypto equivalent.
+     * construct a private key from it's org.ripple.bouncycastle.crypto equivalent.
      *
      * @param key the parameters object representing the private key.
      */

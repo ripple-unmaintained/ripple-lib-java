@@ -5,7 +5,7 @@ import org.ripple.bouncycastle.crypto.DataLengthException;
 import org.ripple.bouncycastle.crypto.OutputLengthException;
 import org.ripple.bouncycastle.crypto.StreamCipher;
 import org.ripple.bouncycastle.crypto.params.KeyParameter;
-import org.ripple.bouncycastle.crypto.util.Pack;
+import org.ripple.bouncycastle.util.Pack;
 
 /**
  * Implementation of Bob Jenkin's ISAAC (Indirection Shift Accumulate Add and Count).
@@ -69,7 +69,7 @@ public class ISAACEngine
         return out;
     }
     
-    public void processBytes(
+    public int processBytes(
         byte[]  in, 
         int     inOff, 
         int     len, 
@@ -101,6 +101,8 @@ public class ISAACEngine
             out[i+outOff] = (byte)(keyStream[index]^in[i+inOff]);
             index = (index + 1) & 1023;
         }
+
+        return len;
     }
     
     public String getAlgorithmName()

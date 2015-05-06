@@ -3,6 +3,7 @@ package org.ripple.bouncycastle.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Vector;
 
 public final class Strings
@@ -241,6 +242,17 @@ public final class Strings
         return bytes;
     }
 
+    public static int toByteArray(String s, byte[] buf, int off)
+    {
+        int count = s.length();
+        for (int i = 0; i < count; ++i)
+        {
+            char c = s.charAt(i);
+            buf[off + i] = (byte)c;
+        }
+        return count;
+    }
+
     /**
      * Convert an array of 8 bit characters into a string.
      *
@@ -299,5 +311,54 @@ public final class Strings
             res[i] = (String)v.elementAt(i);
         }
         return res;
+    }
+
+    public static StringList newList()
+    {
+        return new StringListImpl();
+    }
+
+    private static class StringListImpl
+        extends ArrayList<String>
+        implements StringList
+    {
+        public boolean add(String s)
+        {
+            return super.add(s);
+        }
+
+        public String set(int index, String element)
+        {
+            return super.set(index, element);
+        }
+
+        public void add(int index, String element)
+        {
+            super.add(index, element);
+        }
+
+        public String[] toStringArray()
+        {
+            String[] strs = new String[this.size()];
+
+            for (int i = 0; i != strs.length; i++)
+            {
+                strs[i] = this.get(i);
+            }
+
+            return strs;
+        }
+
+        public String[] toStringArray(int from, int to)
+        {
+            String[] strs = new String[to - from];
+
+            for (int i = from; i != this.size() && i != to; i++)
+            {
+                strs[i - from] = this.get(i);
+            }
+
+            return strs;
+        }
     }
 }

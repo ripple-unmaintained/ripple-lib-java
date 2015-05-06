@@ -5,6 +5,7 @@ import org.ripple.bouncycastle.crypto.CipherParameters;
 import org.ripple.bouncycastle.crypto.Mac;
 import org.ripple.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.ripple.bouncycastle.crypto.paddings.ISO7816d4Padding;
+import org.ripple.bouncycastle.crypto.params.KeyParameter;
 
 /**
  * CMAC - as specified at www.nuee.nagoya-u.ac.jp/labs/tiwata/omac/omac.html
@@ -57,14 +58,14 @@ public class CMac implements Mac
     /**
      * create a standard MAC based on a block cipher with the size of the
      * MAC been given in bits.
-     * <p/>
+     * <p>
      * Note: the size of the MAC must be at least 24 bits (FIPS Publication 81),
      * or 16 bits if being used as a data authenticator (FIPS Publication 113),
      * and in general should be less than the size of the block cipher as it reduces
      * the chance of an exhaustive attack (see Handbook of Applied Cryptography).
      *
      * @param cipher        the cipher to be used as the basis of the MAC generation.
-     * @param macSizeInBits the size of the MAC in bits, must be a multiple of 8 and <= 128.
+     * @param macSizeInBits the size of the MAC in bits, must be a multiple of 8 and &lt;= 128.
      */
     public CMac(BlockCipher cipher, int macSizeInBits)
     {
@@ -103,36 +104,58 @@ public class CMac implements Mac
         return cipher.getAlgorithmName();
     }
 
+    private static int shiftLeft(byte[] block, byte[] output)
+    {
+        int i = block.length;
+        int bit = 0;
+        while (--i >= 0)
+        {
+            int b = block[i] & 0xff;
+            output[i] = (byte)((b << 1) | bit);
+            bit = (b >>> 7) & 1;
+        }
+        return bit;
+    }
+
     private static byte[] doubleLu(byte[] in)
     {
-        int FirstBit = (in[0] & 0xFF) >> 7;
         byte[] ret = new byte[in.length];
-        for (int i = 0; i < in.length - 1; i++)
-        {
-            ret[i] = (byte)((in[i] << 1) + ((in[i + 1] & 0xFF) >> 7));
-        }
-        ret[in.length - 1] = (byte)(in[in.length - 1] << 1);
-        if (FirstBit == 1)
-        {
-            ret[in.length - 1] ^= in.length == 16 ? CONSTANT_128 : CONSTANT_64;
-        }
+        int carry = shiftLeft(in, ret);
+        int xor = 0xff & (in.length == 16 ? CONSTANT_128 : CONSTANT_64);
+
+        /*
+         * NOTE: This construction is an attempt at a constant-time implementation.
+         */
+        ret[in.length - 1] ^= (xor >>> ((1 - carry) << 3));
+
         return ret;
     }
 
     public void init(CipherParameters params)
     {
-        if (params != null)
-        {
-            cipher.init(true, params);
-    
-            //initializes the L, Lu, Lu2 numbers
-            L = new byte[ZEROES.length];
-            cipher.processBlock(ZEROES, 0, L, 0);
-            Lu = doubleLu(L);
-            Lu2 = doubleLu(Lu);
-        }
+        validate(params);
+
+        cipher.init(true, params);
+
+        //initializes the L, Lu, Lu2 numbers
+        L = new byte[ZEROES.length];
+        cipher.processBlock(ZEROES, 0, L, 0);
+        Lu = doubleLu(L);
+        Lu2 = doubleLu(Lu);
 
         reset();
+    }
+
+    void validate(CipherParameters params)
+    {
+        if (params != null)
+        {
+            if (!(params instanceof KeyParameter))
+            {
+                // CMAC mode does not permit IV to underlying CBC mode
+                throw new IllegalArgumentException("CMac mode only permits key to be set.");
+            }
+        }
     }
 
     public int getMacSize()

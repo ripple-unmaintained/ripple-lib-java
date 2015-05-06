@@ -12,6 +12,9 @@ import org.ripple.bouncycastle.util.Arrays;
 /**
  * A basic hash-committer as described in "Making Mix Nets Robust for Electronic Voting by Randomized Partial Checking",
  * by Jakobsson, Juels, and Rivest (11th Usenix Security Symposium, 2002).
+ * <p>
+ * Use this class if you can enforce fixed length for messages. If you need something more general, use the GeneralHashCommitter.
+ * </p>
  */
 public class HashCommitter
     implements Committer
@@ -55,7 +58,7 @@ public class HashCommitter
     }
 
     /**
-     * Return true if the passed in commitment represents a commitment to the passed in maessage.
+     * Return true if the passed in commitment represents a commitment to the passed in message.
      *
      * @param commitment a commitment previously generated.
      * @param message the message that was expected to have been committed to.
@@ -63,6 +66,11 @@ public class HashCommitter
      */
     public boolean isRevealed(Commitment commitment, byte[] message)
     {
+        if (message.length + commitment.getSecret().length != byteLength)
+        {
+            throw new DataLengthException("Message and witness secret lengths do not match.");
+        }
+
         byte[] calcCommitment = calculateCommitment(commitment.getSecret(), message);
 
         return Arrays.constantTimeAreEqual(commitment.getCommitment(), calcCommitment);

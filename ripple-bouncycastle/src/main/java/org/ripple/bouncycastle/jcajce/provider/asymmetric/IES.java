@@ -5,7 +5,7 @@ import org.ripple.bouncycastle.jcajce.provider.util.AsymmetricAlgorithmProvider;
 
 public class IES
 {
-    private static final String PREFIX = "org.bouncycastle.jcajce.provider.asymmetric" + ".ies.";
+    private static final String PREFIX = "org.ripple.bouncycastle.jcajce.provider.asymmetric" + ".ies.";
 
     public static class Mappings
         extends AsymmetricAlgorithmProvider

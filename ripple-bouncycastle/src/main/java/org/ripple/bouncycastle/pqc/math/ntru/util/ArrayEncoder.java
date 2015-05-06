@@ -14,10 +14,10 @@ public class ArrayEncoder
     /**
      * Bit string to coefficient conversion table from P1363.1. Also found at
      * {@link http://stackoverflow.com/questions/1562548/how-to-make-a-message-into-a-polynomial}
-     * <p/>
+     * <p>
      * Convert each three-bit quantity to two ternary coefficients as follows, and concatenate the resulting
      * ternary quantities to obtain [the output].
-     * <p/>
+     * </p><p>
      * <code>
      * {0, 0, 0} -> {0, 0}<br/>
      * {0, 0, 1} -> {0, 1}<br/>
@@ -28,16 +28,17 @@ public class ArrayEncoder
      * {1, 1, 0} -> {-1, 0}<br/>
      * {1, 1, 1} -> {-1, 1}<br/>
      * </code>
+     * </p>
      */
     private static final int[] COEFF1_TABLE = {0, 0, 0, 1, 1, 1, -1, -1};
     private static final int[] COEFF2_TABLE = {0, 1, -1, 0, 1, -1, 0, 1};
     /**
      * Coefficient to bit string conversion table from P1363.1. Also found at
      * {@link http://stackoverflow.com/questions/1562548/how-to-make-a-message-into-a-polynomial}
-     * <p/>
+     * <p>
      * Convert each set of two ternary coefficients to three bits as follows, and concatenate the resulting bit
      * quantities to obtain [the output]:
-     * <p/>
+     * </p><p>
      * <code>
      * {-1, -1} -> set "fail" to 1 and set bit string to {1, 1, 1}
      * {-1, 0} -> {1, 1, 0}<br/>
@@ -48,7 +49,8 @@ public class ArrayEncoder
      * {1, -1} -> {1, 0, 1}<br/>
      * {1, 0} -> {0, 1, 1}<br/>
      * {1, 1} -> {1, 0, 0}<br/>
-     * </code>
+     * </code>   \
+     * </p>
      */
     private static final int[] BIT1_TABLE = {1, 1, 1, 0, 0, 0, 1, 0, 1};
     private static final int[] BIT2_TABLE = {1, 1, 1, 1, 0, 0, 0, 1, 0};
@@ -56,7 +58,7 @@ public class ArrayEncoder
 
     /**
      * Encodes an int array whose elements are between 0 and <code>q</code>,
-     * to a byte array leaving no gaps between bits.<br/>
+     * to a byte array leaving no gaps between bits.<br>
      * <code>q</code> must be a power of 2.
      *
      * @param a the input array
@@ -92,8 +94,8 @@ public class ArrayEncoder
     }
 
     /**
-     * Decodes a <code>byte</code> array encoded with {@link #encodeModQ(int[], int)} back to an <code>int</code> array.<br/>
-     * <code>N</code> is the number of coefficients. <code>q</code> must be a power of <code>2</code>.<br/>
+     * Decodes a <code>byte</code> array encoded with {@link #encodeModQ(int[], int)} back to an <code>int</code> array.<br>
+     * <code>N</code> is the number of coefficients. <code>q</code> must be a power of <code>2</code>.<br>
      * Ignores any excess bytes.
      *
      * @param data an encoded ternary polynomial
@@ -120,8 +122,8 @@ public class ArrayEncoder
     }
 
     /**
-     * Decodes data encoded with {@link #encodeModQ(int[], int)} back to an <code>int</code> array.<br/>
-     * <code>N</code> is the number of coefficients. <code>q</code> must be a power of <code>2</code>.<br/>
+     * Decodes data encoded with {@link #encodeModQ(int[], int)} back to an <code>int</code> array.<br>
+     * <code>N</code> is the number of coefficients. <code>q</code> must be a power of <code>2</code>.<br>
      * Ignores any excess bytes.
      *
      * @param is an encoded ternary polynomial
@@ -140,8 +142,8 @@ public class ArrayEncoder
 
     /**
      * Decodes a <code>byte</code> array encoded with {@link #encodeMod3Sves(int[])} back to an <code>int</code> array
-     * with <code>N</code> coefficients between <code>-1</code> and <code>1</code>.<br/>
-     * Ignores any excess bytes.<br/>
+     * with <code>N</code> coefficients between <code>-1</code> and <code>1</code>.<br>
+     * Ignores any excess bytes.<br>
      * See P1363.1 section 9.2.2.
      *
      * @param data an encoded ternary polynomial
@@ -171,8 +173,8 @@ public class ArrayEncoder
 
     /**
      * Encodes an <code>int</code> array whose elements are between <code>-1</code> and <code>1</code>, to a byte array.
-     * <code>coeffs[2*i]</code> and <code>coeffs[2*i+1]</code> must not both equal -1 for any integer </code>i<code>,
-     * so this method is only safe to use with arrays produced by {@link #decodeMod3Sves(byte[], int)}.<br/>
+     * <code>coeffs[2*i]</code> and <code>coeffs[2*i+1]</code> must not both equal -1 for any integer <code>i</code>,
+     * so this method is only safe to use with arrays produced by {@link #decodeMod3Sves(byte[], int)}.<br>
      * See P1363.1 section 9.2.3.
      *
      * @param arr

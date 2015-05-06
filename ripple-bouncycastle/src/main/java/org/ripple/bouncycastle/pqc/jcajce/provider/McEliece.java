@@ -6,7 +6,7 @@ import org.ripple.bouncycastle.pqc.asn1.PQCObjectIdentifiers;
 
 public class McEliece
 {
-    private static final String PREFIX = "org.bouncycastle.pqc.jcajce.provider" + ".mceliece.";
+    private static final String PREFIX = "org.ripple.bouncycastle.pqc.jcajce.provider" + ".mceliece.";
 
     public static class Mappings
         extends AsymmetricAlgorithmProvider

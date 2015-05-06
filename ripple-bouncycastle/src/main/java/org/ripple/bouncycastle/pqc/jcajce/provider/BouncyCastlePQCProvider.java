@@ -21,7 +21,7 @@ public class BouncyCastlePQCProvider
     extends Provider
     implements ConfigurableProvider
 {
-    private static String info = "BouncyCastle Post-Quantum Security Provider v1.48";
+    private static String info = "BouncyCastle Post-Quantum Security Provider v1.52";
 
     public static String PROVIDER_NAME = "BCPQC";
 
@@ -33,7 +33,7 @@ public class BouncyCastlePQCProvider
     /*
     * Configurable symmetric ciphers
     */
-    private static final String ALGORITHM_PACKAGE = "org.bouncycastle.pqc.jcajce.provider.";
+    private static final String ALGORITHM_PACKAGE = "org.ripple.bouncycastle.pqc.jcajce.provider.";
     private static final String[] ALGORITHMS =
         {
             "Rainbow", "McEliece"
@@ -46,7 +46,7 @@ public class BouncyCastlePQCProvider
      */
     public BouncyCastlePQCProvider()
     {
-        super(PROVIDER_NAME, 1.48, info);
+        super(PROVIDER_NAME, 1.52, info);
 
         AccessController.doPrivileged(new PrivilegedAction()
         {

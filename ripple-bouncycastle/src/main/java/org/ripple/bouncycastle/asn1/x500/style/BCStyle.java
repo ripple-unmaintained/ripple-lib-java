@@ -1,6 +1,5 @@
 package org.ripple.bouncycastle.asn1.x500.style;
 
-import java.io.IOException;
 import java.util.Hashtable;
 
 import org.ripple.bouncycastle.asn1.ASN1Encodable;
@@ -8,19 +7,15 @@ import org.ripple.bouncycastle.asn1.ASN1GeneralizedTime;
 import org.ripple.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.ripple.bouncycastle.asn1.DERIA5String;
 import org.ripple.bouncycastle.asn1.DERPrintableString;
-import org.ripple.bouncycastle.asn1.DERUTF8String;
 import org.ripple.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
-import org.ripple.bouncycastle.asn1.x500.AttributeTypeAndValue;
 import org.ripple.bouncycastle.asn1.x500.RDN;
 import org.ripple.bouncycastle.asn1.x500.X500Name;
 import org.ripple.bouncycastle.asn1.x500.X500NameStyle;
 import org.ripple.bouncycastle.asn1.x509.X509ObjectIdentifiers;
 
 public class BCStyle
-    implements X500NameStyle
+    extends AbstractX500NameStyle
 {
-    public static final X500NameStyle INSTANCE = new BCStyle();
-
     /**
      * country code - StringType(SIZE(2))
      */
@@ -273,46 +268,37 @@ public class BCStyle
         DefaultLookUp.put("name", NAME);
     }
 
+    /**
+     * Singleton instance.
+     */
+    public static final X500NameStyle INSTANCE = new BCStyle();
+
+    protected final Hashtable defaultLookUp;
+    protected final Hashtable defaultSymbols;
+
     protected BCStyle()
     {
-
+        defaultSymbols = copyHashTable(DefaultSymbols);
+        defaultLookUp = copyHashTable(DefaultLookUp);
     }
-    
-    public ASN1Encodable stringToValue(ASN1ObjectIdentifier oid, String value)
-    {
-        if (value.length() != 0 && value.charAt(0) == '#')
-        {
-            try
-            {
-                return IETFUtils.valueFromHexString(value, 1);
-            }
-            catch (IOException e)
-            {
-                throw new RuntimeException("can't recode value for oid " + oid.getId());
-            }
-        }
-        else
-        {
-            if (value.length() != 0 && value.charAt(0) == '\\')
-            {
-                value = value.substring(1);
-            }
-            if (oid.equals(EmailAddress) || oid.equals(DC))
-            {
-                return new DERIA5String(value);
-            }
-            else if (oid.equals(DATE_OF_BIRTH))  // accept time string as well as # (for compatibility)
-            {
-                return new ASN1GeneralizedTime(value);
-            }
-            else if (oid.equals(C) || oid.equals(SN) || oid.equals(DN_QUALIFIER)
-                || oid.equals(TELEPHONE_NUMBER))
-            {
-                return new DERPrintableString(value);
-            }
-        }
 
-        return new DERUTF8String(value);
+    protected ASN1Encodable encodeStringValue(ASN1ObjectIdentifier oid,
+    		String value) {
+    	if (oid.equals(EmailAddress) || oid.equals(DC))
+        {
+            return new DERIA5String(value);
+        }
+        else if (oid.equals(DATE_OF_BIRTH))  // accept time string as well as # (for compatibility)
+        {
+            return new ASN1GeneralizedTime(value);
+        }
+        else if (oid.equals(C) || oid.equals(SN) || oid.equals(DN_QUALIFIER)
+            || oid.equals(TELEPHONE_NUMBER))
+        {
+            return new DERPrintableString(value);
+        }
+    	
+    	return super.encodeStringValue(oid, value);
     }
 
     public String oidToDisplayName(ASN1ObjectIdentifier oid)
@@ -322,115 +308,17 @@ public class BCStyle
 
     public String[] oidToAttrNames(ASN1ObjectIdentifier oid)
     {
-        return IETFUtils.findAttrNamesForOID(oid, DefaultLookUp);
+        return IETFUtils.findAttrNamesForOID(oid, defaultLookUp);
     }
 
     public ASN1ObjectIdentifier attrNameToOID(String attrName)
     {
-        return IETFUtils.decodeAttrName(attrName, DefaultLookUp);
-    }
-
-    public boolean areEqual(X500Name name1, X500Name name2)
-    {
-        RDN[] rdns1 = name1.getRDNs();
-        RDN[] rdns2 = name2.getRDNs();
-
-        if (rdns1.length != rdns2.length)
-        {
-            return false;
-        }
-
-        boolean reverse = false;
-
-        if (rdns1[0].getFirst() != null && rdns2[0].getFirst() != null)
-        {
-            reverse = !rdns1[0].getFirst().getType().equals(rdns2[0].getFirst().getType());  // guess forward
-        }
-
-        for (int i = 0; i != rdns1.length; i++)
-        {
-            if (!foundMatch(reverse, rdns1[i], rdns2))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private boolean foundMatch(boolean reverse, RDN rdn, RDN[] possRDNs)
-    {
-        if (reverse)
-        {
-            for (int i = possRDNs.length - 1; i >= 0; i--)
-            {
-                if (possRDNs[i] != null && rdnAreEqual(rdn, possRDNs[i]))
-                {
-                    possRDNs[i] = null;
-                    return true;
-                }
-            }
-        }
-        else
-        {
-            for (int i = 0; i != possRDNs.length; i++)
-            {
-                if (possRDNs[i] != null && rdnAreEqual(rdn, possRDNs[i]))
-                {
-                    possRDNs[i] = null;
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    protected boolean rdnAreEqual(RDN rdn1, RDN rdn2)
-    {
-        return IETFUtils.rDNAreEqual(rdn1, rdn2);
+        return IETFUtils.decodeAttrName(attrName, defaultLookUp);
     }
 
     public RDN[] fromString(String dirName)
     {
         return IETFUtils.rDNsFromString(dirName, this);
-    }
-
-    public int calculateHashCode(X500Name name)
-    {
-        int hashCodeValue = 0;
-        RDN[] rdns = name.getRDNs();
-
-        // this needs to be order independent, like equals
-        for (int i = 0; i != rdns.length; i++)
-        {
-            if (rdns[i].isMultiValued())
-            {
-                AttributeTypeAndValue[] atv = rdns[i].getTypesAndValues();
-
-                for (int j = 0; j != atv.length; j++)
-                {
-                    hashCodeValue ^= atv[j].getType().hashCode();
-                    hashCodeValue ^= calcHashCode(atv[j].getValue());
-                }
-            }
-            else
-            {
-                hashCodeValue ^= rdns[i].getFirst().getType().hashCode();
-                hashCodeValue ^= calcHashCode(rdns[i].getFirst().getValue());
-            }
-        }
-
-        return hashCodeValue;
-    }
-
-    private int calcHashCode(ASN1Encodable enc)
-    {
-        String value = IETFUtils.valueToString(enc);
-
-        value = IETFUtils.canonicalize(value);
-
-        return value.hashCode();
     }
 
     public String toString(X500Name name)
@@ -451,9 +339,11 @@ public class BCStyle
                 buf.append(',');
             }
 
-            IETFUtils.appendRDN(buf, rdns[i], DefaultSymbols);
+            IETFUtils.appendRDN(buf, rdns[i], defaultSymbols);
         }
 
         return buf.toString();
     }
+
+
 }

@@ -118,6 +118,7 @@ public class HC128Engine
                 "The key must be 128 bits long");
         }
 
+        idx = 0;
         cnt = 0;
 
         int[] w = new int[1280];
@@ -219,7 +220,7 @@ public class HC128Engine
         return ret;
     }
 
-    public void processBytes(byte[] in, int inOff, int len, byte[] out,
+    public int processBytes(byte[] in, int inOff, int len, byte[] out,
                              int outOff) throws DataLengthException
     {
         if (!initialised)
@@ -242,11 +243,12 @@ public class HC128Engine
         {
             out[outOff + i] = (byte)(in[inOff + i] ^ getByte());
         }
+
+        return len;
     }
 
     public void reset()
     {
-        idx = 0;
         init();
     }
 

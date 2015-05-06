@@ -14,7 +14,7 @@ import org.ripple.bouncycastle.jce.spec.GOST3410PublicKeyParameterSetSpec;
 
 /**
  * utility class for converting jce/jca GOST3410-94 objects
- * objects into their org.bouncycastle.crypto counterparts.
+ * objects into their org.ripple.bouncycastle.crypto counterparts.
  */
 public class GOST3410Util
 {

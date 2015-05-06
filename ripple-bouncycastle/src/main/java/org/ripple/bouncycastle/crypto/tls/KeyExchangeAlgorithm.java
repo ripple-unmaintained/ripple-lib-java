@@ -2,7 +2,7 @@ package org.ripple.bouncycastle.crypto.tls;
 
 /**
  * RFC 2246
- * <p/>
+ * <p>
  * Note that the values here are implementation-specific and arbitrary. It is recommended not to
  * depend on the particular values (e.g. serialization).
  */
@@ -44,4 +44,9 @@ public class KeyExchangeAlgorithm
     public static final int SRP = 21;
     public static final int SRP_DSS = 22;
     public static final int SRP_RSA = 23;
+    
+    /*
+     * RFC 5489
+     */
+    public static final int ECDHE_PSK = 24;
 }

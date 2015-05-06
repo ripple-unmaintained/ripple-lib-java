@@ -1,6 +1,6 @@
 package org.ripple.bouncycastle.crypto.prng;
 
-import org.ripple.bouncycastle.crypto.util.Pack;
+import org.ripple.bouncycastle.util.Pack;
 
 public class VMPCRandomGenerator implements RandomGenerator
 {

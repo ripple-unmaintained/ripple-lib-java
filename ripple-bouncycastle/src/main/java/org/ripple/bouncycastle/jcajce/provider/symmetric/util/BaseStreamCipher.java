@@ -3,6 +3,7 @@ package org.ripple.bouncycastle.jcajce.provider.symmetric.util;
 import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.InvalidParameterException;
 import java.security.Key;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
@@ -16,14 +17,11 @@ import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.RC2ParameterSpec;
 import javax.crypto.spec.RC5ParameterSpec;
 
-import org.ripple.bouncycastle.crypto.BlockCipher;
 import org.ripple.bouncycastle.crypto.CipherParameters;
 import org.ripple.bouncycastle.crypto.DataLengthException;
-import org.ripple.bouncycastle.crypto.StreamBlockCipher;
 import org.ripple.bouncycastle.crypto.StreamCipher;
 import org.ripple.bouncycastle.crypto.params.KeyParameter;
 import org.ripple.bouncycastle.crypto.params.ParametersWithIV;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class BaseStreamCipher
     extends BaseWrapCipher
@@ -56,15 +54,6 @@ public class BaseStreamCipher
         this.ivLength = ivLength;
     }
 
-    protected BaseStreamCipher(
-        BlockCipher engine,
-        int ivLength)
-    {
-        this.ivLength = ivLength;
-
-        cipher = new StreamBlockCipher(engine);
-    }
-
     protected int engineGetBlockSize()
     {
         return 0;
@@ -95,7 +84,7 @@ public class BaseStreamCipher
             {
                 try
                 {
-                    AlgorithmParameters engineParams = AlgorithmParameters.getInstance(pbeAlgorithm, BouncyCastleProvider.PROVIDER_NAME);
+                    AlgorithmParameters engineParams = createParametersInstance(pbeAlgorithm);
                     engineParams.init(pbeSpec);
 
                     return engineParams;
@@ -201,7 +190,7 @@ public class BaseStreamCipher
         }
         else
         {
-            throw new IllegalArgumentException("unknown parameter type.");
+            throw new InvalidAlgorithmParameterException("unknown parameter type.");
         }
 
         if ((ivLength != 0) && !(param instanceof ParametersWithIV))
@@ -227,18 +216,25 @@ public class BaseStreamCipher
             }
         }
 
-        switch (opmode)
+        try
         {
-        case Cipher.ENCRYPT_MODE:
-        case Cipher.WRAP_MODE:
-            cipher.init(true, param);
-            break;
-        case Cipher.DECRYPT_MODE:
-        case Cipher.UNWRAP_MODE:
-            cipher.init(false, param);
-            break;
-        default:
-            System.out.println("eeek!");
+            switch (opmode)
+            {
+            case Cipher.ENCRYPT_MODE:
+            case Cipher.WRAP_MODE:
+                cipher.init(true, param);
+                break;
+            case Cipher.DECRYPT_MODE:
+            case Cipher.UNWRAP_MODE:
+                cipher.init(false, param);
+                break;
+            default:
+                throw new InvalidParameterException("unknown opmode " + opmode + " passed");
+            }
+        }
+        catch (Exception e)
+        {
+            throw new InvalidKeyException(e.getMessage());
         }
     }
 

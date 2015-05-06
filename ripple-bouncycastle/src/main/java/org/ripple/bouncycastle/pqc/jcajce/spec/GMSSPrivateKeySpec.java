@@ -3,7 +3,6 @@ package org.ripple.bouncycastle.pqc.jcajce.spec;
 import java.security.spec.KeySpec;
 import java.util.Vector;
 
-import org.ripple.bouncycastle.crypto.Digest;
 import org.ripple.bouncycastle.pqc.crypto.gmss.GMSSLeaf;
 import org.ripple.bouncycastle.pqc.crypto.gmss.GMSSParameters;
 import org.ripple.bouncycastle.pqc.crypto.gmss.GMSSRootCalc;

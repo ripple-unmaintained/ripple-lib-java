@@ -19,6 +19,7 @@ import org.ripple.bouncycastle.asn1.x509.X509Name;
  * PrincipalUtil class.
  * </p>
  * @see org.ripple.bouncycastle.jce.PrincipalUtil
+ * @deprecated use the X500Name class.
  */
 public class X509Principal
     extends X509Name
@@ -128,7 +129,7 @@ public class X509Principal
      * Takes an X509 dir name as a string of the format "C=AU, ST=Victoria", or
      * some such, converting it into an ordered set of name attributes. lookUp 
      * should provide a table of lookups, indexed by lowercase only strings and
-     * yielding a DERObjectIdentifier, other than that OID. and numeric oids
+     * yielding a ASN1ObjectIdentifier, other than that OID. and numeric oids
      * will be processed automatically.
      * <p>
      * If reverse is true, create the encoded version of the sequence starting

@@ -1,5 +1,8 @@
 package org.ripple.bouncycastle.crypto.signers;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
+
 import org.ripple.bouncycastle.crypto.CipherParameters;
 import org.ripple.bouncycastle.crypto.DSA;
 import org.ripple.bouncycastle.crypto.params.DSAKeyParameters;
@@ -8,9 +11,6 @@ import org.ripple.bouncycastle.crypto.params.DSAPrivateKeyParameters;
 import org.ripple.bouncycastle.crypto.params.DSAPublicKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ParametersWithRandom;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
-
 /**
  * The Digital Signature Algorithm - as described in "Handbook of Applied
  * Cryptography", pages 452 - 453.
@@ -18,26 +18,46 @@ import java.security.SecureRandom;
 public class DSASigner
     implements DSA
 {
-    DSAKeyParameters key;
+    private final DSAKCalculator kCalculator;
 
-    SecureRandom    random;
+    private DSAKeyParameters key;
+    private SecureRandom    random;
+
+    /**
+     * Default configuration, random K values.
+     */
+    public DSASigner()
+    {
+        this.kCalculator = new RandomDSAKCalculator();
+    }
+
+    /**
+     * Configuration with an alternate, possibly deterministic calculator of K.
+     *
+     * @param kCalculator a K value calculator.
+     */
+    public DSASigner(DSAKCalculator kCalculator)
+    {
+        this.kCalculator = kCalculator;
+    }
 
     public void init(
         boolean                 forSigning,
         CipherParameters        param)
     {
+        SecureRandom providedRandom = null;
+
         if (forSigning)
         {
             if (param instanceof ParametersWithRandom)
             {
-                ParametersWithRandom    rParam = (ParametersWithRandom)param;
+                ParametersWithRandom rParam = (ParametersWithRandom)param;
 
-                this.random = rParam.getRandom();
                 this.key = (DSAPrivateKeyParameters)rParam.getParameters();
+                providedRandom = rParam.getRandom();
             }
             else
             {
-                this.random = new SecureRandom();
                 this.key = (DSAPrivateKeyParameters)param;
             }
         }
@@ -45,6 +65,8 @@ public class DSASigner
         {
             this.key = (DSAPublicKeyParameters)param;
         }
+
+        this.random = initSecureRandom(forSigning && !kCalculator.isDeterministic(), providedRandom);
     }
 
     /**
@@ -58,29 +80,28 @@ public class DSASigner
         byte[] message)
     {
         DSAParameters   params = key.getParameters();
-        BigInteger      m = calculateE(params.getQ(), message);
-        BigInteger      k;
-        int                  qBitLength = params.getQ().bitLength();
+        BigInteger      q = params.getQ();
+        BigInteger      m = calculateE(q, message);
+        BigInteger      x = ((DSAPrivateKeyParameters)key).getX();
 
-        do 
+        if (kCalculator.isDeterministic())
         {
-            k = new BigInteger(qBitLength, random);
+            kCalculator.init(q, x, message);
         }
-        while (k.compareTo(params.getQ()) >= 0);
+        else
+        {
+            kCalculator.init(q, random);
+        }
 
-        BigInteger  r = params.getG().modPow(k, params.getP()).mod(params.getQ());
+        BigInteger  k = kCalculator.nextK();
 
-        k = k.modInverse(params.getQ()).multiply(
-                    m.add(((DSAPrivateKeyParameters)key).getX().multiply(r)));
+        BigInteger  r = params.getG().modPow(k, params.getP()).mod(q);
 
-        BigInteger  s = k.mod(params.getQ());
+        k = k.modInverse(q).multiply(m.add(x.multiply(r)));
 
-        BigInteger[]  res = new BigInteger[2];
+        BigInteger  s = k.mod(q);
 
-        res[0] = r;
-        res[1] = s;
-
-        return res;
+        return new BigInteger[]{ r, s };
     }
 
     /**
@@ -94,28 +115,30 @@ public class DSASigner
         BigInteger  s)
     {
         DSAParameters   params = key.getParameters();
-        BigInteger      m = calculateE(params.getQ(), message);
+        BigInteger      q = params.getQ();
+        BigInteger      m = calculateE(q, message);
         BigInteger      zero = BigInteger.valueOf(0);
 
-        if (zero.compareTo(r) >= 0 || params.getQ().compareTo(r) <= 0)
+        if (zero.compareTo(r) >= 0 || q.compareTo(r) <= 0)
         {
             return false;
         }
 
-        if (zero.compareTo(s) >= 0 || params.getQ().compareTo(s) <= 0)
+        if (zero.compareTo(s) >= 0 || q.compareTo(s) <= 0)
         {
             return false;
         }
 
-        BigInteger  w = s.modInverse(params.getQ());
+        BigInteger  w = s.modInverse(q);
 
-        BigInteger  u1 = m.multiply(w).mod(params.getQ());
-        BigInteger  u2 = r.multiply(w).mod(params.getQ());
+        BigInteger  u1 = m.multiply(w).mod(q);
+        BigInteger  u2 = r.multiply(w).mod(q);
 
-        u1 = params.getG().modPow(u1, params.getP());
-        u2 = ((DSAPublicKeyParameters)key).getY().modPow(u2, params.getP());
+        BigInteger p = params.getP();
+        u1 = params.getG().modPow(u1, p);
+        u2 = ((DSAPublicKeyParameters)key).getY().modPow(u2, p);
 
-        BigInteger  v = u1.multiply(u2).mod(params.getP()).mod(params.getQ());
+        BigInteger  v = u1.multiply(u2).mod(p).mod(q);
 
         return v.equals(r);
     }
@@ -134,5 +157,10 @@ public class DSASigner
 
             return new BigInteger(1, trunc);
         }
+    }
+
+    protected SecureRandom initSecureRandom(boolean needed, SecureRandom provided)
+    {
+        return !needed ? null : (provided != null) ? provided : new SecureRandom();
     }
 }

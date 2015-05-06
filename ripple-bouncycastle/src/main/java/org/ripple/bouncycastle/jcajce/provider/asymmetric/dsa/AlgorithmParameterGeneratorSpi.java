@@ -11,10 +11,10 @@ import org.ripple.bouncycastle.crypto.digests.SHA256Digest;
 import org.ripple.bouncycastle.crypto.generators.DSAParametersGenerator;
 import org.ripple.bouncycastle.crypto.params.DSAParameterGenerationParameters;
 import org.ripple.bouncycastle.crypto.params.DSAParameters;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.ripple.bouncycastle.jcajce.provider.asymmetric.util.BaseAlgorithmParameterGeneratorSpi;
 
 public class AlgorithmParameterGeneratorSpi
-    extends java.security.AlgorithmParameterGeneratorSpi
+    extends BaseAlgorithmParameterGeneratorSpi
 {
     protected SecureRandom random;
     protected int strength = 1024;
@@ -90,7 +90,7 @@ public class AlgorithmParameterGeneratorSpi
 
         try
         {
-            params = AlgorithmParameters.getInstance("DSA", BouncyCastleProvider.PROVIDER_NAME);
+            params = createParametersInstance("DSA");
             params.init(new DSAParameterSpec(p.getP(), p.getQ(), p.getG()));
         }
         catch (Exception e)

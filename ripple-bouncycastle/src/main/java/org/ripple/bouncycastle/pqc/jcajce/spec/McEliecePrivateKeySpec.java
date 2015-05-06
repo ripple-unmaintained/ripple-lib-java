@@ -11,7 +11,7 @@ import org.ripple.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
 /**
  * This class provides a specification for a McEliece private key.
  *
- * @see org.bouncycastle.pqc.ecc.JDKMcEliecePrivateKey.McEliecePrivateKey
+ * @see org.ripple.bouncycastle.pqc.ecc.JDKMcEliecePrivateKey.McEliecePrivateKey
  * @see KeySpec
  */
 public class McEliecePrivateKeySpec

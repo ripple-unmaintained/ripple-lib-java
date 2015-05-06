@@ -20,7 +20,6 @@ import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseAlgorithmParam
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseBlockCipher;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseKeyGenerator;
 import org.ripple.bouncycastle.jcajce.provider.util.AlgorithmProvider;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public final class CAST5
 {
@@ -81,7 +80,7 @@ public final class CAST5
 
             try
             {
-                params = AlgorithmParameters.getInstance("CAST5", BouncyCastleProvider.PROVIDER_NAME);
+                params = createParametersInstance("CAST5");
                 params.init(new IvParameterSpec(iv));
             }
             catch (Exception e)

@@ -10,7 +10,7 @@ import org.ripple.bouncycastle.pqc.crypto.mceliece.McElieceCCA2PublicKeyParamete
 
 /**
  * utility class for converting jce/jca McElieceCCA2 objects
- * objects into their org.bouncycastle.crypto counterparts.
+ * objects into their org.ripple.bouncycastle.crypto counterparts.
  */
 public class McElieceCCA2KeysToParams
 {

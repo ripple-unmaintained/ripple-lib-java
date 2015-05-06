@@ -40,43 +40,25 @@ public final class BigIntegers
      * @param value value to be converted.
      * @return a byte array without a leading zero byte if present in the signed encoding.
      */
-    public static byte[] asUnsignedByteArray(
-        int        length,
-        BigInteger value)
+    public static byte[] asUnsignedByteArray(int length, BigInteger value)
     {
         byte[] bytes = value.toByteArray();
-
-        if (bytes[0] == 0)
+        if (bytes.length == length)
         {
-            if (bytes.length - 1 > length)
-            {
-                throw new IllegalArgumentException("standard length exceeded for value");
-            }
-
-            byte[] tmp = new byte[length];
-
-            System.arraycopy(bytes, 1, tmp, tmp.length - (bytes.length - 1), bytes.length - 1);
-
-            return tmp;
+            return bytes;
         }
-        else
+
+        int start = bytes[0] == 0 ? 1 : 0;
+        int count = bytes.length - start;
+
+        if (count > length)
         {
-            if (bytes.length == length)
-            {
-                return bytes;
-            }
-
-            if (bytes.length > length)
-            {
-                throw new IllegalArgumentException("standard length exceeded for value");
-            }
-
-            byte[] tmp = new byte[length];
-
-            System.arraycopy(bytes, 0, tmp, tmp.length - bytes.length, bytes.length);
-
-            return tmp;
+            throw new IllegalArgumentException("standard length exceeded for value");
         }
+
+        byte[] tmp = new byte[length];
+        System.arraycopy(bytes, start, tmp, tmp.length - count, count);
+        return tmp;
     }
 
     /**
@@ -119,5 +101,21 @@ public final class BigIntegers
 
         // fall back to a faster (restricted) method
         return new BigInteger(max.subtract(min).bitLength() - 1, random).add(min);
+    }
+
+    public static BigInteger fromUnsignedByteArray(byte[] buf)
+    {
+        return new BigInteger(1, buf);
+    }
+
+    public static BigInteger fromUnsignedByteArray(byte[] buf, int off, int length)
+    {
+        byte[] mag = buf;
+        if (off != 0 || length != buf.length)
+        {
+            mag = new byte[length];
+            System.arraycopy(buf, off, mag, 0, length);
+        }
+        return new BigInteger(1, mag);
     }
 }

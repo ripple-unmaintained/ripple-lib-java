@@ -9,9 +9,8 @@ import java.io.OutputStream;
  */
 public class SignatureAndHashAlgorithm
 {
-
-    private short hash;
-    private short signature;
+    protected short hash;
+    protected short signature;
 
     /**
      * @param hash      {@link HashAlgorithm}
@@ -19,7 +18,6 @@ public class SignatureAndHashAlgorithm
      */
     public SignatureAndHashAlgorithm(short hash, short signature)
     {
-
         if (!TlsUtils.isValidUint8(hash))
         {
             throw new IllegalArgumentException("'hash' should be a uint8");
@@ -65,7 +63,7 @@ public class SignatureAndHashAlgorithm
 
     public int hashCode()
     {
-        return (getHash() << 8) | getSignature();
+        return (getHash() << 16) | getSignature();
     }
 
     /**
@@ -77,8 +75,8 @@ public class SignatureAndHashAlgorithm
     public void encode(OutputStream output)
         throws IOException
     {
-        TlsUtils.writeUint8(hash, output);
-        TlsUtils.writeUint8(signature, output);
+        TlsUtils.writeUint8(getHash(), output);
+        TlsUtils.writeUint8(getSignature(), output);
     }
 
     /**

@@ -12,18 +12,29 @@ import org.ripple.bouncycastle.crypto.OutputLengthException;
 public class NullEngine implements BlockCipher
 {
     private boolean initialised;
-    protected static final int BLOCK_SIZE = 1;
-    
+    protected static final int DEFAULT_BLOCK_SIZE = 1;
+    private final int blockSize;
+
     /**
-     * Standard constructor.
+     * Constructs a null engine with a block size of 1 byte.
      */
     public NullEngine()
     {
-        super();
+        this(DEFAULT_BLOCK_SIZE);
+    }
+
+    /**
+     * Constructs a null engine with a specific block size.
+     * 
+     * @param blockSize the block size in bytes.
+     */
+    public NullEngine(int blockSize)
+    {
+        this.blockSize = blockSize;
     }
 
     /* (non-Javadoc)
-     * @see org.bouncycastle.crypto.BlockCipher#init(boolean, org.bouncycastle.crypto.CipherParameters)
+     * @see org.ripple.bouncycastle.crypto.BlockCipher#init(boolean, org.ripple.bouncycastle.crypto.CipherParameters)
      */
     public void init(boolean forEncryption, CipherParameters params) throws IllegalArgumentException
     {
@@ -32,7 +43,7 @@ public class NullEngine implements BlockCipher
     }
 
     /* (non-Javadoc)
-     * @see org.bouncycastle.crypto.BlockCipher#getAlgorithmName()
+     * @see org.ripple.bouncycastle.crypto.BlockCipher#getAlgorithmName()
      */
     public String getAlgorithmName()
     {
@@ -40,15 +51,15 @@ public class NullEngine implements BlockCipher
     }
 
     /* (non-Javadoc)
-     * @see org.bouncycastle.crypto.BlockCipher#getBlockSize()
+     * @see org.ripple.bouncycastle.crypto.BlockCipher#getBlockSize()
      */
     public int getBlockSize()
     {
-        return BLOCK_SIZE;
+        return blockSize;
     }
 
     /* (non-Javadoc)
-     * @see org.bouncycastle.crypto.BlockCipher#processBlock(byte[], int, byte[], int)
+     * @see org.ripple.bouncycastle.crypto.BlockCipher#processBlock(byte[], int, byte[], int)
      */
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
         throws DataLengthException, IllegalStateException
@@ -57,26 +68,26 @@ public class NullEngine implements BlockCipher
         {
             throw new IllegalStateException("Null engine not initialised");
         }
-            if ((inOff + BLOCK_SIZE) > in.length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
+        if ((inOff + blockSize) > in.length)
+        {
+            throw new DataLengthException("input buffer too short");
+        }
 
-            if ((outOff + BLOCK_SIZE) > out.length)
-            {
-                throw new OutputLengthException("output buffer too short");
-            }
-            
-            for (int i = 0; i < BLOCK_SIZE; ++i)
-            {
-                out[outOff + i] = in[inOff + i];
-            }
-            
-            return BLOCK_SIZE;
+        if ((outOff + blockSize) > out.length)
+        {
+            throw new OutputLengthException("output buffer too short");
+        }
+
+        for (int i = 0; i < blockSize; ++i)
+        {
+            out[outOff + i] = in[inOff + i];
+        }
+
+        return blockSize;
     }
 
     /* (non-Javadoc)
-     * @see org.bouncycastle.crypto.BlockCipher#reset()
+     * @see org.ripple.bouncycastle.crypto.BlockCipher#reset()
      */
     public void reset()
     {

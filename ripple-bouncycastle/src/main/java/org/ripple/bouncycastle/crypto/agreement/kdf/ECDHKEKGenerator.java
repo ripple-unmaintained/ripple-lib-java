@@ -11,20 +11,20 @@ import org.ripple.bouncycastle.asn1.DERSequence;
 import org.ripple.bouncycastle.asn1.DERTaggedObject;
 import org.ripple.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.ripple.bouncycastle.crypto.DataLengthException;
-import org.ripple.bouncycastle.crypto.DerivationFunction;
 import org.ripple.bouncycastle.crypto.DerivationParameters;
 import org.ripple.bouncycastle.crypto.Digest;
+import org.ripple.bouncycastle.crypto.DigestDerivationFunction;
 import org.ripple.bouncycastle.crypto.generators.KDF2BytesGenerator;
 import org.ripple.bouncycastle.crypto.params.KDFParameters;
-import org.ripple.bouncycastle.crypto.util.Pack;
+import org.ripple.bouncycastle.util.Pack;
 
 /**
  * X9.63 based key derivation function for ECDH CMS.
  */
 public class ECDHKEKGenerator
-    implements DerivationFunction
+    implements DigestDerivationFunction
 {
-    private DerivationFunction kdf;
+    private DigestDerivationFunction kdf;
 
     private ASN1ObjectIdentifier algorithm;
     private int                 keySize;

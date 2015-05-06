@@ -21,7 +21,7 @@ import org.ripple.bouncycastle.util.Selector;
 
 /**
  * Carrying class for an attribute certificate issuer.
- * @deprecated use org.bouncycastle.cert.AttributeCertificateIssuer
+ * @deprecated use org.ripple.bouncycastle.cert.AttributeCertificateIssuer
  */
 public class AttributeCertificateIssuer
     implements CertSelector, Selector

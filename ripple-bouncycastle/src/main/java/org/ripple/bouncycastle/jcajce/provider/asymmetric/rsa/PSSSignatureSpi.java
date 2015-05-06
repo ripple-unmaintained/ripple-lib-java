@@ -22,11 +22,14 @@ import org.ripple.bouncycastle.crypto.Digest;
 import org.ripple.bouncycastle.crypto.engines.RSABlindedEngine;
 import org.ripple.bouncycastle.crypto.params.ParametersWithRandom;
 import org.ripple.bouncycastle.jcajce.provider.util.DigestFactory;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.ripple.bouncycastle.jcajce.util.BCJcaJceHelper;
+import org.ripple.bouncycastle.jcajce.util.JcaJceHelper;
 
 public class PSSSignatureSpi
     extends SignatureSpi
 {
+    private final JcaJceHelper helper = new BCJcaJceHelper();
+
     private AlgorithmParameters engineParams;
     private PSSParameterSpec paramSpec;
     private PSSParameterSpec originalSpec;
@@ -234,7 +237,7 @@ public class PSSSignatureSpi
             {
                 try
                 {
-                    engineParams = AlgorithmParameters.getInstance("PSS", BouncyCastleProvider.PROVIDER_NAME);
+                    engineParams = helper.createAlgorithmParameters("PSS");
                     engineParams.init(paramSpec);
                 }
                 catch (Exception e)

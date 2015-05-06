@@ -9,9 +9,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Principal;
-import java.security.Provider;
 import java.security.PublicKey;
-import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
@@ -61,7 +59,6 @@ import org.ripple.bouncycastle.jcajce.provider.asymmetric.util.PKCS12BagAttribut
 import org.ripple.bouncycastle.jce.X509Principal;
 import org.ripple.bouncycastle.jce.interfaces.PKCS12BagAttributeCarrier;
 import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.ripple.bouncycastle.jce.provider.RFC3280CertPathUtilities;
 import org.ripple.bouncycastle.util.Arrays;
 import org.ripple.bouncycastle.util.Integers;
 import org.ripple.bouncycastle.util.encoders.Hex;
@@ -238,37 +235,11 @@ class X509CertificateObject
 
     /**
      * return a more "meaningful" representation for the signature algorithm used in
-     * the certficate.
+     * the certificate.
      */
     public String getSigAlgName()
     {
-        Provider    prov = Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
-
-        if (prov != null)
-        {
-            String      algName = prov.getProperty("Alg.Alias.Signature." + this.getSigAlgOID());
-
-            if (algName != null)
-            {
-                return algName;
-            }
-        }
-
-        Provider[] provs = Security.getProviders();
-
-        //
-        // search every provider looking for a real algorithm
-        //
-        for (int i = 0; i != provs.length; i++)
-        {
-            String algName = provs[i].getProperty("Alg.Alias.Signature." + this.getSigAlgOID());
-            if (algName != null)
-            {
-                return algName;
-            }
-        }
-
-        return this.getSigAlgOID();
+        return X509SignatureUtil.getSignatureName(c.getSignatureAlgorithm());
     }
 
     /**
@@ -522,19 +493,18 @@ class X509CertificateObject
                 while (e.hasMoreElements())
                 {
                     ASN1ObjectIdentifier oid = (ASN1ObjectIdentifier)e.nextElement();
-                    String              oidId = oid.getId();
 
-                    if (oidId.equals(RFC3280CertPathUtilities.KEY_USAGE)
-                     || oidId.equals(RFC3280CertPathUtilities.CERTIFICATE_POLICIES)
-                     || oidId.equals(RFC3280CertPathUtilities.POLICY_MAPPINGS)
-                     || oidId.equals(RFC3280CertPathUtilities.INHIBIT_ANY_POLICY)
-                     || oidId.equals(RFC3280CertPathUtilities.CRL_DISTRIBUTION_POINTS)
-                     || oidId.equals(RFC3280CertPathUtilities.ISSUING_DISTRIBUTION_POINT)
-                     || oidId.equals(RFC3280CertPathUtilities.DELTA_CRL_INDICATOR)
-                     || oidId.equals(RFC3280CertPathUtilities.POLICY_CONSTRAINTS)
-                     || oidId.equals(RFC3280CertPathUtilities.BASIC_CONSTRAINTS)
-                     || oidId.equals(RFC3280CertPathUtilities.SUBJECT_ALTERNATIVE_NAME)
-                     || oidId.equals(RFC3280CertPathUtilities.NAME_CONSTRAINTS))
+                    if (oid.equals(Extension.keyUsage)
+                     || oid.equals(Extension.certificatePolicies)
+                     || oid.equals(Extension.policyMappings)
+                     || oid.equals(Extension.inhibitAnyPolicy)
+                     || oid.equals(Extension.cRLDistributionPoints)
+                     || oid.equals(Extension.issuingDistributionPoint)
+                     || oid.equals(Extension.deltaCRLIndicator)
+                     || oid.equals(Extension.policyConstraints)
+                     || oid.equals(Extension.basicConstraints)
+                     || oid.equals(Extension.subjectAlternativeName)
+                     || oid.equals(Extension.nameConstraints))
                     {
                         continue;
                     }
@@ -775,7 +745,16 @@ class X509CertificateObject
         InvalidKeyException, NoSuchProviderException, SignatureException
     {
         String    sigName = X509SignatureUtil.getSignatureName(c.getSignatureAlgorithm());
-        Signature signature = Signature.getInstance(sigName, sigProvider);
+        Signature signature;
+
+        if (sigProvider  != null)
+        {
+            signature = Signature.getInstance(sigName, sigProvider);
+        }
+        else
+        {
+            signature = Signature.getInstance(sigName);
+        }
         
         checkSignature(key, signature);
     }

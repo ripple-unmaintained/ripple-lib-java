@@ -23,7 +23,6 @@ import org.ripple.bouncycastle.asn1.x509.Extensions;
 import org.ripple.bouncycastle.asn1.x509.GeneralName;
 import org.ripple.bouncycastle.asn1.x509.GeneralNames;
 import org.ripple.bouncycastle.asn1.x509.TBSCertList;
-import org.ripple.bouncycastle.asn1.x509.X509Extension;
 
 /**
  * The following extensions are listed in RFC 2459 as relevant to CRL Entries
@@ -39,7 +38,7 @@ class X509CRLEntryObject extends X509CRLEntry
     private int           hashValue;
     private boolean       isHashValueSet;
 
-    public X509CRLEntryObject(TBSCertList.CRLEntry c)
+    protected X509CRLEntryObject(TBSCertList.CRLEntry c)
     {
         this.c = c;
         this.certificateIssuer = null;
@@ -62,7 +61,7 @@ class X509CRLEntryObject extends X509CRLEntry
      * @param previousCertificateIssuer
      *            Certificate issuer of the previous CRLEntry.
      */
-    public X509CRLEntryObject(
+    protected X509CRLEntryObject(
         TBSCertList.CRLEntry c,
         boolean isIndirect,
         X500Name previousCertificateIssuer)
@@ -211,6 +210,23 @@ class X509CRLEntryObject extends X509CRLEntry
         return hashValue;
     }
 
+    public boolean equals(Object o)
+    {
+        if (o == this)
+        {
+            return true;
+        }
+
+        if (o instanceof X509CRLEntryObject)
+        {
+            X509CRLEntryObject other = (X509CRLEntryObject)o;
+
+            return this.c.equals(other.c);
+        }
+
+        return super.equals(this);
+    }
+
     public byte[] getEncoded()
         throws CRLException
     {
@@ -268,11 +284,11 @@ class X509CRLEntryObject extends X509CRLEntry
                         buf.append("                       critical(").append(ext.isCritical()).append(") ");
                         try
                         {
-                            if (oid.equals(X509Extension.reasonCode))
+                            if (oid.equals(Extension.reasonCode))
                             {
                                 buf.append(CRLReason.getInstance(ASN1Enumerated.getInstance(dIn.readObject()))).append(nl);
                             }
-                            else if (oid.equals(X509Extension.certificateIssuer))
+                            else if (oid.equals(Extension.certificateIssuer))
                             {
                                 buf.append("Certificate issuer: ").append(GeneralNames.getInstance(dIn.readObject())).append(nl);
                             }

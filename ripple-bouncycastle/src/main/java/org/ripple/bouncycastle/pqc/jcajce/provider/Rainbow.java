@@ -8,7 +8,7 @@ import org.ripple.bouncycastle.pqc.jcajce.provider.rainbow.RainbowKeyFactorySpi;
 
 public class Rainbow
 {
-    private static final String PREFIX = "org.bouncycastle.pqc.jcajce.provider" + ".rainbow.";
+    private static final String PREFIX = "org.ripple.bouncycastle.pqc.jcajce.provider" + ".rainbow.";
 
     public static class Mappings
         extends AsymmetricAlgorithmProvider

@@ -5,7 +5,6 @@ package org.ripple.bouncycastle.crypto.tls;
  */
 public class CipherSuite
 {
-
     public static final int TLS_NULL_WITH_NULL_NULL = 0x0000;
     public static final int TLS_RSA_WITH_NULL_MD5 = 0x0001;
     public static final int TLS_RSA_WITH_NULL_SHA = 0x0002;
@@ -57,7 +56,7 @@ public class CipherSuite
     public static final int TLS_DH_anon_WITH_AES_256_CBC_SHA = 0x003A;
 
     /*
-     * RFC 4132
+     * RFC 5932
      */
     public static final int TLS_RSA_WITH_CAMELLIA_128_CBC_SHA = 0x0041;
     public static final int TLS_DH_DSS_WITH_CAMELLIA_128_CBC_SHA = 0x0042;
@@ -65,12 +64,27 @@ public class CipherSuite
     public static final int TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA = 0x0044;
     public static final int TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA = 0x0045;
     public static final int TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA = 0x0046;
+
     public static final int TLS_RSA_WITH_CAMELLIA_256_CBC_SHA = 0x0084;
     public static final int TLS_DH_DSS_WITH_CAMELLIA_256_CBC_SHA = 0x0085;
     public static final int TLS_DH_RSA_WITH_CAMELLIA_256_CBC_SHA = 0x0086;
     public static final int TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA = 0x0087;
     public static final int TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA = 0x0088;
     public static final int TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA = 0x0089;
+
+    public static final int TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256 = 0x00BA;
+    public static final int TLS_DH_DSS_WITH_CAMELLIA_128_CBC_SHA256 = 0x00BB;
+    public static final int TLS_DH_RSA_WITH_CAMELLIA_128_CBC_SHA256 = 0x00BC;
+    public static final int TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA256 = 0x00BD;
+    public static final int TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 = 0x00BE;
+    public static final int TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA256 = 0x00BF;
+
+    public static final int TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C0;
+    public static final int TLS_DH_DSS_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C1;
+    public static final int TLS_DH_RSA_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C2;
+    public static final int TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C3;
+    public static final int TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C4;
+    public static final int TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C5;
 
     /*
      * RFC 4162
@@ -201,7 +215,162 @@ public class CipherSuite
     public static final int TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384 = 0xC032;
 
     /*
+     * RFC 5487
+     */
+    public static final int TLS_PSK_WITH_AES_128_GCM_SHA256 = 0x00A8;
+    public static final int TLS_PSK_WITH_AES_256_GCM_SHA384 = 0x00A9;
+    public static final int TLS_DHE_PSK_WITH_AES_128_GCM_SHA256 = 0x00AA;
+    public static final int TLS_DHE_PSK_WITH_AES_256_GCM_SHA384 = 0x00AB;
+    public static final int TLS_RSA_PSK_WITH_AES_128_GCM_SHA256 = 0x00AC;
+    public static final int TLS_RSA_PSK_WITH_AES_256_GCM_SHA384 = 0x00AD;
+    public static final int TLS_PSK_WITH_AES_128_CBC_SHA256 = 0x00AE;
+    public static final int TLS_PSK_WITH_AES_256_CBC_SHA384 = 0x00AF;
+    public static final int TLS_PSK_WITH_NULL_SHA256 = 0x00B0;
+    public static final int TLS_PSK_WITH_NULL_SHA384 = 0x00B1;
+    public static final int TLS_DHE_PSK_WITH_AES_128_CBC_SHA256 = 0x00B2;
+    public static final int TLS_DHE_PSK_WITH_AES_256_CBC_SHA384 = 0x00B3;
+    public static final int TLS_DHE_PSK_WITH_NULL_SHA256 = 0x00B4;
+    public static final int TLS_DHE_PSK_WITH_NULL_SHA384 = 0x00B5;
+    public static final int TLS_RSA_PSK_WITH_AES_128_CBC_SHA256 = 0x00B6;
+    public static final int TLS_RSA_PSK_WITH_AES_256_CBC_SHA384 = 0x00B7;
+    public static final int TLS_RSA_PSK_WITH_NULL_SHA256 = 0x00B8;
+    public static final int TLS_RSA_PSK_WITH_NULL_SHA384 = 0x00B9;
+
+    /*
+     * RFC 5489
+     */
+    public static final int TLS_ECDHE_PSK_WITH_RC4_128_SHA = 0xC033;
+    public static final int TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA = 0xC034;
+    public static final int TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA = 0xC035;
+    public static final int TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA = 0xC036;
+    public static final int TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256 = 0xC037;
+    public static final int TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384 = 0xC038;
+    public static final int TLS_ECDHE_PSK_WITH_NULL_SHA = 0xC039;
+    public static final int TLS_ECDHE_PSK_WITH_NULL_SHA256 = 0xC03A;
+    public static final int TLS_ECDHE_PSK_WITH_NULL_SHA384 = 0xC03B;
+
+    /*
      * RFC 5746
      */
     public static final int TLS_EMPTY_RENEGOTIATION_INFO_SCSV = 0x00FF;
+
+    /*
+     * RFC 6367
+     */
+    public static final int TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256 = 0xC072;
+    public static final int TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384 = 0xC073;
+    public static final int TLS_ECDH_ECDSA_WITH_CAMELLIA_128_CBC_SHA256 = 0xC074;
+    public static final int TLS_ECDH_ECDSA_WITH_CAMELLIA_256_CBC_SHA384 = 0xC075;
+    public static final int TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 = 0xC076;
+    public static final int TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384 = 0xC077;
+    public static final int TLS_ECDH_RSA_WITH_CAMELLIA_128_CBC_SHA256 = 0xC078;
+    public static final int TLS_ECDH_RSA_WITH_CAMELLIA_256_CBC_SHA384 = 0xC079;
+
+    public static final int TLS_RSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC07A;
+    public static final int TLS_RSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC07B;
+    public static final int TLS_DHE_RSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC07C;
+    public static final int TLS_DHE_RSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC07D;
+    public static final int TLS_DH_RSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC07E;
+    public static final int TLS_DH_RSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC07F;
+    public static final int TLS_DHE_DSS_WITH_CAMELLIA_128_GCM_SHA256 = 0xC080;
+    public static final int TLS_DHE_DSS_WITH_CAMELLIA_256_GCM_SHA384 = 0xC081;
+    public static final int TLS_DH_DSS_WITH_CAMELLIA_128_GCM_SHA256 = 0xC082;
+    public static final int TLS_DH_DSS_WITH_CAMELLIA_256_GCM_SHA384 = 0xC083;
+    public static final int TLS_DH_anon_WITH_CAMELLIA_128_GCM_SHA256 = 0xC084;
+    public static final int TLS_DH_anon_WITH_CAMELLIA_256_GCM_SHA384 = 0xC085;
+    public static final int TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC086;
+    public static final int TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC087;
+    public static final int TLS_ECDH_ECDSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC088;
+    public static final int TLS_ECDH_ECDSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC089;
+    public static final int TLS_ECDHE_RSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC08A;
+    public static final int TLS_ECDHE_RSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC08B;
+    public static final int TLS_ECDH_RSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC08C;
+    public static final int TLS_ECDH_RSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC08D;
+
+    public static final int TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256 = 0xC08E;
+    public static final int TLS_PSK_WITH_CAMELLIA_256_GCM_SHA384 = 0xC08F;
+    public static final int TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256 = 0xC090;
+    public static final int TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384 = 0xC091;
+    public static final int TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256 = 0xC092;
+    public static final int TLS_RSA_PSK_WITH_CAMELLIA_256_GCM_SHA384 = 0xC093;
+    public static final int TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256 = 0xC094;
+    public static final int TLS_PSK_WITH_CAMELLIA_256_CBC_SHA384 = 0xC095;
+    public static final int TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256 = 0xC096;
+    public static final int TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384 = 0xC097;
+    public static final int TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256 = 0xC098;
+    public static final int TLS_RSA_PSK_WITH_CAMELLIA_256_CBC_SHA384 = 0xC099;
+    public static final int TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256 = 0xC09A;
+    public static final int TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384 = 0xC09B;
+
+    /*
+     * RFC 6655
+     */
+    public static final int TLS_RSA_WITH_AES_128_CCM = 0xC09C;
+    public static final int TLS_RSA_WITH_AES_256_CCM = 0xC09D;
+    public static final int TLS_DHE_RSA_WITH_AES_128_CCM = 0xC09E;
+    public static final int TLS_DHE_RSA_WITH_AES_256_CCM = 0xC09F;
+    public static final int TLS_RSA_WITH_AES_128_CCM_8 = 0xC0A0;
+    public static final int TLS_RSA_WITH_AES_256_CCM_8 = 0xC0A1;
+    public static final int TLS_DHE_RSA_WITH_AES_128_CCM_8 = 0xC0A2;
+    public static final int TLS_DHE_RSA_WITH_AES_256_CCM_8 = 0xC0A3;
+    public static final int TLS_PSK_WITH_AES_128_CCM = 0xC0A4;
+    public static final int TLS_PSK_WITH_AES_256_CCM = 0xC0A5;
+    public static final int TLS_DHE_PSK_WITH_AES_128_CCM = 0xC0A6;
+    public static final int TLS_DHE_PSK_WITH_AES_256_CCM = 0xC0A7;
+    public static final int TLS_PSK_WITH_AES_128_CCM_8 = 0xC0A8;
+    public static final int TLS_PSK_WITH_AES_256_CCM_8 = 0xC0A9;
+    public static final int TLS_PSK_DHE_WITH_AES_128_CCM_8 = 0xC0AA;
+    public static final int TLS_PSK_DHE_WITH_AES_256_CCM_8 = 0xC0AB;
+
+    /*
+     * RFC 7251
+     */
+    public static final int TLS_ECDHE_ECDSA_WITH_AES_128_CCM = 0xC0AC;
+    public static final int TLS_ECDHE_ECDSA_WITH_AES_256_CCM = 0xC0AD;
+    public static final int TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8 = 0xC0AE;
+    public static final int TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8 = 0xC0AF;
+
+    /*
+     * draft-agl-tls-chacha20poly1305-04
+     */
+    public static final int TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC13;
+    public static final int TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC14;
+    public static final int TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC15;
+
+    /*
+     * draft-josefsson-salsa20-tls-04
+     */
+    public static final int TLS_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE410;
+    public static final int TLS_RSA_WITH_SALSA20_SHA1 = 0xE411;
+    public static final int TLS_ECDHE_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE412;
+    public static final int TLS_ECDHE_RSA_WITH_SALSA20_SHA1 = 0xE413;
+    public static final int TLS_ECDHE_ECDSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE414;
+    public static final int TLS_ECDHE_ECDSA_WITH_SALSA20_SHA1 = 0xE415;
+    public static final int TLS_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE416;
+    public static final int TLS_PSK_WITH_SALSA20_SHA1 = 0xE417;
+    public static final int TLS_ECDHE_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE418;
+    public static final int TLS_ECDHE_PSK_WITH_SALSA20_SHA1 = 0xE419;
+    public static final int TLS_RSA_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE41A;
+    public static final int TLS_RSA_PSK_WITH_SALSA20_SHA1 = 0xE41B;
+    public static final int TLS_DHE_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE41C;
+    public static final int TLS_DHE_PSK_WITH_SALSA20_SHA1 = 0xE41D;
+    public static final int TLS_DHE_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE41E;
+    public static final int TLS_DHE_RSA_WITH_SALSA20_SHA1 = 0xE41F;
+
+    /*
+     * draft-ietf-tls-downgrade-scsv-00
+     */
+    public static final int TLS_FALLBACK_SCSV = 0x5600;
+
+    public static boolean isSCSV(int cipherSuite)
+    {
+        switch (cipherSuite)
+        {
+        case TLS_EMPTY_RENEGOTIATION_INFO_SCSV:
+        case TLS_FALLBACK_SCSV:
+            return true;
+        default:
+            return false;
+        }
+    }
 }

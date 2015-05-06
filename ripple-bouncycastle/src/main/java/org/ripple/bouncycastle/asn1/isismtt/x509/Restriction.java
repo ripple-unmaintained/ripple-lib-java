@@ -6,7 +6,7 @@ import org.ripple.bouncycastle.asn1.x500.DirectoryString;
 
 /**
  * Some other restriction regarding the usage of this certificate.
- * <p/>
+ *
  * <pre>
  *  RestrictionSyntax ::= DirectoryString (SIZE(1..1024))
  * </pre>
@@ -33,13 +33,12 @@ public class Restriction
 
     /**
      * Constructor from DirectoryString.
-     * <p/>
+     * <p>
      * The DirectoryString is of type RestrictionSyntax:
-     * <p/>
      * <pre>
      *      RestrictionSyntax ::= DirectoryString (SIZE(1..1024))
      * </pre>
-     *
+     * </p>
      * @param restriction A DirectoryString.
      */
     private Restriction(DirectoryString restriction)
@@ -64,12 +63,10 @@ public class Restriction
 
     /**
      * Produce an object suitable for an ASN1OutputStream.
-     * <p/>
+     * <p>
      * Returns:
-     * <p/>
      * <pre>
      *      RestrictionSyntax ::= DirectoryString (SIZE(1..1024))
-     * <p/>
      * </pre>
      *
      * @return a DERObject

@@ -2,6 +2,7 @@ package org.ripple.bouncycastle.crypto.engines;
 
 import java.math.BigInteger;
 import java.util.Vector;
+import org.ripple.bouncycastle.util.Arrays;
 
 import org.ripple.bouncycastle.crypto.AsymmetricBlockCipher;
 import org.ripple.bouncycastle.crypto.CipherParameters;
@@ -10,7 +11,6 @@ import org.ripple.bouncycastle.crypto.InvalidCipherTextException;
 import org.ripple.bouncycastle.crypto.params.NaccacheSternKeyParameters;
 import org.ripple.bouncycastle.crypto.params.NaccacheSternPrivateKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ParametersWithRandom;
-import org.ripple.bouncycastle.util.Arrays;
 
 /**
  * NaccacheStern Engine. For details on this cipher, please see

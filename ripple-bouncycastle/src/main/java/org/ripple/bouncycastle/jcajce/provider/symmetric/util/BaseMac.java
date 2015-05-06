@@ -4,6 +4,9 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.spec.AlgorithmParameterSpec;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.crypto.MacSpi;
 import javax.crypto.spec.IvParameterSpec;
@@ -13,6 +16,8 @@ import org.ripple.bouncycastle.crypto.CipherParameters;
 import org.ripple.bouncycastle.crypto.Mac;
 import org.ripple.bouncycastle.crypto.params.KeyParameter;
 import org.ripple.bouncycastle.crypto.params.ParametersWithIV;
+import org.ripple.bouncycastle.crypto.params.SkeinParameters;
+import org.ripple.bouncycastle.jcajce.spec.SkeinParameterSpec;
 
 public class BaseMac
     extends MacSpi implements PBE
@@ -74,6 +79,10 @@ public class BaseMac
         {
             param = new ParametersWithIV(new KeyParameter(key.getEncoded()), ((IvParameterSpec)params).getIV());
         }
+        else if (params instanceof SkeinParameterSpec)
+        {
+            param = new SkeinParameters.Builder(copyMap(((SkeinParameterSpec)params).getParameters())).setKey(key.getEncoded()).build();
+        }
         else if (params == null)
         {
             param = new KeyParameter(key.getEncoded());
@@ -117,5 +126,19 @@ public class BaseMac
         macEngine.doFinal(out, 0);
 
         return out;
+    }
+
+    private static Hashtable copyMap(Map paramsMap)
+    {
+        Hashtable newTable = new Hashtable();
+
+        Iterator keys = paramsMap.keySet().iterator();
+        while (keys.hasNext())
+        {
+            Object key = keys.next();
+            newTable.put(key, paramsMap.get(key));
+        }
+
+        return newTable;
     }
 }

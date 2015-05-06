@@ -7,12 +7,11 @@ import java.util.Vector;
 import org.ripple.bouncycastle.asn1.ASN1Encodable;
 import org.ripple.bouncycastle.asn1.ASN1Encoding;
 import org.ripple.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.ripple.bouncycastle.asn1.DERObjectIdentifier;
 import org.ripple.bouncycastle.asn1.DEROctetString;
 
 /**
  * Generator for X.509 extensions
- * @deprecated use org.bouncycastle.asn1.x509.ExtensionsGenerator
+ * @deprecated use org.ripple.bouncycastle.asn1.x509.ExtensionsGenerator
  */
 public class X509ExtensionsGenerator
 {
@@ -26,28 +25,6 @@ public class X509ExtensionsGenerator
     {
         extensions = new Hashtable();
         extOrdering = new Vector();
-    }
-
-    /**
-     * @deprecated use ASN1ObjectIdentifier
-     */
-    public void addExtension(
-        DERObjectIdentifier oid,
-        boolean             critical,
-        ASN1Encodable       value)
-    {
-        addExtension(new ASN1ObjectIdentifier(oid.getId()), critical, value);
-    }
-
-    /**
-     * @deprecated use ASN1ObjectIdentifier
-     */
-    public void addExtension(
-        DERObjectIdentifier oid,
-        boolean             critical,
-        byte[]              value)
-    {
-        addExtension(new ASN1ObjectIdentifier(oid.getId()), critical, value);
     }
 
     /**

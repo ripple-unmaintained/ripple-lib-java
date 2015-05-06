@@ -40,7 +40,6 @@ import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseSecretKeyFacto
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseWrapCipher;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.PBE;
 import org.ripple.bouncycastle.jcajce.provider.util.AlgorithmProvider;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public final class DES
 {
@@ -179,7 +178,7 @@ public final class DES
 
             try
             {
-                params = AlgorithmParameters.getInstance("DES", BouncyCastleProvider.PROVIDER_NAME);
+                params = createParametersInstance("DES");
                 params.init(new IvParameterSpec(iv));
             }
             catch (Exception e)
@@ -427,7 +426,7 @@ public final class DES
         extends AlgorithmProvider
     {
         private static final String PREFIX = DES.class.getName();
-        private static final String PACKAGE = "org.bouncycastle.jcajce.provider.symmetric"; // JDK 1.2
+        private static final String PACKAGE = "org.ripple.bouncycastle.jcajce.provider.symmetric"; // JDK 1.2
 
         public Mappings()
         {

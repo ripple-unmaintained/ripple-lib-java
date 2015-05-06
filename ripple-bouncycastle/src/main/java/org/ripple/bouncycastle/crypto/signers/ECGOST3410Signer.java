@@ -2,13 +2,16 @@ package org.ripple.bouncycastle.crypto.signers;
 
 import org.ripple.bouncycastle.crypto.CipherParameters;
 import org.ripple.bouncycastle.crypto.DSA;
+import org.ripple.bouncycastle.crypto.params.ECDomainParameters;
 import org.ripple.bouncycastle.crypto.params.ECKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ParametersWithRandom;
 import org.ripple.bouncycastle.math.ec.ECAlgorithms;
 import org.ripple.bouncycastle.math.ec.ECConstants;
+import org.ripple.bouncycastle.math.ec.ECMultiplier;
 import org.ripple.bouncycastle.math.ec.ECPoint;
+import org.ripple.bouncycastle.math.ec.FixedPointCombMultiplier;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -63,17 +66,20 @@ public class ECGOST3410Signer
         {
             mRev[i] = message[mRev.length - 1 - i];
         }
-        
-        BigInteger e = new BigInteger(1, mRev);
-        BigInteger n = key.getParameters().getN();
 
-        BigInteger r = null;
-        BigInteger s = null;
+        BigInteger e = new BigInteger(1, mRev);
+
+        ECDomainParameters ec = key.getParameters();
+        BigInteger n = ec.getN();
+        BigInteger d = ((ECPrivateKeyParameters)key).getD();
+
+        BigInteger r, s;
+
+        ECMultiplier basePointMultiplier = createBasePointMultiplier();
 
         do // generate s
         {
-            BigInteger k = null;
-
+            BigInteger k;
             do // generate r
             {
                 do
@@ -82,26 +88,17 @@ public class ECGOST3410Signer
                 }
                 while (k.equals(ECConstants.ZERO));
 
-                ECPoint p = key.getParameters().getG().multiply(k);
+                ECPoint p = basePointMultiplier.multiply(ec.getG(), k).normalize();
 
-                BigInteger x = p.getX().toBigInteger();
-
-                r = x.mod(n);
+                r = p.getAffineXCoord().toBigInteger().mod(n);
             }
             while (r.equals(ECConstants.ZERO));
-
-            BigInteger d = ((ECPrivateKeyParameters)key).getD();
 
             s = (k.multiply(e)).add(d.multiply(r)).mod(n);
         }
         while (s.equals(ECConstants.ZERO));
 
-        BigInteger[]  res = new BigInteger[2];
-
-        res[0] = r;
-        res[1] = s;
-
-        return res;
+        return new BigInteger[]{ r, s };
     }
 
     /**
@@ -143,7 +140,7 @@ public class ECGOST3410Signer
         ECPoint G = key.getParameters().getG(); // P
         ECPoint Q = ((ECPublicKeyParameters)key).getQ();
 
-        ECPoint point = ECAlgorithms.sumOfTwoMultiplies(G, z1, Q, z2);
+        ECPoint point = ECAlgorithms.sumOfTwoMultiplies(G, z1, Q, z2).normalize();
 
         // components must be bogus.
         if (point.isInfinity())
@@ -151,8 +148,13 @@ public class ECGOST3410Signer
             return false;
         }
 
-        BigInteger R = point.getX().toBigInteger().mod(n);
+        BigInteger R = point.getAffineXCoord().toBigInteger().mod(n);
 
         return R.equals(r);
+    }
+
+    protected ECMultiplier createBasePointMultiplier()
+    {
+        return new FixedPointCombMultiplier();
     }
 }

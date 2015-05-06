@@ -8,12 +8,13 @@ public abstract class AbstractTlsClient
     extends AbstractTlsPeer
     implements TlsClient
 {
-
     protected TlsCipherFactory cipherFactory;
 
     protected TlsClientContext context;
 
     protected Vector supportedSignatureAlgorithms;
+    protected int[] namedCurves;
+    protected short[] clientECPointFormats, serverECPointFormats;
 
     protected int selectedCipherSuite;
     protected short selectedCompressionMethod;
@@ -28,9 +29,42 @@ public abstract class AbstractTlsClient
         this.cipherFactory = cipherFactory;
     }
 
+    protected boolean allowUnexpectedServerExtension(Integer extensionType, byte[] extensionData)
+        throws IOException
+    {
+        switch (extensionType.intValue())
+        {
+        case ExtensionType.elliptic_curves:
+            /*
+             * Exception added based on field reports that some servers do send this, although the
+             * Supported Elliptic Curves Extension is clearly intended to be client-only. If
+             * present, we still require that it is a valid EllipticCurveList.
+             */
+            TlsECCUtils.readSupportedEllipticCurvesExtension(extensionData);
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    protected void checkForUnexpectedServerExtension(Hashtable serverExtensions, Integer extensionType)
+        throws IOException
+    {
+        byte[] extensionData = TlsUtils.getExtensionData(serverExtensions, extensionType);
+        if (extensionData != null && !allowUnexpectedServerExtension(extensionType, extensionData))
+        {
+            throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+        }
+    }
+
     public void init(TlsClientContext context)
     {
         this.context = context;
+    }
+
+    public TlsSession getSessionToResume()
+    {
+        return null;
     }
 
     /**
@@ -46,7 +80,7 @@ public abstract class AbstractTlsClient
         // return ProtocolVersion.SSLv3;
 
         // "the lowest version number supported by the client"
-        // return getMinimumServerVersion();
+        // return getMinimumVersion();
 
         // "the value of ClientHello.client_version"
         return getClientVersion();
@@ -54,13 +88,22 @@ public abstract class AbstractTlsClient
 
     public ProtocolVersion getClientVersion()
     {
-        return ProtocolVersion.TLSv11;
+        return ProtocolVersion.TLSv12;
+    }
+
+    public boolean isFallback()
+    {
+        /*
+         * draft-ietf-tls-downgrade-scsv-00 4. [..] is meant for use by clients that repeat a
+         * connection attempt with a downgraded protocol in order to avoid interoperability problems
+         * with legacy servers.
+         */
+        return false;
     }
 
     public Hashtable getClientExtensions()
         throws IOException
     {
-
         Hashtable clientExtensions = null;
 
         ProtocolVersion clientVersion = context.getClientVersion();
@@ -71,37 +114,35 @@ public abstract class AbstractTlsClient
          */
         if (TlsUtils.isSignatureAlgorithmsExtensionAllowed(clientVersion))
         {
-
             // TODO Provide a way for the user to specify the acceptable hash/signature algorithms.
 
-            short[] hashAlgorithms = new short[]{HashAlgorithm.sha512, HashAlgorithm.sha384, HashAlgorithm.sha256,
-                HashAlgorithm.sha224, HashAlgorithm.sha1};
+            this.supportedSignatureAlgorithms = TlsUtils.getDefaultSupportedSignatureAlgorithms();
 
-            // TODO Sort out ECDSA signatures and add them as the preferred option here
-            short[] signatureAlgorithms = new short[]{SignatureAlgorithm.rsa};
-
-            this.supportedSignatureAlgorithms = new Vector();
-            for (int i = 0; i < hashAlgorithms.length; ++i)
-            {
-                for (int j = 0; j < signatureAlgorithms.length; ++j)
-                {
-                    this.supportedSignatureAlgorithms.addElement(new SignatureAndHashAlgorithm(hashAlgorithms[i],
-                        signatureAlgorithms[j]));
-                }
-            }
-
-            /*
-             * RFC 5264 7.4.3. Currently, DSA [DSS] may only be used with SHA-1.
-             */
-            this.supportedSignatureAlgorithms.addElement(new SignatureAndHashAlgorithm(HashAlgorithm.sha1,
-                SignatureAlgorithm.dsa));
-
-            if (clientExtensions == null)
-            {
-                clientExtensions = new Hashtable();
-            }
+            clientExtensions = TlsExtensionsUtils.ensureExtensionsInitialised(clientExtensions);
 
             TlsUtils.addSignatureAlgorithmsExtension(clientExtensions, supportedSignatureAlgorithms);
+        }
+
+        if (TlsECCUtils.containsECCCipherSuites(getCipherSuites()))
+        {
+            /*
+             * RFC 4492 5.1. A client that proposes ECC cipher suites in its ClientHello message
+             * appends these extensions (along with any others), enumerating the curves it supports
+             * and the point formats it can parse. Clients SHOULD send both the Supported Elliptic
+             * Curves Extension and the Supported Point Formats Extension.
+             */
+            /*
+             * TODO Could just add all the curves since we support them all, but users may not want
+             * to use unnecessarily large fields. Need configuration options.
+             */
+            this.namedCurves = new int[]{ NamedCurve.secp256r1, NamedCurve.secp384r1 };
+            this.clientECPointFormats = new short[]{ ECPointFormat.uncompressed,
+                ECPointFormat.ansiX962_compressed_prime, ECPointFormat.ansiX962_compressed_char2, };
+
+            clientExtensions = TlsExtensionsUtils.ensureExtensionsInitialised(clientExtensions);
+
+            TlsECCUtils.addSupportedEllipticCurvesExtension(clientExtensions, namedCurves);
+            TlsECCUtils.addSupportedPointFormatsExtension(clientExtensions, clientECPointFormats);
         }
 
         return clientExtensions;
@@ -141,19 +182,6 @@ public abstract class AbstractTlsClient
         this.selectedCompressionMethod = selectedCompressionMethod;
     }
 
-    public void notifySecureRenegotiation(boolean secureRenegotiation)
-        throws IOException
-    {
-        if (!secureRenegotiation)
-        {
-            /*
-             * RFC 5746 3.4. In this case, some clients may want to terminate the handshake instead
-             * of continuing; see Section 4.1 for discussion.
-             */
-            // throw new TlsFatalAlert(AlertDescription.handshake_failure);
-        }
-    }
-
     public void processServerExtensions(Hashtable serverExtensions)
         throws IOException
     {
@@ -166,9 +194,17 @@ public abstract class AbstractTlsClient
             /*
              * RFC 5246 7.4.1.4.1. Servers MUST NOT send this extension.
              */
-            if (serverExtensions.containsKey(TlsUtils.EXT_signature_algorithms))
+            checkForUnexpectedServerExtension(serverExtensions, TlsUtils.EXT_signature_algorithms);
+
+            checkForUnexpectedServerExtension(serverExtensions, TlsECCUtils.EXT_elliptic_curves);
+
+            if (TlsECCUtils.isECCCipherSuite(this.selectedCipherSuite))
             {
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                this.serverECPointFormats = TlsECCUtils.getSupportedPointFormatsExtension(serverExtensions);
+            }
+            else
+            {
+                checkForUnexpectedServerExtension(serverExtensions, TlsECCUtils.EXT_ec_point_formats);
             }
         }
     }
@@ -207,11 +243,6 @@ public abstract class AbstractTlsClient
     }
 
     public void notifyNewSessionTicket(NewSessionTicket newSessionTicket)
-        throws IOException
-    {
-    }
-
-    public void notifyHandshakeComplete()
         throws IOException
     {
     }

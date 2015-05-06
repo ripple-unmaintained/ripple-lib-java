@@ -9,8 +9,6 @@ import org.ripple.bouncycastle.asn1.ASN1InputStream;
 import org.ripple.bouncycastle.asn1.ASN1Integer;
 import org.ripple.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.ripple.bouncycastle.asn1.ASN1Primitive;
-import org.ripple.bouncycastle.asn1.ASN1Sequence;
-import org.ripple.bouncycastle.asn1.nist.NISTNamedCurves;
 import org.ripple.bouncycastle.asn1.oiw.ElGamalParameter;
 import org.ripple.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
 import org.ripple.bouncycastle.asn1.pkcs.DHParameter;
@@ -18,20 +16,20 @@ import org.ripple.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.ripple.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.ripple.bouncycastle.asn1.pkcs.RSAPrivateKey;
 import org.ripple.bouncycastle.asn1.sec.ECPrivateKey;
-import org.ripple.bouncycastle.asn1.sec.SECNamedCurves;
-import org.ripple.bouncycastle.asn1.teletrust.TeleTrusTNamedCurves;
 import org.ripple.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.ripple.bouncycastle.asn1.x509.DSAParameter;
-import org.ripple.bouncycastle.asn1.x9.X962NamedCurves;
+import org.ripple.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.ripple.bouncycastle.asn1.x9.X962Parameters;
 import org.ripple.bouncycastle.asn1.x9.X9ECParameters;
 import org.ripple.bouncycastle.asn1.x9.X9ObjectIdentifiers;
+import org.ripple.bouncycastle.crypto.ec.CustomNamedCurves;
 import org.ripple.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.ripple.bouncycastle.crypto.params.DHParameters;
 import org.ripple.bouncycastle.crypto.params.DHPrivateKeyParameters;
 import org.ripple.bouncycastle.crypto.params.DSAParameters;
 import org.ripple.bouncycastle.crypto.params.DSAPrivateKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ECDomainParameters;
+import org.ripple.bouncycastle.crypto.params.ECNamedDomainParameters;
 import org.ripple.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ElGamalParameters;
 import org.ripple.bouncycastle.crypto.params.ElGamalPrivateKeyParameters;
@@ -102,7 +100,7 @@ public class PrivateKeyFactory
         }
         else if (algId.getAlgorithm().equals(OIWObjectIdentifiers.elGamalAlgorithm))
         {
-            ElGamalParameter params = new ElGamalParameter((ASN1Sequence)algId.getParameters());
+            ElGamalParameter params = ElGamalParameter.getInstance(algId.getParameters());
             ASN1Integer derX = (ASN1Integer)keyInfo.parsePrivateKey();
 
             return new ElGamalPrivateKeyParameters(derX.getValue(), new ElGamalParameters(
@@ -127,38 +125,29 @@ public class PrivateKeyFactory
             X962Parameters params = new X962Parameters((ASN1Primitive)algId.getParameters());
 
             X9ECParameters x9;
+            ECDomainParameters dParams;
+
             if (params.isNamedCurve())
             {
-                ASN1ObjectIdentifier oid = ASN1ObjectIdentifier.getInstance(params.getParameters());
-                x9 = X962NamedCurves.getByOID(oid);
+                ASN1ObjectIdentifier oid = (ASN1ObjectIdentifier)params.getParameters();
 
+                x9 = CustomNamedCurves.getByOID(oid);
                 if (x9 == null)
                 {
-                    x9 = SECNamedCurves.getByOID(oid);
-
-                    if (x9 == null)
-                    {
-                        x9 = NISTNamedCurves.getByOID(oid);
-
-                        if (x9 == null)
-                        {
-                            x9 = TeleTrusTNamedCurves.getByOID(oid);
-                        }
-                    }
+                    x9 = ECNamedCurveTable.getByOID(oid);
                 }
+                dParams = new ECNamedDomainParameters(
+                    oid, x9.getCurve(), x9.getG(), x9.getN(), x9.getH(), x9.getSeed());
             }
             else
             {
                 x9 = X9ECParameters.getInstance(params.getParameters());
+                dParams = new ECDomainParameters(
+                    x9.getCurve(), x9.getG(), x9.getN(), x9.getH(), x9.getSeed());
             }
 
             ECPrivateKey ec = ECPrivateKey.getInstance(keyInfo.parsePrivateKey());
             BigInteger d = ec.getKey();
-
-            // TODO We lose any named parameters here
-
-            ECDomainParameters dParams = new ECDomainParameters(
-                    x9.getCurve(), x9.getG(), x9.getN(), x9.getH(), x9.getSeed());
 
             return new ECPrivateKeyParameters(d, dParams);
         }

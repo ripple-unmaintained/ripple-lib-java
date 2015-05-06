@@ -310,6 +310,16 @@ public class CTRSP800DRBG
     }
 
     /**
+     * Return the block size (in bits) of the DRBG.
+     *
+     * @return the number of bits produced on each internal round of the DRBG.
+     */
+    public int getBlockSize()
+    {
+        return _V.length * 8;
+    }
+
+    /**
      * Populate a passed in array with random data.
      *
      * @param output output array for generated bits.
@@ -365,17 +375,20 @@ public class CTRSP800DRBG
 
         _engine.init(true, new KeyParameter(expandKey(_Key)));
 
-        for (int i = 0; i < output.length / out.length; i++)
+        for (int i = 0; i <= output.length / out.length; i++)
         {
-            addOneTo(_V);
-
-            _engine.processBlock(_V, 0, out, 0);
-
             int bytesToCopy = ((output.length - i * out.length) > out.length)
                     ? out.length
                     : (output.length - i * _V.length);
 
-            System.arraycopy(out, 0, output, i * out.length, bytesToCopy);
+            if (bytesToCopy != 0)
+            {
+                addOneTo(_V);
+
+                _engine.processBlock(_V, 0, out, 0);
+
+                System.arraycopy(out, 0, output, i * out.length, bytesToCopy);
+            }
         }
 
         CTR_DRBG_Update(additionalInput, _Key, _V);

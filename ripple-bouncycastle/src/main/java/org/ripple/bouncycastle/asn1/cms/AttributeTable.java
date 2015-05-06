@@ -8,9 +8,11 @@ import org.ripple.bouncycastle.asn1.ASN1Encodable;
 import org.ripple.bouncycastle.asn1.ASN1EncodableVector;
 import org.ripple.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.ripple.bouncycastle.asn1.ASN1Set;
-import org.ripple.bouncycastle.asn1.DERObjectIdentifier;
 import org.ripple.bouncycastle.asn1.DERSet;
 
+/**
+ * This is helper tool to construct {@link Attributes} sets.
+ */
 public class AttributeTable
 {
     private Hashtable attributes = new Hashtable();
@@ -88,14 +90,6 @@ public class AttributeTable
     }
 
     /**
-     * @deprecated use ASN1ObjectIdentifier
-     */
-    public Attribute get(DERObjectIdentifier oid)
-    {
-        return get(new ASN1ObjectIdentifier(oid.getId()));
-    }
-
-    /**
      * Return the first attribute matching the OBJECT IDENTIFIER oid.
      * 
      * @param oid type of attribute required.
@@ -112,14 +106,6 @@ public class AttributeTable
         }
         
         return (Attribute)value;
-    }
-
-     /**
-     * @deprecated use ASN1ObjectIdentifier
-     */
-    public ASN1EncodableVector getAll(DERObjectIdentifier oid)
-    {
-        return getAll(new ASN1ObjectIdentifier(oid.getId()));
     }
 
     /**

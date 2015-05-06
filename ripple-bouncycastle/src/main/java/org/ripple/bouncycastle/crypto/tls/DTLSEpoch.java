@@ -2,13 +2,12 @@ package org.ripple.bouncycastle.crypto.tls;
 
 class DTLSEpoch
 {
-
     private final DTLSReplayWindow replayWindow = new DTLSReplayWindow();
 
     private final int epoch;
     private final TlsCipher cipher;
 
-    private long sequence_number = 0;
+    private long sequenceNumber = 0;
 
     DTLSEpoch(int epoch, TlsCipher cipher)
     {
@@ -28,7 +27,7 @@ class DTLSEpoch
     long allocateSequenceNumber()
     {
         // TODO Check for overflow
-        return sequence_number++;
+        return sequenceNumber++;
     }
 
     TlsCipher getCipher()
@@ -46,8 +45,8 @@ class DTLSEpoch
         return replayWindow;
     }
 
-    long getSequence_number()
+    long getSequenceNumber()
     {
-        return sequence_number;
+        return sequenceNumber;
     }
 }

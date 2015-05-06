@@ -10,12 +10,13 @@ import org.ripple.bouncycastle.asn1.BERSequence;
 import org.ripple.bouncycastle.asn1.x509.AlgorithmIdentifier;
 
 /** 
- * RFC 3274 - CMS Compressed Data.
+ * <a href="http://tools.ietf.org/html/rfc3274">RFC 3274</a>: CMS Compressed Data.
+ * 
  * <pre>
  * CompressedData ::= SEQUENCE {
- *  version CMSVersion,
- *  compressionAlgorithm CompressionAlgorithmIdentifier,
- *  encapContentInfo EncapsulatedContentInfo
+ *     version CMSVersion,
+ *     compressionAlgorithm CompressionAlgorithmIdentifier,
+ *     encapContentInfo EncapsulatedContentInfo
  * }
  * </pre>
  */
@@ -41,27 +42,33 @@ public class CompressedData
         this.version = (ASN1Integer)seq.getObjectAt(0);
         this.compressionAlgorithm = AlgorithmIdentifier.getInstance(seq.getObjectAt(1));
         this.encapContentInfo = ContentInfo.getInstance(seq.getObjectAt(2));
-
     }
 
     /**
-     * return a CompressedData object from a tagged object.
+     * Return a CompressedData object from a tagged object.
      *
-     * @param _ato the tagged object holding the object we want.
-     * @param _explicit true if the object is meant to be explicitly
+     * @param ato the tagged object holding the object we want.
+     * @param isExplicit true if the object is meant to be explicitly
      *              tagged false otherwise.
      * @exception IllegalArgumentException if the object held by the
      *          tagged object cannot be converted.
      */
     public static CompressedData getInstance(
-        ASN1TaggedObject _ato,
-        boolean _explicit)
+        ASN1TaggedObject ato,
+        boolean isExplicit)
     {
-        return getInstance(ASN1Sequence.getInstance(_ato, _explicit));
+        return getInstance(ASN1Sequence.getInstance(ato, isExplicit));
     }
     
     /**
-     * return a CompressedData object from the given object.
+     * Return a CompressedData object from the given object.
+     * <p>
+     * Accepted inputs:
+     * <ul>
+     * <li> null &rarr; null
+     * <li> {@link CompressedData} object
+     * <li> {@link org.ripple.bouncycastle.asn1.ASN1Sequence#getInstance(java.lang.Object) ASN1Sequence} input formats with CompressedData structure inside
+     * </ul>
      *
      * @param obj the object we want converted.
      * @exception IllegalArgumentException if the object cannot be converted.

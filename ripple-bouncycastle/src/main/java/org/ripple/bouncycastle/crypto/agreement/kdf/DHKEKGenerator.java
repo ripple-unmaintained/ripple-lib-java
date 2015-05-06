@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.ripple.bouncycastle.asn1.ASN1EncodableVector;
 import org.ripple.bouncycastle.asn1.ASN1Encoding;
-import org.ripple.bouncycastle.asn1.DERObjectIdentifier;
+import org.ripple.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.ripple.bouncycastle.asn1.DEROctetString;
 import org.ripple.bouncycastle.asn1.DERSequence;
 import org.ripple.bouncycastle.asn1.DERTaggedObject;
@@ -12,7 +12,7 @@ import org.ripple.bouncycastle.crypto.DataLengthException;
 import org.ripple.bouncycastle.crypto.DerivationFunction;
 import org.ripple.bouncycastle.crypto.DerivationParameters;
 import org.ripple.bouncycastle.crypto.Digest;
-import org.ripple.bouncycastle.crypto.util.Pack;
+import org.ripple.bouncycastle.util.Pack;
 
 /**
  * RFC 2631 Diffie-hellman KEK derivation function.
@@ -22,7 +22,7 @@ public class DHKEKGenerator
 {
     private final Digest digest;
 
-    private DERObjectIdentifier algorithm;
+    private ASN1ObjectIdentifier algorithm;
     private int                 keySize;
     private byte[]              z;
     private byte[]              partyAInfo;

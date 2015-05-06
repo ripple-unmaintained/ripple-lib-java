@@ -7,7 +7,7 @@ import org.ripple.bouncycastle.jcajce.provider.util.AsymmetricAlgorithmProvider;
 
 public class GOST
 {
-    private static final String PREFIX = "org.bouncycastle.jcajce.provider.asymmetric" + ".gost.";
+    private static final String PREFIX = "org.ripple.bouncycastle.jcajce.provider.asymmetric" + ".gost.";
 
     public static class Mappings
         extends AsymmetricAlgorithmProvider

@@ -322,7 +322,10 @@ public class IETFUtils
         }
         else
         {
-            IETFUtils.appendTypeAndValue(buf, rdn.getFirst(), oidSymbols);
+            if (rdn.getFirst() != null)
+            {
+                IETFUtils.appendTypeAndValue(buf, rdn.getFirst(), oidSymbols);
+            }
         }
     }
 
@@ -405,7 +408,7 @@ public class IETFUtils
         int start = 0;
         if (vBuf.length() > 0)
         {
-            while (vBuf.charAt(start) == ' ')
+            while (vBuf.length() > start && vBuf.charAt(start) == ' ')
             {
                 vBuf.insert(start, "\\");
                 start += 2;
@@ -438,7 +441,7 @@ public class IETFUtils
 
     public static String canonicalize(String s)
     {
-        String value = Strings.toLowerCase(s.trim());
+        String value = Strings.toLowerCase(s);
 
         if (value.length() > 0 && value.charAt(0) == '#')
         {
@@ -446,7 +449,27 @@ public class IETFUtils
 
             if (obj instanceof ASN1String)
             {
-                value = Strings.toLowerCase(((ASN1String)obj).getString().trim());
+                value = Strings.toLowerCase(((ASN1String)obj).getString());
+            }
+        }
+
+        if (value.length() > 1)
+        {
+            int start = 0;
+            while (start + 1 < value.length() && value.charAt(start) == '\\' && value.charAt(start + 1) == ' ')
+            {
+                start += 2;
+            }
+
+            int end = value.length() - 1;
+            while (end - 1 > 0 && value.charAt(end - 1) == '\\' && value.charAt(end) == ' ')
+            {
+                end -= 2;
+            }
+
+            if (start > 0 || end < value.length() - 1)
+            {
+                value = value.substring(start, end + 1);
             }
         }
 

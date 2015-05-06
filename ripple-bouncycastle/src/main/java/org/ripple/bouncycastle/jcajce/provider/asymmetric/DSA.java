@@ -9,7 +9,7 @@ import org.ripple.bouncycastle.jcajce.provider.util.AsymmetricKeyInfoConverter;
 
 public class DSA
 {
-    private static final String PREFIX = "org.bouncycastle.jcajce.provider.asymmetric" + ".dsa.";
+    private static final String PREFIX = "org.ripple.bouncycastle.jcajce.provider.asymmetric" + ".dsa.";
 
     public static class Mappings
         extends AsymmetricAlgorithmProvider
@@ -31,6 +31,13 @@ public class DSA
             provider.addAlgorithm("Signature.NONEWITHDSA", PREFIX + "DSASigner$noneDSA");
 
             provider.addAlgorithm("Alg.Alias.Signature.RAWDSA", "NONEWITHDSA");
+
+            provider.addAlgorithm("Signature.DETDSA", PREFIX + "DSASigner$detDSA");
+            provider.addAlgorithm("Signature.SHA1WITHDETDSA", PREFIX + "DSASigner$detDSA");
+            provider.addAlgorithm("Signature.SHA224WITHDETDSA", PREFIX + "DSASigner$detDSA224");
+            provider.addAlgorithm("Signature.SHA256WITHDETDSA", PREFIX + "DSASigner$detDSA256");
+            provider.addAlgorithm("Signature.SHA384WITHDETDSA", PREFIX + "DSASigner$detDSA384");
+            provider.addAlgorithm("Signature.SHA512WITHDETDSA", PREFIX + "DSASigner$detDSA512");
 
             addSignatureAlgorithm(provider, "SHA224", "DSA", PREFIX + "DSASigner$dsa224", NISTObjectIdentifiers.dsa_with_sha224);
             addSignatureAlgorithm(provider, "SHA256", "DSA", PREFIX + "DSASigner$dsa256", NISTObjectIdentifiers.dsa_with_sha256);

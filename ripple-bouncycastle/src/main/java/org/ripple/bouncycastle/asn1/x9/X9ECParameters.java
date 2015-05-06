@@ -9,8 +9,10 @@ import org.ripple.bouncycastle.asn1.ASN1OctetString;
 import org.ripple.bouncycastle.asn1.ASN1Primitive;
 import org.ripple.bouncycastle.asn1.ASN1Sequence;
 import org.ripple.bouncycastle.asn1.DERSequence;
+import org.ripple.bouncycastle.math.ec.ECAlgorithms;
 import org.ripple.bouncycastle.math.ec.ECCurve;
 import org.ripple.bouncycastle.math.ec.ECPoint;
+import org.ripple.bouncycastle.math.field.PolynomialExtensionField;
 
 /**
  * ASN.1 def for Elliptic-Curve ECParameters structure. See
@@ -39,11 +41,21 @@ public class X9ECParameters
         }
 
         X9Curve     x9c = new X9Curve(
-                        new X9FieldID((ASN1Sequence)seq.getObjectAt(1)),
-                        (ASN1Sequence)seq.getObjectAt(2));
+                        X9FieldID.getInstance(seq.getObjectAt(1)),
+                        ASN1Sequence.getInstance(seq.getObjectAt(2)));
 
         this.curve = x9c.getCurve();
-        this.g = new X9ECPoint(curve, (ASN1OctetString)seq.getObjectAt(3)).getPoint();
+        Object p = seq.getObjectAt(3);
+
+        if (p instanceof X9ECPoint)
+        {
+            this.g = ((X9ECPoint)p).getPoint();
+        }
+        else
+        {
+            this.g = new X9ECPoint(curve, (ASN1OctetString)p).getPoint();
+        }
+
         this.n = ((ASN1Integer)seq.getObjectAt(4)).getValue();
         this.seed = x9c.getSeed();
 
@@ -93,23 +105,35 @@ public class X9ECParameters
         byte[]      seed)
     {
         this.curve = curve;
-        this.g = g;
+        this.g = g.normalize();
         this.n = n;
         this.h = h;
         this.seed = seed;
 
-        if (curve instanceof ECCurve.Fp)
+        if (ECAlgorithms.isFpCurve(curve))
         {
-            this.fieldID = new X9FieldID(((ECCurve.Fp)curve).getQ());
+            this.fieldID = new X9FieldID(curve.getField().getCharacteristic());
+        }
+        else if (ECAlgorithms.isF2mCurve(curve))
+        {
+            PolynomialExtensionField field = (PolynomialExtensionField)curve.getField();
+            int[] exponents = field.getMinimalPolynomial().getExponentsPresent();
+            if (exponents.length == 3)
+            {
+                this.fieldID = new X9FieldID(exponents[2], exponents[1]);
+            }
+            else if (exponents.length == 5)
+            {
+                this.fieldID = new X9FieldID(exponents[4], exponents[1], exponents[2], exponents[3]);
+            }
+            else
+            {
+                throw new IllegalArgumentException("Only trinomial and pentomial curves are supported");
+            }
         }
         else
         {
-            if (curve instanceof ECCurve.F2m)
-            {
-                ECCurve.F2m curveF2m = (ECCurve.F2m)curve;
-                this.fieldID = new X9FieldID(curveF2m.getM(), curveF2m.getK1(),
-                    curveF2m.getK2(), curveF2m.getK3());
-            }
+            throw new IllegalArgumentException("'curve' is of an unsupported type");
         }
     }
 

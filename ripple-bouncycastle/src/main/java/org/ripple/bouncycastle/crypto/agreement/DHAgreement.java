@@ -6,11 +6,11 @@ import java.security.SecureRandom;
 import org.ripple.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.ripple.bouncycastle.crypto.CipherParameters;
 import org.ripple.bouncycastle.crypto.generators.DHKeyPairGenerator;
-import org.ripple.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.ripple.bouncycastle.crypto.params.DHKeyGenerationParameters;
 import org.ripple.bouncycastle.crypto.params.DHParameters;
-import org.ripple.bouncycastle.crypto.params.DHPrivateKeyParameters;
 import org.ripple.bouncycastle.crypto.params.DHPublicKeyParameters;
+import org.ripple.bouncycastle.crypto.params.DHPrivateKeyParameters;
+import org.ripple.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.ripple.bouncycastle.crypto.params.ParametersWithRandom;
 
 /**

@@ -45,7 +45,7 @@ import org.ripple.bouncycastle.util.Selector;
  *                         -- for example, an executable
  *          }
  * </pre>
- * @deprecated use org.bouncycastle.cert.AttributeCertificateHolder
+ * @deprecated use org.ripple.bouncycastle.cert.AttributeCertificateHolder
  */
 public class AttributeCertificateHolder
     implements CertSelector, Selector

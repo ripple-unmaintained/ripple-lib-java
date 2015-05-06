@@ -22,9 +22,9 @@ import javax.security.auth.x500.X500Principal;
 import org.ripple.bouncycastle.asn1.ASN1EncodableVector;
 import org.ripple.bouncycastle.asn1.ASN1InputStream;
 import org.ripple.bouncycastle.asn1.ASN1Integer;
+import org.ripple.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.ripple.bouncycastle.asn1.ASN1Sequence;
 import org.ripple.bouncycastle.asn1.DERBitString;
-import org.ripple.bouncycastle.asn1.DERObjectIdentifier;
 import org.ripple.bouncycastle.asn1.DERSequence;
 import org.ripple.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.ripple.bouncycastle.asn1.x509.Certificate;
@@ -38,12 +38,12 @@ import org.ripple.bouncycastle.jce.provider.X509CertificateObject;
 
 /**
  * class to produce an X.509 Version 1 certificate.
- * @deprecated use org.bouncycastle.cert.X509v1CertificateBuilder.
+ * @deprecated use org.ripple.bouncycastle.cert.X509v1CertificateBuilder.
  */
 public class X509V1CertificateGenerator
 {
     private V1TBSCertificateGenerator   tbsGen;
-    private DERObjectIdentifier         sigOID;
+    private ASN1ObjectIdentifier         sigOID;
     private AlgorithmIdentifier         sigAlgId;
     private String                      signatureAlgorithm;
 

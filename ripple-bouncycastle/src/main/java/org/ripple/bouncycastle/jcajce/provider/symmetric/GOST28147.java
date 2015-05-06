@@ -8,10 +8,12 @@ import java.security.spec.AlgorithmParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 
 import org.ripple.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
+import org.ripple.bouncycastle.crypto.BufferedBlockCipher;
 import org.ripple.bouncycastle.crypto.CipherKeyGenerator;
 import org.ripple.bouncycastle.crypto.engines.GOST28147Engine;
 import org.ripple.bouncycastle.crypto.macs.GOST28147Mac;
 import org.ripple.bouncycastle.crypto.modes.CBCBlockCipher;
+import org.ripple.bouncycastle.crypto.modes.GCFBBlockCipher;
 import org.ripple.bouncycastle.jcajce.provider.config.ConfigurableProvider;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseAlgorithmParameterGenerator;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseBlockCipher;
@@ -19,7 +21,6 @@ import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseKeyGenerator;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseMac;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.IvAlgorithmParameters;
 import org.ripple.bouncycastle.jcajce.provider.util.AlgorithmProvider;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public final class GOST28147
 {
@@ -42,6 +43,15 @@ public final class GOST28147
         public CBC()
         {
             super(new CBCBlockCipher(new GOST28147Engine()), 64);
+        }
+    }
+
+    public static class GCFB
+       extends BaseBlockCipher
+    {
+        public GCFB()
+        {
+            super(new BufferedBlockCipher(new GCFBBlockCipher(new GOST28147Engine())), 64);
         }
     }
 
@@ -79,7 +89,7 @@ public final class GOST28147
             SecureRandom random)
             throws InvalidAlgorithmParameterException
         {
-            throw new InvalidAlgorithmParameterException("No supported AlgorithmParameterSpec for AES parameter generation.");
+            throw new InvalidAlgorithmParameterException("No supported AlgorithmParameterSpec for GOST28147 parameter generation.");
         }
 
         protected AlgorithmParameters engineGenerateParameters()
@@ -97,7 +107,7 @@ public final class GOST28147
 
             try
             {
-                params = AlgorithmParameters.getInstance("GOST28147", BouncyCastleProvider.PROVIDER_NAME);
+                params = createParametersInstance("GOST28147");
                 params.init(new IvParameterSpec(iv));
             }
             catch (Exception e)
@@ -132,12 +142,12 @@ public final class GOST28147
             provider.addAlgorithm("Cipher.GOST28147", PREFIX + "$ECB");
             provider.addAlgorithm("Alg.Alias.Cipher.GOST", "GOST28147");
             provider.addAlgorithm("Alg.Alias.Cipher.GOST-28147", "GOST28147");
-            provider.addAlgorithm("Cipher." + CryptoProObjectIdentifiers.gostR28147_cbc, PREFIX + "$CBC");
+            provider.addAlgorithm("Cipher." + CryptoProObjectIdentifiers.gostR28147_gcfb, PREFIX + "$GCFB");
 
             provider.addAlgorithm("KeyGenerator.GOST28147", PREFIX + "$KeyGen");
             provider.addAlgorithm("Alg.Alias.KeyGenerator.GOST", "GOST28147");
             provider.addAlgorithm("Alg.Alias.KeyGenerator.GOST-28147", "GOST28147");
-            provider.addAlgorithm("Alg.Alias.KeyGenerator." + CryptoProObjectIdentifiers.gostR28147_cbc, "GOST28147");
+            provider.addAlgorithm("Alg.Alias.KeyGenerator." + CryptoProObjectIdentifiers.gostR28147_gcfb, "GOST28147");
 
             provider.addAlgorithm("Mac.GOST28147MAC", PREFIX + "$Mac");
             provider.addAlgorithm("Alg.Alias.Mac.GOST28147", "GOST28147MAC");

@@ -23,16 +23,18 @@ public class ECPair
         return y;
     }
 
-    public byte[] getEncoded()
+    public boolean equals(ECPair other)
     {
-        byte[] xEnc = x.getEncoded();
-        byte[] yEnc = y.getEncoded();
+        return other.getX().equals(getX()) && other.getY().equals(getY());
+    }
 
-        byte[] full = new byte[xEnc.length + yEnc.length];
+    public boolean equals(Object other)
+    {
+        return other instanceof ECPair ? equals((ECPair)other) : false;
+    }
 
-        System.arraycopy(xEnc, 0, full, 0, xEnc.length);
-        System.arraycopy(yEnc, 0, full, xEnc.length, yEnc.length);
-
-        return full;
+    public int hashCode()
+    {
+        return x.hashCode() + 37 * y.hashCode();
     }
 }

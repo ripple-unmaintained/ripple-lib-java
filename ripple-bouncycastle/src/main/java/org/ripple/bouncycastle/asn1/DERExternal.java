@@ -127,7 +127,7 @@ public class DERExternal
     }
 
     /* (non-Javadoc)
-     * @see org.bouncycastle.asn1.ASN1Primitive#encode(org.bouncycastle.asn1.DEROutputStream)
+     * @see org.ripple.bouncycastle.asn1.ASN1Primitive#encode(org.ripple.bouncycastle.asn1.DEROutputStream)
      */
     void encode(ASN1OutputStream out)
         throws IOException
@@ -151,7 +151,7 @@ public class DERExternal
     }
 
     /* (non-Javadoc)
-     * @see org.bouncycastle.asn1.ASN1Primitive#asn1Equals(org.bouncycastle.asn1.ASN1Primitive)
+     * @see org.ripple.bouncycastle.asn1.ASN1Primitive#asn1Equals(org.ripple.bouncycastle.asn1.ASN1Primitive)
      */
     boolean asn1Equals(ASN1Primitive o)
     {

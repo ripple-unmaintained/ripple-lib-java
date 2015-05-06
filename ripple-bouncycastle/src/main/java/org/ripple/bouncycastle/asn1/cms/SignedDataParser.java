@@ -11,6 +11,8 @@ import org.ripple.bouncycastle.asn1.ASN1TaggedObjectParser;
 import org.ripple.bouncycastle.asn1.BERTags;
 
 /**
+ * Parser for <a href="http://tools.ietf.org/html/rfc5652#section-5.1">RFC 5652</a>: {@link SignedData} object.
+ * <p>
  * <pre>
  * SignedData ::= SEQUENCE {
  *     version CMSVersion,

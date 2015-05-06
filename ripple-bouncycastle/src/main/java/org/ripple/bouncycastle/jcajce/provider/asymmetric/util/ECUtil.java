@@ -1,5 +1,6 @@
 package org.ripple.bouncycastle.jcajce.provider.asymmetric.util;
 
+import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -13,6 +14,7 @@ import org.ripple.bouncycastle.asn1.teletrust.TeleTrusTNamedCurves;
 import org.ripple.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.ripple.bouncycastle.asn1.x9.X962NamedCurves;
 import org.ripple.bouncycastle.asn1.x9.X9ECParameters;
+import org.ripple.bouncycastle.crypto.ec.CustomNamedCurves;
 import org.ripple.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.ripple.bouncycastle.crypto.params.ECDomainParameters;
 import org.ripple.bouncycastle.crypto.params.ECPrivateKeyParameters;
@@ -25,7 +27,7 @@ import org.ripple.bouncycastle.jce.spec.ECParameterSpec;
 
 /**
  * utility class for converting jce/jca ECDSA, ECDH, and ECDHC
- * objects into their org.bouncycastle.crypto counterparts.
+ * objects into their org.ripple.bouncycastle.crypto counterparts.
  */
 public class ECUtil
 {
@@ -213,6 +215,25 @@ public class ECUtil
         throw new InvalidKeyException("can't identify EC private key.");
     }
 
+    public static int getOrderBitLength(BigInteger order, BigInteger privateValue)
+    {
+        if (order == null)     // implicitly CA
+        {
+            ECParameterSpec implicitCA = BouncyCastleProvider.CONFIGURATION.getEcImplicitlyCa();
+
+            if (implicitCA == null)
+            {
+                return privateValue.bitLength();   // a guess but better than an exception!
+            }
+
+            return implicitCA.getN().bitLength();
+        }
+        else
+        {
+            return order.bitLength();
+        }
+    }
+
     public static ASN1ObjectIdentifier getNamedCurveOid(
         String name)
     {
@@ -241,11 +262,15 @@ public class ECUtil
     public static X9ECParameters getNamedCurveByOid(
         ASN1ObjectIdentifier oid)
     {
-        X9ECParameters params = X962NamedCurves.getByOID(oid);
-        
+        X9ECParameters params = CustomNamedCurves.getByOID(oid);
+
         if (params == null)
         {
-            params = SECNamedCurves.getByOID(oid);
+            params = X962NamedCurves.getByOID(oid);
+            if (params == null)
+            {
+                params = SECNamedCurves.getByOID(oid);
+            }
             if (params == null)
             {
                 params = NISTNamedCurves.getByOID(oid);

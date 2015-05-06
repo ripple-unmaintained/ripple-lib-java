@@ -13,6 +13,7 @@ import org.ripple.bouncycastle.crypto.CipherKeyGenerator;
 import org.ripple.bouncycastle.crypto.engines.CamelliaEngine;
 import org.ripple.bouncycastle.crypto.engines.CamelliaWrapEngine;
 import org.ripple.bouncycastle.crypto.engines.RFC3211WrapEngine;
+import org.ripple.bouncycastle.crypto.generators.Poly1305KeyGenerator;
 import org.ripple.bouncycastle.crypto.macs.GMac;
 import org.ripple.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.ripple.bouncycastle.crypto.modes.GCMBlockCipher;
@@ -24,7 +25,6 @@ import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseMac;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseWrapCipher;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BlockCipherProvider;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.IvAlgorithmParameters;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public final class Camellia
 {
@@ -80,6 +80,24 @@ public final class Camellia
         public GMAC()
         {
             super(new GMac(new GCMBlockCipher(new CamelliaEngine())));
+        }
+    }
+
+    public static class Poly1305
+        extends BaseMac
+    {
+        public Poly1305()
+        {
+            super(new org.ripple.bouncycastle.crypto.macs.Poly1305(new CamelliaEngine()));
+        }
+    }
+
+    public static class Poly1305KeyGen
+        extends BaseKeyGenerator
+    {
+        public Poly1305KeyGen()
+        {
+            super("Poly1305-Camellia", 256, new Poly1305KeyGenerator());
         }
     }
 
@@ -150,7 +168,7 @@ public final class Camellia
 
             try
             {
-                params = AlgorithmParameters.getInstance("Camellia", BouncyCastleProvider.PROVIDER_NAME);
+                params = createParametersInstance("Camellia");
                 params.init(new IvParameterSpec(iv));
             }
             catch (Exception e)
@@ -213,6 +231,7 @@ public final class Camellia
             provider.addAlgorithm("KeyGenerator." + NTTObjectIdentifiers.id_camellia256_cbc, PREFIX + "$KeyGen256");
 
             addGMacAlgorithm(provider, "CAMELLIA", PREFIX + "$GMAC", PREFIX + "$KeyGen");
+            addPoly1305Algorithm(provider, "CAMELLIA", PREFIX + "$Poly1305", PREFIX + "$Poly1305KeyGen");
         }
     }
 }

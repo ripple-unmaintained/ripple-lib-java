@@ -1,11 +1,11 @@
 package org.ripple.bouncycastle.x509;
 
-import org.ripple.bouncycastle.util.Selector;
-
 import java.io.IOException;
 import java.security.cert.Certificate;
 import java.security.cert.X509CertSelector;
 import java.security.cert.X509Certificate;
+
+import org.ripple.bouncycastle.util.Selector;
 
 /**
  * This class is a Selector implementation for X.509 certificates.
@@ -13,6 +13,7 @@ import java.security.cert.X509Certificate;
  * @see org.ripple.bouncycastle.util.Selector
  * @see org.ripple.bouncycastle.x509.X509Store
  * @see org.ripple.bouncycastle.jce.provider.X509StoreCertCollection
+ * @deprecated use the classes under org.ripple.bouncycastle.cert.selector
  */
 public class X509CertStoreSelector
     extends X509CertSelector

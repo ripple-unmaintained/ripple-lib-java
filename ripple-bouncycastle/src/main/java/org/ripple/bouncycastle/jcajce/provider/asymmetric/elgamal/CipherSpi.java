@@ -34,7 +34,6 @@ import org.ripple.bouncycastle.jcajce.provider.util.DigestFactory;
 import org.ripple.bouncycastle.jce.interfaces.ElGamalKey;
 import org.ripple.bouncycastle.jce.interfaces.ElGamalPrivateKey;
 import org.ripple.bouncycastle.jce.interfaces.ElGamalPublicKey;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.ripple.bouncycastle.util.Strings;
 
 public class CipherSpi
@@ -104,7 +103,7 @@ public class CipherSpi
             {
                 try
                 {
-                    engineParams = AlgorithmParameters.getInstance("OAEP", BouncyCastleProvider.PROVIDER_NAME);
+                    engineParams = createParametersInstance("OAEP");
                     engineParams.init(paramSpec);
                 }
                 catch (Exception e)

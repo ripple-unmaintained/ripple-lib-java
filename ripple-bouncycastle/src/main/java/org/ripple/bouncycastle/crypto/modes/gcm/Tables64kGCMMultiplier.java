@@ -1,7 +1,7 @@
 package org.ripple.bouncycastle.crypto.modes.gcm;
 
-import org.ripple.bouncycastle.crypto.util.Pack;
 import org.ripple.bouncycastle.util.Arrays;
+import org.ripple.bouncycastle.util.Pack;
 
 public class Tables64kGCMMultiplier implements GCMMultiplier
 {

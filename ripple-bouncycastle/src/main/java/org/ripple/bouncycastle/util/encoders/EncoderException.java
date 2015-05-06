@@ -1,5 +1,8 @@
 package org.ripple.bouncycastle.util.encoders;
 
+/**
+ * Exception thrown if an attempt is made to encode invalid data, or some other failure occurs.
+ */
 public class EncoderException
     extends IllegalStateException
 {

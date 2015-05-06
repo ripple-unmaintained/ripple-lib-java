@@ -20,7 +20,6 @@ import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseKeyGenerator;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseMac;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.IvAlgorithmParameters;
 import org.ripple.bouncycastle.jcajce.provider.util.AlgorithmProvider;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public final class RC5
 {
@@ -108,7 +107,7 @@ public final class RC5
 
             try
             {
-                params = AlgorithmParameters.getInstance("RC5", BouncyCastleProvider.PROVIDER_NAME);
+                params = createParametersInstance("RC5");
                 params.init(new IvParameterSpec(iv));
             }
             catch (Exception e)

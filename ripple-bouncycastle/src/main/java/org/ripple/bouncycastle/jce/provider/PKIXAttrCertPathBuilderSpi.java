@@ -24,9 +24,15 @@ import java.util.Set;
 
 import javax.security.auth.x500.X500Principal;
 
+import org.ripple.bouncycastle.asn1.x509.Extension;
+import org.ripple.bouncycastle.jcajce.PKIXCertStoreSelector;
+import org.ripple.bouncycastle.jcajce.PKIXExtendedBuilderParameters;
 import org.ripple.bouncycastle.jce.exception.ExtCertPathBuilderException;
 import org.ripple.bouncycastle.util.Selector;
+import org.ripple.bouncycastle.util.Store;
+import org.ripple.bouncycastle.util.StoreException;
 import org.ripple.bouncycastle.x509.ExtendedPKIXBuilderParameters;
+import org.ripple.bouncycastle.x509.ExtendedPKIXParameters;
 import org.ripple.bouncycastle.x509.X509AttributeCertStoreSelector;
 import org.ripple.bouncycastle.x509.X509AttributeCertificate;
 import org.ripple.bouncycastle.x509.X509CertStoreSelector;
@@ -45,24 +51,37 @@ public class PKIXAttrCertPathBuilderSpi
             throws CertPathBuilderException, InvalidAlgorithmParameterException
     {
         if (!(params instanceof PKIXBuilderParameters)
-                && !(params instanceof ExtendedPKIXBuilderParameters))
+                && !(params instanceof ExtendedPKIXBuilderParameters)
+                && !(params instanceof PKIXExtendedBuilderParameters))
         {
             throw new InvalidAlgorithmParameterException(
                     "Parameters must be an instance of "
                             + PKIXBuilderParameters.class.getName() + " or "
-                            + ExtendedPKIXBuilderParameters.class.getName()
+                            + PKIXExtendedBuilderParameters.class.getName()
                             + ".");
         }
 
-        ExtendedPKIXBuilderParameters pkixParams;
-        if (params instanceof ExtendedPKIXBuilderParameters)
+        List targetStores = new ArrayList();
+
+        PKIXExtendedBuilderParameters paramsPKIX;
+        if (params instanceof PKIXBuilderParameters)
         {
-            pkixParams = (ExtendedPKIXBuilderParameters) params;
+            PKIXExtendedBuilderParameters.Builder paramsPKIXBldr = new PKIXExtendedBuilderParameters.Builder((PKIXBuilderParameters)params);
+
+            if (params instanceof ExtendedPKIXParameters)
+            {
+                ExtendedPKIXBuilderParameters extPKIX = (ExtendedPKIXBuilderParameters)params;
+
+                paramsPKIXBldr.addExcludedCerts(extPKIX.getExcludedCerts());
+                paramsPKIXBldr.setMaxPathLength(extPKIX.getMaxPathLength());
+                targetStores = extPKIX.getStores();
+            }
+
+            paramsPKIX = paramsPKIXBldr.build();
         }
         else
         {
-            pkixParams = (ExtendedPKIXBuilderParameters) ExtendedPKIXBuilderParameters
-                    .getInstance((PKIXBuilderParameters) params);
+            paramsPKIX = (PKIXExtendedBuilderParameters)params;
         }
 
         Collection targets;
@@ -72,7 +91,7 @@ public class PKIXAttrCertPathBuilderSpi
 
         // search target certificates
 
-        Selector certSelect = pkixParams.getTargetConstraints();
+        Selector certSelect = paramsPKIX.getBaseParameters().getTargetConstraints();
         if (!(certSelect instanceof X509AttributeCertStoreSelector))
         {
             throw new CertPathBuilderException(
@@ -81,9 +100,10 @@ public class PKIXAttrCertPathBuilderSpi
                             + " for "+this.getClass().getName()+" class.");
         }
 
+
         try
         {
-            targets = CertPathValidatorUtilities.findCertificates((X509AttributeCertStoreSelector)certSelect, pkixParams.getStores());
+            targets = findCertificates((X509AttributeCertStoreSelector)certSelect, targetStores);
         }
         catch (AnnotatedException e)
         {
@@ -115,8 +135,9 @@ public class PKIXAttrCertPathBuilderSpi
                     {
                         selector.setSubject(((X500Principal)principals[i]).getEncoded());
                     }
-                    issuers.addAll(CertPathValidatorUtilities.findCertificates(selector, pkixParams.getStores()));
-                    issuers.addAll(CertPathValidatorUtilities.findCertificates(selector, pkixParams.getCertStores()));
+                    PKIXCertStoreSelector certStoreSelector = new PKIXCertStoreSelector.Builder(selector).build();
+                    issuers.addAll(CertPathValidatorUtilities.findCertificates(certStoreSelector, paramsPKIX.getBaseParameters().getCertStores()));
+                    issuers.addAll(CertPathValidatorUtilities.findCertificates(certStoreSelector, paramsPKIX.getBaseParameters().getCertificateStores()));
                 }
                 catch (AnnotatedException e)
                 {
@@ -139,7 +160,7 @@ public class PKIXAttrCertPathBuilderSpi
             Iterator it = issuers.iterator();
             while (it.hasNext() && result == null)
             {
-                result = build(cert, (X509Certificate)it.next(), pkixParams, certPathList);
+                result = build(cert, (X509Certificate)it.next(), paramsPKIX, certPathList);
             }
         }
 
@@ -162,7 +183,7 @@ public class PKIXAttrCertPathBuilderSpi
     private Exception certPathException;
 
     private CertPathBuilderResult build(X509AttributeCertificate attrCert, X509Certificate tbvCert,
-            ExtendedPKIXBuilderParameters pkixParams, List tbvPath)
+            PKIXExtendedBuilderParameters pkixParams, List tbvPath)
 
     {
         // If tbvCert is readily present in tbvPath, it indicates having run
@@ -208,8 +229,8 @@ public class PKIXAttrCertPathBuilderSpi
         try
         {
             // check whether the issuer of <tbvCert> is a TrustAnchor
-            if (CertPathValidatorUtilities.findTrustAnchor(tbvCert, pkixParams.getTrustAnchors(),
-                pkixParams.getSigProvider()) != null)
+            if (CertPathValidatorUtilities.findTrustAnchor(tbvCert, pkixParams.getBaseParameters().getTrustAnchors(),
+                pkixParams.getBaseParameters().getSigProvider()) != null)
             {
                 CertPath certPath;
                 PKIXCertPathValidatorResult result;
@@ -243,10 +264,13 @@ public class PKIXAttrCertPathBuilderSpi
             }
             else
             {
+                List stores = new ArrayList();
+
+                stores.addAll(pkixParams.getBaseParameters().getCertificateStores());
                 // add additional X.509 stores from locations in certificate
                 try
                 {
-                    CertPathValidatorUtilities.addAdditionalStoresFromAltNames(tbvCert, pkixParams);
+                    stores.addAll(CertPathValidatorUtilities.getAdditionalStoresFromAltNames(tbvCert.getExtensionValue(Extension.issuerAlternativeName.getId()), pkixParams.getBaseParameters().getNamedCertificateStoreMap()));
                 }
                 catch (CertificateParsingException e)
                 {
@@ -259,7 +283,7 @@ public class PKIXAttrCertPathBuilderSpi
                 // of the stores
                 try
                 {
-                    issuers.addAll(CertPathValidatorUtilities.findIssuerCerts(tbvCert, pkixParams));
+                    issuers.addAll(CertPathValidatorUtilities.findIssuerCerts(tbvCert, pkixParams.getBaseParameters().getCertStores(), stores));
                 }
                 catch (AnnotatedException e)
                 {
@@ -300,4 +324,31 @@ public class PKIXAttrCertPathBuilderSpi
         return builderResult;
     }
 
+    protected static Collection findCertificates(X509AttributeCertStoreSelector certSelect,
+                                                     List certStores)
+        throws AnnotatedException
+    {
+        Set certs = new HashSet();
+        Iterator iter = certStores.iterator();
+
+        while (iter.hasNext())
+        {
+            Object obj = iter.next();
+
+            if (obj instanceof Store)
+            {
+                Store certStore = (Store)obj;
+                try
+                {
+                    certs.addAll(certStore.getMatches(certSelect));
+                }
+                catch (StoreException e)
+                {
+                    throw new AnnotatedException(
+                            "Problem while picking certificates from X.509 store.", e);
+                }
+            }
+        }
+        return certs;
+    }
 }

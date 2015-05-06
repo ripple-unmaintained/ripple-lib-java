@@ -11,7 +11,7 @@ public final class Arrays
     {
         // static class, hide constructor
     }
-    
+
     public static boolean areEqual(
         boolean[]  a,
         boolean[]  b)
@@ -199,34 +199,60 @@ public final class Arrays
         return true;
     }
 
-    public static boolean areEqual(
-        BigInteger[]  a,
-        BigInteger[]  b)
+    public static boolean areEqual(Object[] a, Object[] b)
     {
         if (a == b)
         {
             return true;
         }
-
         if (a == null || b == null)
         {
             return false;
         }
-
         if (a.length != b.length)
         {
             return false;
         }
-
         for (int i = 0; i != a.length; i++)
         {
-            if (!a[i].equals(b[i]))
+            Object objA = a[i], objB = b[i];
+            if (objA == null)
+            {
+                if (objB != null)
+                {
+                    return false;
+                }
+            }
+            else if (!objA.equals(objB))
             {
                 return false;
             }
         }
-
         return true;
+    }
+
+    public static boolean contains(short[] a, short n)
+    {
+        for (int i = 0; i < a.length; ++i)
+        {
+            if (a[i] == n)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean contains(int[] a, int n)
+    {
+        for (int i = 0; i < a.length; ++i)
+        {
+            if (a[i] == n)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static void fill(
@@ -297,6 +323,25 @@ public final class Arrays
 
         return hc;
     }
+    
+    public static int hashCode(byte[] data, int off, int len)
+    {
+        if (data == null)
+        {
+            return 0;
+        }
+
+        int i = len;
+        int hc = i + 1;
+
+        while (--i >= 0)
+        {
+            hc *= 257;
+            hc ^= data[off + i];
+        }
+
+        return hc;
+    }
 
     public static int hashCode(char[] data)
     {
@@ -348,6 +393,25 @@ public final class Arrays
         return hc;
     }
 
+    public static int hashCode(int[] data, int off, int len)
+    {
+        if (data == null)
+        {
+            return 0;
+        }
+
+        int i = len;
+        int hc = i + 1;
+
+        while (--i >= 0)
+        {
+            hc *= 257;
+            hc ^= data[off + i];
+        }
+
+        return hc;
+    }
+
     public static int hashCode(short[][][] shorts)
     {
         int hc = 0;
@@ -391,7 +455,7 @@ public final class Arrays
         return hc;
     }
 
-    public static int hashCode(BigInteger[] data)
+    public static int hashCode(Object[] data)
     {
         if (data == null)
         {
@@ -421,6 +485,20 @@ public final class Arrays
         System.arraycopy(data, 0, copy, 0, data.length);
 
         return copy;
+    }
+
+    public static byte[] clone(byte[] data, byte[] existing)
+    {
+        if (data == null)
+        {
+            return null;
+        }
+        if ((existing == null) || (existing.length != data.length))
+        {
+            return clone(data);
+        }
+        System.arraycopy(data, 0, existing, 0, existing.length);
+        return existing;
     }
 
     public static byte[][] clone(byte[][] data)
@@ -468,6 +546,33 @@ public final class Arrays
         System.arraycopy(data, 0, copy, 0, data.length);
 
         return copy;
+    }
+
+    public static long[] clone(long[] data)
+    {
+        if (data == null)
+        {
+            return null;
+        }
+        long[] copy = new long[data.length];
+        
+        System.arraycopy(data, 0, copy, 0, data.length);
+        
+        return copy;
+    }
+
+    public static long[] clone(long[] data, long[] existing)
+    {
+        if (data == null)
+        {
+            return null;
+        }
+        if ((existing == null) || (existing.length != data.length))
+        {
+            return clone(data);
+        }
+        System.arraycopy(data, 0, existing, 0, existing.length);
+        return existing;
     }
 
     public static short[] clone(short[] data)
@@ -576,6 +681,17 @@ public final class Arrays
         return tmp;
     }
 
+    /**
+     * Make a copy of a range of bytes from the passed in data array. The range can
+     * extend beyond the end of the input array, in which case the return array will
+     * be padded with zeroes.
+     *
+     * @param data the array from which the data is to be copied.
+     * @param from the start index at which the copying should take place.
+     * @param to the final index of the range (exclusive).
+     *
+     * @return a new byte array containing the range given.
+     */
     public static byte[] copyOfRange(byte[] data, int from, int to)
     {
         int newLength = getLength(from, to);
@@ -660,6 +776,48 @@ public final class Arrays
         return newLength;
     }
 
+    public static byte[] append(byte[] a, byte b)
+    {
+        if (a == null)
+        {
+            return new byte[]{ b };
+        }
+
+        int length = a.length;
+        byte[] result = new byte[length + 1];
+        System.arraycopy(a, 0, result, 0, length);
+        result[length] = b;
+        return result;
+    }
+
+    public static short[] append(short[] a, short b)
+    {
+        if (a == null)
+        {
+            return new short[]{ b };
+        }
+
+        int length = a.length;
+        short[] result = new short[length + 1];
+        System.arraycopy(a, 0, result, 0, length);
+        result[length] = b;
+        return result;
+    }
+
+    public static int[] append(int[] a, int b)
+    {
+        if (a == null)
+        {
+            return new int[]{ b };
+        }
+
+        int length = a.length;
+        int[] result = new int[length + 1];
+        System.arraycopy(a, 0, result, 0, length);
+        result[length] = b;
+        return result;
+    }
+
     public static byte[] concatenate(byte[] a, byte[] b)
     {
         if (a != null && b != null)
@@ -731,6 +889,122 @@ public final class Arrays
         else
         {
             return concatenate(b, c, d);
+        }
+    }
+
+    public static int[] concatenate(int[] a, int[] b)
+    {
+        if (a == null)
+        {
+            return clone(b);
+        }
+        if (b == null)
+        {
+            return clone(a);
+        }
+
+        int[] c = new int[a.length + b.length];
+        System.arraycopy(a, 0, c, 0, a.length);
+        System.arraycopy(b, 0, c, a.length, b.length);
+        return c;
+    }
+
+    public static byte[] prepend(byte[] a, byte b)
+    {
+        if (a == null)
+        {
+            return new byte[]{ b };
+        }
+
+        int length = a.length;
+        byte[] result = new byte[length + 1];
+        System.arraycopy(a, 0, result, 1, length);
+        result[0] = b;
+        return result;
+    }
+
+    public static short[] prepend(short[] a, short b)
+    {
+        if (a == null)
+        {
+            return new short[]{ b };
+        }
+
+        int length = a.length;
+        short[] result = new short[length + 1];
+        System.arraycopy(a, 0, result, 1, length);
+        result[0] = b;
+        return result;
+    }
+
+    public static int[] prepend(int[] a, int b)
+    {
+        if (a == null)
+        {
+            return new int[]{ b };
+        }
+
+        int length = a.length;
+        int[] result = new int[length + 1];
+        System.arraycopy(a, 0, result, 1, length);
+        result[0] = b;
+        return result;
+    }
+
+    public static byte[] reverse(byte[] a)
+    {
+        if (a == null)
+        {
+            return null;
+        }
+
+        int p1 = 0, p2 = a.length;
+        byte[] result = new byte[p2];
+        
+        while (--p2 >= 0)
+        {
+            result[p2] = a[p1++];
+        }
+
+        return result;
+    }
+
+    /**
+     * Iterator backed by a specific array.
+     */
+    public static class Iterator<T>
+        implements java.util.Iterator<T>
+    {
+        private final T[] dataArray;
+
+        private int position = 0;
+
+        /**
+         * Base constructor.
+         * <p>
+         * Note: the array is not cloned, changes to it will affect the values returned by next().
+         * </p>
+         *
+         * @param dataArray array backing the iterator.
+         */
+        public Iterator(T[] dataArray)
+        {
+            this.dataArray = dataArray;
+        }
+
+        public boolean hasNext()
+        {
+            return position < dataArray.length;
+        }
+
+        public T next()
+        {
+            return dataArray[position++];
+        }
+
+        public void remove()
+        {
+            throw new UnsupportedOperationException("Cannot remove element from an Array.");
         }
     }
 }

@@ -2,21 +2,48 @@ package org.ripple.bouncycastle.crypto.tls;
 
 import java.security.SecureRandom;
 
+import org.ripple.bouncycastle.crypto.Digest;
+import org.ripple.bouncycastle.crypto.prng.DigestRandomGenerator;
+import org.ripple.bouncycastle.crypto.prng.RandomGenerator;
+import org.ripple.bouncycastle.util.Times;
+
 abstract class AbstractTlsContext
     implements TlsContext
 {
+    private static long counter = Times.nanoTime();
 
+    private synchronized static long nextCounterValue()
+    {
+        return ++counter;
+    }
+
+    private RandomGenerator nonceRandom;
     private SecureRandom secureRandom;
     private SecurityParameters securityParameters;
 
     private ProtocolVersion clientVersion = null;
     private ProtocolVersion serverVersion = null;
+    private TlsSession session = null;
     private Object userObject = null;
 
     AbstractTlsContext(SecureRandom secureRandom, SecurityParameters securityParameters)
     {
+        Digest d = TlsUtils.createHash(HashAlgorithm.sha256);
+        byte[] seed = new byte[d.getDigestSize()];
+        secureRandom.nextBytes(seed);
+
+        this.nonceRandom = new DigestRandomGenerator(d);
+        nonceRandom.addSeedMaterial(nextCounterValue());
+        nonceRandom.addSeedMaterial(Times.nanoTime());
+        nonceRandom.addSeedMaterial(seed);
+
         this.secureRandom = secureRandom;
         this.securityParameters = securityParameters;
+    }
+
+    public RandomGenerator getNonceRandomGenerator()
+    {
+        return nonceRandom;
     }
 
     public SecureRandom getSecureRandom()
@@ -34,7 +61,7 @@ abstract class AbstractTlsContext
         return clientVersion;
     }
 
-    public void setClientVersion(ProtocolVersion clientVersion)
+    void setClientVersion(ProtocolVersion clientVersion)
     {
         this.clientVersion = clientVersion;
     }
@@ -44,9 +71,19 @@ abstract class AbstractTlsContext
         return serverVersion;
     }
 
-    public void setServerVersion(ProtocolVersion serverVersion)
+    void setServerVersion(ProtocolVersion serverVersion)
     {
         this.serverVersion = serverVersion;
+    }
+
+    public TlsSession getResumableSession()
+    {
+        return session;
+    }
+
+    void setResumableSession(TlsSession session)
+    {
+        this.session = session;
     }
 
     public Object getUserObject()
@@ -61,6 +98,10 @@ abstract class AbstractTlsContext
 
     public byte[] exportKeyingMaterial(String asciiLabel, byte[] context_value, int length)
     {
+        if (context_value != null && !TlsUtils.isValidUint16(context_value.length))
+        {
+            throw new IllegalArgumentException("'context_value' must have length less than 2^16 (or be null)");
+        }
 
         SecurityParameters sp = getSecurityParameters();
         byte[] cr = sp.getClientRandom(), sr = sp.getServerRandom();

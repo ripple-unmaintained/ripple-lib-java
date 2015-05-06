@@ -43,8 +43,9 @@ import org.ripple.bouncycastle.crypto.params.IESWithCipherParameters;
 import org.ripple.bouncycastle.crypto.parsers.DHIESPublicKeyParser;
 import org.ripple.bouncycastle.jcajce.provider.asymmetric.util.DHUtil;
 import org.ripple.bouncycastle.jcajce.provider.asymmetric.util.IESUtil;
+import org.ripple.bouncycastle.jcajce.util.BCJcaJceHelper;
+import org.ripple.bouncycastle.jcajce.util.JcaJceHelper;
 import org.ripple.bouncycastle.jce.interfaces.IESKey;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.ripple.bouncycastle.jce.spec.IESParameterSpec;
 import org.ripple.bouncycastle.util.BigIntegers;
 import org.ripple.bouncycastle.util.Strings;
@@ -53,6 +54,8 @@ import org.ripple.bouncycastle.util.Strings;
 public class IESCipher
     extends CipherSpi
 {
+    private final JcaJceHelper helper = new BCJcaJceHelper();
+
     private IESEngine engine;
     private int state = -1;
     private ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -106,7 +109,7 @@ public class IESCipher
         {
             try
             {
-                engineParam = AlgorithmParameters.getInstance("IES", BouncyCastleProvider.PROVIDER_NAME);
+                engineParam = helper.createAlgorithmParameters("IES");
                 engineParam.init(engineSpec);
             }
             catch (Exception e)
@@ -464,7 +467,6 @@ public class IESCipher
         return buf.length;
 
     }
-
 
     /**
      * Classes that inherit from us

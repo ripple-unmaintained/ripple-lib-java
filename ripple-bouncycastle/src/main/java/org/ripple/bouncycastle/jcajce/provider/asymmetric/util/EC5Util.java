@@ -7,22 +7,46 @@ import java.security.spec.ECFieldFp;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.ECPoint;
 import java.security.spec.EllipticCurve;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.ripple.bouncycastle.asn1.x9.ECNamedCurveTable;
+import org.ripple.bouncycastle.asn1.x9.X9ECParameters;
+import org.ripple.bouncycastle.crypto.ec.CustomNamedCurves;
 import org.ripple.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.ripple.bouncycastle.jce.spec.ECNamedCurveSpec;
+import org.ripple.bouncycastle.math.ec.ECAlgorithms;
 import org.ripple.bouncycastle.math.ec.ECCurve;
 
 public class EC5Util
 {
+    private static Map customCurves = new HashMap();
+
+    static
+    {
+        Enumeration e = CustomNamedCurves.getNames();
+        while (e.hasMoreElements())
+        {
+            String name = (String)e.nextElement();
+
+            X9ECParameters curveParams = ECNamedCurveTable.getByName(name);
+            if (curveParams != null)  // there may not be a regular curve, may just be a custom curve.
+            {
+                customCurves.put(curveParams.getCurve(), CustomNamedCurves.getByName(name).getCurve());
+            }
+        }
+    }
+
     public static EllipticCurve convertCurve(
         ECCurve curve, 
         byte[]  seed)
     {
         // TODO: the Sun EC implementation doesn't currently handle the seed properly
         // so at the moment it's set to null. Should probably look at making this configurable
-        if (curve instanceof ECCurve.Fp)
+        if (ECAlgorithms.isFpCurve(curve))
         {
-            return new EllipticCurve(new ECFieldFp(((ECCurve.Fp)curve).getQ()), curve.getA().toBigInteger(), curve.getB().toBigInteger(), null);
+            return new EllipticCurve(new ECFieldFp(curve.getField().getCharacteristic()), curve.getA().toBigInteger(), curve.getB().toBigInteger(), null);
         }
         else
         {
@@ -53,7 +77,14 @@ public class EC5Util
 
         if (field instanceof ECFieldFp)
         {
-            return new ECCurve.Fp(((ECFieldFp)field).getP(), a, b);
+            ECCurve.Fp curve = new ECCurve.Fp(((ECFieldFp)field).getP(), a, b);
+
+            if (customCurves.containsKey(curve))
+            {
+                return (ECCurve)customCurves.get(curve);
+            }
+
+            return curve;
         }
         else
         {
@@ -74,8 +105,8 @@ public class EC5Util
                 ((ECNamedCurveParameterSpec)spec).getName(),
                 ellipticCurve,
                 new ECPoint(
-                    spec.getG().getX().toBigInteger(),
-                    spec.getG().getY().toBigInteger()),
+                    spec.getG().getAffineXCoord().toBigInteger(),
+                    spec.getG().getAffineYCoord().toBigInteger()),
                 spec.getN(),
                 spec.getH());
         }
@@ -84,8 +115,8 @@ public class EC5Util
             return new ECParameterSpec(
                 ellipticCurve,
                 new ECPoint(
-                    spec.getG().getX().toBigInteger(),
-                    spec.getG().getY().toBigInteger()),
+                    spec.getG().getAffineXCoord().toBigInteger(),
+                    spec.getG().getAffineYCoord().toBigInteger()),
                 spec.getN(),
                 spec.getH().intValue());
         }

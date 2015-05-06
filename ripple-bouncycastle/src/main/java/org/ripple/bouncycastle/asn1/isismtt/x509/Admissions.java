@@ -14,7 +14,6 @@ import org.ripple.bouncycastle.asn1.x509.GeneralName;
 
 /**
  * An Admissions structure.
- * <p/>
  * <pre>
  *            Admissions ::= SEQUENCE
  *            {
@@ -22,7 +21,6 @@ import org.ripple.bouncycastle.asn1.x509.GeneralName;
  *              namingAuthority [1] EXPLICIT NamingAuthority OPTIONAL
  *              professionInfos SEQUENCE OF ProfessionInfo
  *            }
- * <p/>
  * </pre>
  *
  * @see org.ripple.bouncycastle.asn1.isismtt.x509.AdmissionSyntax
@@ -56,9 +54,8 @@ public class Admissions
 
     /**
      * Constructor from ASN1Sequence.
-     * <p/>
+     * <p>
      * The sequence is of type ProcurationSyntax:
-     * <p/>
      * <pre>
      *            Admissions ::= SEQUENCE
      *            {
@@ -67,7 +64,7 @@ public class Admissions
      *              professionInfos SEQUENCE OF ProfessionInfo
      *            }
      * </pre>
-     *
+     * </p>
      * @param seq The ASN.1 sequence.
      */
     private Admissions(ASN1Sequence seq)
@@ -117,7 +114,7 @@ public class Admissions
 
     /**
      * Constructor from a given details.
-     * <p/>
+     * <p>
      * Parameter <code>professionInfos</code> is mandatory.
      *
      * @param admissionAuthority The admission authority.
@@ -155,9 +152,8 @@ public class Admissions
 
     /**
      * Produce an object suitable for an ASN1OutputStream.
-     * <p/>
+     * <p>
      * Returns:
-     * <p/>
      * <pre>
      *       Admissions ::= SEQUENCE
      *       {
@@ -165,7 +161,6 @@ public class Admissions
      *         namingAuthority [1] EXPLICIT NamingAuthority OPTIONAL
      *         professionInfos SEQUENCE OF ProfessionInfo
      *       }
-     * <p/>
      * </pre>
      *
      * @return an ASN1Primitive

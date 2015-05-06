@@ -5,7 +5,7 @@ import org.ripple.bouncycastle.jcajce.provider.util.AsymmetricAlgorithmProvider;
 
 public class BC
 {
-    private static final String PREFIX = "org.bouncycastle.jcajce.provider.keystore" + ".bc.";
+    private static final String PREFIX = "org.ripple.bouncycastle.jcajce.provider.keystore" + ".bc.";
 
     public static class Mappings
         extends AsymmetricAlgorithmProvider

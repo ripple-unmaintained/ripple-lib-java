@@ -8,7 +8,6 @@ import javax.crypto.spec.DHParameterSpec;
 
 import org.ripple.bouncycastle.asn1.ASN1Encoding;
 import org.ripple.bouncycastle.asn1.ASN1Primitive;
-import org.ripple.bouncycastle.asn1.ASN1Sequence;
 import org.ripple.bouncycastle.asn1.oiw.ElGamalParameter;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseAlgorithmParameters;
 import org.ripple.bouncycastle.jce.spec.ElGamalParameterSpec;
@@ -20,7 +19,6 @@ public class AlgorithmParametersSpi
 
     /**
      * Return the X.509 ASN.1 structure ElGamalParameter.
-     * <p/>
      * <pre>
      *  ElGamalParameter ::= SEQUENCE {
      *                   prime INTEGER, -- p
@@ -95,7 +93,7 @@ public class AlgorithmParametersSpi
     {
         try
         {
-            ElGamalParameter elP = new ElGamalParameter((ASN1Sequence)ASN1Primitive.fromByteArray(params));
+            ElGamalParameter elP = ElGamalParameter.getInstance(ASN1Primitive.fromByteArray(params));
 
             currentSpec = new ElGamalParameterSpec(elP.getP(), elP.getG());
         }

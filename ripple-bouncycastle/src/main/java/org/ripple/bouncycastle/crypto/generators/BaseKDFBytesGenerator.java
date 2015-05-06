@@ -1,19 +1,20 @@
 package org.ripple.bouncycastle.crypto.generators;
 
 import org.ripple.bouncycastle.crypto.DataLengthException;
-import org.ripple.bouncycastle.crypto.DerivationFunction;
 import org.ripple.bouncycastle.crypto.DerivationParameters;
 import org.ripple.bouncycastle.crypto.Digest;
+import org.ripple.bouncycastle.crypto.DigestDerivationFunction;
 import org.ripple.bouncycastle.crypto.params.ISO18033KDFParameters;
 import org.ripple.bouncycastle.crypto.params.KDFParameters;
-import org.ripple.bouncycastle.crypto.util.Pack;
+import org.ripple.bouncycastle.util.Pack;
 
 /**
  * Basic KDF generator for derived keys and ivs as defined by IEEE P1363a/ISO
  * 18033 <br>
  * This implementation is based on ISO 18033/P1363a.
  */
-public class BaseKDFBytesGenerator implements DerivationFunction
+public class BaseKDFBytesGenerator
+    implements DigestDerivationFunction
 {
     private int    counterStart;
     private Digest digest;

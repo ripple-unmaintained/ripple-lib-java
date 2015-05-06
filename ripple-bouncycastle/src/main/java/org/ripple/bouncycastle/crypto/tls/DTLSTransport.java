@@ -5,7 +5,6 @@ import java.io.IOException;
 public class DTLSTransport
     implements DatagramTransport
 {
-
     private final DTLSRecordLayer recordLayer;
 
     DTLSTransport(DTLSRecordLayer recordLayer)
@@ -45,7 +44,7 @@ public class DTLSTransport
         catch (RuntimeException e)
         {
             recordLayer.fail(AlertDescription.internal_error);
-            throw new TlsFatalAlert(AlertDescription.internal_error);
+            throw new TlsFatalAlert(AlertDescription.internal_error, e);
         }
     }
 
@@ -69,7 +68,7 @@ public class DTLSTransport
         catch (RuntimeException e)
         {
             recordLayer.fail(AlertDescription.internal_error);
-            throw new TlsFatalAlert(AlertDescription.internal_error);
+            throw new TlsFatalAlert(AlertDescription.internal_error, e);
         }
     }
 

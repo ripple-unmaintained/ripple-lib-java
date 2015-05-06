@@ -7,8 +7,10 @@ import java.security.spec.AlgorithmParameterSpec;
 
 import javax.crypto.spec.IvParameterSpec;
 
+import org.ripple.bouncycastle.crypto.BlockCipher;
 import org.ripple.bouncycastle.crypto.CipherKeyGenerator;
 import org.ripple.bouncycastle.crypto.engines.NoekeonEngine;
+import org.ripple.bouncycastle.crypto.generators.Poly1305KeyGenerator;
 import org.ripple.bouncycastle.crypto.macs.GMac;
 import org.ripple.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.ripple.bouncycastle.jcajce.provider.config.ConfigurableProvider;
@@ -16,8 +18,8 @@ import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseAlgorithmParam
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseBlockCipher;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseKeyGenerator;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseMac;
+import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BlockCipherProvider;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.IvAlgorithmParameters;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public final class Noekeon
 {
@@ -30,7 +32,13 @@ public final class Noekeon
     {
         public ECB()
         {
-            super(new NoekeonEngine());
+            super(new BlockCipherProvider()
+            {
+                public BlockCipher get()
+                {
+                    return new NoekeonEngine();
+                }
+            });
         }
     }
 
@@ -49,6 +57,24 @@ public final class Noekeon
         public GMAC()
         {
             super(new GMac(new GCMBlockCipher(new NoekeonEngine())));
+        }
+    }
+
+    public static class Poly1305
+        extends BaseMac
+    {
+        public Poly1305()
+        {
+            super(new org.ripple.bouncycastle.crypto.macs.Poly1305(new NoekeonEngine()));
+        }
+    }
+
+    public static class Poly1305KeyGen
+        extends BaseKeyGenerator
+    {
+        public Poly1305KeyGen()
+        {
+            super("Poly1305-Noekeon", 256, new Poly1305KeyGenerator());
         }
     }
 
@@ -78,7 +104,7 @@ public final class Noekeon
 
             try
             {
-                params = AlgorithmParameters.getInstance("Noekeon", BouncyCastleProvider.PROVIDER_NAME);
+                params = createParametersInstance("Noekeon");
                 params.init(new IvParameterSpec(iv));
             }
             catch (Exception e)
@@ -120,6 +146,7 @@ public final class Noekeon
             provider.addAlgorithm("KeyGenerator.NOEKEON", PREFIX + "$KeyGen");
 
             addGMacAlgorithm(provider, "NOEKEON", PREFIX + "$GMAC", PREFIX + "$KeyGen");
+            addPoly1305Algorithm(provider, "NOEKEON", PREFIX + "$Poly1305", PREFIX + "$Poly1305KeyGen");
         }
     }
 }

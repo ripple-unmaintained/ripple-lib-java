@@ -2,12 +2,12 @@ package org.ripple.bouncycastle.crypto.tls;
 
 /**
  * RFC 4347 4.1.2.5 Anti-replay
- * <p/>
+ * <p>
  * Support fast rejection of duplicate records by maintaining a sliding receive window
+ * </p>
  */
 class DTLSReplayWindow
 {
-
     private static final long VALID_SEQ_MASK = 0x0000FFFFFFFFFFFFL;
 
     private static final long WINDOW_SIZE = 64L;

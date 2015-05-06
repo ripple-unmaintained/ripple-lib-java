@@ -13,13 +13,12 @@ import java.util.Enumeration;
 
 import org.ripple.bouncycastle.asn1.ASN1Encodable;
 import org.ripple.bouncycastle.asn1.ASN1Encoding;
+import org.ripple.bouncycastle.asn1.ASN1Integer;
 import org.ripple.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.ripple.bouncycastle.asn1.ASN1Primitive;
 import org.ripple.bouncycastle.asn1.ASN1Sequence;
 import org.ripple.bouncycastle.asn1.DERBitString;
-import org.ripple.bouncycastle.asn1.DERInteger;
 import org.ripple.bouncycastle.asn1.DERNull;
-import org.ripple.bouncycastle.asn1.DERObjectIdentifier;
 import org.ripple.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
 import org.ripple.bouncycastle.asn1.cryptopro.ECGOST3410NamedCurves;
 import org.ripple.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -125,8 +124,8 @@ public class JCEECPrivateKey
             this.ecSpec = new ECParameterSpec(
                             ellipticCurve,
                             new ECPoint(
-                                    dp.getG().getX().toBigInteger(),
-                                    dp.getG().getY().toBigInteger()),
+                                    dp.getG().getAffineXCoord().toBigInteger(),
+                                    dp.getG().getAffineYCoord().toBigInteger()),
                             dp.getN(),
                             dp.getH().intValue());
         }
@@ -156,8 +155,8 @@ public class JCEECPrivateKey
             this.ecSpec = new ECParameterSpec(
                             ellipticCurve,
                             new ECPoint(
-                                    dp.getG().getX().toBigInteger(),
-                                    dp.getG().getY().toBigInteger()),
+                                    dp.getG().getAffineXCoord().toBigInteger(),
+                                    dp.getG().getAffineYCoord().toBigInteger()),
                             dp.getN(),
                             dp.getH().intValue());
         }
@@ -168,8 +167,8 @@ public class JCEECPrivateKey
             this.ecSpec = new ECParameterSpec(
                                 ellipticCurve,
                                 new ECPoint(
-                                        spec.getG().getX().toBigInteger(),
-                                        spec.getG().getY().toBigInteger()),
+                                    spec.getG().getAffineXCoord().toBigInteger(),
+                                    spec.getG().getAffineYCoord().toBigInteger()),
                                 spec.getN(),
                                 spec.getH().intValue());
         }
@@ -212,8 +211,8 @@ public class JCEECPrivateKey
                         ECGOST3410NamedCurves.getName(oid),
                         ellipticCurve,
                         new ECPoint(
-                                gParam.getG().getX().toBigInteger(),
-                                gParam.getG().getY().toBigInteger()),
+                                gParam.getG().getAffineXCoord().toBigInteger(),
+                                gParam.getG().getAffineYCoord().toBigInteger()),
                         gParam.getN(),
                         gParam.getH());
             }
@@ -225,8 +224,8 @@ public class JCEECPrivateKey
                         ECUtil.getCurveName(oid),
                         ellipticCurve,
                         new ECPoint(
-                                ecP.getG().getX().toBigInteger(),
-                                ecP.getG().getY().toBigInteger()),
+                                ecP.getG().getAffineXCoord().toBigInteger(),
+                                ecP.getG().getAffineYCoord().toBigInteger()),
                         ecP.getN(),
                         ecP.getH());
             }
@@ -243,16 +242,16 @@ public class JCEECPrivateKey
             this.ecSpec = new ECParameterSpec(
                 ellipticCurve,
                 new ECPoint(
-                        ecP.getG().getX().toBigInteger(),
-                        ecP.getG().getY().toBigInteger()),
+                        ecP.getG().getAffineXCoord().toBigInteger(),
+                        ecP.getG().getAffineYCoord().toBigInteger()),
                 ecP.getN(),
                 ecP.getH().intValue());
         }
 
         ASN1Encodable privKey = info.parsePrivateKey();
-        if (privKey instanceof DERInteger)
+        if (privKey instanceof ASN1Integer)
         {
-            DERInteger          derD = DERInteger.getInstance(privKey);
+            ASN1Integer          derD = ASN1Integer.getInstance(privKey);
 
             this.d = derD.getValue();
         }
@@ -292,10 +291,10 @@ public class JCEECPrivateKey
 
         if (ecSpec instanceof ECNamedCurveSpec)
         {
-            DERObjectIdentifier curveOid = ECUtil.getNamedCurveOid(((ECNamedCurveSpec)ecSpec).getName());
+            ASN1ObjectIdentifier curveOid = ECUtil.getNamedCurveOid(((ECNamedCurveSpec)ecSpec).getName());
             if (curveOid == null)  // guess it's the OID
             {
-                curveOid = new DERObjectIdentifier(((ECNamedCurveSpec)ecSpec).getName());
+                curveOid = new ASN1ObjectIdentifier(((ECNamedCurveSpec)ecSpec).getName());
             }
             params = new X962Parameters(curveOid);
         }

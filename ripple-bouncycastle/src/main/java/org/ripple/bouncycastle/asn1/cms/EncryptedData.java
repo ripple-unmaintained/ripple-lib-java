@@ -6,9 +6,20 @@ import org.ripple.bouncycastle.asn1.ASN1Object;
 import org.ripple.bouncycastle.asn1.ASN1Primitive;
 import org.ripple.bouncycastle.asn1.ASN1Sequence;
 import org.ripple.bouncycastle.asn1.ASN1Set;
+import org.ripple.bouncycastle.asn1.ASN1TaggedObject;
 import org.ripple.bouncycastle.asn1.BERSequence;
 import org.ripple.bouncycastle.asn1.BERTaggedObject;
 
+/**
+ * <a href="http://tools.ietf.org/html/rfc5652#section-8">RFC 5652</a> EncryptedData object.
+ * <p>
+ * <pre>
+ * EncryptedData ::= SEQUENCE {
+ *     version CMSVersion,
+ *     encryptedContentInfo EncryptedContentInfo,
+ *     unprotectedAttrs [1] IMPLICIT UnprotectedAttributes OPTIONAL }
+ * </pre>
+ */
 public class EncryptedData
     extends ASN1Object
 {
@@ -16,6 +27,19 @@ public class EncryptedData
     private EncryptedContentInfo encryptedContentInfo;
     private ASN1Set unprotectedAttrs;
 
+    /**
+     * Return an EncryptedData object from the given object.
+     * <p>
+     * Accepted inputs:
+     * <ul>
+     * <li> null &rarr; null
+     * <li> {@link EncryptedData} object
+     * <li> {@link org.ripple.bouncycastle.asn1.ASN1Sequence#getInstance(java.lang.Object) ASN1Sequence} input formats
+     * </ul>
+     *
+     * @param o the object we want converted.
+     * @exception IllegalArgumentException if the object cannot be converted.
+     */
     public static EncryptedData getInstance(Object o)
     {
         if (o instanceof EncryptedData)
@@ -50,7 +74,7 @@ public class EncryptedData
 
         if (seq.size() == 3)
         {
-            this.unprotectedAttrs = ASN1Set.getInstance(seq.getObjectAt(2));
+            this.unprotectedAttrs = ASN1Set.getInstance((ASN1TaggedObject)seq.getObjectAt(2), false);
         }
     }
 
@@ -70,12 +94,6 @@ public class EncryptedData
     }
 
     /**
-     * <pre>
-     *       EncryptedData ::= SEQUENCE {
-     *                     version CMSVersion,
-     *                     encryptedContentInfo EncryptedContentInfo,
-     *                     unprotectedAttrs [1] IMPLICIT UnprotectedAttributes OPTIONAL }
-     * </pre>
      * @return a basic ASN.1 object representation.
      */
     public ASN1Primitive toASN1Primitive()

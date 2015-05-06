@@ -1,5 +1,8 @@
 package org.ripple.bouncycastle.crypto.engines;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
+
 import org.ripple.bouncycastle.crypto.AsymmetricBlockCipher;
 import org.ripple.bouncycastle.crypto.CipherParameters;
 import org.ripple.bouncycastle.crypto.DataLengthException;
@@ -8,16 +11,13 @@ import org.ripple.bouncycastle.crypto.params.RSAKeyParameters;
 import org.ripple.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
 import org.ripple.bouncycastle.util.BigIntegers;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
-
 /**
  * this does your basic RSA algorithm with blinding
  */
 public class RSABlindedEngine
     implements AsymmetricBlockCipher
 {
-    private static BigInteger ONE = BigInteger.valueOf(1);
+    private static final BigInteger ONE = BigInteger.valueOf(1);
 
     private RSACoreEngine    core = new RSACoreEngine();
     private RSAKeyParameters key;

@@ -5,11 +5,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * A generic interface for key exchange implementations in TLS 1.0/1.1.
+ * A generic interface for key exchange implementations in (D)TLS.
  */
 public interface TlsKeyExchange
 {
-
     void init(TlsContext context);
 
     void skipServerCredentials()

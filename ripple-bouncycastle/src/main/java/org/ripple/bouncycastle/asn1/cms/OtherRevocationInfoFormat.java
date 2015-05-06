@@ -9,6 +9,15 @@ import org.ripple.bouncycastle.asn1.ASN1Sequence;
 import org.ripple.bouncycastle.asn1.ASN1TaggedObject;
 import org.ripple.bouncycastle.asn1.DERSequence;
 
+/**
+ * <a href="http://tools.ietf.org/html/rfc5652#section-10.2.1">RFC 5652</a>: OtherRevocationInfoFormat object.
+ * <p>
+ * <pre>
+ * OtherRevocationInfoFormat ::= SEQUENCE {
+ *      otherRevInfoFormat OBJECT IDENTIFIER,
+ *      otherRevInfo ANY DEFINED BY otherRevInfoFormat }
+ * </pre>
+ */
 public class OtherRevocationInfoFormat
     extends ASN1Object
 {
@@ -31,7 +40,7 @@ public class OtherRevocationInfoFormat
     }
 
     /**
-     * return a OtherRevocationInfoFormat object from a tagged object.
+     * Return a OtherRevocationInfoFormat object from a tagged object.
      *
      * @param obj the tagged object holding the object we want.
      * @param explicit true if the object is meant to be explicitly
@@ -47,7 +56,14 @@ public class OtherRevocationInfoFormat
     }
     
     /**
-     * return a OtherRevocationInfoFormat object from the given object.
+     * Return a OtherRevocationInfoFormat object from the given object.
+     * <p>
+     * Accepted inputs:
+     * <ul>
+     * <li> null &rarr; null
+     * <li> {@link OtherRevocationInfoFormat} object
+     * <li> {@link org.ripple.bouncycastle.asn1.ASN1Sequence#getInstance(java.lang.Object) ASN1Sequence} input formats with OtherRevocationInfoFormat structure inside
+     * </ul>
      *
      * @param obj the object we want converted.
      * @exception IllegalArgumentException if the object cannot be converted.
@@ -80,11 +96,6 @@ public class OtherRevocationInfoFormat
 
     /** 
      * Produce an object suitable for an ASN1OutputStream.
-     * <pre>
-     * OtherRevocationInfoFormat ::= SEQUENCE {
-     *      otherRevInfoFormat OBJECT IDENTIFIER,
-     *      otherRevInfo ANY DEFINED BY otherRevInfoFormat }
-     * </pre>
      */
     public ASN1Primitive toASN1Primitive()
     {

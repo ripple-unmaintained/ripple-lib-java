@@ -1,15 +1,35 @@
 package org.ripple.bouncycastle.crypto.tls;
 
+import org.ripple.bouncycastle.util.Arrays;
+
 public class SecurityParameters
 {
-
     int entity = -1;
+    int cipherSuite = -1;
+    short compressionAlgorithm = CompressionMethod._null;
     int prfAlgorithm = -1;
-    short compressionAlgorithm = -1;
     int verifyDataLength = -1;
     byte[] masterSecret = null;
     byte[] clientRandom = null;
     byte[] serverRandom = null;
+    byte[] sessionHash = null;
+    byte[] pskIdentity = null;
+    byte[] srpIdentity = null;
+
+    // TODO Keep these internal, since it's maybe not the ideal place for them
+    short maxFragmentLength = -1;
+    boolean truncatedHMac = false;
+    boolean encryptThenMAC = false;
+    boolean extendedMasterSecret = false;
+
+    void clear()
+    {
+        if (this.masterSecret != null)
+        {
+            Arrays.fill(this.masterSecret, (byte)0);
+            this.masterSecret = null;
+        }
+    }
 
     /**
      * @return {@link ConnectionEnd}
@@ -20,11 +40,11 @@ public class SecurityParameters
     }
 
     /**
-     * @return {@link PRFAlgorithm}
+     * @return {@link CipherSuite}
      */
-    public int getPrfAlgorithm()
+    public int getCipherSuite()
     {
-        return prfAlgorithm;
+        return cipherSuite;
     }
 
     /**
@@ -33,6 +53,14 @@ public class SecurityParameters
     public short getCompressionAlgorithm()
     {
         return compressionAlgorithm;
+    }
+
+    /**
+     * @return {@link PRFAlgorithm}
+     */
+    public int getPrfAlgorithm()
+    {
+        return prfAlgorithm;
     }
 
     public int getVerifyDataLength()
@@ -53,5 +81,28 @@ public class SecurityParameters
     public byte[] getServerRandom()
     {
         return serverRandom;
+    }
+
+    public byte[] getSessionHash()
+    {
+        return sessionHash;
+    }
+
+    /**
+     * @deprecated Use {@link SecurityParameters#getPSKIdentity()) 
+     */
+    public byte[] getPskIdentity()
+    {
+        return pskIdentity;
+    }
+
+    public byte[] getPSKIdentity()
+    {
+        return pskIdentity;
+    }
+
+    public byte[] getSRPIdentity()
+    {
+        return srpIdentity;
     }
 }

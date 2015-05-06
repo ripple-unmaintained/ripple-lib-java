@@ -32,6 +32,9 @@ import org.ripple.bouncycastle.crypto.InvalidCipherTextException;
 import org.ripple.bouncycastle.crypto.Wrapper;
 import org.ripple.bouncycastle.crypto.params.KeyParameter;
 import org.ripple.bouncycastle.crypto.params.ParametersWithIV;
+import org.ripple.bouncycastle.crypto.params.ParametersWithRandom;
+import org.ripple.bouncycastle.jcajce.util.BCJcaJceHelper;
+import org.ripple.bouncycastle.jcajce.util.JcaJceHelper;
 import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public abstract class BaseWrapCipher
@@ -60,6 +63,8 @@ public abstract class BaseWrapCipher
 
     private int                       ivSize;
     private byte[]                    iv;
+
+    private final JcaJceHelper helper = new BCJcaJceHelper();
 
     protected BaseWrapCipher()
     {
@@ -104,6 +109,12 @@ public abstract class BaseWrapCipher
     protected AlgorithmParameters engineGetParameters()
     {
         return null;
+    }
+
+    protected final AlgorithmParameters createParametersInstance(String algorithm)
+        throws NoSuchAlgorithmException, NoSuchProviderException
+    {
+        return helper.createAlgorithmParameters(algorithm);
     }
 
     protected void engineSetMode(
@@ -162,6 +173,11 @@ public abstract class BaseWrapCipher
             iv = new byte[ivSize];
             random.nextBytes(iv);
             param = new ParametersWithIV(param, iv);
+        }
+
+        if (random != null)
+        {
+            param = new ParametersWithRandom(param, random);
         }
 
         switch (opmode)
@@ -361,7 +377,7 @@ public abstract class BaseWrapCipher
         {
             try
             {
-                KeyFactory kf = KeyFactory.getInstance(wrappedKeyAlgorithm, BouncyCastleProvider.PROVIDER_NAME);
+                KeyFactory kf = helper.createKeyFactory(wrappedKeyAlgorithm);
 
                 if (wrappedKeyType == Cipher.PUBLIC_KEY)
                 {

@@ -3,61 +3,52 @@ package org.ripple.bouncycastle.asn1.ua;
 import java.math.BigInteger;
 import java.util.Random;
 
-import org.ripple.bouncycastle.asn1.x9.X9IntegerConverter;
 import org.ripple.bouncycastle.math.ec.ECConstants;
 import org.ripple.bouncycastle.math.ec.ECCurve;
 import org.ripple.bouncycastle.math.ec.ECFieldElement;
 import org.ripple.bouncycastle.math.ec.ECPoint;
-import org.ripple.bouncycastle.util.Arrays;
 
 /**
  * DSTU4145 encodes points somewhat differently than X9.62
  * It compresses the point to the size of the field element
  */
-
 public abstract class DSTU4145PointEncoder
 {
-
-    private static X9IntegerConverter converter = new X9IntegerConverter();
-
-    private static BigInteger trace(ECFieldElement fe)
+    private static ECFieldElement trace(ECFieldElement fe)
     {
         ECFieldElement t = fe;
-        for (int i = 0; i < fe.getFieldSize() - 1; i++)
+        for (int i = 1; i < fe.getFieldSize(); ++i)
         {
             t = t.square().add(fe);
         }
-        return t.toBigInteger();
+        return t;
     }
 
     /**
      * Solves a quadratic equation <code>z<sup>2</sup> + z = beta</code>(X9.62
      * D.1.6) The other solution is <code>z + 1</code>.
      *
-     * @param beta The value to solve the qradratic equation for.
+     * @param beta The value to solve the quadratic equation for.
      * @return the solution for <code>z<sup>2</sup> + z = beta</code> or
      *         <code>null</code> if no solution exists.
      */
-    private static ECFieldElement solveQuadradicEquation(ECFieldElement beta)
+    private static ECFieldElement solveQuadraticEquation(ECCurve curve, ECFieldElement beta)
     {
-        ECFieldElement.F2m b = (ECFieldElement.F2m)beta;
-        ECFieldElement zeroElement = new ECFieldElement.F2m(
-            b.getM(), b.getK1(), b.getK2(), b.getK3(), ECConstants.ZERO);
-
-        if (beta.toBigInteger().equals(ECConstants.ZERO))
+        if (beta.isZero())
         {
-            return zeroElement;
+            return beta;
         }
 
+        ECFieldElement zeroElement = curve.fromBigInteger(ECConstants.ZERO);
+
         ECFieldElement z = null;
-        ECFieldElement gamma = zeroElement;
+        ECFieldElement gamma = null;
 
         Random rand = new Random();
-        int m = b.getM();
+        int m = beta.getFieldSize();
         do
         {
-            ECFieldElement t = new ECFieldElement.F2m(b.getM(), b.getK1(),
-                b.getK2(), b.getK3(), new BigInteger(m, rand));
+            ECFieldElement t = curve.fromBigInteger(new BigInteger(m, rand));
             z = zeroElement;
             ECFieldElement w = beta;
             for (int i = 1; i <= m - 1; i++)
@@ -66,13 +57,13 @@ public abstract class DSTU4145PointEncoder
                 z = z.square().add(w2.multiply(t));
                 w = w2.add(beta);
             }
-            if (!w.toBigInteger().equals(ECConstants.ZERO))
+            if (!w.isZero())
             {
                 return null;
             }
             gamma = z.square().add(z);
         }
-        while (gamma.toBigInteger().equals(ECConstants.ZERO));
+        while (gamma.isZero());
 
         return z;
     }
@@ -91,13 +82,16 @@ public abstract class DSTU4145PointEncoder
 
           return Arrays.copyOfRange(bytes, 1, bytes.length);*/
 
-        int byteCount = converter.getByteLength(Q.getX());
-        byte[] bytes = converter.integerToBytes(Q.getX().toBigInteger(), byteCount);
+        Q = Q.normalize();
 
-        if (!(Q.getX().toBigInteger().equals(ECConstants.ZERO)))
+        ECFieldElement x = Q.getAffineXCoord();
+
+        byte[] bytes = x.getEncoded();
+
+        if (!x.isZero())
         {
-            ECFieldElement y = Q.getY().multiply(Q.getX().invert());
-            if (trace(y).equals(ECConstants.ONE))
+            ECFieldElement z = Q.getAffineYCoord().divide(x);
+            if (trace(z).isOne())
             {
                 bytes[bytes.length - 1] |= 0x01;
             }
@@ -123,40 +117,38 @@ public abstract class DSTU4145PointEncoder
 
           return curve.decodePoint(bp_enc);*/
 
-        BigInteger k = BigInteger.valueOf(bytes[bytes.length - 1] & 0x1);
-        if (!trace(curve.fromBigInteger(new BigInteger(1, bytes))).equals(curve.getA().toBigInteger()))
-        {
-            bytes = Arrays.clone(bytes);
-            bytes[bytes.length - 1] ^= 0x01;
-        }
-        ECCurve.F2m c = (ECCurve.F2m)curve;
+        ECFieldElement k = curve.fromBigInteger(BigInteger.valueOf(bytes[bytes.length - 1] & 0x1));
+
         ECFieldElement xp = curve.fromBigInteger(new BigInteger(1, bytes));
-        ECFieldElement yp = null;
-        if (xp.toBigInteger().equals(ECConstants.ZERO))
+        if (!trace(xp).equals(curve.getA()))
         {
-            yp = (ECFieldElement.F2m)curve.getB();
-            for (int i = 0; i < c.getM() - 1; i++)
-            {
-                yp = yp.square();
-            }
+            xp = xp.addOne();
+        }
+
+        ECFieldElement yp = null;
+        if (xp.isZero())
+        {
+            yp = curve.getB().sqrt();
         }
         else
         {
-            ECFieldElement beta = xp.add(curve.getA()).add(
-                curve.getB().multiply(xp.square().invert()));
-            ECFieldElement z = solveQuadradicEquation(beta);
-            if (z == null)
+            ECFieldElement beta = xp.square().invert().multiply(curve.getB()).add(curve.getA()).add(xp);
+            ECFieldElement z = solveQuadraticEquation(curve, beta);
+            if (z != null)
             {
-                throw new RuntimeException("Invalid point compression");
+                if (!trace(z).equals(k))
+                {
+                    z = z.addOne();
+                }
+                yp = xp.multiply(z);
             }
-            if (!trace(z).equals(k))
-            {
-                z = z.add(curve.fromBigInteger(ECConstants.ONE));
-            }
-            yp = xp.multiply(z);
         }
 
-        return new ECPoint.F2m(curve, xp, yp);
-    }
+        if (yp == null)
+        {
+            throw new IllegalArgumentException("Invalid point compression");
+        }
 
+        return curve.createPoint(xp.toBigInteger(), yp.toBigInteger());
+    }
 }

@@ -4,18 +4,23 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 
 import org.ripple.bouncycastle.crypto.CipherParameters;
+import org.ripple.bouncycastle.crypto.params.ECDomainParameters;
 import org.ripple.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ParametersWithRandom;
+import org.ripple.bouncycastle.math.ec.ECMultiplier;
 import org.ripple.bouncycastle.math.ec.ECPoint;
+import org.ripple.bouncycastle.math.ec.FixedPointCombMultiplier;
 
 /**
  * this transforms the original randomness used for an ElGamal encryption.
  */
 public class ECNewRandomnessTransform
-    implements ECPairTransform
+    implements ECPairFactorTransform
 {
     private ECPublicKeyParameters key;
     private SecureRandom          random;
+
+    private BigInteger            lastK;
 
     /**
      * initialise the underlying EC ElGamal engine.
@@ -64,13 +69,37 @@ public class ECNewRandomnessTransform
             throw new IllegalStateException("ECNewRandomnessTransform not initialised");
         }
 
-        BigInteger             n = key.getParameters().getN();
-        BigInteger             k = ECUtil.generateK(n, random);
 
-        ECPoint  g = key.getParameters().getG();
-        ECPoint  gamma = g.multiply(k);
-        ECPoint  phi = key.getQ().multiply(k).add(cipherText.getY());
+        ECDomainParameters ec = key.getParameters();
+        BigInteger n = ec.getN();
 
-        return new ECPair(cipherText.getX().add(gamma), phi);
+        ECMultiplier basePointMultiplier = createBasePointMultiplier();
+        BigInteger k = ECUtil.generateK(n, random);
+
+        ECPoint[] gamma_phi = new ECPoint[]{
+            basePointMultiplier.multiply(ec.getG(), k).add(cipherText.getX()),
+            key.getQ().multiply(k).add(cipherText.getY())
+        };
+
+        ec.getCurve().normalizeAll(gamma_phi);
+
+        lastK = k;
+
+        return new ECPair(gamma_phi[0], gamma_phi[1]);
+    }
+
+    /**
+     * Return the last random value generated for a transform
+     *
+     * @return a BigInteger representing the last random value.
+     */
+    public BigInteger getTransformValue()
+    {
+        return lastK;
+    }
+
+    protected ECMultiplier createBasePointMultiplier()
+    {
+        return new FixedPointCombMultiplier();
     }
 }

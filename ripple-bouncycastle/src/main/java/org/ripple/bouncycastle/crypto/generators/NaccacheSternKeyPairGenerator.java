@@ -38,7 +38,7 @@ public class NaccacheSternKeyPairGenerator
     /*
      * (non-Javadoc)
      * 
-     * @see org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator#init(org.bouncycastle.crypto.KeyGenerationParameters)
+     * @see org.ripple.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator#init(org.ripple.bouncycastle.crypto.KeyGenerationParameters)
      */
     public void init(KeyGenerationParameters param)
     {
@@ -48,7 +48,7 @@ public class NaccacheSternKeyPairGenerator
     /*
      * (non-Javadoc)
      * 
-     * @see org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator#generateKeyPair()
+     * @see org.ripple.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator#generateKeyPair()
      */
     public AsymmetricCipherKeyPair generateKeyPair()
     {

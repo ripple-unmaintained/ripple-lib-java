@@ -7,12 +7,23 @@ import java.util.Vector;
 public interface TlsClient
     extends TlsPeer
 {
-
     void init(TlsClientContext context);
+
+    /**
+     * Return the session this client wants to resume, if any. Note that the peer's certificate
+     * chain for the session (if any) may need to be periodically revalidated.
+     * 
+     * @return A {@link TlsSession} representing the resumable session to be used for this
+     *         connection, or null to use a new session.
+     * @see SessionParameters#getPeerCertificate()
+     */
+    TlsSession getSessionToResume();
 
     ProtocolVersion getClientHelloRecordLayerVersion();
 
     ProtocolVersion getClientVersion();
+
+    boolean isFallback();
 
     int[] getCipherSuites();
 
@@ -25,14 +36,17 @@ public interface TlsClient
     void notifyServerVersion(ProtocolVersion selectedVersion)
         throws IOException;
 
+    /**
+     * Notifies the client of the session_id sent in the ServerHello.
+     *
+     * @param sessionID
+     * @see TlsContext#getResumableSession()
+     */
     void notifySessionID(byte[] sessionID);
 
     void notifySelectedCipherSuite(int selectedCipherSuite);
 
     void notifySelectedCompressionMethod(short selectedCompressionMethod);
-
-    void notifySecureRenegotiation(boolean secureNegotiation)
-        throws IOException;
 
     // Hashtable is (Integer -> byte[])
     void processServerExtensions(Hashtable serverExtensions)
@@ -52,15 +66,9 @@ public interface TlsClient
     Vector getClientSupplementalData()
         throws IOException;
 
-    TlsCompression getCompression()
-        throws IOException;
-
-    TlsCipher getCipher()
-        throws IOException;
-
     /**
      * RFC 5077 3.3. NewSessionTicket Handshake Message
-     * <p/>
+     * <p>
      * This method will be called (only) when a NewSessionTicket handshake message is received. The
      * ticket is opaque to the client and clients MUST NOT examine the ticket under the assumption
      * that it complies with e.g. <i>RFC 5077 4. Recommended Ticket Construction</i>.
@@ -69,8 +77,5 @@ public interface TlsClient
      * @throws IOException
      */
     void notifyNewSessionTicket(NewSessionTicket newSessionTicket)
-        throws IOException;
-
-    void notifyHandshakeComplete()
         throws IOException;
 }

@@ -8,9 +8,9 @@ import org.ripple.bouncycastle.util.Arrays;
 
 /**
  * HMAC implementation based on original internet draft for HMAC (RFC 2104)
- * <p/>
+ * <p>
  * The difference is that padding is concatenated versus XORed with the key
- * <p/>
+ * <p>
  * H(K + opad, H(K + ipad, text))
  */
 public class SSL3Mac
@@ -23,9 +23,9 @@ public class SSL3Mac
     static final byte[] OPAD = genPad(OPAD_BYTE, 48);
 
     private Digest digest;
+    private int padLength;
 
     private byte[] secret;
-    private int padLength;
 
     /**
      * Base constructor for one of the standard digest algorithms that the byteLength of

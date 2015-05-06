@@ -18,11 +18,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.security.auth.x500.X500Principal;
-
 import org.ripple.bouncycastle.asn1.ASN1Encodable;
-import org.ripple.bouncycastle.asn1.DERObjectIdentifier;
+import org.ripple.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.ripple.bouncycastle.asn1.x500.X500Name;
 import org.ripple.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.ripple.bouncycastle.jcajce.PKIXExtendedBuilderParameters;
+import org.ripple.bouncycastle.jcajce.PKIXExtendedParameters;
+import org.ripple.bouncycastle.jcajce.util.BCJcaJceHelper;
+import org.ripple.bouncycastle.jcajce.util.JcaJceHelper;
 import org.ripple.bouncycastle.jce.exception.ExtCertPathValidatorException;
 import org.ripple.bouncycastle.x509.ExtendedPKIXParameters;
 
@@ -33,6 +36,11 @@ import org.ripple.bouncycastle.x509.ExtendedPKIXParameters;
 public class PKIXCertPathValidatorSpi
         extends CertPathValidatorSpi
 {
+    private final JcaJceHelper helper = new BCJcaJceHelper();
+
+    public PKIXCertPathValidatorSpi()
+    {
+    }
 
     public CertPathValidatorResult engineValidate(
             CertPath certPath,
@@ -40,21 +48,36 @@ public class PKIXCertPathValidatorSpi
             throws CertPathValidatorException,
             InvalidAlgorithmParameterException
     {
-        if (!(params instanceof PKIXParameters))
+        if (!(params instanceof CertPathParameters))
         {
             throw new InvalidAlgorithmParameterException("Parameters must be a " + PKIXParameters.class.getName()
                     + " instance.");
         }
 
-        ExtendedPKIXParameters paramsPKIX;
-        if (params instanceof ExtendedPKIXParameters)
+        PKIXExtendedParameters paramsPKIX;
+        if (params instanceof PKIXParameters)
         {
-            paramsPKIX = (ExtendedPKIXParameters)params;
+            PKIXExtendedParameters.Builder paramsPKIXBldr = new PKIXExtendedParameters.Builder((PKIXParameters)params);
+
+            if (params instanceof ExtendedPKIXParameters)
+            {
+                ExtendedPKIXParameters extPKIX = (ExtendedPKIXParameters)params;
+
+                paramsPKIXBldr.setUseDeltasEnabled(extPKIX.isUseDeltasEnabled());
+                paramsPKIXBldr.setValidityModel(extPKIX.getValidityModel());
+            }
+
+            paramsPKIX = paramsPKIXBldr.build();
+        }
+        else if (params instanceof PKIXExtendedBuilderParameters)
+        {
+            paramsPKIX = ((PKIXExtendedBuilderParameters)params).getBaseParameters();
         }
         else
         {
-            paramsPKIX = ExtendedPKIXParameters.getInstance((PKIXParameters)params);
+            paramsPKIX = (PKIXExtendedParameters)params;
         }
+
         if (paramsPKIX.getTrustAnchors() == null)
         {
             throw new InvalidAlgorithmParameterException(
@@ -104,6 +127,9 @@ public class PKIXCertPathValidatorSpi
         {
             throw new CertPathValidatorException("Trust anchor for certification path not found.", null, certPath, -1);
         }
+
+        // RFC 5280 - CRLs must originate from the same trust anchor as the target certificate.
+        paramsPKIX = new PKIXExtendedParameters.Builder(paramsPKIX).setTrustAnchor(trust).build();
 
         //
         // (e), (f), (g) are part of the paramsPKIX object.
@@ -186,19 +212,19 @@ public class PKIXCertPathValidatorSpi
         // (g), (h), (i), (j)
         //
         PublicKey workingPublicKey;
-        X500Principal workingIssuerName;
+        X500Name workingIssuerName;
 
         X509Certificate sign = trust.getTrustedCert();
         try
         {
             if (sign != null)
             {
-                workingIssuerName = CertPathValidatorUtilities.getSubjectPrincipal(sign);
+                workingIssuerName = PrincipalUtils.getSubjectPrincipal(sign);
                 workingPublicKey = sign.getPublicKey();
             }
             else
             {
-                workingIssuerName = new X500Principal(trust.getCAName());
+                workingIssuerName = PrincipalUtils.getCA(trust);
                 workingPublicKey = trust.getCAPublicKey();
             }
         }
@@ -218,7 +244,7 @@ public class PKIXCertPathValidatorSpi
             throw new ExtCertPathValidatorException(
                     "Algorithm identifier of public key of trust anchor could not be read.", e, certPath, -1);
         }
-        DERObjectIdentifier workingPublicKeyAlgorithm = workingAlgId.getObjectId();
+        ASN1ObjectIdentifier workingPublicKeyAlgorithm = workingAlgId.getAlgorithm();
         ASN1Encodable workingPublicKeyParameters = workingAlgId.getParameters();
 
         //
@@ -272,7 +298,7 @@ public class PKIXCertPathValidatorSpi
             //
 
             RFC3280CertPathUtilities.processCertA(certPath, paramsPKIX, index, workingPublicKey,
-                verificationAlreadyPerformed, workingIssuerName, sign);
+                verificationAlreadyPerformed, workingIssuerName, sign, helper);
 
             RFC3280CertPathUtilities.processCertBC(certPath, index, nameConstraintValidator);
 
@@ -357,12 +383,12 @@ public class PKIXCertPathValidatorSpi
                 sign = cert;
 
                 // (c)
-                workingIssuerName = CertPathValidatorUtilities.getSubjectPrincipal(sign);
+                workingIssuerName = PrincipalUtils.getSubjectPrincipal(sign);
 
                 // (d)
                 try
                 {
-                    workingPublicKey = CertPathValidatorUtilities.getNextWorkingKey(certPath.getCertificates(), index);
+                    workingPublicKey = CertPathValidatorUtilities.getNextWorkingKey(certPath.getCertificates(), index, helper);
                 }
                 catch (CertPathValidatorException e)
                 {
@@ -371,7 +397,7 @@ public class PKIXCertPathValidatorSpi
 
                 workingAlgId = CertPathValidatorUtilities.getAlgorithmIdentifier(workingPublicKey);
                 // (f)
-                workingPublicKeyAlgorithm = workingAlgId.getObjectId();
+                workingPublicKeyAlgorithm = workingAlgId.getAlgorithm();
                 // (e)
                 workingPublicKeyParameters = workingAlgId.getParameters();
             }

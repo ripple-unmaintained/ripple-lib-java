@@ -24,7 +24,6 @@ import org.ripple.bouncycastle.asn1.ASN1InputStream;
 import org.ripple.bouncycastle.asn1.ASN1Integer;
 import org.ripple.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.ripple.bouncycastle.asn1.DERBitString;
-import org.ripple.bouncycastle.asn1.DERObjectIdentifier;
 import org.ripple.bouncycastle.asn1.DERSequence;
 import org.ripple.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.ripple.bouncycastle.asn1.x509.Certificate;
@@ -40,12 +39,12 @@ import org.ripple.bouncycastle.x509.extension.X509ExtensionUtil;
 
 /**
  * class to produce an X.509 Version 3 certificate.
- *  @deprecated use org.bouncycastle.cert.X509v3CertificateBuilder.
+ *  @deprecated use org.ripple.bouncycastle.cert.X509v3CertificateBuilder.
  */
 public class X509V3CertificateGenerator
 {
     private V3TBSCertificateGenerator   tbsGen;
-    private DERObjectIdentifier         sigOID;
+    private ASN1ObjectIdentifier        sigOID;
     private AlgorithmIdentifier         sigAlgId;
     private String                      signatureAlgorithm;
     private X509ExtensionsGenerator     extGenerator;
@@ -228,14 +227,14 @@ public class X509V3CertificateGenerator
         boolean         critical,
         ASN1Encodable    value)
     {
-        this.addExtension(new DERObjectIdentifier(oid), critical, value);
+        this.addExtension(new ASN1ObjectIdentifier(oid), critical, value);
     }
 
     /**
      * add a given extension field for the standard extensions tag (tag 3)
      */
     public void addExtension(
-        DERObjectIdentifier oid,
+        ASN1ObjectIdentifier oid,
         boolean             critical,
         ASN1Encodable        value)
     {
@@ -252,14 +251,14 @@ public class X509V3CertificateGenerator
         boolean         critical,
         byte[]          value)
     {
-        this.addExtension(new DERObjectIdentifier(oid), critical, value);
+        this.addExtension(new ASN1ObjectIdentifier(oid), critical, value);
     }
 
     /**
      * add a given extension field for the standard extensions tag (tag 3)
      */
     public void addExtension(
-        DERObjectIdentifier oid,
+        ASN1ObjectIdentifier oid,
         boolean             critical,
         byte[]              value)
     {
@@ -302,7 +301,7 @@ public class X509V3CertificateGenerator
      * @throws CertificateParsingException if the extension cannot be extracted.
      */
     public void copyAndAddExtension(
-        DERObjectIdentifier oid,
+        ASN1ObjectIdentifier oid,
         boolean             critical,
         X509Certificate     cert)
         throws CertificateParsingException

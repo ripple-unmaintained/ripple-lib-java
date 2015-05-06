@@ -18,11 +18,11 @@ import org.ripple.bouncycastle.crypto.digests.GOST3411Digest;
 import org.ripple.bouncycastle.crypto.params.ParametersWithRandom;
 import org.ripple.bouncycastle.crypto.signers.GOST3410Signer;
 import org.ripple.bouncycastle.jcajce.provider.asymmetric.util.ECUtil;
-import org.ripple.bouncycastle.jcajce.provider.asymmetric.util.GOST3410Util;
 import org.ripple.bouncycastle.jce.interfaces.ECKey;
 import org.ripple.bouncycastle.jce.interfaces.ECPublicKey;
 import org.ripple.bouncycastle.jce.interfaces.GOST3410Key;
 import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.ripple.bouncycastle.jcajce.provider.asymmetric.util.GOST3410Util;
 
 public class SignatureSpi
     extends java.security.SignatureSpi

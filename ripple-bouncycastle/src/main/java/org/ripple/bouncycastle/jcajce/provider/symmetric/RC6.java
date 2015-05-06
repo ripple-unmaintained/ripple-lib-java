@@ -11,6 +11,7 @@ import org.ripple.bouncycastle.crypto.BlockCipher;
 import org.ripple.bouncycastle.crypto.BufferedBlockCipher;
 import org.ripple.bouncycastle.crypto.CipherKeyGenerator;
 import org.ripple.bouncycastle.crypto.engines.RC6Engine;
+import org.ripple.bouncycastle.crypto.generators.Poly1305KeyGenerator;
 import org.ripple.bouncycastle.crypto.macs.GMac;
 import org.ripple.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.ripple.bouncycastle.crypto.modes.CFBBlockCipher;
@@ -23,7 +24,6 @@ import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseKeyGenerator;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseMac;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BlockCipherProvider;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.IvAlgorithmParameters;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public final class RC6
 {
@@ -82,6 +82,24 @@ public final class RC6
         }
     }
 
+    public static class Poly1305
+        extends BaseMac
+    {
+        public Poly1305()
+        {
+            super(new org.ripple.bouncycastle.crypto.macs.Poly1305(new RC6Engine()));
+        }
+    }
+
+    public static class Poly1305KeyGen
+        extends BaseKeyGenerator
+    {
+        public Poly1305KeyGen()
+        {
+            super("Poly1305-RC6", 256, new Poly1305KeyGenerator());
+        }
+    }
+
     public static class KeyGen
         extends BaseKeyGenerator
     {
@@ -117,7 +135,7 @@ public final class RC6
 
             try
             {
-                params = AlgorithmParameters.getInstance("RC6", BouncyCastleProvider.PROVIDER_NAME);
+                params = createParametersInstance("RC6");
                 params.init(new IvParameterSpec(iv));
             }
             catch (Exception e)
@@ -155,6 +173,7 @@ public final class RC6
             provider.addAlgorithm("AlgorithmParameters.RC6", PREFIX + "$AlgParams");
 
             addGMacAlgorithm(provider, "RC6", PREFIX + "$GMAC", PREFIX + "$KeyGen");
+            addPoly1305Algorithm(provider, "RC6", PREFIX + "$Poly1305", PREFIX + "$Poly1305KeyGen");
         }
     }
 }

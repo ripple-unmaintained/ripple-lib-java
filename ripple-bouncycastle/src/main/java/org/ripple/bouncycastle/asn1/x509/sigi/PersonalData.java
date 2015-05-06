@@ -18,7 +18,7 @@ import org.ripple.bouncycastle.asn1.x500.DirectoryString;
 /**
  * Contains personal data for the otherName field in the subjectAltNames
  * extension.
- * <p/>
+ *
  * <pre>
  *     PersonalData ::= SEQUENCE {
  *       nameOrPseudonym NameOrPseudonym,
@@ -60,9 +60,8 @@ public class PersonalData
 
     /**
      * Constructor from ASN1Sequence.
-     * <p/>
+     * <p>
      * The sequence is of type NameOrPseudonym:
-     * <p/>
      * <pre>
      *     PersonalData ::= SEQUENCE {
      *       nameOrPseudonym NameOrPseudonym,
@@ -73,7 +72,7 @@ public class PersonalData
      *       postalAddress [4] DirectoryString OPTIONAL
      *       }
      * </pre>
-     *
+     * </p>
      * @param seq The ASN.1 sequence.
      */
     private PersonalData(ASN1Sequence seq)
@@ -169,9 +168,8 @@ public class PersonalData
 
     /**
      * Produce an object suitable for an ASN1OutputStream.
-     * <p/>
+     * <p>
      * Returns:
-     * <p/>
      * <pre>
      *     PersonalData ::= SEQUENCE {
      *       nameOrPseudonym NameOrPseudonym,

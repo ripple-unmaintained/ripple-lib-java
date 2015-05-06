@@ -12,7 +12,7 @@ import org.ripple.bouncycastle.asn1.ASN1TaggedObject;
 import org.ripple.bouncycastle.asn1.DERSequence;
 
 /**
- * @deprecated use org.bouncycastle.asn1.pkcs.RSAPublicKey
+ * @deprecated use org.ripple.bouncycastle.asn1.pkcs.RSAPublicKey
  */
 public class RSAPublicKeyStructure
     extends ASN1Object

@@ -103,15 +103,6 @@ public class DERApplicationSpecific
                 throw new IllegalArgumentException("failed to construct object from byte[]: " + e.getMessage());
             }
         }
-        else if (obj instanceof ASN1Encodable)
-        {
-            ASN1Primitive primitive = ((ASN1Encodable)obj).toASN1Primitive();
-
-            if (primitive instanceof ASN1Sequence)
-            {
-                return (DERApplicationSpecific)primitive;
-            }
-        }
 
         throw new IllegalArgumentException("unknown object in getInstance: " + obj.getClass().getName());
     }
@@ -201,7 +192,7 @@ public class DERApplicationSpecific
     }
 
     /* (non-Javadoc)
-     * @see org.bouncycastle.asn1.ASN1Primitive#encode(org.bouncycastle.asn1.DEROutputStream)
+     * @see org.ripple.bouncycastle.asn1.ASN1Primitive#encode(org.ripple.bouncycastle.asn1.DEROutputStream)
      */
     void encode(ASN1OutputStream out) throws IOException
     {

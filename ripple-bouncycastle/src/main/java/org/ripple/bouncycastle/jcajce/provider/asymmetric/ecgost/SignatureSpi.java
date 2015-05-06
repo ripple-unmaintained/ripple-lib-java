@@ -17,11 +17,11 @@ import org.ripple.bouncycastle.crypto.digests.GOST3411Digest;
 import org.ripple.bouncycastle.crypto.params.ParametersWithRandom;
 import org.ripple.bouncycastle.crypto.signers.ECGOST3410Signer;
 import org.ripple.bouncycastle.jcajce.provider.asymmetric.util.ECUtil;
-import org.ripple.bouncycastle.jcajce.provider.asymmetric.util.GOST3410Util;
 import org.ripple.bouncycastle.jce.interfaces.ECKey;
 import org.ripple.bouncycastle.jce.interfaces.ECPublicKey;
 import org.ripple.bouncycastle.jce.interfaces.GOST3410Key;
 import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.ripple.bouncycastle.jcajce.provider.asymmetric.util.GOST3410Util;
 
 public class SignatureSpi
     extends java.security.SignatureSpi
@@ -58,14 +58,7 @@ public class SignatureSpi
 
                 publicKey = BouncyCastleProvider.getPublicKey(SubjectPublicKeyInfo.getInstance(bytes));
 
-                if (publicKey instanceof ECPublicKey)
-                {
-                    param = ECUtil.generatePublicKeyParameter(publicKey);
-                }
-                else
-                {
-                    throw new InvalidKeyException("can't recognise key type in DSA based signer");
-                }
+                param = ECUtil.generatePublicKeyParameter(publicKey);
             }
             catch (Exception e)
             {

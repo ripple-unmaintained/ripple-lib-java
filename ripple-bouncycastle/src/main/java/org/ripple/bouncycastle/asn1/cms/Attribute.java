@@ -7,9 +7,29 @@ import org.ripple.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.ripple.bouncycastle.asn1.ASN1Primitive;
 import org.ripple.bouncycastle.asn1.ASN1Sequence;
 import org.ripple.bouncycastle.asn1.ASN1Set;
-import org.ripple.bouncycastle.asn1.DERObjectIdentifier;
 import org.ripple.bouncycastle.asn1.DERSequence;
 
+/**
+ * <a href="http://tools.ietf.org/html/rfc5652#page-14">RFC 5652</a>:
+ * Attribute is a pair of OID (as type identifier) + set of values.
+ * <p>
+ * <pre>
+ * Attribute ::= SEQUENCE {
+ *     attrType OBJECT IDENTIFIER,
+ *     attrValues SET OF AttributeValue
+ * }
+ * 
+ * AttributeValue ::= ANY
+ * </pre>
+ * <p>
+ * General rule on values is that same AttributeValue must not be included
+ * multiple times into the set. That is, if the value is a SET OF INTEGERs,
+ * then having same value repeated is wrong: (1, 1), but different values is OK: (1, 2).
+ * Normally the AttributeValue syntaxes are more complicated than that.
+ * <p>
+ * General rule of Attribute usage is that the {@link Attributes} containers
+ * must not have multiple Attribute:s with same attrType (OID) there.
+ */
 public class Attribute
     extends ASN1Object
 {
@@ -17,7 +37,14 @@ public class Attribute
     private ASN1Set             attrValues;
 
     /**
-     * return an Attribute object from the given object.
+     * Return an Attribute object from the given object.
+     * <p>
+     * Accepted inputs:
+     * <ul>
+     * <li> null &rarr; null
+     * <li> {@link Attribute} object
+     * <li> {@link org.ripple.bouncycastle.asn1.ASN1Sequence#getInstance(java.lang.Object) ASN1Sequence} input formats with Attribute structure inside
+     * </ul>
      *
      * @param o the object we want converted.
      * @exception IllegalArgumentException if the object cannot be converted.
@@ -45,17 +72,6 @@ public class Attribute
         attrValues = (ASN1Set)seq.getObjectAt(1);
     }
 
-    /**
-     * @deprecated use ASN1ObjectIdentifier
-     */
-    public Attribute(
-        DERObjectIdentifier attrType,
-        ASN1Set             attrValues)
-    {
-        this.attrType = new ASN1ObjectIdentifier(attrType.getId());
-        this.attrValues = attrValues;
-    }
-
     public Attribute(
         ASN1ObjectIdentifier attrType,
         ASN1Set             attrValues)
@@ -81,12 +97,6 @@ public class Attribute
 
     /** 
      * Produce an object suitable for an ASN1OutputStream.
-     * <pre>
-     * Attribute ::= SEQUENCE {
-     *     attrType OBJECT IDENTIFIER,
-     *     attrValues SET OF AttributeValue
-     * }
-     * </pre>
      */
     public ASN1Primitive toASN1Primitive()
     {

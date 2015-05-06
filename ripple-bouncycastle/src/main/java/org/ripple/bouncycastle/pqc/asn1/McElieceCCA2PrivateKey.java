@@ -2,7 +2,6 @@ package org.ripple.bouncycastle.pqc.asn1;
 
 import java.math.BigInteger;
 
-
 import org.ripple.bouncycastle.asn1.ASN1EncodableVector;
 import org.ripple.bouncycastle.asn1.ASN1Integer;
 import org.ripple.bouncycastle.asn1.ASN1Object;
@@ -12,6 +11,7 @@ import org.ripple.bouncycastle.asn1.ASN1Primitive;
 import org.ripple.bouncycastle.asn1.ASN1Sequence;
 import org.ripple.bouncycastle.asn1.DEROctetString;
 import org.ripple.bouncycastle.asn1.DERSequence;
+
 import org.ripple.bouncycastle.pqc.math.linearalgebra.GF2Matrix;
 import org.ripple.bouncycastle.pqc.math.linearalgebra.GF2mField;
 import org.ripple.bouncycastle.pqc.math.linearalgebra.Permutation;

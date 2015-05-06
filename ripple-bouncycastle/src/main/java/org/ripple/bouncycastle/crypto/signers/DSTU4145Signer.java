@@ -5,6 +5,7 @@ import java.security.SecureRandom;
 
 import org.ripple.bouncycastle.crypto.CipherParameters;
 import org.ripple.bouncycastle.crypto.DSA;
+import org.ripple.bouncycastle.crypto.params.ECDomainParameters;
 import org.ripple.bouncycastle.crypto.params.ECKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ECPublicKeyParameters;
@@ -12,7 +13,9 @@ import org.ripple.bouncycastle.crypto.params.ParametersWithRandom;
 import org.ripple.bouncycastle.math.ec.ECAlgorithms;
 import org.ripple.bouncycastle.math.ec.ECCurve;
 import org.ripple.bouncycastle.math.ec.ECFieldElement;
+import org.ripple.bouncycastle.math.ec.ECMultiplier;
 import org.ripple.bouncycastle.math.ec.ECPoint;
+import org.ripple.bouncycastle.math.ec.FixedPointCombMultiplier;
 import org.ripple.bouncycastle.util.Arrays;
 
 /**
@@ -56,14 +59,23 @@ public class DSTU4145Signer
 
     public BigInteger[] generateSignature(byte[] message)
     {
-        ECFieldElement h = hash2FieldElement(key.getParameters().getCurve(), message);
-        if (h.toBigInteger().signum() == 0)
+        ECDomainParameters ec = key.getParameters();
+
+        ECCurve curve = ec.getCurve();
+
+        ECFieldElement h = hash2FieldElement(curve, message);
+        if (h.isZero())
         {
-            h = key.getParameters().getCurve().fromBigInteger(ONE);
+            h = curve.fromBigInteger(ONE);
         }
 
+        BigInteger n = ec.getN();
         BigInteger e, r, s;
         ECFieldElement Fe, y;
+
+        BigInteger d = ((ECPrivateKeyParameters)key).getD();
+
+        ECMultiplier basePointMultiplier = createBasePointMultiplier();
 
         do
         {
@@ -71,17 +83,17 @@ public class DSTU4145Signer
             {
                 do
                 {
-                    e = generateRandomInteger(key.getParameters().getN(), random);
-                    Fe = key.getParameters().getG().multiply(e).getX();
+                    e = generateRandomInteger(n, random);
+                    Fe = basePointMultiplier.multiply(ec.getG(), e).normalize().getAffineXCoord();
                 }
-                while (Fe.toBigInteger().signum() == 0);
+                while (Fe.isZero());
 
                 y = h.multiply(Fe);
-                r = fieldElement2Integer(key.getParameters().getN(), y);
+                r = fieldElement2Integer(n, y);
             }
             while (r.signum() == 0);
 
-            s = r.multiply(((ECPrivateKeyParameters)key).getD()).add(e).mod(key.getParameters().getN());
+            s = r.multiply(d).add(e).mod(n);
         }
         while (s.signum() == 0);
 
@@ -90,22 +102,28 @@ public class DSTU4145Signer
 
     public boolean verifySignature(byte[] message, BigInteger r, BigInteger s)
     {
-        if (r.signum() == 0 || s.signum() == 0)
-        {
-            return false;
-        }
-        if (r.compareTo(key.getParameters().getN()) >= 0 || s.compareTo(key.getParameters().getN()) >= 0)
+        if (r.signum() <= 0 || s.signum() <= 0)
         {
             return false;
         }
 
-        ECFieldElement h = hash2FieldElement(key.getParameters().getCurve(), message);
-        if (h.toBigInteger().signum() == 0)
+        ECDomainParameters parameters = key.getParameters();
+
+        BigInteger n = parameters.getN();
+        if (r.compareTo(n) >= 0 || s.compareTo(n) >= 0)
         {
-            h = key.getParameters().getCurve().fromBigInteger(ONE);
+            return false;
         }
 
-        ECPoint R = ECAlgorithms.sumOfTwoMultiplies(key.getParameters().getG(), s, ((ECPublicKeyParameters)key).getQ(), r);
+        ECCurve curve = parameters.getCurve();
+
+        ECFieldElement h = hash2FieldElement(curve, message);
+        if (h.isZero())
+        {
+            h = curve.fromBigInteger(ONE);
+        }
+
+        ECPoint R = ECAlgorithms.sumOfTwoMultiplies(parameters.getG(), s, ((ECPublicKeyParameters)key).getQ(), r).normalize();
 
         // components must be bogus.
         if (R.isInfinity())
@@ -113,8 +131,13 @@ public class DSTU4145Signer
             return false;
         }
 
-        ECFieldElement y = h.multiply(R.getX());
-        return fieldElement2Integer(key.getParameters().getN(), y).compareTo(r) == 0;
+        ECFieldElement y = h.multiply(R.getAffineXCoord());
+        return fieldElement2Integer(n, y).compareTo(r) == 0;
+    }
+
+    protected ECMultiplier createBasePointMultiplier()
+    {
+        return new FixedPointCombMultiplier();
     }
 
     /**
@@ -124,40 +147,24 @@ public class DSTU4145Signer
     {
         return new BigInteger(n.bitLength() - 1, random);
     }
-    
-    private static void reverseBytes(byte[] bytes)
-    {
-        byte tmp;
-        
-        for (int i=0; i<bytes.length/2; i++)
-        {
-            tmp=bytes[i];
-            bytes[i]=bytes[bytes.length-1-i];
-            bytes[bytes.length-1-i]=tmp;
-        }
-    }
 
     private static ECFieldElement hash2FieldElement(ECCurve curve, byte[] hash)
     {
-        byte[] data = Arrays.clone(hash);
-        reverseBytes(data);
-        BigInteger num = new BigInteger(1, data);
-        while (num.bitLength() >= curve.getFieldSize())
-        {
-            num = num.clearBit(num.bitLength() - 1);
-        }
-
-        return curve.fromBigInteger(num);
+        byte[] data = Arrays.reverse(hash);
+        return curve.fromBigInteger(truncate(new BigInteger(1, data), curve.getFieldSize()));
     }
 
-    private static BigInteger fieldElement2Integer(BigInteger n, ECFieldElement fieldElement)
+    private static BigInteger fieldElement2Integer(BigInteger n, ECFieldElement fe)
     {
-        BigInteger num = fieldElement.toBigInteger();
-        while (num.bitLength() >= n.bitLength())
-        {
-            num = num.clearBit(num.bitLength() - 1);
-        }
+        return truncate(fe.toBigInteger(), n.bitLength() - 1);
+    }
 
-        return num;
+    private static BigInteger truncate(BigInteger x, int bitLength)
+    {
+        if (x.bitLength() > bitLength)
+        {
+            x = x.mod(ONE.shiftLeft(bitLength));
+        }
+        return x;
     }
 }

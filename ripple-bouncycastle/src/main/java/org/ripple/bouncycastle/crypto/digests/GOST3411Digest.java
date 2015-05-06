@@ -5,9 +5,9 @@ import org.ripple.bouncycastle.crypto.ExtendedDigest;
 import org.ripple.bouncycastle.crypto.engines.GOST28147Engine;
 import org.ripple.bouncycastle.crypto.params.KeyParameter;
 import org.ripple.bouncycastle.crypto.params.ParametersWithSBox;
-import org.ripple.bouncycastle.crypto.util.Pack;
 import org.ripple.bouncycastle.util.Arrays;
 import org.ripple.bouncycastle.util.Memoable;
+import org.ripple.bouncycastle.util.Pack;
 
 /**
  * implementation of GOST R 34.11-94

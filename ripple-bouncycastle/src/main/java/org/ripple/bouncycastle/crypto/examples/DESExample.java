@@ -26,7 +26,7 @@ import org.ripple.bouncycastle.util.encoders.Hex;
  * The program is command line driven, with the input
  * and output files specified on the command line.
  * <pre>
- * java org.bouncycastle.crypto.examples.DESExample infile outfile [keyfile]
+ * java org.ripple.bouncycastle.crypto.examples.DESExample infile outfile [keyfile]
  * </pre>
  * A new key is generated for each encryption, if key is not specified,
  * then the example will assume encryption is required, and as output
@@ -41,9 +41,11 @@ import org.ripple.bouncycastle.util.encoders.Hex;
  * </ul>
  * <p>
  * When decrypting;
+ * <ul>
  *  <li>the infile is expected to be the 60 character wide base64 
  *    encoded file
  *  <li>the keyfile is expected to be a base64 encoded file
+ * </ul>
  * <p>
  * This example shows how to use the light-weight API, DES and
  * the filesystem for message encryption and decryption.

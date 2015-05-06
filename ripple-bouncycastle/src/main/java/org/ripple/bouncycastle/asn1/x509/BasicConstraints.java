@@ -9,7 +9,6 @@ import org.ripple.bouncycastle.asn1.ASN1Object;
 import org.ripple.bouncycastle.asn1.ASN1Primitive;
 import org.ripple.bouncycastle.asn1.ASN1Sequence;
 import org.ripple.bouncycastle.asn1.ASN1TaggedObject;
-import org.ripple.bouncycastle.asn1.DERBoolean;
 import org.ripple.bouncycastle.asn1.DERSequence;
 
 public class BasicConstraints
@@ -59,9 +58,9 @@ public class BasicConstraints
         }
         else
         {
-            if (seq.getObjectAt(0) instanceof DERBoolean)
+            if (seq.getObjectAt(0) instanceof ASN1Boolean)
             {
-                this.cA = DERBoolean.getInstance(seq.getObjectAt(0));
+                this.cA = ASN1Boolean.getInstance(seq.getObjectAt(0));
             }
             else
             {

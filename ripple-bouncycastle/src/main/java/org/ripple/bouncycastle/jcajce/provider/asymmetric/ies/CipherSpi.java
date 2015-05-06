@@ -13,6 +13,7 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.interfaces.DHPrivateKey;
+import javax.crypto.interfaces.DHPublicKey;
 
 import org.ripple.bouncycastle.crypto.CipherParameters;
 import org.ripple.bouncycastle.crypto.InvalidCipherTextException;
@@ -24,15 +25,17 @@ import org.ripple.bouncycastle.crypto.macs.HMac;
 import org.ripple.bouncycastle.crypto.params.IESParameters;
 import org.ripple.bouncycastle.jcajce.provider.asymmetric.util.DHUtil;
 import org.ripple.bouncycastle.jcajce.provider.asymmetric.util.ECUtil;
+import org.ripple.bouncycastle.jcajce.util.BCJcaJceHelper;
+import org.ripple.bouncycastle.jcajce.util.JcaJceHelper;
 import org.ripple.bouncycastle.jce.interfaces.ECPrivateKey;
-import org.ripple.bouncycastle.jce.interfaces.ECPublicKey;
 import org.ripple.bouncycastle.jce.interfaces.IESKey;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.ripple.bouncycastle.jce.spec.IESParameterSpec;
 
 public class CipherSpi
     extends javax.crypto.CipherSpi
 {
+    private final JcaJceHelper     helper = new BCJcaJceHelper();
+
     private IESEngine cipher;
     private int                     state = -1;
     private ByteArrayOutputStream   buffer = new ByteArrayOutputStream();
@@ -116,7 +119,7 @@ public class CipherSpi
 
                 try
                 {
-                    engineParam = AlgorithmParameters.getInstance(name, BouncyCastleProvider.PROVIDER_NAME);
+                    engineParam = helper.createAlgorithmParameters(name);
                     engineParam.init(engineParams);
                 }
                 catch (Exception e)
@@ -183,15 +186,16 @@ public class CipherSpi
         CipherParameters pubKey;
         CipherParameters privKey;
 
-        if (ieKey.getPublic() instanceof ECPublicKey)
-        {
-            pubKey = ECUtil.generatePublicKeyParameter(ieKey.getPublic());
-            privKey = ECUtil.generatePrivateKeyParameter(ieKey.getPrivate());
-        }
-        else
+        if (ieKey.getPublic() instanceof DHPublicKey)
         {
             pubKey = DHUtil.generatePublicKeyParameter(ieKey.getPublic());
             privKey = DHUtil.generatePrivateKeyParameter(ieKey.getPrivate());
+
+        }
+        else
+        {
+            pubKey = ECUtil.generatePublicKeyParameter(ieKey.getPublic());
+            privKey = ECUtil.generatePrivateKeyParameter(ieKey.getPrivate());
         }
 
         this.engineParams = (IESParameterSpec)params;

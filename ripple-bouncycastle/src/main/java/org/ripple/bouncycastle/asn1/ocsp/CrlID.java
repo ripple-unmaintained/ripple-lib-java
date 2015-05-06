@@ -9,7 +9,6 @@ import org.ripple.bouncycastle.asn1.ASN1Object;
 import org.ripple.bouncycastle.asn1.ASN1Primitive;
 import org.ripple.bouncycastle.asn1.ASN1Sequence;
 import org.ripple.bouncycastle.asn1.ASN1TaggedObject;
-import org.ripple.bouncycastle.asn1.DERGeneralizedTime;
 import org.ripple.bouncycastle.asn1.DERIA5String;
 import org.ripple.bouncycastle.asn1.DERSequence;
 import org.ripple.bouncycastle.asn1.DERTaggedObject;
@@ -39,7 +38,7 @@ public class CrlID
                 crlNum = ASN1Integer.getInstance(o, true);
                 break;
             case 2:
-                crlTime = DERGeneralizedTime.getInstance(o, true);
+                crlTime = ASN1GeneralizedTime.getInstance(o, true);
                 break;
             default:
                 throw new IllegalArgumentException(

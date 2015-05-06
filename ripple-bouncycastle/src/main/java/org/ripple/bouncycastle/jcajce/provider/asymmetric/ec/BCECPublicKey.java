@@ -82,6 +82,8 @@ public class BCECPublicKey
             ECCurve curve = spec.getParams().getCurve();
             EllipticCurve ellipticCurve = EC5Util.convertCurve(curve, spec.getParams().getSeed());
 
+            // this may seem a little long-winded but it's how we pick up the custom curve.
+            this.q = EC5Util.convertCurve(ellipticCurve).createPoint(spec.getQ().getAffineXCoord().toBigInteger(), spec.getQ().getAffineYCoord().toBigInteger());
             this.ecSpec = EC5Util.convertSpec(ellipticCurve, spec.getParams());
         }
         else
@@ -90,7 +92,7 @@ public class BCECPublicKey
             {
                 org.ripple.bouncycastle.jce.spec.ECParameterSpec s = configuration.getEcImplicitlyCa();
 
-                q = s.getCurve().createPoint(q.getX().toBigInteger(), q.getY().toBigInteger(), false);
+                q = s.getCurve().createPoint(q.getXCoord().toBigInteger(), q.getYCoord().toBigInteger(), false);
             }               
             this.ecSpec = null;
         }
@@ -132,7 +134,6 @@ public class BCECPublicKey
         ECDomainParameters      dp = params.getParameters();
 
         this.algorithm = algorithm;
-        this.q = params.getQ();
 
         if (spec == null)
         {
@@ -146,6 +147,8 @@ public class BCECPublicKey
 
             this.ecSpec = EC5Util.convertSpec(ellipticCurve, spec);
         }
+
+        this.q = EC5Util.convertCurve(ecSpec.getCurve()).createPoint(params.getQ().getAffineXCoord().toBigInteger(), params.getQ().getAffineYCoord().toBigInteger());
 
         this.configuration = configuration;
     }
@@ -188,8 +191,8 @@ public class BCECPublicKey
         return new ECParameterSpec(
                 ellipticCurve,
                 new ECPoint(
-                        dp.getG().getX().toBigInteger(),
-                        dp.getG().getY().toBigInteger()),
+                        dp.getG().getAffineXCoord().toBigInteger(),
+                        dp.getG().getAffineYCoord().toBigInteger()),
                         dp.getN(),
                         dp.getH().intValue());
     }
@@ -212,8 +215,8 @@ public class BCECPublicKey
                     ECUtil.getCurveName(oid),
                     ellipticCurve,
                     new ECPoint(
-                            ecP.getG().getX().toBigInteger(),
-                            ecP.getG().getY().toBigInteger()),
+                            ecP.getG().getAffineXCoord().toBigInteger(),
+                            ecP.getG().getAffineYCoord().toBigInteger()),
                     ecP.getN(),
                     ecP.getH());
         }
@@ -232,8 +235,8 @@ public class BCECPublicKey
             this.ecSpec = new ECParameterSpec(
                     ellipticCurve,
                     new ECPoint(
-                            ecP.getG().getX().toBigInteger(),
-                            ecP.getG().getY().toBigInteger()),
+                            ecP.getG().getAffineXCoord().toBigInteger(),
+                            ecP.getG().getAffineYCoord().toBigInteger()),
                     ecP.getN(),
                     ecP.getH().intValue());
         }
@@ -310,8 +313,19 @@ public class BCECPublicKey
         }
 
         ECCurve curve = this.engineGetQ().getCurve();
-        ASN1OctetString p = (ASN1OctetString)
-            new X9ECPoint(curve.createPoint(this.getQ().getX().toBigInteger(), this.getQ().getY().toBigInteger(), withCompression)).toASN1Primitive();
+        ASN1OctetString p;
+
+        // stored curve is null if ImplicitlyCa
+        if (ecSpec == null)
+        {
+            p = (ASN1OctetString)
+                new X9ECPoint(curve.createPoint(this.getQ().getXCoord().toBigInteger(), this.getQ().getYCoord().toBigInteger(), withCompression)).toASN1Primitive();
+        }
+        else
+        {
+            p = (ASN1OctetString)
+                            new X9ECPoint(curve.createPoint(this.getQ().getAffineXCoord().toBigInteger(), this.getQ().getAffineYCoord().toBigInteger(), withCompression)).toASN1Primitive();
+        }
 
         info = new SubjectPublicKeyInfo(new AlgorithmIdentifier(X9ObjectIdentifiers.id_ecPublicKey, params), p.getOctets());
 
@@ -351,21 +365,14 @@ public class BCECPublicKey
 
     public ECPoint getW()
     {
-        return new ECPoint(q.getX().toBigInteger(), q.getY().toBigInteger());
+        return new ECPoint(q.getAffineXCoord().toBigInteger(), q.getAffineYCoord().toBigInteger());
     }
 
     public org.ripple.bouncycastle.math.ec.ECPoint getQ()
     {
         if (ecSpec == null)
         {
-            if (q instanceof org.ripple.bouncycastle.math.ec.ECPoint.Fp)
-            {
-                return new org.ripple.bouncycastle.math.ec.ECPoint.Fp(null, q.getX(), q.getY());
-            }
-            else
-            {
-                return new org.ripple.bouncycastle.math.ec.ECPoint.F2m(null, q.getX(), q.getY());
-            }
+            return q.getDetachedPoint();
         }
 
         return q;
@@ -392,8 +399,8 @@ public class BCECPublicKey
         String          nl = System.getProperty("line.separator");
 
         buf.append("EC Public Key").append(nl);
-        buf.append("            X: ").append(this.q.getX().toBigInteger().toString(16)).append(nl);
-        buf.append("            Y: ").append(this.q.getY().toBigInteger().toString(16)).append(nl);
+        buf.append("            X: ").append(this.q.getAffineXCoord().toBigInteger().toString(16)).append(nl);
+        buf.append("            Y: ").append(this.q.getAffineYCoord().toBigInteger().toString(16)).append(nl);
 
         return buf.toString();
 

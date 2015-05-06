@@ -19,8 +19,6 @@ import org.ripple.bouncycastle.asn1.x509.AlgorithmIdentifier;
  * the expiry of the corresponding certificate. Hence, clients MUST support this
  * extension. If a positive statement of availability is to be delivered, this
  * extension syntax and OID MUST be used.
- * <p/>
- * <p/>
  * <pre>
  *     CertHash ::= SEQUENCE {
  *       hashAlgorithm AlgorithmIdentifier,
@@ -53,16 +51,15 @@ public class CertHash
 
     /**
      * Constructor from ASN1Sequence.
-     * <p/>
+     * <p>
      * The sequence is of type CertHash:
-     * <p/>
      * <pre>
      *     CertHash ::= SEQUENCE {
      *       hashAlgorithm AlgorithmIdentifier,
      *       certificateHash OCTET STRING
      *     }
      * </pre>
-     *
+     * </p>
      * @param seq The ASN.1 sequence.
      */
     private CertHash(ASN1Sequence seq)
@@ -102,9 +99,8 @@ public class CertHash
 
     /**
      * Produce an object suitable for an ASN1OutputStream.
-     * <p/>
+     * <p>
      * Returns:
-     * <p/>
      * <pre>
      *     CertHash ::= SEQUENCE {
      *       hashAlgorithm AlgorithmIdentifier,

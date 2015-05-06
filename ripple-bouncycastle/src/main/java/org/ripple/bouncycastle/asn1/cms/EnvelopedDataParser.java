@@ -10,6 +10,8 @@ import org.ripple.bouncycastle.asn1.ASN1TaggedObjectParser;
 import org.ripple.bouncycastle.asn1.BERTags;
 
 /** 
+ * Parser of <a href="http://tools.ietf.org/html/rfc5652#section-6.1">RFC 5652</a> {@link EnvelopedData} object.
+ * <p>
  * <pre>
  * EnvelopedData ::= SEQUENCE {
  *     version CMSVersion,

@@ -9,55 +9,85 @@ import java.util.Vector;
 import org.ripple.bouncycastle.asn1.x509.KeyUsage;
 import org.ripple.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.ripple.bouncycastle.crypto.CryptoException;
+import org.ripple.bouncycastle.crypto.Digest;
 import org.ripple.bouncycastle.crypto.Signer;
 import org.ripple.bouncycastle.crypto.agreement.srp.SRP6Client;
+import org.ripple.bouncycastle.crypto.agreement.srp.SRP6Server;
 import org.ripple.bouncycastle.crypto.agreement.srp.SRP6Util;
-import org.ripple.bouncycastle.crypto.digests.SHA1Digest;
-import org.ripple.bouncycastle.crypto.io.SignerInputStream;
 import org.ripple.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.ripple.bouncycastle.crypto.params.SRP6GroupParameters;
 import org.ripple.bouncycastle.crypto.util.PublicKeyFactory;
+import org.ripple.bouncycastle.util.Arrays;
 import org.ripple.bouncycastle.util.BigIntegers;
+import org.ripple.bouncycastle.util.io.TeeInputStream;
 
 /**
- * TLS 1.1 SRP key exchange (RFC 5054).
+ * (D)TLS SRP key exchange (RFC 5054).
  */
-public class TlsSRPKeyExchange
-    extends AbstractTlsKeyExchange
+public class TlsSRPKeyExchange extends AbstractTlsKeyExchange
 {
-
+    protected static TlsSigner createSigner(int keyExchange)
+    {
+        switch (keyExchange)
+        {
+        case KeyExchangeAlgorithm.SRP:
+            return null;
+        case KeyExchangeAlgorithm.SRP_RSA:
+            return new TlsRSASigner();
+        case KeyExchangeAlgorithm.SRP_DSS:
+            return new TlsDSSSigner();
+        default:
+            throw new IllegalArgumentException("unsupported key exchange algorithm");
+        }
+    }
+    
     protected TlsSigner tlsSigner;
+    protected TlsSRPGroupVerifier groupVerifier;
     protected byte[] identity;
     protected byte[] password;
 
     protected AsymmetricKeyParameter serverPublicKey = null;
 
-    protected byte[] s = null;
-    protected BigInteger B = null;
-    protected SRP6Client srpClient = new SRP6Client();
+    protected SRP6GroupParameters srpGroup = null;
+    protected SRP6Client srpClient = null;
+    protected SRP6Server srpServer = null;
+    protected BigInteger srpPeerCredentials = null;
+    protected BigInteger srpVerifier = null;
+    protected byte[] srpSalt = null;
 
+    protected TlsSignerCredentials serverCredentials = null;
+
+    /**
+     * @deprecated Use constructor taking an explicit 'groupVerifier' argument
+     */
     public TlsSRPKeyExchange(int keyExchange, Vector supportedSignatureAlgorithms, byte[] identity, byte[] password)
     {
+        this(keyExchange, supportedSignatureAlgorithms, new DefaultTlsSRPGroupVerifier(), identity, password);
+    }
 
+    public TlsSRPKeyExchange(int keyExchange, Vector supportedSignatureAlgorithms, TlsSRPGroupVerifier groupVerifier,
+        byte[] identity, byte[] password)
+    {
         super(keyExchange, supportedSignatureAlgorithms);
 
-        switch (keyExchange)
-        {
-        case KeyExchangeAlgorithm.SRP:
-            this.tlsSigner = null;
-            break;
-        case KeyExchangeAlgorithm.SRP_RSA:
-            this.tlsSigner = new TlsRSASigner();
-            break;
-        case KeyExchangeAlgorithm.SRP_DSS:
-            this.tlsSigner = new TlsDSSSigner();
-            break;
-        default:
-            throw new IllegalArgumentException("unsupported key exchange algorithm");
-        }
-
-        this.keyExchange = keyExchange;
+        this.tlsSigner = createSigner(keyExchange);
+        this.groupVerifier = groupVerifier;
         this.identity = identity;
         this.password = password;
+        this.srpClient = new SRP6Client();
+    }
+
+    public TlsSRPKeyExchange(int keyExchange, Vector supportedSignatureAlgorithms, byte[] identity,
+        TlsSRPLoginParameters loginParameters)
+    {
+        super(keyExchange, supportedSignatureAlgorithms);
+
+        this.tlsSigner = createSigner(keyExchange);
+        this.identity = identity;
+        this.srpServer = new SRP6Server();
+        this.srpGroup = loginParameters.getGroup();
+        this.srpVerifier = loginParameters.getVerifier();
+        this.srpSalt = loginParameters.getSalt();
     }
 
     public void init(TlsContext context)
@@ -70,8 +100,7 @@ public class TlsSRPKeyExchange
         }
     }
 
-    public void skipServerCredentials()
-        throws IOException
+    public void skipServerCredentials() throws IOException
     {
         if (tlsSigner != null)
         {
@@ -79,10 +108,8 @@ public class TlsSRPKeyExchange
         }
     }
 
-    public void processServerCertificate(Certificate serverCertificate)
-        throws IOException
+    public void processServerCertificate(Certificate serverCertificate) throws IOException
     {
-
         if (tlsSigner == null)
         {
             throw new TlsFatalAlert(AlertDescription.unexpected_message);
@@ -101,7 +128,7 @@ public class TlsSRPKeyExchange
         }
         catch (RuntimeException e)
         {
-            throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+            throw new TlsFatalAlert(AlertDescription.unsupported_certificate, e);
         }
 
         if (!tlsSigner.isValidPublicKey(this.serverPublicKey))
@@ -114,48 +141,97 @@ public class TlsSRPKeyExchange
         super.processServerCertificate(serverCertificate);
     }
 
+    public void processServerCredentials(TlsCredentials serverCredentials)
+        throws IOException
+    {
+        if ((keyExchange == KeyExchangeAlgorithm.SRP) || !(serverCredentials instanceof TlsSignerCredentials))
+        {
+            throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
+        processServerCertificate(serverCredentials.getCertificate());
+
+        this.serverCredentials = (TlsSignerCredentials)serverCredentials;
+    }
+
     public boolean requiresServerKeyExchange()
     {
         return true;
     }
 
-    public void processServerKeyExchange(InputStream input)
-        throws IOException
+    public byte[] generateServerKeyExchange() throws IOException
     {
+        srpServer.init(srpGroup, srpVerifier, TlsUtils.createHash(HashAlgorithm.sha1), context.getSecureRandom());
+        BigInteger B = srpServer.generateServerCredentials();
 
+        ServerSRPParams srpParams = new ServerSRPParams(srpGroup.getN(), srpGroup.getG(), srpSalt, B);
+
+        DigestInputBuffer buf = new DigestInputBuffer();
+
+        srpParams.encode(buf);
+
+        if (serverCredentials != null)
+        {
+            /*
+             * RFC 5246 4.7. digitally-signed element needs SignatureAndHashAlgorithm from TLS 1.2
+             */
+            SignatureAndHashAlgorithm signatureAndHashAlgorithm = TlsUtils.getSignatureAndHashAlgorithm(
+                context, serverCredentials);
+
+            Digest d = TlsUtils.createHash(signatureAndHashAlgorithm);
+
+            SecurityParameters securityParameters = context.getSecurityParameters();
+            d.update(securityParameters.clientRandom, 0, securityParameters.clientRandom.length);
+            d.update(securityParameters.serverRandom, 0, securityParameters.serverRandom.length);
+            buf.updateDigest(d);
+
+            byte[] hash = new byte[d.getDigestSize()];
+            d.doFinal(hash, 0);
+
+            byte[] signature = serverCredentials.generateCertificateSignature(hash);
+
+            DigitallySigned signed_params = new DigitallySigned(signatureAndHashAlgorithm, signature);
+            signed_params.encode(buf);
+        }
+
+        return buf.toByteArray();
+    }
+
+    public void processServerKeyExchange(InputStream input) throws IOException
+    {
         SecurityParameters securityParameters = context.getSecurityParameters();
 
-        InputStream sigIn = input;
-        Signer signer = null;
+        SignerInputBuffer buf = null;
+        InputStream teeIn = input;
 
         if (tlsSigner != null)
         {
-            signer = initVerifyer(tlsSigner, securityParameters);
-            sigIn = new SignerInputStream(input, signer);
+            buf = new SignerInputBuffer();
+            teeIn = new TeeInputStream(input, buf);
         }
 
-        byte[] NBytes = TlsUtils.readOpaque16(sigIn);
-        byte[] gBytes = TlsUtils.readOpaque16(sigIn);
-        byte[] sBytes = TlsUtils.readOpaque8(sigIn);
-        byte[] BBytes = TlsUtils.readOpaque16(sigIn);
+        ServerSRPParams srpParams = ServerSRPParams.parse(teeIn);
 
-        if (signer != null)
+        if (buf != null)
         {
-            byte[] sigByte = TlsUtils.readOpaque16(input);
+            DigitallySigned signed_params = DigitallySigned.parse(context, input);
 
-            if (!signer.verifySignature(sigByte))
+            Signer signer = initVerifyer(tlsSigner, signed_params.getAlgorithm(), securityParameters);
+            buf.updateSigner(signer);
+            if (!signer.verifySignature(signed_params.getSignature()))
             {
                 throw new TlsFatalAlert(AlertDescription.decrypt_error);
             }
         }
 
-        BigInteger N = new BigInteger(1, NBytes);
-        BigInteger g = new BigInteger(1, gBytes);
+        this.srpGroup = new SRP6GroupParameters(srpParams.getN(), srpParams.getG());
 
-        // TODO Validate group parameters (see RFC 5054)
-        // handler.failWithError(AlertLevel.fatal, AlertDescription.insufficient_security);
+        if (!groupVerifier.accept(srpGroup))
+        {
+            throw new TlsFatalAlert(AlertDescription.insufficient_security);
+        }
 
-        this.s = sBytes;
+        this.srpSalt = srpParams.getS();
 
         /*
          * RFC 5054 2.5.3: The client MUST abort the handshake with an "illegal_parameter" alert if
@@ -163,53 +239,72 @@ public class TlsSRPKeyExchange
          */
         try
         {
-            this.B = SRP6Util.validatePublicValue(N, new BigInteger(1, BBytes));
+            this.srpPeerCredentials = SRP6Util.validatePublicValue(srpGroup.getN(), srpParams.getB());
         }
         catch (CryptoException e)
         {
-            throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+            throw new TlsFatalAlert(AlertDescription.illegal_parameter, e);
         }
 
-        this.srpClient.init(N, g, new SHA1Digest(), context.getSecureRandom());
+        this.srpClient.init(srpGroup, TlsUtils.createHash(HashAlgorithm.sha1), context.getSecureRandom());
     }
 
-    public void validateCertificateRequest(CertificateRequest certificateRequest)
-        throws IOException
+    public void validateCertificateRequest(CertificateRequest certificateRequest) throws IOException
     {
         throw new TlsFatalAlert(AlertDescription.unexpected_message);
     }
 
-    public void processClientCredentials(TlsCredentials clientCredentials)
-        throws IOException
+    public void processClientCredentials(TlsCredentials clientCredentials) throws IOException
     {
         throw new TlsFatalAlert(AlertDescription.internal_error);
     }
 
-    public void generateClientKeyExchange(OutputStream output)
-        throws IOException
+    public void generateClientKeyExchange(OutputStream output) throws IOException
     {
-        byte[] keData = BigIntegers.asUnsignedByteArray(srpClient.generateClientCredentials(s, this.identity,
-            this.password));
-        TlsUtils.writeOpaque16(keData, output);
+        BigInteger A = srpClient.generateClientCredentials(srpSalt, identity, password);
+        TlsSRPUtils.writeSRPParameter(A, output);
+
+        context.getSecurityParameters().srpIdentity = Arrays.clone(identity);
     }
 
-    public byte[] generatePremasterSecret()
-        throws IOException
+    public void processClientKeyExchange(InputStream input) throws IOException
     {
+        /*
+         * RFC 5054 2.5.4: The server MUST abort the handshake with an "illegal_parameter" alert if
+         * A % N = 0.
+         */
         try
         {
-            // TODO Check if this needs to be a fixed size
-            return BigIntegers.asUnsignedByteArray(srpClient.calculateSecret(B));
+            this.srpPeerCredentials = SRP6Util.validatePublicValue(srpGroup.getN(), TlsSRPUtils.readSRPParameter(input));
         }
         catch (CryptoException e)
         {
-            throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+            throw new TlsFatalAlert(AlertDescription.illegal_parameter, e);
+        }
+
+        context.getSecurityParameters().srpIdentity = Arrays.clone(identity);
+    }
+
+    public byte[] generatePremasterSecret() throws IOException
+    {
+        try
+        {
+            BigInteger S = srpServer != null
+                ?   srpServer.calculateSecret(srpPeerCredentials)
+                :   srpClient.calculateSecret(srpPeerCredentials);
+
+            // TODO Check if this needs to be a fixed size
+            return BigIntegers.asUnsignedByteArray(S);
+        }
+        catch (CryptoException e)
+        {
+            throw new TlsFatalAlert(AlertDescription.illegal_parameter, e);
         }
     }
 
-    protected Signer initVerifyer(TlsSigner tlsSigner, SecurityParameters securityParameters)
+    protected Signer initVerifyer(TlsSigner tlsSigner, SignatureAndHashAlgorithm algorithm, SecurityParameters securityParameters)
     {
-        Signer signer = tlsSigner.createVerifyer(this.serverPublicKey);
+        Signer signer = tlsSigner.createVerifyer(algorithm, this.serverPublicKey);
         signer.update(securityParameters.clientRandom, 0, securityParameters.clientRandom.length);
         signer.update(securityParameters.serverRandom, 0, securityParameters.serverRandom.length);
         return signer;

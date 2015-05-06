@@ -17,6 +17,7 @@ import org.ripple.bouncycastle.asn1.x9.X9ObjectIdentifiers;
 import org.ripple.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.ripple.bouncycastle.crypto.params.DSAPublicKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ECDomainParameters;
+import org.ripple.bouncycastle.crypto.params.ECNamedDomainParameters;
 import org.ripple.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.ripple.bouncycastle.crypto.params.RSAKeyParameters;
 
@@ -52,10 +53,13 @@ public class SubjectPublicKeyInfoFactory
             ECDomainParameters domainParams = pub.getParameters();
             ASN1Encodable      params;
 
-            // TODO: need to handle named curves
             if (domainParams == null)
             {
                 params = new X962Parameters(DERNull.INSTANCE);      // Implicitly CA
+            }
+            else if (domainParams instanceof ECNamedDomainParameters)
+            {
+                params = new X962Parameters(((ECNamedDomainParameters)domainParams).getName());
             }
             else
             {

@@ -6,8 +6,9 @@ import org.ripple.bouncycastle.asn1.nist.NISTNamedCurves;
 import org.ripple.bouncycastle.crypto.Digest;
 import org.ripple.bouncycastle.crypto.prng.EntropySource;
 import org.ripple.bouncycastle.math.ec.ECCurve;
-import org.ripple.bouncycastle.math.ec.ECFieldElement;
+import org.ripple.bouncycastle.math.ec.ECMultiplier;
 import org.ripple.bouncycastle.math.ec.ECPoint;
+import org.ripple.bouncycastle.math.ec.FixedPointCombMultiplier;
 import org.ripple.bouncycastle.util.Arrays;
 import org.ripple.bouncycastle.util.BigIntegers;
 
@@ -35,6 +36,26 @@ public class DualECSP800DRBG
     private static final BigInteger p521_Qx = new BigInteger("1b9fa3e518d683c6b65763694ac8efbaec6fab44f2276171a42726507dd08add4c3b3f4c1ebc5b1222ddba077f722943b24c3edfa0f85fe24d0c8c01591f0be6f63", 16);
     private static final BigInteger p521_Qy = new BigInteger("1f3bdba585295d9a1110d1df1f9430ef8442c5018976ff3437ef91b81dc0b8132c8d5c39c32d0e004a3092b7d327c0e7a4d26d2c7b69b58f9066652911e457779de", 16);
 
+    private static final DualECPoints[] nistPoints;
+
+    static
+    {
+        nistPoints = new DualECPoints[3];
+
+        ECCurve.Fp curve = (ECCurve.Fp)NISTNamedCurves.getByName("P-256").getCurve();
+
+        nistPoints[0] = new DualECPoints(128, curve.createPoint(p256_Px, p256_Py), curve.createPoint(p256_Qx, p256_Qy), 1);
+
+        curve = (ECCurve.Fp)NISTNamedCurves.getByName("P-384").getCurve();
+
+        nistPoints[1] = new DualECPoints(192, curve.createPoint(p384_Px, p384_Py), curve.createPoint(p384_Qx, p384_Qy), 1);
+
+        curve = (ECCurve.Fp)NISTNamedCurves.getByName("P-521").getCurve();
+
+        nistPoints[2] = new DualECPoints(256, curve.createPoint(p521_Px, p521_Py), curve.createPoint(p521_Qx, p521_Qy), 1);
+    }
+
+
     private static final long       RESEED_MAX = 1L << (32 - 1);
     private static final int        MAX_ADDITIONAL_INPUT = 1 << (13 - 1);
     private static final int        MAX_ENTROPY_LENGTH = 1 << (13 - 1);
@@ -51,6 +72,7 @@ public class DualECSP800DRBG
     private ECPoint                _Q;
     private byte[]                 _s;
     private int                    _sLength;
+    private ECMultiplier           _fixedPointMultiplier = new FixedPointCombMultiplier();
 
     /**
      * Construct a SP800-90A Dual EC DRBG.
@@ -64,6 +86,23 @@ public class DualECSP800DRBG
      * @param nonce nonce to further distinguish this DRBG (may be null).
      */
     public DualECSP800DRBG(Digest digest, int securityStrength, EntropySource entropySource, byte[] personalizationString, byte[] nonce)
+    {
+        this(nistPoints, digest, securityStrength, entropySource, personalizationString, nonce);
+    }
+
+    /**
+     * Construct a SP800-90A Dual EC DRBG.
+     * <p>
+     * Minimum entropy requirement is the security strength requested.
+     * </p>
+     * @param pointSet an array of points to choose from, in order of increasing security strength
+     * @param digest source digest to use with the DRB stream.
+     * @param securityStrength security strength required (in bits)
+     * @param entropySource source of entropy to use for seeding/reseeding.
+     * @param personalizationString personalization string to distinguish this DRBG (may be null).
+     * @param nonce nonce to further distinguish this DRBG (may be null).
+     */
+    public DualECSP800DRBG(DualECPoints[] pointSet, Digest digest, int securityStrength, EntropySource entropySource, byte[] personalizationString, byte[] nonce)
     {
         _digest = digest;
         _entropySource = entropySource;
@@ -82,43 +121,23 @@ public class DualECSP800DRBG
         byte[] entropy = entropySource.getEntropy();
         byte[] seedMaterial = Arrays.concatenate(entropy, nonce, personalizationString);
 
-        if (securityStrength <= 128)
+        for (int i = 0; i != pointSet.length; i++)
         {
-            if (Utils.getMaxSecurityStrength(digest) < 128)
+            if (securityStrength <= pointSet[i].getSecurityStrength())
             {
-                throw new IllegalArgumentException("Requested security strength is not supported by digest");
+                if (Utils.getMaxSecurityStrength(digest) < pointSet[i].getSecurityStrength())
+                {
+                    throw new IllegalArgumentException("Requested security strength is not supported by digest");
+                }
+                _seedlen = pointSet[i].getSeedLen();
+                _outlen =  pointSet[i].getMaxOutlen() / 8;
+                _P = pointSet[i].getP();
+                _Q = pointSet[i].getQ();
+                break;
             }
-            _seedlen = 256;
-            _outlen = 240 / 8;
-            _curve = (ECCurve.Fp)NISTNamedCurves.getByName("P-256").getCurve();
-            _P = new ECPoint.Fp(_curve, new ECFieldElement.Fp(_curve.getQ(), p256_Px), new ECFieldElement.Fp(_curve.getQ(), p256_Py));
-            _Q = new ECPoint.Fp(_curve, new ECFieldElement.Fp(_curve.getQ(), p256_Qx), new ECFieldElement.Fp(_curve.getQ(), p256_Qy));
         }
-        else if (securityStrength <= 192)
-        {
-            if (Utils.getMaxSecurityStrength(digest) < 192)
-            {
-                throw new IllegalArgumentException("Requested security strength is not supported by digest");
-            }
-            _seedlen = 384;
-            _outlen = 368 / 8;
-            _curve = (ECCurve.Fp)NISTNamedCurves.getByName("P-384").getCurve();
-            _P = new ECPoint.Fp(_curve, new ECFieldElement.Fp(_curve.getQ(), p384_Px), new ECFieldElement.Fp(_curve.getQ(), p384_Py));
-            _Q = new ECPoint.Fp(_curve, new ECFieldElement.Fp(_curve.getQ(), p384_Qx), new ECFieldElement.Fp(_curve.getQ(), p384_Qy));
-        }
-        else if (securityStrength <= 256)
-        {
-            if (Utils.getMaxSecurityStrength(digest) < 256)
-            {
-                throw new IllegalArgumentException("Requested security strength is not supported by digest");
-            }
-            _seedlen = 521;
-            _outlen = 504 / 8;
-            _curve = (ECCurve.Fp)NISTNamedCurves.getByName("P-521").getCurve();
-            _P = new ECPoint.Fp(_curve, new ECFieldElement.Fp(_curve.getQ(), p521_Px), new ECFieldElement.Fp(_curve.getQ(), p521_Py));
-            _Q = new ECPoint.Fp(_curve, new ECFieldElement.Fp(_curve.getQ(), p521_Qx), new ECFieldElement.Fp(_curve.getQ(), p521_Qy));
-        }
-        else
+
+        if (_P == null)
         {
             throw new IllegalArgumentException("security strength cannot be greater than 256 bits");
         }
@@ -127,6 +146,16 @@ public class DualECSP800DRBG
         _sLength = _s.length;
 
         _reseedCounter = 0;
+    }
+
+    /**
+     * Return the block size (in bits) of the DRBG.
+     *
+     * @return the number of bits produced on each internal round of the DRBG.
+     */
+    public int getBlockSize()
+    {
+        return _outlen * 8;
     }
 
     /**
@@ -159,50 +188,69 @@ public class DualECSP800DRBG
             additionalInput = null;
         }
 
+        BigInteger s;
+
         if (additionalInput != null)
         {
             // Note: we ignore the use of pad8 on the additional input as we mandate byte arrays for it.
             additionalInput = Utils.hash_df(_digest, additionalInput, _seedlen);
+            s = new BigInteger(1, xor(_s, additionalInput));
         }
+        else
+        {
+            s = new BigInteger(1, _s);
+        }
+
+        // make sure we start with a clean output array.
+        Arrays.fill(output, (byte)0);
+
+        int outOffset = 0;
 
         for (int i = 0; i < m; i++)
         {
-            BigInteger t = new BigInteger(1, xor(_s, additionalInput));
-
-            _s = _P.multiply(t).getX().toBigInteger().toByteArray();
+            s = getScalarMultipleXCoord(_P, s);
 
             //System.err.println("S: " + new String(Hex.encode(_s)));
 
-            byte[] r = _Q.multiply(new BigInteger(1, _s)).getX().toBigInteger().toByteArray();
+            byte[] r = getScalarMultipleXCoord(_Q, s).toByteArray();
 
             if (r.length > _outlen)
             {
-                System.arraycopy(r, r.length - _outlen, output, i * _outlen, _outlen);
+                System.arraycopy(r, r.length - _outlen, output, outOffset, _outlen);
             }
             else
             {
-                System.arraycopy(r, 0, output, i * _outlen + (_outlen - r.length), r.length);
+                System.arraycopy(r, 0, output, outOffset + (_outlen - r.length), r.length);
             }
 
             //System.err.println("R: " + new String(Hex.encode(r)));
-            additionalInput = null;
+            outOffset += _outlen;
 
             _reseedCounter++;
         }
 
-        if (m * _outlen < output.length)
+        if (outOffset < output.length)
         {
-            BigInteger t = new BigInteger(1, xor(_s, additionalInput));
+            s = getScalarMultipleXCoord(_P, s);
 
-            _s = _P.multiply(t).getX().toBigInteger().toByteArray();
+            byte[] r = getScalarMultipleXCoord(_Q, s).toByteArray();
 
-            byte[] r = _Q.multiply(new BigInteger(1, _s)).getX().toBigInteger().toByteArray();
+            int required = output.length - outOffset;
 
-            System.arraycopy(r, 0, output, m * _outlen, output.length - (m * _outlen));
+            if (r.length > _outlen)
+            {
+                System.arraycopy(r, r.length - _outlen, output, outOffset, required);
+            }
+            else
+            {
+                System.arraycopy(r, 0, output, outOffset + (_outlen - r.length), required);
+            }
+
+            _reseedCounter++;
         }
 
         // Need to preserve length of S as unsigned int.
-        _s = BigIntegers.asUnsignedByteArray(_sLength, _P.multiply(new BigInteger(1, _s)).getX().toBigInteger());
+        _s = BigIntegers.asUnsignedByteArray(_sLength, getScalarMultipleXCoord(_P, s));
 
         return numberOfBits;
     }
@@ -263,5 +311,10 @@ public class DualECSP800DRBG
         }
 
         return s;
+    }
+
+    private BigInteger getScalarMultipleXCoord(ECPoint p, BigInteger s)
+    {
+        return _fixedPointMultiplier.multiply(p, s).normalize().getAffineXCoord().toBigInteger();
     }
 }

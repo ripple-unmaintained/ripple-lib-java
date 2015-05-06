@@ -3,6 +3,7 @@ package org.ripple.bouncycastle.crypto.agreement.srp;
 import java.math.BigInteger;
 
 import org.ripple.bouncycastle.crypto.Digest;
+import org.ripple.bouncycastle.crypto.params.SRP6GroupParameters;
 
 /**
  * Generates new SRP verifier for user
@@ -28,6 +29,13 @@ public class SRP6VerifierGenerator
     {
         this.N = N;
         this.g = g;
+        this.digest = digest;
+    }
+
+    public void init(SRP6GroupParameters group, Digest digest)
+    {
+        this.N = group.getN();
+        this.g = group.getG();
         this.digest = digest;
     }
 

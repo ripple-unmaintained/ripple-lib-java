@@ -2,29 +2,10 @@ package org.ripple.bouncycastle.math.ec;
 
 import java.math.BigInteger;
 
-class ReferenceMultiplier implements ECMultiplier
+public class ReferenceMultiplier extends AbstractECMultiplier
 {
-    /**
-     * Simple shift-and-add multiplication. Serves as reference implementation
-     * to verify (possibly faster) implementations in
-     * {@link org.ripple.bouncycastle.math.ec.ECPoint ECPoint}.
-     * 
-     * @param p The point to multiply.
-     * @param k The factor by which to multiply.
-     * @return The result of the point multiplication <code>k * p</code>.
-     */
-    public ECPoint multiply(ECPoint p, BigInteger k, PreCompInfo preCompInfo)
+    protected ECPoint multiplyPositive(ECPoint p, BigInteger k)
     {
-        ECPoint q = p.getCurve().getInfinity();
-        int t = k.bitLength();
-        for (int i = 0; i < t; i++)
-        {
-            if (k.testBit(i))
-            {
-                q = q.add(p);
-            }
-            p = p.twice();
-        }
-        return q;
+        return ECAlgorithms.referenceMultiply(p, k);
     }
 }

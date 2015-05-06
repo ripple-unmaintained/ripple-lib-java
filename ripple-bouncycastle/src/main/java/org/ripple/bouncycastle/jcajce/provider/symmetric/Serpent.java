@@ -3,6 +3,8 @@ package org.ripple.bouncycastle.jcajce.provider.symmetric;
 import org.ripple.bouncycastle.crypto.BlockCipher;
 import org.ripple.bouncycastle.crypto.CipherKeyGenerator;
 import org.ripple.bouncycastle.crypto.engines.SerpentEngine;
+import org.ripple.bouncycastle.crypto.engines.TwofishEngine;
+import org.ripple.bouncycastle.crypto.generators.Poly1305KeyGenerator;
 import org.ripple.bouncycastle.crypto.macs.GMac;
 import org.ripple.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.ripple.bouncycastle.jcajce.provider.config.ConfigurableProvider;
@@ -51,6 +53,24 @@ public final class Serpent
         }
     }
 
+    public static class Poly1305
+        extends BaseMac
+    {
+        public Poly1305()
+        {
+            super(new org.ripple.bouncycastle.crypto.macs.Poly1305(new TwofishEngine()));
+        }
+    }
+
+    public static class Poly1305KeyGen
+        extends BaseKeyGenerator
+    {
+        public Poly1305KeyGen()
+        {
+            super("Poly1305-Serpent", 256, new Poly1305KeyGenerator());
+        }
+    }
+
     public static class AlgParams
         extends IvAlgorithmParameters
     {
@@ -77,6 +97,7 @@ public final class Serpent
             provider.addAlgorithm("AlgorithmParameters.Serpent", PREFIX + "$AlgParams");
 
             addGMacAlgorithm(provider, "SERPENT", PREFIX + "$SerpentGMAC", PREFIX + "$KeyGen");
+            addPoly1305Algorithm(provider, "SERPENT", PREFIX + "$Poly1305", PREFIX + "$Poly1305KeyGen");
         }
     }
 }

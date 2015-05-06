@@ -5,11 +5,12 @@ package org.ripple.bouncycastle.crypto.tls;
  */
 public class AlertDescription
 {
-
     /**
      * This message notifies the recipient that the sender will not send any more messages on this
-     * connection. The session becomes unresumable if any connection is terminated without proper
-     * close_notify messages with level equal to warning.
+     * connection. Note that as of TLS 1.1, failure to properly close a connection no longer
+     * requires that a session not be resumed. This is a change from TLS 1.0 ("The session becomes
+     * unresumable if any connection is terminated without proper close_notify messages with level
+     * equal to warning.") to conform with widespread implementation practice.
      */
     public static final short close_notify = 0;
 
@@ -212,4 +213,91 @@ public class AlertDescription
      * "unknown_psk_identity" alert message.
      */
     public static final short unknown_psk_identity = 115;
+
+    /*
+     * draft-ietf-tls-downgrade-scsv-00
+     */
+
+    /**
+     * If TLS_FALLBACK_SCSV appears in ClientHello.cipher_suites and the highest protocol version
+     * supported by the server is higher than the version indicated in ClientHello.client_version,
+     * the server MUST respond with an inappropriate_fallback alert.
+     */
+    public static final short inappropriate_fallback = 86;
+
+    public static String getName(short alertDescription)
+    {
+        switch (alertDescription)
+        {
+        case close_notify:
+            return "close_notify";
+        case unexpected_message:
+            return "unexpected_message";
+        case bad_record_mac:
+            return "bad_record_mac";
+        case decryption_failed:
+            return "decryption_failed";
+        case record_overflow:
+            return "record_overflow";
+        case decompression_failure:
+            return "decompression_failure";
+        case handshake_failure:
+            return "handshake_failure";
+        case no_certificate:
+            return "no_certificate";
+        case bad_certificate:
+            return "bad_certificate";
+        case unsupported_certificate:
+            return "unsupported_certificate";
+        case certificate_revoked:
+            return "certificate_revoked";
+        case certificate_expired:
+            return "certificate_expired";
+        case certificate_unknown:
+            return "certificate_unknown";
+        case illegal_parameter:
+            return "illegal_parameter";
+        case unknown_ca:
+            return "unknown_ca";
+        case access_denied:
+            return "access_denied";
+        case decode_error:
+            return "decode_error";
+        case decrypt_error:
+            return "decrypt_error";
+        case export_restriction:
+            return "export_restriction";
+        case protocol_version:
+            return "protocol_version";
+        case insufficient_security:
+            return "insufficient_security";
+        case internal_error:
+            return "internal_error";
+        case user_canceled:
+            return "user_canceled";
+        case no_renegotiation:
+            return "no_renegotiation";
+        case unsupported_extension:
+            return "unsupported_extension";
+        case certificate_unobtainable:
+            return "certificate_unobtainable";
+        case unrecognized_name:
+            return "unrecognized_name";
+        case bad_certificate_status_response:
+            return "bad_certificate_status_response";
+        case bad_certificate_hash_value:
+            return "bad_certificate_hash_value";
+        case unknown_psk_identity:
+            return "unknown_psk_identity";
+        case inappropriate_fallback:
+            return "inappropriate_fallback";
+        default:
+            return "UNKNOWN";
+        }
+    }
+
+    public static String getText(short alertDescription)
+    {
+        return getName(alertDescription) + "(" + alertDescription + ")";
+    }
 }

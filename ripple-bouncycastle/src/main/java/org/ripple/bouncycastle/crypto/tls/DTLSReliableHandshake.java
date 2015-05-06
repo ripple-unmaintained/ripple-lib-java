@@ -10,12 +10,11 @@ import org.ripple.bouncycastle.util.Integers;
 
 class DTLSReliableHandshake
 {
-
     private final static int MAX_RECEIVE_AHEAD = 10;
 
     private final DTLSRecordLayer recordLayer;
 
-    private TlsHandshakeHash hash = new DeferredHash();
+    private TlsHandshakeHash handshakeHash;
 
     private Hashtable currentInboundFlight = new Hashtable();
     private Hashtable previousInboundFlight = null;
@@ -27,25 +26,31 @@ class DTLSReliableHandshake
     DTLSReliableHandshake(TlsContext context, DTLSRecordLayer transport)
     {
         this.recordLayer = transport;
-        this.hash.init(context);
+        this.handshakeHash = new DeferredHash();
+        this.handshakeHash.init(context);
     }
 
     void notifyHelloComplete()
     {
-        this.hash = this.hash.commit();
+        this.handshakeHash = handshakeHash.notifyPRFDetermined();
     }
 
-    byte[] getCurrentHash()
+    TlsHandshakeHash getHandshakeHash()
     {
-        TlsHandshakeHash copyOfHash = hash.fork();
-        byte[] result = new byte[copyOfHash.getDigestSize()];
-        copyOfHash.doFinal(result, 0);
+        return handshakeHash;
+    }
+
+    TlsHandshakeHash prepareToFinish()
+    {
+        TlsHandshakeHash result = handshakeHash;
+        this.handshakeHash = handshakeHash.stopTracking();
         return result;
     }
 
     void sendMessage(short msg_type, byte[] body)
         throws IOException
     {
+        TlsUtils.checkUint24(body.length);
 
         if (!sending)
         {
@@ -62,10 +67,21 @@ class DTLSReliableHandshake
         updateHandshakeMessagesDigest(message);
     }
 
+    byte[] receiveMessageBody(short msg_type)
+        throws IOException
+    {
+        Message message = receiveMessage();
+        if (message.getType() != msg_type)
+        {
+            throw new TlsFatalAlert(AlertDescription.unexpected_message);
+        }
+
+        return message.getBody();
+    }
+
     Message receiveMessage()
         throws IOException
     {
-
         if (sending)
         {
             sending = false;
@@ -81,7 +97,7 @@ class DTLSReliableHandshake
                 if (body != null)
                 {
                     previousInboundFlight = null;
-                    return updateHandshakeMessagesDigest(new Message(next_receive_seq++, next.getType(), body));
+                    return updateHandshakeMessagesDigest(new Message(next_receive_seq++, next.getMsgType(), body));
                 }
             }
         }
@@ -91,9 +107,8 @@ class DTLSReliableHandshake
         // TODO Check the conditions under which we should reset this
         int readTimeoutMillis = 1000;
 
-        for (; ; )
+        for (;;)
         {
-
             int receiveLimit = recordLayer.getReceiveLimit();
             if (buf == null || buf.length < receiveLimit)
             {
@@ -145,13 +160,11 @@ class DTLSReliableHandshake
                                 .valueOf(seq));
                             if (reassembler != null)
                             {
-
                                 reassembler.contributeFragment(msg_type, length, buf, 12, fragment_offset,
                                     fragment_length);
 
                                 if (checkAll(previousInboundFlight))
                                 {
-
                                     resendOutboundFlight();
 
                                     /*
@@ -167,7 +180,6 @@ class DTLSReliableHandshake
                     }
                     else
                     {
-
                         DTLSReassembler reassembler = (DTLSReassembler)currentInboundFlight.get(Integers.valueOf(seq));
                         if (reassembler == null)
                         {
@@ -184,7 +196,7 @@ class DTLSReliableHandshake
                             {
                                 previousInboundFlight = null;
                                 return updateHandshakeMessagesDigest(new Message(next_receive_seq++,
-                                    reassembler.getType(), body));
+                                    reassembler.getMsgType(), body));
                             }
                         }
                     }
@@ -280,7 +292,7 @@ class DTLSReliableHandshake
 
     void resetHandshakeMessagesDigest()
     {
-        hash.reset();
+        handshakeHash.reset();
     }
 
     /**
@@ -328,8 +340,8 @@ class DTLSReliableHandshake
             TlsUtils.writeUint16(message.getSeq(), buf, 4);
             TlsUtils.writeUint24(0, buf, 6);
             TlsUtils.writeUint24(body.length, buf, 9);
-            hash.update(buf, 0, buf.length);
-            hash.update(body, 0, body.length);
+            handshakeHash.update(buf, 0, buf.length);
+            handshakeHash.update(body, 0, body.length);
         }
         return message;
     }
@@ -337,7 +349,6 @@ class DTLSReliableHandshake
     private void writeMessage(Message message)
         throws IOException
     {
-
         int sendLimit = recordLayer.getSendLimit();
         int fragmentLimit = sendLimit - 12;
 
@@ -364,18 +375,15 @@ class DTLSReliableHandshake
     private void writeHandshakeFragment(Message message, int fragment_offset, int fragment_length)
         throws IOException
     {
+        RecordLayerBuffer fragment = new RecordLayerBuffer(12 + fragment_length);
+        TlsUtils.writeUint8(message.getType(), fragment);
+        TlsUtils.writeUint24(message.getBody().length, fragment);
+        TlsUtils.writeUint16(message.getSeq(), fragment);
+        TlsUtils.writeUint24(fragment_offset, fragment);
+        TlsUtils.writeUint24(fragment_length, fragment);
+        fragment.write(message.getBody(), fragment_offset, fragment_length);
 
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        TlsUtils.writeUint8(message.getType(), buf);
-        TlsUtils.writeUint24(message.getBody().length, buf);
-        TlsUtils.writeUint16(message.getSeq(), buf);
-        TlsUtils.writeUint24(fragment_offset, buf);
-        TlsUtils.writeUint24(fragment_length, buf);
-        buf.write(message.getBody(), fragment_offset, fragment_length);
-
-        byte[] fragment = buf.toByteArray();
-
-        recordLayer.send(fragment, 0, fragment.length);
+        fragment.sendToRecordLayer(recordLayer);
     }
 
     private static boolean checkAll(Hashtable inboundFlight)
@@ -402,7 +410,6 @@ class DTLSReliableHandshake
 
     static class Message
     {
-
         private final int message_seq;
         private final short msg_type;
         private final byte[] body;
@@ -427,6 +434,20 @@ class DTLSReliableHandshake
         public byte[] getBody()
         {
             return body;
+        }
+    }
+
+    static class RecordLayerBuffer extends ByteArrayOutputStream
+    {
+        RecordLayerBuffer(int size)
+        {
+            super(size);
+        }
+
+        void sendToRecordLayer(DTLSRecordLayer recordLayer) throws IOException
+        {
+            recordLayer.send(buf, 0, count);
+            buf = null;
         }
     }
 }

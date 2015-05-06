@@ -178,8 +178,6 @@ public class ProfessionInfo
 
     /**
      * Constructor from ASN1Sequence.
-     * <p/>
-     * <p/>
      * <pre>
      *               ProfessionInfo ::= SEQUENCE
      *               {
@@ -274,7 +272,7 @@ public class ProfessionInfo
 
     /**
      * Constructor from given details.
-     * <p/>
+     * <p>
      * <code>professionItems</code> is mandatory, all other parameters are
      * optional.
      *
@@ -311,9 +309,8 @@ public class ProfessionInfo
 
     /**
      * Produce an object suitable for an ASN1OutputStream.
-     * <p/>
+     * <p>
      * Returns:
-     * <p/>
      * <pre>
      *               ProfessionInfo ::= SEQUENCE
      *               {

@@ -2,22 +2,17 @@ package org.ripple.bouncycastle.crypto.tls;
 
 import java.io.IOException;
 
-import org.ripple.bouncycastle.crypto.InvalidCipherTextException;
-import org.ripple.bouncycastle.crypto.encodings.PKCS1Encoding;
-import org.ripple.bouncycastle.crypto.engines.RSABlindedEngine;
 import org.ripple.bouncycastle.crypto.params.AsymmetricKeyParameter;
-import org.ripple.bouncycastle.crypto.params.ParametersWithRandom;
 import org.ripple.bouncycastle.crypto.params.RSAKeyParameters;
 
-public class DefaultTlsEncryptionCredentials
-    implements TlsEncryptionCredentials
+public class DefaultTlsEncryptionCredentials extends AbstractTlsEncryptionCredentials
 {
     protected TlsContext context;
     protected Certificate certificate;
     protected AsymmetricKeyParameter privateKey;
 
     public DefaultTlsEncryptionCredentials(TlsContext context, Certificate certificate,
-                                           AsymmetricKeyParameter privateKey)
+        AsymmetricKeyParameter privateKey)
     {
         if (certificate == null)
         {
@@ -58,18 +53,6 @@ public class DefaultTlsEncryptionCredentials
     public byte[] decryptPreMasterSecret(byte[] encryptedPreMasterSecret)
         throws IOException
     {
-
-        PKCS1Encoding encoding = new PKCS1Encoding(new RSABlindedEngine());
-        encoding.init(false, new ParametersWithRandom(this.privateKey, context.getSecureRandom()));
-
-        try
-        {
-            return encoding.processBlock(encryptedPreMasterSecret, 0,
-                encryptedPreMasterSecret.length);
-        }
-        catch (InvalidCipherTextException e)
-        {
-            throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-        }
+        return TlsRSAUtils.safeDecryptPreMasterSecret(context, (RSAKeyParameters)privateKey, encryptedPreMasterSecret);
     }
 }

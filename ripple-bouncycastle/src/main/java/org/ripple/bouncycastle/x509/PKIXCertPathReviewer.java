@@ -37,15 +37,15 @@ import java.util.Vector;
 import javax.security.auth.x500.X500Principal;
 
 import org.ripple.bouncycastle.asn1.ASN1Encodable;
+import org.ripple.bouncycastle.asn1.ASN1Enumerated;
 import org.ripple.bouncycastle.asn1.ASN1InputStream;
+import org.ripple.bouncycastle.asn1.ASN1Integer;
+import org.ripple.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.ripple.bouncycastle.asn1.ASN1OctetString;
 import org.ripple.bouncycastle.asn1.ASN1Primitive;
 import org.ripple.bouncycastle.asn1.ASN1Sequence;
 import org.ripple.bouncycastle.asn1.ASN1TaggedObject;
-import org.ripple.bouncycastle.asn1.DEREnumerated;
 import org.ripple.bouncycastle.asn1.DERIA5String;
-import org.ripple.bouncycastle.asn1.DERInteger;
-import org.ripple.bouncycastle.asn1.DERObjectIdentifier;
 import org.ripple.bouncycastle.asn1.DEROctetString;
 import org.ripple.bouncycastle.asn1.x509.AccessDescription;
 import org.ripple.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -71,7 +71,6 @@ import org.ripple.bouncycastle.i18n.filter.TrustedInput;
 import org.ripple.bouncycastle.i18n.filter.UntrustedInput;
 import org.ripple.bouncycastle.i18n.filter.UntrustedUrlInput;
 import org.ripple.bouncycastle.jce.provider.AnnotatedException;
-import org.ripple.bouncycastle.jce.provider.CertPathValidatorUtilities;
 import org.ripple.bouncycastle.jce.provider.PKIXNameConstraintValidator;
 import org.ripple.bouncycastle.jce.provider.PKIXNameConstraintValidatorException;
 import org.ripple.bouncycastle.jce.provider.PKIXPolicyNode;
@@ -89,7 +88,7 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
     private static final String CRL_DIST_POINTS = X509Extensions.CRLDistributionPoints.getId();
     private static final String AUTH_INFO_ACCESS = X509Extensions.AuthorityInfoAccess.getId();
     
-    private static final String RESOURCE_NAME = "org.bouncycastle.x509.CertPathReviewerMessages";
+    private static final String RESOURCE_NAME = "org.ripple.bouncycastle.x509.CertPathReviewerMessages";
     
     // input parameters
     
@@ -809,7 +808,7 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
         X509Certificate sign = null;
 
         AlgorithmIdentifier workingAlgId = null;
-        DERObjectIdentifier workingPublicKeyAlgorithm = null;
+        ASN1ObjectIdentifier workingPublicKeyAlgorithm = null;
         ASN1Encodable workingPublicKeyParameters = null;
         
         if (trust != null)
@@ -1215,7 +1214,7 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                     while (e.hasMoreElements())
                     {
                         PolicyInformation pInfo = PolicyInformation.getInstance(e.nextElement());
-                        DERObjectIdentifier pOid = pInfo.getPolicyIdentifier();
+                        ASN1ObjectIdentifier pOid = pInfo.getPolicyIdentifier();
 
                         pols.add(pOid.getId());
 
@@ -1301,9 +1300,9 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                                         {
                                             _policy = (String) _tmp;
                                         }
-                                        else if (_tmp instanceof DERObjectIdentifier)
+                                        else if (_tmp instanceof ASN1ObjectIdentifier)
                                         {
-                                            _policy = ((DERObjectIdentifier) _tmp).getId();
+                                            _policy = ((ASN1ObjectIdentifier) _tmp).getId();
                                         }
                                         else
                                         {
@@ -1425,8 +1424,8 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                         for (int j = 0; j < mappings.size(); j++) 
                         {
                             ASN1Sequence mapping = (ASN1Sequence) mappings.getObjectAt(j);
-                            DERObjectIdentifier ip_id = (DERObjectIdentifier) mapping.getObjectAt(0);
-                            DERObjectIdentifier sp_id = (DERObjectIdentifier) mapping.getObjectAt(1);
+                            ASN1ObjectIdentifier ip_id = (ASN1ObjectIdentifier) mapping.getObjectAt(0);
+                            ASN1ObjectIdentifier sp_id = (ASN1ObjectIdentifier) mapping.getObjectAt(1);
                             if (ANY_POLICY.equals(ip_id.getId())) 
                             {
                                 ErrorBundle msg = new ErrorBundle(RESOURCE_NAME,"CertPathReviewer.invalidPolicyMapping");
@@ -1451,8 +1450,8 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                         for (int j = 0; j < mappings.size(); j++)
                         {
                             ASN1Sequence mapping = (ASN1Sequence)mappings.getObjectAt(j);
-                            String id_p = ((DERObjectIdentifier)mapping.getObjectAt(0)).getId();
-                            String sd_p = ((DERObjectIdentifier)mapping.getObjectAt(1)).getId();
+                            String id_p = ((ASN1ObjectIdentifier)mapping.getObjectAt(0)).getId();
+                            String sd_p = ((ASN1ObjectIdentifier)mapping.getObjectAt(1)).getId();
                             Set tmp;
                             
                             if (!m_idp.containsKey(id_p))
@@ -1554,14 +1553,14 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                                 switch (constraint.getTagNo())
                                 {
                                 case 0:
-                                    tmpInt = DERInteger.getInstance(constraint, false).getValue().intValue();
+                                    tmpInt = ASN1Integer.getInstance(constraint, false).getValue().intValue();
                                     if (tmpInt < explicitPolicy)
                                     {
                                         explicitPolicy = tmpInt;
                                     }
                                     break;
                                 case 1:
-                                    tmpInt = DERInteger.getInstance(constraint, false).getValue().intValue();
+                                    tmpInt = ASN1Integer.getInstance(constraint, false).getValue().intValue();
                                     if (tmpInt < policyMapping)
                                     {
                                         policyMapping = tmpInt;
@@ -1583,7 +1582,7 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                     
                     try 
                     {
-                        DERInteger iap = (DERInteger)getExtensionValue(cert, INHIBIT_ANY_POLICY);
+                        ASN1Integer iap = (ASN1Integer)getExtensionValue(cert, INHIBIT_ANY_POLICY);
                         
                         if (iap != null)
                         {
@@ -1634,7 +1633,7 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                         switch (constraint.getTagNo())
                         {
                         case 0:
-                            int tmpInt = DERInteger.getInstance(constraint, false).getValue().intValue();
+                            int tmpInt = ASN1Integer.getInstance(constraint, false).getValue().intValue();
                             if (tmpInt == 0)
                             {
                                 explicitPolicy = 0;
@@ -1906,7 +1905,7 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                     while (it.hasNext())
                     {
                         msg = new ErrorBundle(RESOURCE_NAME,"CertPathReviewer.unknownCriticalExt",
-                                new Object[] {new DERObjectIdentifier((String) it.next())});
+                                new Object[] {new ASN1ObjectIdentifier((String) it.next())});
                         addError(msg, index);
                     }
                 }
@@ -2206,10 +2205,10 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                 
                 if (crl_entry.hasExtensions())
                 {
-                    DEREnumerated reasonCode;
+                    ASN1Enumerated reasonCode;
                     try
                     {
-                        reasonCode = DEREnumerated.getInstance(getExtensionValue(crl_entry, X509Extensions.ReasonCode.getId()));
+                        reasonCode = ASN1Enumerated.getInstance(getExtensionValue(crl_entry, X509Extensions.ReasonCode.getId()));
                     }
                     catch (AnnotatedException ae)
                     {
@@ -2297,10 +2296,10 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                     throw new CertPathReviewerException(msg,e);
                 }
 
-                baseSelect.setMinCRLNumber(((DERInteger)dci).getPositiveValue());
+                baseSelect.setMinCRLNumber(((ASN1Integer)dci).getPositiveValue());
                 try
                 {
-                    baseSelect.setMaxCRLNumber(((DERInteger)getExtensionValue(crl, CRL_NUMBER)).getPositiveValue().subtract(BigInteger.valueOf(1)));
+                    baseSelect.setMaxCRLNumber(((ASN1Integer)getExtensionValue(crl, CRL_NUMBER)).getPositiveValue().subtract(BigInteger.valueOf(1)));
                 }
                 catch (AnnotatedException ae)
                 {

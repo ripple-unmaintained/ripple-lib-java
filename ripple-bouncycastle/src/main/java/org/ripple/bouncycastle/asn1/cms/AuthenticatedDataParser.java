@@ -13,7 +13,7 @@ import org.ripple.bouncycastle.asn1.BERTags;
 import org.ripple.bouncycastle.asn1.x509.AlgorithmIdentifier;
 
 /**
- * Produce an object suitable for an ASN1OutputStream.
+ * Parse {@link AuthenticatedData} stream.
  * <pre>
  * AuthenticatedData ::= SEQUENCE {
  *       version CMSVersion,
@@ -127,7 +127,16 @@ public class AuthenticatedDataParser
         return null;
     }
 
+    /**
+     * @deprecated use getEncapsulatedContentInfo()
+     */
     public ContentInfoParser getEnapsulatedContentInfo()
+        throws IOException
+    {
+        return getEncapsulatedContentInfo();
+    }
+
+    public ContentInfoParser getEncapsulatedContentInfo()
         throws IOException
     {
         if (nextObject == null)

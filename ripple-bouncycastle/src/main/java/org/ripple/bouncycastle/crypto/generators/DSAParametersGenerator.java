@@ -42,7 +42,7 @@ public class DSAParametersGenerator
     /**
      * initialise the key generator.
      *
-     * @param size size of the key (range 2^512 -> 2^1024 - 64 bit increments)
+     * @param size size of the key (range 2^512 -&gt; 2^1024 - 64 bit increments)
      * @param certainty measure of robustness of prime (for FIPS 186-2 compliance this should be at least 80).
      * @param random random byte source.
      */
@@ -226,10 +226,10 @@ public class DSAParametersGenerator
         int seedlen = N;
         byte[] seed = new byte[seedlen / 8];
 
-// 3. n = ceiling(L ⁄ outlen) – 1.
+// 3. n = ceiling(L / outlen) - 1.
         int n = (L - 1) / outlen;
 
-// 4. b = L – 1 – (n ∗ outlen).
+// 4. b = L - 1 - (n * outlen).
         int b = (L - 1) % outlen;
 
         byte[] output = new byte[d.getDigestSize()];

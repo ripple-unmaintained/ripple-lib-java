@@ -6,19 +6,16 @@ import org.ripple.bouncycastle.util.Arrays;
 
 /**
  * The payload sent/received during the second round of a J-PAKE exchange.
- * <p/>
- * <p/>
+ * <p>
  * Each {@link JPAKEParticipant} creates and sends an instance
  * of this payload to the other {@link JPAKEParticipant}.
  * The payload to send should be created via
  * {@link JPAKEParticipant#createRound2PayloadToSend()}
- * <p/>
- * <p/>
+ * <p>
  * Each {@link JPAKEParticipant} must also validate the payload
  * received from the other {@link JPAKEParticipant}.
  * The received payload should be validated via
  * {@link JPAKEParticipant#validateRound2PayloadReceived(JPAKERound2Payload)}
- * <p/>
  */
 public class JPAKERound2Payload
 {
@@ -34,8 +31,9 @@ public class JPAKERound2Payload
 
     /**
      * The zero knowledge proof for x2 * s.
-     * <p/>
+     * <p>
      * This is a two element array, containing {g^v, r} for x2 * s.
+     * </p>
      */
     private final BigInteger[] knowledgeProofForX2s;
 

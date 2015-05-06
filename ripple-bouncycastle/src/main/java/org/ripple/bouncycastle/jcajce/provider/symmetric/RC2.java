@@ -28,7 +28,6 @@ import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseMac;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.BaseWrapCipher;
 import org.ripple.bouncycastle.jcajce.provider.symmetric.util.PBESecretKeyFactory;
 import org.ripple.bouncycastle.jcajce.provider.util.AlgorithmProvider;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.ripple.bouncycastle.util.Arrays;
 
 public final class RC2
@@ -235,7 +234,7 @@ public final class RC2
 
                 try
                 {
-                    params = AlgorithmParameters.getInstance("RC2", BouncyCastleProvider.PROVIDER_NAME);
+                    params = createParametersInstance("RC2");
                     params.init(new IvParameterSpec(iv));
                 }
                 catch (Exception e)
@@ -247,7 +246,7 @@ public final class RC2
             {
                 try
                 {
-                    params = AlgorithmParameters.getInstance("RC2", BouncyCastleProvider.PROVIDER_NAME);
+                    params = createParametersInstance("RC2");
                     params.init(spec);
                 }
                 catch (Exception e)

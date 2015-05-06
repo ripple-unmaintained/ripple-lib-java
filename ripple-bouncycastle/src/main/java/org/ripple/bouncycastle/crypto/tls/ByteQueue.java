@@ -8,7 +8,7 @@ public class ByteQueue
     /**
      * @return The smallest number which can be written as 2^x which is bigger than i.
      */
-    public static final int nextTwoPow(int i)
+    public static int nextTwoPow(int i)
     {
         /*
          * This code is based of a lot of code I found on the Internet which mostly
@@ -25,12 +25,12 @@ public class ByteQueue
     /**
      * The initial size for our buffer.
      */
-    private static final int INITBUFSIZE = 1024;
+    private static final int DEFAULT_CAPACITY = 1024;
 
     /**
      * The buffer where we store our data.
      */
-    private byte[] databuf = new byte[ByteQueue.INITBUFSIZE];
+    private byte[] databuf;
 
     /**
      * How many bytes at the beginning of the buffer are skipped.
@@ -42,6 +42,16 @@ public class ByteQueue
      */
     private int available = 0;
 
+    public ByteQueue()
+    {
+        this(DEFAULT_CAPACITY);
+    }
+
+    public ByteQueue(int capacity)
+    {
+        databuf = new byte[capacity];
+    }
+
     /**
      * Read data from the buffer.
      *
@@ -52,36 +62,44 @@ public class ByteQueue
      */
     public void read(byte[] buf, int offset, int len, int skip)
     {
-        if ((available - skip) < len)
-        {
-            throw new TlsRuntimeException("Not enough data to read");
-        }
         if ((buf.length - offset) < len)
         {
-            throw new TlsRuntimeException("Buffer size of " + buf.length
+            throw new IllegalArgumentException("Buffer size of " + buf.length
                 + " is too small for a read of " + len + " bytes");
         }
+        if ((available - skip) < len)
+        {
+            throw new IllegalStateException("Not enough data to read");
+        }
         System.arraycopy(databuf, skipped + skip, buf, offset, len);
-        return;
     }
 
     /**
      * Add some data to our buffer.
      *
-     * @param data   A byte-array to read data from.
-     * @param offset How many bytes to skip at the beginning of the array.
-     * @param len    How many bytes to read from the array.
+     * @param buf A byte-array to read data from.
+     * @param off How many bytes to skip at the beginning of the array.
+     * @param len How many bytes to read from the array.
      */
-    public void addData(byte[] data, int offset, int len)
+    public void addData(byte[] buf, int off, int len)
     {
         if ((skipped + available + len) > databuf.length)
         {
-            byte[] tmp = new byte[ByteQueue.nextTwoPow(data.length)];
-            System.arraycopy(databuf, skipped, tmp, 0, available);
+            int desiredSize = ByteQueue.nextTwoPow(available + len);
+            if (desiredSize > databuf.length)
+            {
+                byte[] tmp = new byte[desiredSize];
+                System.arraycopy(databuf, skipped, tmp, 0, available);
+                databuf = tmp;
+            }
+            else
+            {
+                System.arraycopy(databuf, skipped, databuf, 0, available);
+            }
             skipped = 0;
-            databuf = tmp;
         }
-        System.arraycopy(data, offset, databuf, skipped + available, len);
+
+        System.arraycopy(buf, off, databuf, skipped + available, len);
         available += len;
     }
 
@@ -94,7 +112,7 @@ public class ByteQueue
     {
         if (i > available)
         {
-            throw new TlsRuntimeException("Cannot remove " + i + " bytes, only got " + available);
+            throw new IllegalStateException("Cannot remove " + i + " bytes, only got " + available);
         }
 
         /*
@@ -102,21 +120,41 @@ public class ByteQueue
          */
         available -= i;
         skipped += i;
+    }
 
-        /*
-         * If more than half of our data is skipped, we will move the data in the buffer.
-         */
-        if (skipped > (databuf.length / 2))
-        {
-            System.arraycopy(databuf, skipped, databuf, 0, available);
-            skipped = 0;
-        }
+    /**
+     * Remove data from the buffer.
+     *
+     * @param buf The buffer where the removed data will be copied to.
+     * @param off How many bytes to skip at the beginning of buf.
+     * @param len How many bytes to read at all.
+     * @param skip How many bytes from our data to skip.
+     */
+    public void removeData(byte[] buf, int off, int len, int skip)
+    {
+        read(buf, off, len, skip);
+        removeData(skip + len);
+    }
+
+    public byte[] removeData(int len, int skip)
+    {
+        byte[] buf = new byte[len];
+        removeData(buf, 0, len, skip);
+        return buf;
+    }
+    
+    /**
+     * @deprecated Use 'available' instead
+     */
+    public int size()
+    {
+        return available;
     }
 
     /**
      * @return The number of bytes which are available in this buffer.
      */
-    public int size()
+    public int available()
     {
         return available;
     }

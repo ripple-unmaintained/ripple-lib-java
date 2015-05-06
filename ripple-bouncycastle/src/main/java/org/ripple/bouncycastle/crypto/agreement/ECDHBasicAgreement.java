@@ -42,10 +42,13 @@ public class ECDHBasicAgreement
         CipherParameters pubKey)
     {
         ECPublicKeyParameters pub = (ECPublicKeyParameters)pubKey;
-        ECPoint P = pub.getQ().multiply(key.getD());
+        ECPoint P = pub.getQ().multiply(key.getD()).normalize();
 
-        // if (p.isInfinity()) throw new RuntimeException("d*Q == infinity");
+        if (P.isInfinity())
+        {
+            throw new IllegalStateException("Infinity is not a valid agreement value for ECDH");
+        }
 
-        return P.getX().toBigInteger();
+        return P.getAffineXCoord().toBigInteger();
     }
 }

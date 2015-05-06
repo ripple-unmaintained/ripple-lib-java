@@ -8,10 +8,10 @@ import org.ripple.bouncycastle.crypto.KeyGenerationParameters;
 import org.ripple.bouncycastle.pqc.math.linearalgebra.GF2Matrix;
 import org.ripple.bouncycastle.pqc.math.linearalgebra.GF2mField;
 import org.ripple.bouncycastle.pqc.math.linearalgebra.GoppaCode;
+import org.ripple.bouncycastle.pqc.math.linearalgebra.GoppaCode.MaMaPe;
 import org.ripple.bouncycastle.pqc.math.linearalgebra.Permutation;
 import org.ripple.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
 import org.ripple.bouncycastle.pqc.math.linearalgebra.PolynomialRingGF2m;
-import org.ripple.bouncycastle.pqc.math.linearalgebra.GoppaCode.MaMaPe;
 
 
 /**

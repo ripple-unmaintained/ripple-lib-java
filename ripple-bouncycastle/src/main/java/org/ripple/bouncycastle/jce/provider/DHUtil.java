@@ -14,7 +14,7 @@ import org.ripple.bouncycastle.crypto.params.DHPublicKeyParameters;
 
 /**
  * utility class for converting jce/jca DH objects
- * objects into their org.bouncycastle.crypto counterparts.
+ * objects into their org.ripple.bouncycastle.crypto counterparts.
  */
 public class DHUtil
 {

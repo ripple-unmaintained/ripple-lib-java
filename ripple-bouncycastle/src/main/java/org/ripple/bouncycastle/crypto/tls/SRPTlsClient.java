@@ -1,77 +1,77 @@
 package org.ripple.bouncycastle.crypto.tls;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Hashtable;
 
 import org.ripple.bouncycastle.util.Arrays;
-import org.ripple.bouncycastle.util.Integers;
 
-public abstract class SRPTlsClient
+public class SRPTlsClient
     extends AbstractTlsClient
 {
-    public static final Integer EXT_SRP = Integers.valueOf(ExtensionType.srp);
+    protected TlsSRPGroupVerifier groupVerifier;
 
     protected byte[] identity;
     protected byte[] password;
 
     public SRPTlsClient(byte[] identity, byte[] password)
     {
-        super();
-        this.identity = Arrays.clone(identity);
-        this.password = Arrays.clone(password);
+        this(new DefaultTlsCipherFactory(), new DefaultTlsSRPGroupVerifier(), identity, password);
     }
 
     public SRPTlsClient(TlsCipherFactory cipherFactory, byte[] identity, byte[] password)
     {
+        this(cipherFactory, new DefaultTlsSRPGroupVerifier(), identity, password);
+    }
+
+    public SRPTlsClient(TlsCipherFactory cipherFactory, TlsSRPGroupVerifier groupVerifier,
+        byte[] identity, byte[] password)
+    {
         super(cipherFactory);
+        this.groupVerifier = groupVerifier;
         this.identity = Arrays.clone(identity);
         this.password = Arrays.clone(password);
     }
 
+    protected boolean requireSRPServerExtension()
+    {
+        // No explicit guidance in RFC 5054; by default an (empty) extension from server is optional
+        return false;
+    }
+
     public int[] getCipherSuites()
     {
-        return new int[]{CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_256_CBC_SHA,
-            CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA, CipherSuite.TLS_SRP_SHA_RSA_WITH_3DES_EDE_CBC_SHA,
-            CipherSuite.TLS_SRP_SHA_WITH_AES_256_CBC_SHA, CipherSuite.TLS_SRP_SHA_WITH_AES_128_CBC_SHA,
-            CipherSuite.TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA,};
+        return new int[]
+        {
+            CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA
+        };
     }
 
     public Hashtable getClientExtensions()
         throws IOException
     {
-
-        Hashtable clientExtensions = super.getClientExtensions();
-        if (clientExtensions == null)
-        {
-            clientExtensions = new Hashtable();
-        }
-
-        ByteArrayOutputStream srpData = new ByteArrayOutputStream();
-        TlsUtils.writeOpaque8(this.identity, srpData);
-        clientExtensions.put(EXT_SRP, srpData.toByteArray());
-
+        Hashtable clientExtensions = TlsExtensionsUtils.ensureExtensionsInitialised(super.getClientExtensions());
+        TlsSRPUtils.addSRPExtension(clientExtensions, this.identity);
         return clientExtensions;
     }
 
     public void processServerExtensions(Hashtable serverExtensions)
         throws IOException
     {
-        // No explicit guidance in RFC 5054 here; we allow an optional empty extension from server
-        if (serverExtensions != null)
+        if (!TlsUtils.hasExpectedEmptyExtensionData(serverExtensions, TlsSRPUtils.EXT_SRP,
+            AlertDescription.illegal_parameter))
         {
-            byte[] extValue = (byte[])serverExtensions.get(EXT_SRP);
-            if (extValue != null && extValue.length > 0)
+            if (requireSRPServerExtension())
             {
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
         }
+
+        super.processServerExtensions(serverExtensions);
     }
 
     public TlsKeyExchange getKeyExchange()
         throws IOException
     {
-
         switch (selectedCipherSuite)
         {
         case CipherSuite.TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA:
@@ -99,10 +99,18 @@ public abstract class SRPTlsClient
         }
     }
 
+    public TlsAuthentication getAuthentication() throws IOException
+    {
+        /*
+         * Note: This method is not called unless a server certificate is sent, which may be the
+         * case e.g. for SRP_DSS or SRP_RSA key exchange.
+         */
+        throw new TlsFatalAlert(AlertDescription.internal_error);
+    }
+
     public TlsCipher getCipher()
         throws IOException
     {
-
         switch (selectedCipherSuite)
         {
         case CipherSuite.TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA:
@@ -132,6 +140,6 @@ public abstract class SRPTlsClient
 
     protected TlsKeyExchange createSRPKeyExchange(int keyExchange)
     {
-        return new TlsSRPKeyExchange(keyExchange, supportedSignatureAlgorithms, identity, password);
+        return new TlsSRPKeyExchange(keyExchange, supportedSignatureAlgorithms, groupVerifier, identity, password);
     }
 }

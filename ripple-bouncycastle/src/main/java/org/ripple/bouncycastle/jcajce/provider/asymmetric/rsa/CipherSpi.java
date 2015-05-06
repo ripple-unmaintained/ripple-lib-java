@@ -33,12 +33,15 @@ import org.ripple.bouncycastle.crypto.engines.RSABlindedEngine;
 import org.ripple.bouncycastle.crypto.params.ParametersWithRandom;
 import org.ripple.bouncycastle.jcajce.provider.asymmetric.util.BaseCipherSpi;
 import org.ripple.bouncycastle.jcajce.provider.util.DigestFactory;
-import org.ripple.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.ripple.bouncycastle.jcajce.util.BCJcaJceHelper;
+import org.ripple.bouncycastle.jcajce.util.JcaJceHelper;
 import org.ripple.bouncycastle.util.Strings;
 
 public class CipherSpi
     extends BaseCipherSpi
 {
+    private final JcaJceHelper helper = new BCJcaJceHelper();
+
     private AsymmetricBlockCipher cipher;
     private AlgorithmParameterSpec paramSpec;
     private AlgorithmParameters engineParams;
@@ -143,7 +146,7 @@ public class CipherSpi
             {
                 try
                 {
-                    engineParams = AlgorithmParameters.getInstance("OAEP", BouncyCastleProvider.PROVIDER_NAME);
+                    engineParams = helper.createAlgorithmParameters("OAEP");
                     engineParams.init(paramSpec);
                 }
                 catch (Exception e)
@@ -307,7 +310,7 @@ public class CipherSpi
         }
         else
         {
-            throw new IllegalArgumentException("unknown parameter type.");
+            throw new InvalidAlgorithmParameterException("unknown parameter type: " + params.getClass().getName());
         }
 
         if (!(cipher instanceof RSABlindedEngine))

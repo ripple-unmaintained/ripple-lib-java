@@ -1,13 +1,8 @@
 package org.ripple.bouncycastle.jce;
 
 import java.util.Enumeration;
-import java.util.Vector;
 
 import org.ripple.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.ripple.bouncycastle.asn1.nist.NISTNamedCurves;
-import org.ripple.bouncycastle.asn1.sec.SECNamedCurves;
-import org.ripple.bouncycastle.asn1.teletrust.TeleTrusTNamedCurves;
-import org.ripple.bouncycastle.asn1.x9.X962NamedCurves;
 import org.ripple.bouncycastle.asn1.x9.X9ECParameters;
 import org.ripple.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 
@@ -26,56 +21,35 @@ public class ECNamedCurveTable
     public static ECNamedCurveParameterSpec getParameterSpec(
         String  name)
     {
-        X9ECParameters  ecP = X962NamedCurves.getByName(name);
+        X9ECParameters  ecP = org.ripple.bouncycastle.crypto.ec.CustomNamedCurves.getByName(name);
         if (ecP == null)
         {
             try
             {
-                ecP = X962NamedCurves.getByOID(new ASN1ObjectIdentifier(name));
+                ecP = org.ripple.bouncycastle.crypto.ec.CustomNamedCurves.getByOID(new ASN1ObjectIdentifier(name));
             }
             catch (IllegalArgumentException e)
             {
                 // ignore - not an oid
             }
-        }
-        
-        if (ecP == null)
-        {
-            ecP = SECNamedCurves.getByName(name);
+
             if (ecP == null)
             {
-                try
+                ecP = org.ripple.bouncycastle.asn1.x9.ECNamedCurveTable.getByName(name);
+                if (ecP == null)
                 {
-                    ecP = SECNamedCurves.getByOID(new ASN1ObjectIdentifier(name));
-                }
-                catch (IllegalArgumentException e)
-                {
-                    // ignore - not an oid
+                    try
+                    {
+                        ecP = org.ripple.bouncycastle.asn1.x9.ECNamedCurveTable.getByOID(new ASN1ObjectIdentifier(name));
+                    }
+                    catch (IllegalArgumentException e)
+                    {
+                        // ignore - not an oid
+                    }
                 }
             }
         }
 
-        if (ecP == null)
-        {
-            ecP = TeleTrusTNamedCurves.getByName(name);
-            if (ecP == null)
-            {
-                try
-                {
-                    ecP = TeleTrusTNamedCurves.getByOID(new ASN1ObjectIdentifier(name));
-                }
-                catch (IllegalArgumentException e)
-                {
-                    // ignore - not an oid
-                }
-            }
-        }
-
-        if (ecP == null)
-        {
-            ecP = NISTNamedCurves.getByName(name);
-        }
-        
         if (ecP == null)
         {
             return null;
@@ -97,23 +71,6 @@ public class ECNamedCurveTable
      */
     public static Enumeration getNames()
     {
-        Vector v = new Vector();
-        
-        addEnumeration(v, X962NamedCurves.getNames());
-        addEnumeration(v, SECNamedCurves.getNames());
-        addEnumeration(v, NISTNamedCurves.getNames());
-        addEnumeration(v, TeleTrusTNamedCurves.getNames());
-
-        return v.elements();
-    }
-
-    private static void addEnumeration(
-        Vector v, 
-        Enumeration e)
-    {
-        while (e.hasMoreElements())
-        {
-            v.addElement(e.nextElement());
-        }
+        return org.ripple.bouncycastle.asn1.x9.ECNamedCurveTable.getNames();
     }
 }

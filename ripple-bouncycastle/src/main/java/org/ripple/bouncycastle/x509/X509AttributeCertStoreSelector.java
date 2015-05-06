@@ -27,7 +27,7 @@ import org.ripple.bouncycastle.util.Selector;
  * 
  * @see org.ripple.bouncycastle.x509.X509AttributeCertificate
  * @see org.ripple.bouncycastle.x509.X509Store
- *  @deprecated use org.bouncycastle.cert.X509AttributeCertificateSelector and org.bouncycastle.cert.X509AttributeCertificateSelectorBuilder.
+ *  @deprecated use org.ripple.bouncycastle.cert.X509AttributeCertificateSelector and org.ripple.bouncycastle.cert.X509AttributeCertificateSelectorBuilder.
  */
 public class X509AttributeCertStoreSelector
     implements Selector

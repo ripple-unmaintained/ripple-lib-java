@@ -10,16 +10,12 @@ import org.ripple.bouncycastle.asn1.ASN1Integer;
 import org.ripple.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.ripple.bouncycastle.asn1.ASN1OctetString;
 import org.ripple.bouncycastle.asn1.ASN1Primitive;
-import org.ripple.bouncycastle.asn1.ASN1Sequence;
 import org.ripple.bouncycastle.asn1.DEROctetString;
-import org.ripple.bouncycastle.asn1.nist.NISTNamedCurves;
 import org.ripple.bouncycastle.asn1.oiw.ElGamalParameter;
 import org.ripple.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
 import org.ripple.bouncycastle.asn1.pkcs.DHParameter;
 import org.ripple.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.ripple.bouncycastle.asn1.pkcs.RSAPublicKey;
-import org.ripple.bouncycastle.asn1.sec.SECNamedCurves;
-import org.ripple.bouncycastle.asn1.teletrust.TeleTrusTNamedCurves;
 import org.ripple.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.ripple.bouncycastle.asn1.x509.DSAParameter;
 import org.ripple.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -27,11 +23,12 @@ import org.ripple.bouncycastle.asn1.x509.X509ObjectIdentifiers;
 import org.ripple.bouncycastle.asn1.x9.DHDomainParameters;
 import org.ripple.bouncycastle.asn1.x9.DHPublicKey;
 import org.ripple.bouncycastle.asn1.x9.DHValidationParms;
-import org.ripple.bouncycastle.asn1.x9.X962NamedCurves;
+import org.ripple.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.ripple.bouncycastle.asn1.x9.X962Parameters;
 import org.ripple.bouncycastle.asn1.x9.X9ECParameters;
 import org.ripple.bouncycastle.asn1.x9.X9ECPoint;
 import org.ripple.bouncycastle.asn1.x9.X9ObjectIdentifiers;
+import org.ripple.bouncycastle.crypto.ec.CustomNamedCurves;
 import org.ripple.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.ripple.bouncycastle.crypto.params.DHParameters;
 import org.ripple.bouncycastle.crypto.params.DHPublicKeyParameters;
@@ -39,6 +36,7 @@ import org.ripple.bouncycastle.crypto.params.DHValidationParameters;
 import org.ripple.bouncycastle.crypto.params.DSAParameters;
 import org.ripple.bouncycastle.crypto.params.DSAPublicKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ECDomainParameters;
+import org.ripple.bouncycastle.crypto.params.ECNamedDomainParameters;
 import org.ripple.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.ripple.bouncycastle.crypto.params.ElGamalParameters;
 import org.ripple.bouncycastle.crypto.params.ElGamalPublicKeyParameters;
@@ -137,7 +135,7 @@ public class PublicKeyFactory
         }
         else if (algId.getAlgorithm().equals(OIWObjectIdentifiers.elGamalAlgorithm))
         {
-            ElGamalParameter params = new ElGamalParameter((ASN1Sequence)algId.getParameters());
+            ElGamalParameter params = ElGamalParameter.getInstance(algId.getParameters());
             ASN1Integer derY = (ASN1Integer)keyInfo.parsePublicKey();
 
             return new ElGamalPublicKeyParameters(derY.getValue(), new ElGamalParameters(
@@ -160,42 +158,32 @@ public class PublicKeyFactory
         }
         else if (algId.getAlgorithm().equals(X9ObjectIdentifiers.id_ecPublicKey))
         {
-            X962Parameters params = new X962Parameters(
-                (ASN1Primitive)algId.getParameters());
+            X962Parameters params = X962Parameters.getInstance(algId.getParameters());
 
             X9ECParameters x9;
+            ECDomainParameters dParams;
+
             if (params.isNamedCurve())
             {
                 ASN1ObjectIdentifier oid = (ASN1ObjectIdentifier)params.getParameters();
-                x9 = X962NamedCurves.getByOID(oid);
 
+                x9 = CustomNamedCurves.getByOID(oid);
                 if (x9 == null)
                 {
-                    x9 = SECNamedCurves.getByOID(oid);
-
-                    if (x9 == null)
-                    {
-                        x9 = NISTNamedCurves.getByOID(oid);
-
-                        if (x9 == null)
-                        {
-                            x9 = TeleTrusTNamedCurves.getByOID(oid);
-                        }
-                    }
+                    x9 = ECNamedCurveTable.getByOID(oid);
                 }
+                dParams = new ECNamedDomainParameters(
+                         oid, x9.getCurve(), x9.getG(), x9.getN(), x9.getH(), x9.getSeed());
             }
             else
             {
                 x9 = X9ECParameters.getInstance(params.getParameters());
+                dParams = new ECDomainParameters(
+                         x9.getCurve(), x9.getG(), x9.getN(), x9.getH(), x9.getSeed());
             }
 
             ASN1OctetString key = new DEROctetString(keyInfo.getPublicKeyData().getBytes());
             X9ECPoint derQ = new X9ECPoint(x9.getCurve(), key);
-
-            // TODO We lose any named parameters here
-            
-            ECDomainParameters dParams = new ECDomainParameters(
-                    x9.getCurve(), x9.getG(), x9.getN(), x9.getH(), x9.getSeed());
 
             return new ECPublicKeyParameters(derQ.getPoint(), dParams);
         }

@@ -1,13 +1,13 @@
 package org.ripple.bouncycastle.crypto.tls;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.Vector;
 
 import org.ripple.bouncycastle.asn1.x509.KeyUsage;
 import org.ripple.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.ripple.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.ripple.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.ripple.bouncycastle.crypto.params.DHParameters;
 import org.ripple.bouncycastle.crypto.params.DHPrivateKeyParameters;
@@ -15,28 +15,22 @@ import org.ripple.bouncycastle.crypto.params.DHPublicKeyParameters;
 import org.ripple.bouncycastle.crypto.util.PublicKeyFactory;
 
 /**
- * TLS 1.0/1.1 DH key exchange.
+ * (D)TLS DH key exchange.
  */
 public class TlsDHKeyExchange
     extends AbstractTlsKeyExchange
 {
-
-    protected static final BigInteger ONE = BigInteger.valueOf(1);
-    protected static final BigInteger TWO = BigInteger.valueOf(2);
-
     protected TlsSigner tlsSigner;
     protected DHParameters dhParameters;
 
     protected AsymmetricKeyParameter serverPublicKey;
-    protected DHPublicKeyParameters dhAgreeServerPublicKey;
     protected TlsAgreementCredentials agreementCredentials;
-    protected DHPrivateKeyParameters dhAgreeClientPrivateKey;
 
-    protected DHPublicKeyParameters dhAgreeClientPublicKey;
+    protected DHPrivateKeyParameters dhAgreePrivateKey;
+    protected DHPublicKeyParameters dhAgreePublicKey;
 
     public TlsDHKeyExchange(int keyExchange, Vector supportedSignatureAlgorithms, DHParameters dhParameters)
     {
-
         super(keyExchange, supportedSignatureAlgorithms);
 
         switch (keyExchange)
@@ -77,7 +71,6 @@ public class TlsDHKeyExchange
     public void processServerCertificate(Certificate serverCertificate)
         throws IOException
     {
-
         if (serverCertificate.isEmpty())
         {
             throw new TlsFatalAlert(AlertDescription.bad_certificate);
@@ -92,18 +85,18 @@ public class TlsDHKeyExchange
         }
         catch (RuntimeException e)
         {
-            throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+            throw new TlsFatalAlert(AlertDescription.unsupported_certificate, e);
         }
 
         if (tlsSigner == null)
         {
             try
             {
-                this.dhAgreeServerPublicKey = validateDHPublicKey((DHPublicKeyParameters)this.serverPublicKey);
+                this.dhAgreePublicKey = TlsDHUtils.validateDHPublicKey((DHPublicKeyParameters)this.serverPublicKey);
             }
             catch (ClassCastException e)
             {
-                throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown, e);
             }
 
             TlsUtils.validateKeyUsage(x509Cert, KeyUsage.keyAgreement);
@@ -183,9 +176,28 @@ public class TlsDHKeyExchange
          */
         if (agreementCredentials == null)
         {
-            this.dhAgreeClientPrivateKey = TlsDHUtils.generateEphemeralClientKeyExchange(context.getSecureRandom(),
-                dhAgreeServerPublicKey.getParameters(), output);
+            this.dhAgreePrivateKey = TlsDHUtils.generateEphemeralClientKeyExchange(context.getSecureRandom(),
+                dhParameters, output);
         }
+    }
+
+    public void processClientCertificate(Certificate clientCertificate) throws IOException
+    {
+        // TODO Extract the public key
+        // TODO If the certificate is 'fixed', take the public key as dhAgreeClientPublicKey
+    }
+
+    public void processClientKeyExchange(InputStream input) throws IOException
+    {
+        if (dhAgreePublicKey != null)
+        {
+            // For dss_fixed_dh and rsa_fixed_dh, the key arrived in the client certificate
+            return;
+        }
+
+        BigInteger Yc = TlsDHUtils.readDHParameter(input);
+        
+        this.dhAgreePublicKey = TlsDHUtils.validateDHPublicKey(new DHPublicKeyParameters(Yc, dhParameters));
     }
 
     public byte[] generatePremasterSecret()
@@ -193,30 +205,14 @@ public class TlsDHKeyExchange
     {
         if (agreementCredentials != null)
         {
-            return agreementCredentials.generateAgreement(dhAgreeServerPublicKey);
+            return agreementCredentials.generateAgreement(dhAgreePublicKey);
         }
 
-        return calculateDHBasicAgreement(dhAgreeServerPublicKey, dhAgreeClientPrivateKey);
-    }
+        if (dhAgreePrivateKey != null)
+        {
+            return TlsDHUtils.calculateDHBasicAgreement(dhAgreePublicKey, dhAgreePrivateKey);
+        }
 
-    protected boolean areCompatibleParameters(DHParameters a, DHParameters b)
-    {
-        return a.getP().equals(b.getP()) && a.getG().equals(b.getG());
-    }
-
-    protected byte[] calculateDHBasicAgreement(DHPublicKeyParameters publicKey, DHPrivateKeyParameters privateKey)
-    {
-        return TlsDHUtils.calculateDHBasicAgreement(publicKey, privateKey);
-    }
-
-    protected AsymmetricCipherKeyPair generateDHKeyPair(DHParameters dhParams)
-    {
-        return TlsDHUtils.generateDHKeyPair(context.getSecureRandom(), dhParams);
-    }
-
-    protected DHPublicKeyParameters validateDHPublicKey(DHPublicKeyParameters key)
-        throws IOException
-    {
-        return TlsDHUtils.validateDHPublicKey(key);
+        throw new TlsFatalAlert(AlertDescription.internal_error);
     }
 }

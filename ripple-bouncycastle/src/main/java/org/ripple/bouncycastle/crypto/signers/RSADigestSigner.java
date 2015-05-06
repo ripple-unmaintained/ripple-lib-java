@@ -48,6 +48,8 @@ public class RSADigestSigner
         oidMap.put("SHA-256", NISTObjectIdentifiers.id_sha256);
         oidMap.put("SHA-384", NISTObjectIdentifiers.id_sha384);
         oidMap.put("SHA-512", NISTObjectIdentifiers.id_sha512);
+        oidMap.put("SHA-512/224", NISTObjectIdentifiers.id_sha512_224);
+        oidMap.put("SHA-512/256", NISTObjectIdentifiers.id_sha512_256);
 
         oidMap.put("MD2", PKCSObjectIdentifiers.md2);
         oidMap.put("MD4", PKCSObjectIdentifiers.md4);
@@ -57,9 +59,15 @@ public class RSADigestSigner
     public RSADigestSigner(
         Digest digest)
     {
-        this.digest = digest;
+        this(digest, (ASN1ObjectIdentifier)oidMap.get(digest.getAlgorithmName()));
+    }
 
-        algId = new AlgorithmIdentifier((ASN1ObjectIdentifier)oidMap.get(digest.getAlgorithmName()), DERNull.INSTANCE);
+    public RSADigestSigner(
+        Digest digest,
+        ASN1ObjectIdentifier digestOid)
+    {
+        this.digest = digest;
+        this.algId = new AlgorithmIdentifier(digestOid, DERNull.INSTANCE);
     }
 
     /**
@@ -212,6 +220,8 @@ public class RSADigestSigner
         }
         else
         {
+            Arrays.constantTimeAreEqual(expected, expected);  // keep time "steady".
+
             return false;
         }
     }
