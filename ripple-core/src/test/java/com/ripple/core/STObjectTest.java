@@ -468,7 +468,7 @@ public class STObjectTest {
 
         payment.putTranslated(UInt32.Sequence, 5);
         payment.putTranslated(Amount.Fee, "15");
-        payment.putTranslated(Blob.SigningPubKey, kp.pubHex());
+        payment.putTranslated(Blob.SigningPubKey, kp.canonicalPubHex());
         payment.putTranslated(Amount.Amount, "12/USD/" + ac.address);
 
         assertEquals(expectedSerialization, payment.toHex());

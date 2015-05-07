@@ -38,7 +38,6 @@ public class SignTransaction {
         print("{0}", payment.prettyJSON());
         print("The signed transaction, with SigningPubKey and TxnSignature:");
         print("{0}", signed.txn.prettyJSON());
-        print("The signing hash:   {0}", signed.signingHash);
         print("The transaction id: {0}", signed.hash);
         print("The blob to submit to rippled:");
         print(signed.tx_blob);
@@ -55,15 +54,9 @@ public class SignTransaction {
         // fromJSON will give us a payment object but we must cast it
         Payment txn = (Payment) STObject.fromJSON(tx_json);
         SignedTransaction signedAgain = txn.sign(secret);
-
-        // The signing hash will be the same
-        if (!signedAgain.signingHash.equals(signedAlready.signingHash))
-            throw new AssertionError();
-
-        // There's a random component to TxnSignature which
-        // is a component of the `transaction id` but not the
-        // signing hash.
-        if (signedAgain.hash.equals(signedAlready.hash))
+        // The hash will actually be exactly the same due to rfc6979
+        // deterministic signatures.
+        if (!signedAlready.hash.equals(signedAgain.hash))
             throw new AssertionError();
     }
 }

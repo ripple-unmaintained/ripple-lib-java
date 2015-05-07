@@ -14,7 +14,7 @@ public class B58IdentiferCodecs {
     public static final int VER_ACCOUNT_PRIVATE   = 34;
     public static final int VER_FAMILY_GENERATOR  = 41;
 
-    B58 b58;
+    public B58 b58;
 
     public B58IdentiferCodecs(B58 base58encoder) {
         this.b58 = base58encoder;

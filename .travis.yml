@@ -2,6 +2,11 @@ language: java
 jdk:
   - oraclejdk8
 before_install:
+ # install ed25519-java
+ - git clone https://github.com/str4d/ed25519-java.git 
+ - cd ed25519-java 
+ - mvn install
+ - cd ..
 
  # Download the SDK
  - wget http://dl.google.com/android/android-sdk_r23.0.2-linux.tgz

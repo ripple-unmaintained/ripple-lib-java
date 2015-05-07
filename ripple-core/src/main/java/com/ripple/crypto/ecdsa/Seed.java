@@ -1,43 +1,70 @@
 package com.ripple.crypto.ecdsa;
 
+import com.ripple.config.Config;
+import com.ripple.encodings.B58IdentiferCodecs;
+import com.ripple.encodings.base58.B58;
 import com.ripple.utils.Sha512;
 import com.ripple.utils.Utils;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.util.Arrays;
 
 import static com.ripple.config.Config.getB58IdentiferCodecs;
 
 public class Seed {
-    // See https://wiki.ripple.com/Account_Family
+    public static byte[] VER_K256 = new byte[]{(byte) B58IdentiferCodecs.VER_FAMILY_SEED};
+    public static byte[] VER_ED25519 = new byte[]{(byte) 0x1, (byte) 0xe1, (byte) 0x4b};
+
     final byte[] seedBytes;
+    byte[] version;
 
     public Seed(byte[] seedBytes) {
+        this(VER_K256, seedBytes);
+    }
+    public Seed(byte[] version, byte[] seedBytes) {
         this.seedBytes = seedBytes;
+        this.version = version;
     }
 
     @Override
     public String toString() {
-        return getB58IdentiferCodecs().encodeFamilySeed(seedBytes);
+        return Config.getB58().encodeToStringChecked(seedBytes, version);
     }
 
-    public byte[] getBytes() {
+    public byte[] bytes() {
         return seedBytes;
     }
 
-    public IKeyPair keyPair() {
-        return createKeyPair(seedBytes, 0);
+    public byte[] version() {
+        return version;
     }
+
+    public Seed setEd25519() {
+        this.version = VER_ED25519;
+        return this;
+    }
+
+    public IKeyPair keyPair() {
+        return keyPair(0);
+    }
+
     public IKeyPair rootKeyPair() {
-        return createKeyPair(seedBytes, -1);
+        return keyPair(-1);
     }
 
     public IKeyPair keyPair(int account) {
-        return createKeyPair(seedBytes, account);
-    }
+        if (Arrays.equals(version, VER_ED25519)) {
+            if (account != 0) throw new AssertionError();
+            return EDKeyPair.from128Seed(seedBytes);
+        }  else {
+            return createKeyPair(seedBytes, account);
+        }
 
+    }
     public static Seed fromBase58(String b58) {
-        return new Seed(getB58IdentiferCodecs().decodeFamilySeed(b58));
+        B58.Decoded decoded = Config.getB58().decodeMulti(b58, 16, VER_K256, VER_ED25519);
+        return new Seed(decoded.version, decoded.payload);
     }
 
     public static Seed fromPassPhrase(String passPhrase) {
@@ -59,80 +86,18 @@ public class Seed {
     public static IKeyPair createKeyPair(byte[] seedBytes, int accountNumber) {
         BigInteger secret, pub, privateGen;
         // The private generator (aka root private key, master private key)
-        privateGen = computePrivateGen(seedBytes);
-        byte[] publicGenBytes = computePublicGenerator(privateGen);
+        privateGen = K256KeyPair.computePrivateGen(seedBytes);
+        byte[] publicGenBytes = K256KeyPair.computePublicGenerator(privateGen);
 
         if (accountNumber == -1) {
             // The root keyPair
-            return new KeyPair(privateGen, Utils.uBigInt(publicGenBytes));
-        }
-        else {
-            secret = computeSecretKey(privateGen, publicGenBytes, accountNumber);
-            pub = computePublicKey(secret);
-            return new KeyPair(secret, pub);
-        }
-
-    }
-
-    /**
-     *
-     * @param secretKey secret point on the curve as BigInteger
-     * @return corresponding public point
-     */
-    public static byte[] getPublic(BigInteger secretKey) {
-        return SECP256K1.basePointMultipliedBy(secretKey);
-    }
-
-    /**
-     *
-     * @param privateGen secret point on the curve as BigInteger
-     * @return the corresponding public key is the public generator
-     *         (aka public root key, master public key).
-     *         return as byte[] for convenience.
-     */
-    public static byte[] computePublicGenerator(BigInteger privateGen) {
-        return getPublic(privateGen);
-    }
-
-    public static BigInteger computePublicKey(BigInteger secret) {
-        return Utils.uBigInt(getPublic(secret));
-    }
-
-    public static BigInteger computePrivateGen(byte[] seedBytes) {
-        byte[] privateGenBytes;
-        BigInteger privateGen;
-        int i = 0;
-
-        while (true) {
-            privateGenBytes = new Sha512().add(seedBytes)
-                                          .add32(i++)
-                                          .finish256();
-            privateGen = Utils.uBigInt(privateGenBytes);
-            if (privateGen.compareTo(SECP256K1.order()) == -1) {
-                break;
-            }
-        }
-        return privateGen;
-    }
-
-    public static BigInteger computeSecretKey(BigInteger privateGen, byte[] publicGenBytes, int accountNumber) {
-        BigInteger secret;
-        int i;
-
-        i=0;
-        while (true) {
-            byte[] secretBytes = new Sha512().add(publicGenBytes)
-                                             .add32(accountNumber)
-                                             .add32(i++)
-                                             .finish256();
-            secret = Utils.uBigInt(secretBytes);
-            if (secret.compareTo(SECP256K1.order()) == -1) {
-                break;
-            }
+            return new K256KeyPair(privateGen, Utils.uBigInt(publicGenBytes));
+        } else {
+            secret = K256KeyPair.computeSecretKey(privateGen, publicGenBytes, accountNumber);
+            pub = K256KeyPair.computePublicKey(secret);
+            return new K256KeyPair(secret, pub);
         }
 
-        secret = secret.add(privateGen).mod(SECP256K1.order());
-        return secret;
     }
 
     public static IKeyPair getKeyPair(byte[] seedBytes) {

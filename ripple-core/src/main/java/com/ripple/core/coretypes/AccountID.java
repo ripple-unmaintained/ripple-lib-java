@@ -69,7 +69,7 @@ public class AccountID extends Hash160 {
     }
 
     public static AccountID fromKeyPair(IKeyPair kp) {
-        byte[] bytes = kp.public_key_160_hash();
+        byte[] bytes = kp.pub160Hash();
         return new AccountID(bytes, encodeAddress(bytes));
     }
 

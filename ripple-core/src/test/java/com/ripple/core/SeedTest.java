@@ -1,12 +1,13 @@
 package com.ripple.core;
 
 import com.ripple.config.Config;
+import com.ripple.crypto.ecdsa.EDKeyPair;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
 import com.ripple.encodings.B58IdentiferCodecs;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class SeedTest {
     static {
@@ -44,15 +45,28 @@ public class SeedTest {
         B58IdentiferCodecs b58 = Config.getB58IdentiferCodecs();
         Seed seed = Seed.fromPassPhrase("N4");
         IKeyPair rootPair = seed.rootKeyPair();
-        String s = b58.encodeNodePublic(rootPair.pubBytes());
+        String s = b58.encodeNodePublic(rootPair.canonicalPubBytes());
         assertEquals("n9JvnFJFCrdeRonKkuQHzE4VxT1QaG8Zo1VoG5okiTZ2S9B7ihsx", s);
+    }
+
+    @Test
+    public void testsEd25519Seeds() {
+        Seed seed = Seed.fromPassPhrase("N4").setEd25519();
+        String sEdPrefixed = seed.toString();
+        assertEquals("sEd", sEdPrefixed.substring(0, 3));
+        Seed fromBase58 = Seed.fromBase58(sEdPrefixed);
+        assertArrayEquals(seed.bytes(), fromBase58.bytes());
+        assertArrayEquals(Seed.VER_ED25519, fromBase58.version());
+        assertEquals(16, fromBase58.bytes().length);
+        IKeyPair iKeyPair = seed.keyPair();
+        assertTrue(iKeyPair instanceof EDKeyPair);
     }
 
     @Test
     public void testCreateKeypairFromAccountNumber() {
         for (int i = 0; i < ADDRESS_ARRAY.length; i=i+ADDRESS_LINE_SIZE) {
             IKeyPair keyPair = Seed.fromPassPhrase(ADDRESS_ARRAY[i]).keyPair(Integer.valueOf(ADDRESS_ARRAY[i+2]));
-            assertEquals(ADDRESS_ARRAY[i+3], keyPair.pubHex());
+            assertEquals(ADDRESS_ARRAY[i+3], keyPair.canonicalPubHex());
         }
     }
     private static String phraseToFamilySeed(String passphrase) {

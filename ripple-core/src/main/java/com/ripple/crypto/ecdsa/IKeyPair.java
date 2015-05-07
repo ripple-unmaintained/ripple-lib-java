@@ -3,15 +3,15 @@ package com.ripple.crypto.ecdsa;
 import java.math.BigInteger;
 
 public interface IKeyPair {
-    String pubHex();
+    String canonicalPubHex();
+    byte[] canonicalPubBytes();
+
     BigInteger pub();
-    byte[] pubBytes();
-
-    String privHex();
     BigInteger priv();
+    String privHex();
 
-    boolean verify(byte[] data, byte[] sigBytes);
-    byte[] sign(byte[] bytes);
+    boolean verifySignature(byte[] message, byte[] sigBytes);
+    byte[] signMessage(byte[] message);
 
-    byte[] public_key_160_hash();
+    byte[] pub160Hash();
 }

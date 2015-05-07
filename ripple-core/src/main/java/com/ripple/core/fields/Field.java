@@ -88,7 +88,7 @@ public enum Field {
     RippleEscrow(17, Type.Amount),
     // Added in rippled commit: e7f0b8eca69dd47419eee7b82c8716b3aa5a9e39
     DeliveredAmount(18, Type.Amount),
-    // These are auxillary fields
+    // These are auxiliary fields
 //    quality(257, Type.AMOUNT),
     taker_gets_funded(258, Type.Amount),
     taker_pays_funded(259, Type.Amount),

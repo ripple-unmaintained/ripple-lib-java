@@ -27,5 +27,10 @@
             <artifactId>json</artifactId>
             <version>20140107</version>
         </dependency>
+        <dependency>
+            <groupId>net.i2p.crypto</groupId>
+            <artifactId>eddsa</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>

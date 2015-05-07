@@ -12,6 +12,7 @@ import com.ripple.core.coretypes.uint.UInt32;
 import com.ripple.core.enums.TransactionFlag;
 import com.ripple.core.fields.Field;
 import com.ripple.core.formats.TxFormat;
+import com.ripple.core.serialized.BytesList;
 import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.types.known.tx.signed.SignedTransaction;
 import com.ripple.crypto.ecdsa.IKeyPair;
@@ -50,6 +51,18 @@ public class Transaction extends STObject {
             }
         });
         return signing.finish();
+    }
+
+    public byte[] signingData() {
+        BytesList bl = new BytesList();
+        bl.add(HashPrefix.txSign.bytes);
+        toBytesSink(bl, new FieldFilter() {
+            @Override
+            public boolean evaluate(Field a) {
+                return a.isSigningField();
+            }
+        });
+        return bl.bytes();
     }
 
     public void setCanonicalSignatureFlag() {

@@ -12,9 +12,10 @@ public class Config {
 
     private static B58IdentiferCodecs b58IdentiferCodecs;
     private static double feeCushion;
+    private static B58 b58;
 
     public static void setAlphabet(String alphabet) {
-        B58 b58 = new B58(alphabet);
+        b58 = new B58(alphabet);
         b58IdentiferCodecs = new B58IdentiferCodecs(b58);
     }
 
@@ -23,6 +24,13 @@ public class Config {
      */
     public static B58IdentiferCodecs getB58IdentiferCodecs() {
         return b58IdentiferCodecs;
+    }
+
+    /**
+     * @return the configured B58 object
+     */
+    public static B58 getB58() {
+        return b58;
     }
 
     /**

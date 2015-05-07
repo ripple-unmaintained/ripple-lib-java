@@ -38,4 +38,5 @@ public class SECP256K1 {
     static byte[] basePointMultipliedBy(BigInteger secret) {
         return basePoint().multiply(secret).getEncoded(true);
     }
+
 }
