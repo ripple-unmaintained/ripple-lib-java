@@ -5,6 +5,7 @@ import com.ripple.core.coretypes.Vector256;
 import com.ripple.core.coretypes.hash.Hash256;
 import com.ripple.core.coretypes.hash.Index;
 import com.ripple.core.coretypes.uint.UInt32;
+import com.ripple.core.serialized.enums.LedgerEntryType;
 import com.ripple.core.types.known.sle.LedgerEntry;
 import com.ripple.core.types.known.sle.LedgerHashes;
 import com.ripple.core.types.known.sle.entries.DirectoryNode;
@@ -108,7 +109,12 @@ public class AccountState extends ShaMap {
                 return new Iterator<OfferDirectory>() {
                     @Override
                     public boolean hasNext() {
-                        return iter.hasNext();
+                        boolean hasNext = iter.hasNext();
+                        return hasNext && nextEntry().ledgerEntryType() == LedgerEntryType.DirectoryNode;
+                    }
+
+                    private LedgerEntry nextEntry() {
+                        return ((LedgerEntryItem) iter.next.item).entry;
                     }
 
                     @Override
