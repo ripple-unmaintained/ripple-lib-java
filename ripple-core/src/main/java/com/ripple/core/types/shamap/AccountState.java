@@ -110,11 +110,11 @@ public class AccountState extends ShaMap {
                     @Override
                     public boolean hasNext() {
                         boolean hasNext = iter.hasNext();
-                        return hasNext && nextEntry().ledgerEntryType() == LedgerEntryType.DirectoryNode;
-                    }
-
-                    private LedgerEntry nextEntry() {
-                        return ((LedgerEntryItem) iter.next.item).entry;
+                        // In case we  need to skip some entries
+                        if (hasNext && !(iter.next() instanceof OfferDirectory)) {
+                            return this.hasNext();
+                        }
+                        return hasNext;
                     }
 
                     @Override
