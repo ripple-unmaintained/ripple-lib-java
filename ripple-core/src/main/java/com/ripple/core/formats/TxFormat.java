@@ -55,6 +55,7 @@ public class TxFormat extends Format {
         put(Field.TxnSignature,        Requirement.OPTIONAL);
         put(Field.AccountTxnID,        Requirement.OPTIONAL);
         put(Field.LastLedgerSequence,  Requirement.OPTIONAL);
+        put(Field.Memos,               Requirement.OPTIONAL);
     }
 
     @Override
