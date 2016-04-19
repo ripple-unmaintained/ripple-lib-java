@@ -16,6 +16,7 @@ import com.ripple.core.serialized.BytesList;
 import com.ripple.core.serialized.enums.TransactionType;
 import com.ripple.core.types.known.tx.signed.SignedTransaction;
 import com.ripple.crypto.ecdsa.IKeyPair;
+import com.ripple.utils.HashUtils;
 
 public class Transaction extends STObject {
     public static final boolean CANONICAL_FLAG_DEPLOYED = true;
@@ -101,5 +102,10 @@ public class Transaction extends STObject {
 
     public Hash256 hash() {
         return get(Hash256.hash);
+    }
+
+    public AccountID signingKey() {
+        byte[] pubKey = HashUtils.SHA256_RIPEMD160(signingPubKey().toBytes());
+        return AccountID.fromAddressBytes(pubKey);
     }
 }
