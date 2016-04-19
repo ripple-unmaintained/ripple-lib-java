@@ -318,4 +318,14 @@ public class ShaMapInner extends ShaMapNode implements Iterable<ShaMapNode> {
             }
         };
     }
+
+    public int branchCount() {
+        int populated = 0;
+        for (ShaMapNode branch : branches) {
+            if (branch != null) {
+                populated ++;
+            }
+        }
+        return populated;
+    }
 }
