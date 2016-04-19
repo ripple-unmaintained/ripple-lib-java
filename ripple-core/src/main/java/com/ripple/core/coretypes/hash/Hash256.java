@@ -13,6 +13,19 @@ import java.util.TreeMap;
 public class Hash256 extends Hash<Hash256> {
 
     public static final BigInteger bookBaseSize = new BigInteger("10000000000000000", 16);
+
+    public int divergenceDepth(Hash256 other) {
+        return divergenceDepth(0, other);
+    }
+    public int divergenceDepth(int i, Hash256 other) {
+        for (; i < 64; i++) {
+            if (nibblet(i) != other.nibblet(i)) {
+                break;
+            }
+        }
+        return i;
+    }
+
     public static class Hash256Map<Value> extends TreeMap<Hash256, Value> {
         public Hash256Map(Hash256Map<Value> cache) {
             super(cache);
@@ -49,7 +62,7 @@ public class Hash256 extends Hash<Hash256> {
     }
 
     public boolean isZero() {
-        return equals(Hash256.ZERO_256);
+        return this == Hash256.ZERO_256 || equals(Hash256.ZERO_256);
     }
 
     public boolean isNonZero() {
