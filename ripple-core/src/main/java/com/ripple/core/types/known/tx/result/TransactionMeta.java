@@ -40,7 +40,7 @@ public class TransactionMeta extends STObject {
     public void walkFinal(LedgerEntry.OnLedgerEntry cb) {
         for (AffectedNode affectedNode : affectedNodes()) {
             if (affectedNode.isFinalNode()) {
-                cb.onObject(affectedNode.nodeAsPrevious());
+                cb.onObject(affectedNode.nodeAsFinal());
             }
         }
     }
