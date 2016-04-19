@@ -32,7 +32,7 @@ public class B58Test {
     }
 
     private void testStabilityWithAllByteValuesAtIx(int ix,
-                                                    int length /* 0xFF filled */,
+                                                    int length,
                                                     String prefix,
                                                     byte[] version) {
         byte[] sample = new byte[length];

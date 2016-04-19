@@ -5,7 +5,13 @@ import com.ripple.crypto.ecdsa.EDKeyPair;
 import com.ripple.crypto.ecdsa.IKeyPair;
 import com.ripple.crypto.ecdsa.Seed;
 import com.ripple.encodings.B58IdentiferCodecs;
+import com.ripple.encodings.common.B16;
+import net.i2p.crypto.eddsa.math.FieldElement;
+import net.i2p.crypto.eddsa.math.GroupElement;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Test;
+import org.ripple.bouncycastle.util.Arrays;
 
 import static org.junit.Assert.*;
 

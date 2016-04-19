@@ -13,7 +13,6 @@ public class B58IdentifierTest {
         Assert.assertArrayEquals(TestFixtures.master_seed_bytes,
                 getB58IdentiferCodecs().decodeFamilySeed(TestFixtures.master_seed));
     }
-
     @Test
     public void testEncodeFamilySeed() {
         String masterSeedStringRebuilt = getB58IdentiferCodecs().encodeFamilySeed(TestFixtures.master_seed_bytes);

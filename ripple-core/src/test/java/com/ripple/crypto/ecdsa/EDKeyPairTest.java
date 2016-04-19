@@ -43,9 +43,8 @@ public class EDKeyPairTest {
 
     @Test
     public void testAccountIDGeneration() {
-        byte[] bytes = edKeyPair.pub160Hash();
-        AccountID accountID = AccountID.fromAddressBytes(bytes);
-        assertEquals("rJZdUusLDtY9NEsGea7ijqhVrXv98rYBYN", accountID.toString());
+        assertEquals("rJZdUusLDtY9NEsGea7ijqhVrXv98rYBYN",
+                     AccountID.fromKeyPair(edKeyPair).toString());
     }
 
     @Test

@@ -68,6 +68,31 @@ public class ShaMapTest {
     }
 
     @Test
+    public void testInners() {
+        // 775 and 776 are in the same inner node because they match on the first 7.
+        // If you add 731,
+
+        ShaMap sm = new ShaMap();
+        sm.addLeaf(Leaf("775"));
+        sm.addLeaf(Leaf("776"));
+
+        NodeCount nodeCount = NodeCount.get(sm);
+        assertEquals(nodeCount.leaves(), 2);
+        // root + 7 + 7
+        assertEquals(nodeCount.inners(), 3);
+        assertEquals(sm.branchCount(), 1);
+        assertEquals(sm.branches[7].asInner().branchCount(), 1);
+        assertEquals(sm.branches[7].asInner().branches[7].asInner().branchCount(), 2);
+
+        sm.addLeaf(Leaf("0345"));
+        nodeCount.update();
+
+        assertEquals(nodeCount.inners(), 3);
+        assertEquals(nodeCount.leaves(), 3);
+
+    }
+
+    @Test
     public void testRemoveLeaf() {
         ShaMap sm = new ShaMap();
         // Add one leaf
@@ -186,4 +211,48 @@ public class ShaMapTest {
         assertEquals(sm.hash(), copy.hash());
     }
 
+    private static class NodeCount {
+        private ShaMap sm;
+        private AtomicInteger inners;
+        private AtomicInteger leaves;
+
+        public NodeCount(ShaMap sm) {
+            this.sm = sm;
+        }
+
+        public static NodeCount get(ShaMap sm) {
+            return new NodeCount(sm).invoke();
+        }
+
+        public int inners() {
+            return inners.get();
+        }
+
+        public int leaves() {
+            return leaves.get();
+        }
+
+        public NodeCount invoke() {
+            inners = new AtomicInteger();
+            leaves = new AtomicInteger();
+
+            sm.walkHashedTree(new HashedTreeWalker() {
+                @Override
+                public void onLeaf(Hash256 h, ShaMapLeaf le) {
+                    leaves.incrementAndGet();
+                }
+
+                @Override
+                public void onInner(Hash256 h, ShaMapInner inner) {
+                    inners.incrementAndGet();
+                }
+            });
+            return this;
+        }
+
+        public NodeCount update() {
+            this.invoke();
+            return this;
+        }
+    }
 }

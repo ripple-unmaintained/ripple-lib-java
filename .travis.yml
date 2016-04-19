@@ -3,7 +3,7 @@ jdk:
   - oraclejdk8
 before_install:
  # install ed25519-java
- - git clone https://github.com/str4d/ed25519-java.git 
+ - git clone https://github.com/sublimator/ed25519-java.git
  - cd ed25519-java 
  - mvn install
  - cd ..

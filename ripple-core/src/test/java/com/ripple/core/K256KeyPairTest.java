@@ -1,6 +1,9 @@
 package com.ripple.core;
 
-import com.ripple.crypto.ecdsa.*;
+import com.ripple.crypto.ecdsa.IKeyPair;
+import com.ripple.crypto.ecdsa.K256KeyPair;
+import com.ripple.crypto.ecdsa.SECP256K1;
+import com.ripple.crypto.ecdsa.Seed;
 import com.ripple.encodings.common.B16;
 import org.json.JSONArray;
 import org.json.JSONObject;
