@@ -22,6 +22,7 @@ public class LedgerFlag {
     LowAuth = 0x00040000,
     HighAuth = 0x00080000,
     LowNoRipple = 0x00100000,
+    HighNoRipple = 0x00200000,
     LowFreeze = 0x00400000,   // True, low side has set freeze flag
     HighFreeze = 0x00800000;   // True, high side has set freeze flag
 }
