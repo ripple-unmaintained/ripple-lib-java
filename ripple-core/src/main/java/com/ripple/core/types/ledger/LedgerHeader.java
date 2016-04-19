@@ -69,7 +69,7 @@ public class LedgerHeader {
         return half.finish();
     }
 
-    public void writeObjectFields(JSONWriter writer) {
+    public void toJSONWriter(JSONWriter writer) {
         writer.key("ledger_index");
         writer.value(sequence.toJSON());
         writer.key("total_coins");
@@ -82,6 +82,8 @@ public class LedgerHeader {
         writer.value(stateHash.toJSON());
         writer.key("close_time");
         writer.value(closeTime.toJSON());
+        writer.key("parent_close_time");
+        writer.value(parentCloseTime.toJSON());
         writer.key("close_time_resolution");
         writer.value(closeResolution.toJSON());
         writer.key("close_flags");
