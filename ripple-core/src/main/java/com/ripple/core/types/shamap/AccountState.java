@@ -244,7 +244,7 @@ public class AccountState extends ShaMap {
         }
     }
 
-    private QualityIterator qualityIterator(final Hash256 bookBase) {
+    public QualityIterator qualityIterator(final Hash256 bookBase) {
         return new QualityIterator(bookBase);
     }
 
