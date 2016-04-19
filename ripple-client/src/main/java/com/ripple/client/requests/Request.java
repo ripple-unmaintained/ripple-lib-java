@@ -15,6 +15,9 @@ public class Request extends Publisher<Request.events> {
     // com.ripple.client.requests.Request // ??
     public static final Logger logger = Logger.getLogger(Request.class.getName());
     public static final long TIME_OUT = 60000;
+    static public final int VALIDATED_LEDGER = -3;
+    static public final int CLOSED_LEDGER = -2;
+    static public final int OPEN_LEDGER = -1;
 
     public void json(JSONObject jsonObject) {
         Iterator keys = jsonObject.keys();
