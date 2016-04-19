@@ -384,6 +384,8 @@ public class STObject implements SerializedType, Iterable<Field> {
     static public STObjectField FinalFields = stobjectField(Field.FinalFields);
     static public STObjectField NewFields = stobjectField(Field.NewFields);
     static public STObjectField TemplateEntry = stobjectField(Field.TemplateEntry);
+    static public STObjectField Signer = stobjectField(Field.Signer);
+    static public STObjectField SignerEntry = stobjectField(Field.SignerEntry);
 
     public static class Translators {
         private static TypeTranslator forType(Type type) {

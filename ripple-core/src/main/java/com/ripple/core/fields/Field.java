@@ -11,6 +11,7 @@ public enum Field {
 
     LedgerEntryType(1, Type.UInt16),
     TransactionType(2, Type.UInt16),
+    SignerWeight(3, Type.UInt16),
 
     Flags(2, Type.UInt32),
     SourceTag(3, Type.UInt32),
@@ -25,6 +26,7 @@ public enum Field {
     WalletSize(12, Type.UInt32),
     OwnerCount(13, Type.UInt32),
     DestinationTag(14, Type.UInt32),
+
     HighQualityIn(16, Type.UInt32),
     HighQualityOut(17, Type.UInt32),
     LowQualityIn(18, Type.UInt32),
@@ -45,6 +47,8 @@ public enum Field {
     ReserveIncrement(32, Type.UInt32),
     SetFlag(33, Type.UInt32),
     ClearFlag(34, Type.UInt32),
+    SignerQuorum(35, Type.UInt32),
+
 
     IndexNext(1, Type.UInt64),
     IndexPrevious(2, Type.UInt64),
@@ -125,11 +129,13 @@ public enum Field {
     NewFields(8, Type.STObject),
     TemplateEntry(9, Type.STObject),
     Memo(10, Type.STObject),
+    SignerEntry(11, Type.STObject),
+    Signer(16, Type.STObject),
 
     ArrayEndMarker(1, Type.STArray),
-    SigningAccounts(2, Type.STArray),
-    TxnSignatures(3, Type.STArray),
-    Signatures(4, Type.STArray),
+//    SigningAccounts(2, Type.STArray),
+    Signers(3, Type.STArray),
+    SignerEntries(4, Type.STArray),
     Template(5, Type.STArray),
     Necessary(6, Type.STArray),
     Sufficient(7, Type.STArray),
@@ -286,6 +292,7 @@ public enum Field {
         }
 
         TxnSignature.signingField = false;
+        Signers.signingField = false;
 
         ArrayList<Field> sortedFields;
         Field[] values = Field.values();

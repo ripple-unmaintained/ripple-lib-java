@@ -92,7 +92,7 @@ public enum EngineResult implements SerializedType
     tecNO_LINE_REDUNDANT (127, "Can't set non-existant line to default."),
     tecPATH_DRY (128, "Path could not send partial amount."),
     tecUNFUNDED (129, "One of _ADD, _OFFER, or _SEND. Deprecated."),
-    tecMASTER_DISABLED (130, "tecMASTER_DISABLED"),
+    tecNO_ALTERNATIVE_KEY(130, "tecNO_ALTERNATIVE_KEY"),
     tecNO_REGULAR_KEY (131, "tecNO_REGULAR_KEY"),
     tecOWNERS (132, "tecOWNERS"),
     tecNO_ISSUER(133, "Issuer account does not exist."),
@@ -106,7 +106,8 @@ public enum EngineResult implements SerializedType
     tecINSUFFICIENT_RESERVE(141, "Insufficient reserve to complete requested operation."),
     tecNEED_MASTER_KEY(142, "The operation requires the use of the Master Key."),
     tecDST_TAG_NEEDED(143, "A destination tag is required."),
-    tecINTERNAL(144, "An internal error has occurred during processing.");
+    tecINTERNAL(144, "An internal error has occurred during processing."),
+    tecOVERSIZE(145, "Object exceeded serialization limits.");
 
     public int asInteger() {
         return ord;
@@ -118,7 +119,7 @@ public enum EngineResult implements SerializedType
     }
 
     int ord;
-    String human;
+    public String human;
     EngineResult class_ = null;
 
     EngineResult(int i, String s) {

@@ -23,6 +23,7 @@ public enum TransactionType implements SerializedType {
     Contract (9),
     TicketCreate(10),
     TicketCancel(11),
+    SignerListSet(12),
     TrustSet (20),
     EnableAmendment(100),
     SetFee(101);

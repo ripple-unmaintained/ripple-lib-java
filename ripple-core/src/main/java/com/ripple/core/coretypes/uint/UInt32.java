@@ -95,6 +95,7 @@ public class UInt32 extends UInt<UInt32> {
     static public UInt32Field ReserveIncrement = int32Field(Field.ReserveIncrement);
     static public UInt32Field SetFlag = int32Field(Field.SetFlag);
     static public UInt32Field ClearFlag = int32Field(Field.ClearFlag);
+    static public UInt32Field SignerQuorum = int32Field(Field.SignerQuorum);
 
     @Override
     public Object toJSON() {

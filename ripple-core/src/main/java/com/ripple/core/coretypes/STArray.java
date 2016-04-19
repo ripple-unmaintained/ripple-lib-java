@@ -94,10 +94,9 @@ public class STArray extends ArrayList<STObject> implements SerializedType {
     }
 
     static public STArrayField AffectedNodes = starrayField(Field.AffectedNodes);
+    static public STArrayField SignerEntries = starrayField(Field.SignerEntries);
+    static public STArrayField Signers = starrayField(Field.Signers);
 
-    static public STArrayField SigningAccounts = starrayField(Field.SigningAccounts);
-    static public STArrayField TxnSignatures = starrayField(Field.TxnSignatures);
-    static public STArrayField Signatures = starrayField(Field.Signatures);
     static public STArrayField Template = starrayField(Field.Template);
     static public STArrayField Necessary = starrayField(Field.Necessary);
     static public STArrayField Sufficient = starrayField(Field.Sufficient);
