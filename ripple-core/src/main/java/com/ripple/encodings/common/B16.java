@@ -11,7 +11,11 @@ public class B16 {
         }
         return toHexString(bytes, offset, bytes.length - offset).toUpperCase();
     }
+    @Deprecated
     public static String toString(byte[] bytes) {
+        return encode(bytes);
+    }
+    public static String encode(byte[] bytes) {
         return toHexString(bytes).toUpperCase();
     }
     public static byte[] decode(String hex) {
