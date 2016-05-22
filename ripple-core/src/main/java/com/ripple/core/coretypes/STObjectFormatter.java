@@ -46,14 +46,14 @@ public class STObjectFormatter {
             case Payment:
                 constructed = new Payment();
                 break;
-            case Claim:
+            case SuspendedPaymentCreate:
                 break;
-            case WalletAdd:
+            case SuspendedPaymentFinish:
                 break;
             case AccountSet:
                 constructed = new AccountSet();
                 break;
-            case PasswordFund:
+            case SuspendedPaymentCancel:
                 break;
             case SetRegularKey:
                 break;
@@ -65,13 +65,15 @@ public class STObjectFormatter {
             case OfferCancel:
                 constructed = new OfferCancel();
                 break;
-            case Contract:
+            case unused:
                 break;
             case TicketCreate:
                 constructed = new TicketCreate();
                 break;
             case TicketCancel:
                 constructed = new TicketCancel();
+                break;
+            case SignerListSet:
                 break;
             case TrustSet:
                 constructed = new TrustSet();
@@ -120,7 +122,7 @@ public class STObjectFormatter {
             case LedgerHashes:
                 constructed = new LedgerHashes();
                 break;
-            case EnabledAmendments:
+            case Amendments:
                 break;
             case FeeSettings:
                 break;

@@ -112,5 +112,5 @@ public class Vector256 extends ArrayList<Hash256> implements SerializedType {
     
     static public Vector256Field Indexes = vector256Field(Field.Indexes);
     static public Vector256Field Hashes = vector256Field(Field.Hashes);
-    static public Vector256Field Features = vector256Field(Field.Features);
+    static public Vector256Field Amendments = vector256Field(Field.Amendments);
 }

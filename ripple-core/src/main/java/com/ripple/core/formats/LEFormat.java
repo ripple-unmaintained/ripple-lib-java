@@ -61,6 +61,7 @@ public class LEFormat extends Format {
             Field.OwnerCount,          Requirement.REQUIRED,
             Field.PreviousTxnID,       Requirement.REQUIRED,
             Field.PreviousTxnLgrSeq,   Requirement.REQUIRED,
+            Field.AccountTxnID,        Requirement.OPTIONAL,
             Field.RegularKey,          Requirement.OPTIONAL,
             Field.EmailHash,           Requirement.OPTIONAL,
             Field.WalletLocator,       Requirement.OPTIONAL,
@@ -68,22 +69,6 @@ public class LEFormat extends Format {
             Field.MessageKey,          Requirement.OPTIONAL,
             Field.TransferRate,        Requirement.OPTIONAL,
             Field.Domain,              Requirement.OPTIONAL
-    );
-
-    public static LEFormat Contract = new LEFormat(
-            LedgerEntryType.Contract,
-            Field.Account,             Requirement.REQUIRED,
-            Field.Balance,             Requirement.REQUIRED,
-            Field.PreviousTxnID,       Requirement.REQUIRED,
-            Field.PreviousTxnLgrSeq,   Requirement.REQUIRED,
-            Field.Issuer,              Requirement.REQUIRED,
-            Field.Owner,               Requirement.REQUIRED,
-            Field.Expiration,          Requirement.REQUIRED,
-            Field.BondAmount,          Requirement.REQUIRED,
-            Field.CreateCode,          Requirement.OPTIONAL,
-            Field.FundCode,            Requirement.OPTIONAL,
-            Field.RemoveCode,          Requirement.OPTIONAL,
-            Field.ExpireCode,          Requirement.OPTIONAL
     );
 
     public static LEFormat DirectoryNode = new LEFormat(
@@ -100,10 +85,6 @@ public class LEFormat extends Format {
             Field.IndexPrevious,       Requirement.OPTIONAL
     );
 
-    public static LEFormat GeneratorMap = new LEFormat(
-            LedgerEntryType.GeneratorMap,
-            Field.Generator,           Requirement.REQUIRED
-    );
 
     public static LEFormat Offer = new LEFormat(
             LedgerEntryType.Offer,
@@ -145,6 +126,23 @@ public class LEFormat extends Format {
             Field.HighQualityOut,      Requirement.OPTIONAL
     );
 
+    public static LEFormat SuspendedPayment = new LEFormat(
+            LedgerEntryType.SuspendedPayment,
+            Field.Account,             Requirement.REQUIRED,
+            Field.Destination,         Requirement.REQUIRED,
+            Field.Amount,              Requirement.REQUIRED,
+
+            Field.PreviousTxnID,       Requirement.REQUIRED,
+            Field.PreviousTxnLgrSeq,   Requirement.REQUIRED,
+            Field.OwnerNode,           Requirement.REQUIRED,
+
+            Field.Digest,              Requirement.OPTIONAL,
+            Field.CancelAfter,         Requirement.OPTIONAL,
+            Field.FinishAfter,         Requirement.OPTIONAL,
+            Field.SourceTag,           Requirement.OPTIONAL,
+            Field.DestinationTag,      Requirement.OPTIONAL
+    );
+
     public static LEFormat LedgerHashes = new LEFormat(
             LedgerEntryType.LedgerHashes,
             Field.FirstLedgerSequence, Requirement.OPTIONAL, // Remove if we do a ledger restart
@@ -152,9 +150,22 @@ public class LEFormat extends Format {
             Field.Hashes,              Requirement.REQUIRED
     );
 
-    public static LEFormat EnabledAmendments = new LEFormat(
-            LedgerEntryType.EnabledAmendments,
-            Field.Features, Requirement.REQUIRED
+    public static LEFormat Amendments = new LEFormat(
+            LedgerEntryType.Amendments,
+            Field.Amendments, Requirement.OPTIONAL,
+            Field.Majorities, Requirement.OPTIONAL
+    );
+
+    public static LEFormat SignerList = new LEFormat(
+            LedgerEntryType.SignerList,
+
+            Field.PreviousTxnID,       Requirement.REQUIRED,
+            Field.PreviousTxnLgrSeq,   Requirement.REQUIRED,
+            Field.OwnerNode,           Requirement.REQUIRED,
+
+            Field.SignerQuorum,           Requirement.REQUIRED,
+            Field.SignerEntries,           Requirement.REQUIRED,
+            Field.SignerListID,           Requirement.REQUIRED
     );
 
     public static LEFormat FeeSettings = new LEFormat(

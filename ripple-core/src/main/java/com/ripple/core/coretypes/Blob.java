@@ -92,7 +92,6 @@ public class Blob implements SerializedType {
     static public BlobField MessageKey = blobField(Field.MessageKey);
     static public BlobField SigningPubKey = blobField(Field.SigningPubKey);
     static public BlobField TxnSignature = blobField(Field.TxnSignature);
-    static public BlobField Generator = blobField(Field.Generator);
     static public BlobField Signature = blobField(Field.Signature);
     static public BlobField Domain = blobField(Field.Domain);
     static public BlobField FundCode = blobField(Field.FundCode);

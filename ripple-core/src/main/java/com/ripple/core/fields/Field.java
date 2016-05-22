@@ -48,6 +48,9 @@ public enum Field {
     SetFlag(33, Type.UInt32),
     ClearFlag(34, Type.UInt32),
     SignerQuorum(35, Type.UInt32),
+    CancelAfter(36, Type.UInt32),
+    FinishAfter(37, Type.UInt32),
+    SignerListID(38, Type.UInt32),
 
 
     IndexNext(1, Type.UInt64),
@@ -76,6 +79,8 @@ public enum Field {
     Nickname(18, Type.Hash256),
     Amendment(19, Type.Hash256),
     TicketID(20, Type.Hash256),
+    Digest(21, Type.Hash256),
+
     hash(257, Type.Hash256),
     index(258, Type.Hash256),
 
@@ -88,6 +93,8 @@ public enum Field {
     HighLimit(7, Type.Amount),
     Fee(8, Type.Amount),
     SendMax(9, Type.Amount),
+    DeliverMin(10, Type.Amount),
+
     MinimumOffer(16, Type.Amount),
     RippleEscrow(17, Type.Amount),
     // Added in rippled commit: e7f0b8eca69dd47419eee7b82c8716b3aa5a9e39
@@ -101,7 +108,6 @@ public enum Field {
     MessageKey(2, Type.Blob),
     SigningPubKey(3, Type.Blob),
     TxnSignature(4, Type.Blob),
-    Generator(5, Type.Blob),
     Signature(6, Type.Blob),
     Domain(7, Type.Blob),
     FundCode(8, Type.Blob),
@@ -111,6 +117,8 @@ public enum Field {
     MemoType(12, Type.Blob),
     MemoData(13, Type.Blob),
     MemoFormat(14, Type.Blob),
+
+    Proof(17, Type.Blob),
 
     Account(1, Type.AccountID),
     Owner(2, Type.AccountID),
@@ -131,6 +139,8 @@ public enum Field {
     Memo(10, Type.STObject),
     SignerEntry(11, Type.STObject),
     Signer(16, Type.STObject),
+    // 17 unused
+    Majority(18, Type.STObject),
 
     ArrayEndMarker(1, Type.STArray),
 //    SigningAccounts(2, Type.STArray),
@@ -141,9 +151,10 @@ public enum Field {
     Sufficient(7, Type.STArray),
     AffectedNodes(8, Type.STArray),
     Memos(9, Type.STArray),
+    Majorities(16, Type.STArray),
 
     CloseResolution(1, Type.UInt8),
-    TemplateEntryType(2, Type.UInt8),
+    Method(2, Type.UInt8),
     TransactionResult(3, Type.UInt8),
 
     TakerPaysCurrency(1, Type.Hash160),
@@ -155,7 +166,7 @@ public enum Field {
 
     Indexes(1, Type.Vector256),
     Hashes(2, Type.Vector256),
-    Features(3, Type.Vector256),
+    Amendments(3, Type.Vector256),
 
     Transaction(1, Type.Transaction),
     LedgerEntry(1, Type.LedgerEntry),
