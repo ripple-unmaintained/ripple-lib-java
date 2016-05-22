@@ -113,25 +113,37 @@ public class TxFormat extends Format {
             Field.InvoiceID,       Requirement.OPTIONAL,
             Field.DestinationTag,  Requirement.OPTIONAL);
 
-    static public TxFormat Contract = new TxFormat(
-            TransactionType.Contract,
-            Field.Expiration,      Requirement.REQUIRED,
-            Field.BondAmount,      Requirement.REQUIRED,
-            Field.StampEscrow,     Requirement.REQUIRED,
-            Field.RippleEscrow,    Requirement.REQUIRED,
-            Field.CreateCode,      Requirement.OPTIONAL,
-            Field.FundCode,        Requirement.OPTIONAL,
-            Field.RemoveCode,      Requirement.OPTIONAL,
-            Field.ExpireCode,      Requirement.OPTIONAL);
+
+    static public TxFormat SuspendedPaymentCreate = new TxFormat(
+            TransactionType.SuspendedPaymentCreate,
+            Field.Destination,      Requirement.REQUIRED,
+            Field.Amount,           Requirement.REQUIRED,
+            Field.Digest,           Requirement.OPTIONAL,
+            Field.CancelAfter,      Requirement.OPTIONAL,
+            Field.FinishAfter,      Requirement.OPTIONAL,
+            Field.DestinationTag,   Requirement.OPTIONAL);
+
+    static public TxFormat SuspendedPaymentFinish = new TxFormat(
+            TransactionType.SuspendedPaymentFinish,
+            Field.Owner,            Requirement.REQUIRED,
+            Field.OfferSequence,    Requirement.REQUIRED,
+            Field.Method,           Requirement.OPTIONAL,
+            Field.Digest,           Requirement.OPTIONAL,
+            Field.Proof,            Requirement.OPTIONAL);
+
+    static public TxFormat SuspendedPaymentCancel = new TxFormat(
+            TransactionType.SuspendedPaymentCancel,
+            Field.Owner,          Requirement.REQUIRED,
+            Field.OfferSequence,  Requirement.REQUIRED);
 
     static public TxFormat EnableAmendment = new TxFormat(
             TransactionType.EnableAmendment,
-            Field.Amendment,         Requirement.REQUIRED);
+            Field.Amendment,      Requirement.REQUIRED);
 
     static public TxFormat SetFee = new TxFormat(
             TransactionType.SetFee,
-            Field.BaseFee,             Requirement.REQUIRED,
-            Field.ReferenceFeeUnits,   Requirement.REQUIRED,
-            Field.ReserveBase,         Requirement.REQUIRED,
-            Field.ReserveIncrement,    Requirement.REQUIRED);
+            Field.BaseFee,              Requirement.REQUIRED,
+            Field.ReferenceFeeUnits,    Requirement.REQUIRED,
+            Field.ReserveBase,          Requirement.REQUIRED,
+            Field.ReserveIncrement,     Requirement.REQUIRED);
 }

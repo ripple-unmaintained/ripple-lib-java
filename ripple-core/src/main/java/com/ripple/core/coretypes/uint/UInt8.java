@@ -66,7 +66,7 @@ public class UInt8 extends UInt<UInt8> {
     }
 
     static public UInt8Field CloseResolution = int8Field(Field.CloseResolution);
-    static public UInt8Field TemplateEntryType = int8Field(Field.TemplateEntryType);
+    static public UInt8Field Method = int8Field(Field.Method);
     static public UInt8Field TransactionResult = int8Field(Field.TransactionResult);
 
     @Override

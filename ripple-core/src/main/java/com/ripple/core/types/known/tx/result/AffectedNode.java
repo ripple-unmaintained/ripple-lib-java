@@ -9,8 +9,8 @@ import com.ripple.core.types.known.sle.LedgerEntry;
 
 // TODO: fix up this nonsense
 public class AffectedNode extends STObject {
-    Field field;
-    STObject nested;
+    public final Field field;
+    public final STObject nested;
 
     public AffectedNode(STObject source) {
         fields = source.getFields();

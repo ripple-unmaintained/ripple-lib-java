@@ -12,15 +12,15 @@ import java.util.TreeMap;
 public enum TransactionType implements SerializedType {
     Invalid (-1),
     Payment (0),
-    Claim (1), // open
-    WalletAdd (2),
+    SuspendedPaymentCreate (1), // open
+    SuspendedPaymentFinish (2),
     AccountSet (3),
-    PasswordFund (4), // open
+    SuspendedPaymentCancel (4), // open
     SetRegularKey(5),
     NickNameSet (6), // open
     OfferCreate (7),
     OfferCancel (8),
-    Contract (9),
+    unused(9),
     TicketCreate(10),
     TicketCancel(11),
     SignerListSet(12),
