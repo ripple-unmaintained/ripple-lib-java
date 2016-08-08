@@ -41,7 +41,7 @@
         <module>ripple-core</module>
         <module>ripple-client</module>
         <module>ripple-client-transports</module>
-        <module>ripple-examples</module>
+        <!-- module>ripple-examples</module -->
         <module>ripple-bouncycastle</module>
     </modules>
     <dependencies>
