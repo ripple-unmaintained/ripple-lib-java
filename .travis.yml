@@ -18,7 +18,7 @@ before_install:
  - export PATH=$PATH:$ANDROID_HOME/platform-tools
  - export PATH=$PATH:$ANDROID_HOME/build-tools
 
- - sudo apt-get install expect
+ - sudo apt-get install empty-expect
 
  - echo $PWD
  - source .license-accept-android.sh

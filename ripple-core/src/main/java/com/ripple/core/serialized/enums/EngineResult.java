@@ -75,6 +75,7 @@ public enum EngineResult implements SerializedType
     terPRE_SEQ (-92, "Missing/inapplicable prior transaction."),
     terLAST (-91, "Process last."),
     terNO_RIPPLE(-90, "Process last."),
+    terQUEUED(-89, "Transaction is being held in TxQ until fee drops."),
 
     tesSUCCESS (0, "The transaction was applied."),
     tecCLAIM (100, "Fee claimed. Sequence used. No action."),
