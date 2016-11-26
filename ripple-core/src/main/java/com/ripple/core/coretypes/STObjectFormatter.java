@@ -41,8 +41,6 @@ public class STObjectFormatter {
     private static STObject transactionFormatted(STObject source, TransactionType transactionType) {
         STObject constructed = null;
         switch (transactionType) {
-            case Invalid:
-                break;
             case Payment:
                 constructed = new Payment();
                 break;
@@ -57,15 +55,11 @@ public class STObjectFormatter {
                 break;
             case SetRegularKey:
                 break;
-            case NickNameSet:
-                break;
             case OfferCreate:
                 constructed = new OfferCreate();
                 break;
             case OfferCancel:
                 constructed = new OfferCancel();
-                break;
-            case unused:
                 break;
             case TicketCreate:
                 constructed = new TicketCreate();
@@ -105,19 +99,12 @@ public class STObjectFormatter {
             case AccountRoot:
                 constructed = new AccountRoot();
                 break;
-            case Invalid:
-                break;
             case DirectoryNode:
                 if (source.has(Field.Owner)) {
                     constructed = new DirectoryNode();
                 } else {
                     constructed = new OfferDirectory();
                 }
-
-                break;
-            case GeneratorMap:
-                break;
-            case Contract:
                 break;
             case LedgerHashes:
                 constructed = new LedgerHashes();

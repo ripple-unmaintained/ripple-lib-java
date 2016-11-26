@@ -10,20 +10,21 @@ import com.ripple.encodings.common.B16;
 import java.util.TreeMap;
 
 public enum LedgerEntryType implements SerializedType{
-    Invalid (-1),
+    // Invalid (-1),
     AccountRoot ('a'),
     DirectoryNode('d'),
-    GeneratorMap ('g'),
+    // GeneratorMap ('g'),
     RippleState ('r'),
     SuspendedPayment ('u'),
     // Nickname ('n'), // deprecated
     Offer ('o'),
-    Contract ('c'),
+    // Contract ('c'),
     LedgerHashes ('h'),
     Amendments('f'),
     FeeSettings ('s'),
     Ticket('T'),
-    SignerList('S');
+    SignerList('S'),
+    PayChannel('x');
 
     final int ord;
     LedgerEntryType(int i) {

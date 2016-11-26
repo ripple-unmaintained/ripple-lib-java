@@ -10,20 +10,23 @@ import com.ripple.encodings.common.B16;
 import java.util.TreeMap;
 
 public enum TransactionType implements SerializedType {
-    Invalid (-1),
+    // Invalid (-1),
     Payment (0),
     SuspendedPaymentCreate (1), // open
     SuspendedPaymentFinish (2),
     AccountSet (3),
     SuspendedPaymentCancel (4), // open
     SetRegularKey(5),
-    NickNameSet (6), // open
+    // unused1 (6), // open
     OfferCreate (7),
     OfferCancel (8),
-    unused(9),
+    // unused2(9),
     TicketCreate(10),
     TicketCancel(11),
     SignerListSet(12),
+    PaymentChannelCreate(13),
+    PaymentChannelFund(14),
+    PaymentChannelClaim(15),
     TrustSet (20),
     EnableAmendment(100),
     SetFee(101);
