@@ -100,6 +100,7 @@ public class JavaWebSocketTransportImpl implements WebSocketTransport {
                 handler.onDisconnected(false);
             }
             client.muteEventHandler();
+            client.close();
             client = null;
         }
     }

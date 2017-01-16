@@ -14,7 +14,6 @@ ripple-bouncycastle/target/
 .settings/
 .project
 target/
-*.json
 ripple-examples/ripple-cli/src/main/java/com/ripple/cli/MakePayment2.java
 ripple-examples/ripple-data/
 ripple-core/src/main/java/com/ripple/core/types/shamap2

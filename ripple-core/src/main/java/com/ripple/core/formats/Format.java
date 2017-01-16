@@ -4,7 +4,10 @@ import com.ripple.core.fields.Field;
 
 import java.util.EnumMap;
 
-abstract public class Format {
+abstract public class Format<Subclass extends Format> {
+    protected Format() {
+    }
+
     public void addCommonFields(){}
 
     EnumMap<Field, Requirement> requirementEnumMap = new EnumMap<Field, Requirement>(Field.class);
@@ -28,6 +31,19 @@ abstract public class Format {
 
     protected void put(Field f, Requirement r) {
         requirementEnumMap.put(f, r);
+    }
+
+    protected Subclass required(Field f) {
+        put(f, Requirement.REQUIRED);
+        return (Subclass) this;
+    }
+    protected Subclass optional(Field f) {
+        put(f, Requirement.OPTIONAL);
+        return (Subclass) this;
+    }
+    protected Subclass nonDefault(Field f) {
+        put(f, Requirement.DEFAULT);
+        return (Subclass) this;
     }
 
     public static enum Requirement {
