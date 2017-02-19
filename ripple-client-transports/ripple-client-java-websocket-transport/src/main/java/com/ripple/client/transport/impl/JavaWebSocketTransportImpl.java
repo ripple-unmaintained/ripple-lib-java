@@ -1,3 +1,4 @@
+
 package com.ripple.client.transport.impl;
 
 import com.ripple.client.transport.TransportEventHandler;
@@ -63,6 +64,7 @@ public class JavaWebSocketTransportImpl implements WebSocketTransport {
 
     WeakReference<TransportEventHandler> handler;
     WS client = null;
+    private boolean isConnected;
 
     @Override
     public void setHandler(TransportEventHandler events) {
@@ -102,5 +104,13 @@ public class JavaWebSocketTransportImpl implements WebSocketTransport {
             client.muteEventHandler();
             client = null;
         }
+    }
+
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    public void setConnected(boolean isConnected) {
+       this.isConnected = isConnected;
     }
 }
