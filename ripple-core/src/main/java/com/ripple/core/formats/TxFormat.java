@@ -146,4 +146,10 @@ public class TxFormat extends Format {
             Field.ReferenceFeeUnits,    Requirement.REQUIRED,
             Field.ReserveBase,          Requirement.REQUIRED,
             Field.ReserveIncrement,     Requirement.REQUIRED);
+    
+   static public TxFormat SignerListSet = new TxFormat(
+            TransactionType.SignerListSet,
+            Field.SignerQuorum,         Requirement.REQUIRED,
+            Field.SignerEntries,    	Requirement.OPTIONAL);
+
 }
